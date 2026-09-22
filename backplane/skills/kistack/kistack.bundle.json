@@ -1,0 +1,114 @@
+{
+  "source": "https://github.com/American-Embedded/kistack",
+  "revision": "73ece96e45a3a202f2ca05af32c66dbcefcf9851",
+  "skills": [
+    {
+      "name": "kicad-bom",
+      "description": "Resolve and review exact PCB parts, packages, electrical ratings, availability, and manufacturer BOM fields for KiCad projects.",
+      "path": "skills/bom/SKILL.md"
+    },
+    {
+      "name": "kicad-export",
+      "description": "Generate deterministic KiCad ERC, DRC, fabrication, assembly, documentation, and 3D export outputs with kicad-cli.",
+      "path": "skills/export/SKILL.md"
+    },
+    {
+      "name": "kicad-footprint",
+      "description": "Generate compliant KiCad footprints from official KiCad Library Tools",
+      "path": "skills/footprint/SKILL.md"
+    },
+    {
+      "name": "kicad-gerbers",
+      "description": "Generate, render, and visually review KiCad Gerber layers as a fabrication-output inspection step.",
+      "path": "skills/gerbers/SKILL.md"
+    },
+    {
+      "name": "kicad-layout",
+      "description": "Place components and route KiCad PCB layouts with footprint checks, schematic pin swaps, and signal integrity best practices.",
+      "path": "skills/layout/SKILL.md"
+    },
+    {
+      "name": "kicad-panelize",
+      "description": "Use KiKit to panelize a given PCB",
+      "path": "skills/panelize/SKILL.md"
+    },
+    {
+      "name": "pcb-product-render",
+      "description": "Create realistic Blender product renders from KiCad PCB projects, including refreshed 3D exports, physically plausible PCB materials, camera/stage setup, and visual validation.",
+      "path": "skills/pcb-product-render/SKILL.md"
+    },
+    {
+      "name": "kicad-pcb",
+      "description": "Review KiCad PCB layouts with DRC, layer renders, and 3D-model interference inspection.",
+      "path": "skills/pcb/SKILL.md"
+    },
+    {
+      "name": "kicad-schematic",
+      "description": "Create, modify, and review KiCad schematics from selected parts, datasheets, reference designs, renders, and netlists.",
+      "path": "skills/schematic/SKILL.md"
+    },
+    {
+      "name": "kicad-symbol",
+      "description": "Generate compliant KiCad symbols",
+      "path": "skills/symbol/SKILL.md"
+    }
+  ],
+  "files": [
+    "LICENSE",
+    "skills/bom/SKILL.md",
+    "skills/export/SKILL.md",
+    "skills/export/references/kicad_cli_command_fp_export_svg.md",
+    "skills/export/references/kicad_cli_command_fp_upgrade.md",
+    "skills/export/references/kicad_cli_command_introduction.md",
+    "skills/export/references/kicad_cli_command_jobset_run.md",
+    "skills/export/references/kicad_cli_command_pcb_drc.md",
+    "skills/export/references/kicad_cli_command_pcb_export_3dpdf.md",
+    "skills/export/references/kicad_cli_command_pcb_export_brep.md",
+    "skills/export/references/kicad_cli_command_pcb_export_drill.md",
+    "skills/export/references/kicad_cli_command_pcb_export_dxf.md",
+    "skills/export/references/kicad_cli_command_pcb_export_gencad.md",
+    "skills/export/references/kicad_cli_command_pcb_export_gerbers.md",
+    "skills/export/references/kicad_cli_command_pcb_export_glb.md",
+    "skills/export/references/kicad_cli_command_pcb_export_hpgl.md",
+    "skills/export/references/kicad_cli_command_pcb_export_ipc2581.md",
+    "skills/export/references/kicad_cli_command_pcb_export_ipcd356.md",
+    "skills/export/references/kicad_cli_command_pcb_export_odb.md",
+    "skills/export/references/kicad_cli_command_pcb_export_pdf.md",
+    "skills/export/references/kicad_cli_command_pcb_export_ply.md",
+    "skills/export/references/kicad_cli_command_pcb_export_pos.md",
+    "skills/export/references/kicad_cli_command_pcb_export_ps.md",
+    "skills/export/references/kicad_cli_command_pcb_export_stats.md",
+    "skills/export/references/kicad_cli_command_pcb_export_step.md",
+    "skills/export/references/kicad_cli_command_pcb_export_stl.md",
+    "skills/export/references/kicad_cli_command_pcb_export_stpz.md",
+    "skills/export/references/kicad_cli_command_pcb_export_svg.md",
+    "skills/export/references/kicad_cli_command_pcb_export_u3d.md",
+    "skills/export/references/kicad_cli_command_pcb_export_vrml.md",
+    "skills/export/references/kicad_cli_command_pcb_export_xao.md",
+    "skills/export/references/kicad_cli_command_pcb_import.md",
+    "skills/export/references/kicad_cli_command_pcb_render.md",
+    "skills/export/references/kicad_cli_command_pcb_upgrade.md",
+    "skills/export/references/kicad_cli_command_sch_erc.md",
+    "skills/export/references/kicad_cli_command_sch_export_bom.md",
+    "skills/export/references/kicad_cli_command_sch_export_dxf.md",
+    "skills/export/references/kicad_cli_command_sch_export_hpgl.md",
+    "skills/export/references/kicad_cli_command_sch_export_netlist.md",
+    "skills/export/references/kicad_cli_command_sch_export_pdf.md",
+    "skills/export/references/kicad_cli_command_sch_export_ps.md",
+    "skills/export/references/kicad_cli_command_sch_export_python_bom.md",
+    "skills/export/references/kicad_cli_command_sch_export_svg.md",
+    "skills/export/references/kicad_cli_command_sch_upgrade.md",
+    "skills/export/references/kicad_cli_command_sym_export_svg.md",
+    "skills/export/references/kicad_cli_command_sym_upgrade.md",
+    "skills/export/references/kicad_cli_command_version.md",
+    "skills/export/scripts/convert_position.py",
+    "skills/footprint/SKILL.md",
+    "skills/gerbers/SKILL.md",
+    "skills/layout/SKILL.md",
+    "skills/panelize/SKILL.md",
+    "skills/pcb-product-render/SKILL.md",
+    "skills/pcb/SKILL.md",
+    "skills/schematic/SKILL.md",
+    "skills/symbol/SKILL.md"
+  ]
+}

@@ -10,7 +10,8 @@ The plugin provides:
 - `bin/backplane` is a portable Python runtime with a tabbed PCB workbench.
 - `static/kicad-viewer/` carries Backplane's bundled 3D/STEP viewer runtime
   assets.
-- `skills/pcb-workflow/SKILL.md` teaches agents how to use the workbench.
+- `skills/pcb-workflow/SKILL.md` teaches agents how to use the workbench, and
+  `skills/kistack/` vendors Backplane's KiStack electronics skill bundle.
 - `prompts/session.md` is the session reminder text Portal can inject.
 
 The workbench mirrors Backplane's KiCad panel shape: schematic, PCB, Gerbers,
@@ -24,6 +25,28 @@ manufacturing output.
 
 The plugin is intentionally script-first. Agents should use the documented CLI
 commands and bundled skill instructions, with no additional integration setup.
+
+## Bundled KiStack Skills
+
+Backplane includes the American Embedded KiStack electronics workflow skills.
+This plugin vendors the bundle from
+`https://github.com/American-Embedded/kistack` at revision
+`73ece96e45a3a202f2ca05af32c66dbcefcf9851` under `skills/kistack/` and exposes
+each skill in `agent-portal-plugin.toml`:
+
+- `kicad-bom`
+- `kicad-export`
+- `kicad-footprint`
+- `kicad-gerbers`
+- `kicad-layout`
+- `kicad-panelize`
+- `pcb-product-render`
+- `kicad-pcb`
+- `kicad-schematic`
+- `kicad-symbol`
+
+Keep this vendored tree immutable except when intentionally refreshing to a new
+KiStack revision; record the source revision in `skills/kistack/kistack.bundle.json`.
 
 ## Try Locally
 

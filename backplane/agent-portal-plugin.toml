@@ -54,6 +54,56 @@ name = "pcb-workflow"
 path = "skills/pcb-workflow/SKILL.md"
 agents = ["claude", "codex"]
 
+[[skills]]
+name = "kicad-bom"
+path = "skills/kistack/skills/bom/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "kicad-export"
+path = "skills/kistack/skills/export/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "kicad-footprint"
+path = "skills/kistack/skills/footprint/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "kicad-gerbers"
+path = "skills/kistack/skills/gerbers/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "kicad-layout"
+path = "skills/kistack/skills/layout/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "kicad-panelize"
+path = "skills/kistack/skills/panelize/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "pcb-product-render"
+path = "skills/kistack/skills/pcb-product-render/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "kicad-pcb"
+path = "skills/kistack/skills/pcb/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "kicad-schematic"
+path = "skills/kistack/skills/schematic/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "kicad-symbol"
+path = "skills/kistack/skills/symbol/SKILL.md"
+agents = ["claude", "codex"]
+
 [[prompts]]
 name = "session"
 path = "prompts/session.md"

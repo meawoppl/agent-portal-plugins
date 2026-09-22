@@ -1,224 +1,375 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env python3
+"""Agent Portal Backplane plugin runtime."""
 
-usage() {
-  cat <<'USAGE'
-backplane portal plugin smoke wrapper
+from __future__ import annotations
+
+import argparse
+import csv
+import html
+import json
+import mimetypes
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+import zipfile
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, unquote, urlparse
+
+PLUGIN_DIR = Path(os.environ.get("AGENT_PORTAL_PLUGIN_DIR", Path(__file__).resolve().parents[1]))
+VIEWER_DIR = PLUGIN_DIR / "static" / "kicad-viewer"
+TABS = [
+    "schematic",
+    "pcb",
+    "gerbers",
+    "3d",
+    "step",
+    "bom",
+    "libraries",
+    "analysis",
+    "panelization",
+    "checks",
+]
+KINDS = {
+    ".kicad_pro": "project",
+    ".kicad_pcb": "pcb",
+    ".kicad_sch": "schematic",
+    ".kicad_mod": "footprint",
+    ".kicad_sym": "symbol",
+    ".step": "model",
+    ".stp": "model",
+    ".glb": "model",
+    ".gbr": "gerber",
+    ".gtl": "gerber",
+    ".gbl": "gerber",
+    ".gts": "gerber",
+    ".gbs": "gerber",
+    ".gto": "gerber",
+    ".gbo": "gerber",
+    ".gtp": "gerber",
+    ".gbp": "gerber",
+    ".gm1": "gerber",
+    ".gko": "gerber",
+    ".drl": "gerber",
+    ".zip": "gerber",
+    ".csv": "bom",
+    ".xml": "netlist",
+}
+
+
+def usage() -> int:
+    print(
+        """backplane portal plugin
 
 Commands:
   setup
   doctor [--json] [--cwd PATH]
   serve --port PORT [--cwd PATH] [--session UUID]
   drc [--json] [--cwd PATH]
+  erc [--json] [--cwd PATH]
   export gerbers --out PATH [--cwd PATH]
+  export jlcpcb --out PATH [--cwd PATH]
   mcp [--cwd PATH]
-USAGE
-}
+""",
+        end="",
+    )
+    return 2
 
-cmd="${1:-}"
-if [ -z "$cmd" ]; then
-  usage
-  exit 2
-fi
-shift || true
 
-case "$cmd" in
-  setup)
-    echo "Backplane plugin setup complete. This smoke wrapper uses bash and python3."
-    ;;
-  doctor)
-    python3 - "$@" <<'PY'
-import json, shutil, sys
-from pathlib import Path
+def parse_cwd(args: list[str]) -> tuple[Path, bool]:
+    cwd = Path.cwd()
+    as_json = False
+    i = 0
+    while i < len(args):
+        if args[i] == "--json":
+            as_json = True
+        elif args[i] == "--cwd":
+            i += 1
+            cwd = Path(args[i]).expanduser()
+        i += 1
+    return cwd.resolve(), as_json
 
-cwd = Path.cwd()
-as_json = False
-args = iter(sys.argv[1:])
-for arg in args:
-    if arg == "--json":
-        as_json = True
-    elif arg == "--cwd":
-        cwd = Path(next(args)).expanduser().resolve()
 
-patterns = ["*.kicad_pro", "*.kicad_pcb", "*.kicad_sch", "*.gbr", "*.gtl", "*.gbl", "*.drl", "*.zip"]
-matches = []
-for pattern in patterns:
-    matches.extend(str(path.relative_to(cwd)) for path in cwd.rglob(pattern) if path.is_file())
-matches = sorted(set(matches))[:200]
-tools = {
-    "python3": shutil.which("python3") is not None,
-    "node": shutil.which("node") is not None,
-    "kicad-cli": shutil.which("kicad-cli") is not None,
-}
-result = {
-    "ok": tools["python3"],
-    "cwd": str(cwd),
-    "tools": tools,
-    "detected_files": matches,
-    "notes": [
-        "This is a Portal plugin smoke wrapper, not the full upstream Backplane runtime.",
-        "Install upstream Backplane for full native PCB inspection workflows.",
-    ],
-}
-if as_json:
-    print(json.dumps(result, indent=2))
-else:
-    print(f"cwd: {cwd}")
-    print("tools:")
-    for name, ok in tools.items():
-        print(f"  {name}: {'ok' if ok else 'missing'}")
-    print("detected files:")
-    for path in matches or ["(none)"]:
-        print(f"  {path}")
-PY
-    ;;
-  serve)
-    python3 - "$@" <<'PY'
-import argparse, html, json, os
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
-from urllib.parse import urlparse
+def kicad_cli() -> str | None:
+    return os.environ.get("BACKPLANE_KICAD_CLI") or os.environ.get("KICAD_CLI") or shutil.which("kicad-cli")
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--port", type=int, required=True)
-parser.add_argument("--cwd", default=os.getcwd())
-parser.add_argument("--session", default="")
-args = parser.parse_args()
 
-cwd = Path(args.cwd).expanduser().resolve()
-patterns = ["*.kicad_pro", "*.kicad_pcb", "*.kicad_sch", "*.gbr", "*.gtl", "*.gbl", "*.gts", "*.gto", "*.gbs", "*.gbo", "*.drl", "*.zip"]
+def project_config(cwd: Path) -> dict:
+    path = cwd / ".backplane.json"
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text())
+        return data if isinstance(data, dict) else {}
+    except Exception as exc:
+        return {"_warning": f"Could not parse .backplane.json: {exc}"}
 
-def detected():
-    files = []
-    for pattern in patterns:
-        files.extend(path.relative_to(cwd).as_posix() for path in cwd.rglob(pattern) if path.is_file())
-    return sorted(set(files))[:300]
 
-class Handler(BaseHTTPRequestHandler):
-    def log_message(self, fmt, *values):
-        print("backplane-surface:", fmt % values)
+def safe_rel(cwd: Path, path: str) -> Path:
+    candidate = (cwd / unquote(path)).resolve()
+    candidate.relative_to(cwd)
+    return candidate
 
-    def send_json(self, body):
-        data = json.dumps(body, indent=2).encode()
+
+def detect_files(cwd: Path) -> list[dict]:
+    ignored = {".git", "node_modules", "target", ".portal"}
+    files: list[dict] = []
+    for path in cwd.rglob("*"):
+        if not path.is_file() or any(part in ignored for part in path.relative_to(cwd).parts):
+            continue
+        kind = KINDS.get(path.suffix.lower())
+        if not kind:
+            continue
+        stat = path.stat()
+        files.append(
+            {
+                "path": path.relative_to(cwd).as_posix(),
+                "kind": kind,
+                "mimeType": mimetypes.guess_type(path.name)[0] or "application/octet-stream",
+                "size": stat.st_size,
+                "mtimeMs": int(stat.st_mtime * 1000),
+            }
+        )
+    return sorted(files, key=lambda item: (item["kind"], item["path"]))
+
+
+def manifest(cwd: Path) -> dict:
+    config = project_config(cwd)
+    warnings = []
+    if "_warning" in config:
+        warnings.append(config.pop("_warning"))
+    if not kicad_cli():
+        warnings.append("kicad-cli is not available; DRC/ERC/export/BOM/3D generation are disabled.")
+    return {
+        "root": str(cwd),
+        "revision": str(int(time.time())),
+        "files": detect_files(cwd),
+        "config": config,
+        "warnings": warnings,
+    }
+
+
+def run(cmd: list[str], cwd: Path) -> tuple[int, str, str]:
+    proc = subprocess.run(cmd, cwd=cwd, text=True, capture_output=True, check=False)
+    return proc.returncode, proc.stdout, proc.stderr
+
+
+def pick_one(cwd: Path, suffix: str) -> Path | None:
+    config = project_config(cwd)
+    configured = config.get("pcb" if suffix == ".kicad_pcb" else "schematic")
+    if isinstance(configured, str):
+        path = (cwd / configured).resolve()
+        if path.exists():
+            return path
+    matches = sorted(path for path in cwd.rglob(f"*{suffix}") if ".git" not in path.parts)
+    return matches[0] if len(matches) == 1 else None
+
+
+def run_check(cwd: Path, kind: str) -> tuple[int, dict]:
+    cli = kicad_cli()
+    if not cli:
+        return 1, {"ok": False, "message": "kicad-cli is required", "tool": None}
+    if kind == "drc":
+        source = pick_one(cwd, ".kicad_pcb")
+        if not source:
+            return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
+        with tempfile.TemporaryDirectory(prefix="backplane-drc-") as tmp:
+            out = Path(tmp) / "drc.json"
+            code, stdout, stderr = run([cli, "pcb", "drc", "--format", "json", "--output", str(out), str(source)], cwd)
+            return code, {"ok": code == 0, "source": source.relative_to(cwd).as_posix(), "stdout": stdout, "stderr": stderr, "report": out.read_text() if out.exists() else ""}
+    source = pick_one(cwd, ".kicad_sch")
+    if not source:
+        return 1, {"ok": False, "message": "Select a single .kicad_sch or set schematic in .backplane.json"}
+    with tempfile.TemporaryDirectory(prefix="backplane-erc-") as tmp:
+        out = Path(tmp) / "erc.json"
+        code, stdout, stderr = run([cli, "sch", "erc", "--format", "json", "--output", str(out), str(source)], cwd)
+        return code, {"ok": code == 0, "source": source.relative_to(cwd).as_posix(), "stdout": stdout, "stderr": stderr, "report": out.read_text() if out.exists() else ""}
+
+
+def export_gerbers(cwd: Path, out: Path) -> tuple[int, dict]:
+    cli = kicad_cli()
+    board = pick_one(cwd, ".kicad_pcb")
+    if not cli:
+        return 1, {"ok": False, "message": "kicad-cli is required"}
+    if not board:
+        return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
+    out.mkdir(parents=True, exist_ok=True)
+    code1, stdout1, stderr1 = run([cli, "pcb", "export", "gerbers", "--output", str(out), str(board)], cwd)
+    code2, stdout2, stderr2 = run([cli, "pcb", "export", "drill", "--output", str(out), str(board)], cwd)
+    zip_path = out / f"{board.stem}-gerbers.zip"
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(out.iterdir()):
+            if path.is_file() and path != zip_path:
+                archive.write(path, path.name)
+    code = code1 or code2
+    return code, {"ok": code == 0, "board": board.relative_to(cwd).as_posix(), "out": str(out), "zip": str(zip_path), "stdout": stdout1 + stdout2, "stderr": stderr1 + stderr2}
+
+
+def csv_table(path: Path) -> str:
+    if not path.exists():
+        return "<p class='muted'>No CSV selected.</p>"
+    try:
+        rows = list(csv.reader(path.open(newline="")))
+    except Exception as exc:
+        return f"<p class='error'>{html.escape(str(exc))}</p>"
+    if not rows:
+        return "<p class='muted'>Empty CSV.</p>"
+    head = "".join(f"<th>{html.escape(cell)}</th>" for cell in rows[0])
+    body = "\n".join("<tr>" + "".join(f"<td>{html.escape(cell)}</td>" for cell in row) + "</tr>" for row in rows[1:200])
+    return f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
+
+
+def file_list(items: list[dict] | None, empty: str) -> str:
+    if not items:
+        return f"<li class='muted'>{empty}</li>"
+    return "".join(f"<li><code>{html.escape(item['path'])}</code></li>" for item in items)
+
+
+def workbench_html(cwd: Path, session: str) -> bytes:
+    data = manifest(cwd)
+    by_kind: dict[str, list[dict]] = {}
+    for item in data["files"]:
+        by_kind.setdefault(item["kind"], []).append(item)
+    bom_files = [item for item in data["files"] if item["path"].lower().endswith(".csv")]
+    bom_html = csv_table(cwd / bom_files[0]["path"]) if bom_files else "<p class='muted'>No CSV BOM/CPL files found.</p>"
+    warnings = "".join(f"<li>{html.escape(w)}</li>" for w in data["warnings"])
+    buttons = "".join(f"<button data-tab='{tab}'>{tab.title()}</button>" for tab in ["overview", *TABS])
+    body = f"""<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backplane · Agent Portal</title>
+<style>
+:root{{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}body{{margin:0;background:#16161e;color:#c0caf5}}header{{padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}.muted{{color:#9aa5ce}}.error{{color:#f7768e}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}code{{color:#7dcfff}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}table{{border-collapse:collapse;width:100%;font-size:12px}}th,td{{border:1px solid #3b4261;padding:6px;text-align:left}}th{{background:#292e42}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}
+</style></head><body>
+<header><h1>Backplane PCB Workbench</h1><div class="muted">Session {html.escape(session or "unknown")} · {html.escape(str(cwd))}</div></header>
+<nav class="tabs" role="tablist">{buttons}</nav><main>
+<section id="overview"><div class="grid"><div class="card"><h2>Project</h2><pre>{html.escape(json.dumps(data, indent=2))}</pre></div><div class="card"><h2>Warnings</h2><ul>{warnings or "<li>None</li>"}</ul></div></div></section>
+<section id="schematic"><div class="card"><h2>Schematic</h2><ul>{file_list(by_kind.get("schematic"), "No schematics found.")}</ul></div></section>
+<section id="pcb"><div class="card"><h2>PCB</h2><ul>{file_list(by_kind.get("pcb"), "No boards found.")}</ul></div></section>
+<section id="gerbers"><div class="card"><h2>Gerbers</h2><ul>{file_list(by_kind.get("gerber"), "No Gerbers found.")}</ul></div></section>
+<section id="3d"><div class="card"><h2>3D Board</h2><p class="muted">Backplane-compatible 3D runtime assets are bundled. Board GLB generation requires <code>kicad-cli pcb export glb</code> support.</p><iframe src="/kicad-viewer/runtime.html"></iframe></div></section>
+<section id="step"><div class="card"><h2>STEP</h2><ul>{file_list(by_kind.get("model"), "No STEP/STP/GLB models found.")}</ul><iframe src="/kicad-viewer/runtime.html"></iframe></div></section>
+<section id="bom"><div class="card"><h2>BOM / Assembly CSV</h2>{bom_html}</div></section>
+<section id="libraries"><div class="grid"><div class="card"><h2>Footprints</h2><ul>{file_list(by_kind.get("footprint"), "No footprints found.")}</ul></div><div class="card"><h2>Symbols</h2><ul>{file_list(by_kind.get("symbol"), "No symbols found.")}</ul></div></div></section>
+<section id="analysis"><div class="card"><h2>Analysis</h2><p class="muted">Use <code>analysisUrl</code> in <code>.backplane.json</code> for EMerge/antenna workflow dashboards.</p></div></section>
+<section id="panelization"><div class="card"><h2>Panelization</h2><p class="muted">Panelization preview requires KiKit plus <code>kicad-cli</code>. Configure <code>panelization</code> in <code>.backplane.json</code>.</p></div></section>
+<section id="checks"><div class="grid"><div class="card"><h2>DRC</h2><pre id="drc">Loading...</pre></div><div class="card"><h2>ERC</h2><pre id="erc">Loading...</pre></div></div></section>
+</main><script>
+const setTab=(id)=>{{document.querySelectorAll("section").forEach(el=>el.classList.toggle("active",el.id===id));document.querySelectorAll(".tabs button").forEach(el=>el.classList.toggle("active",el.dataset.tab===id));location.hash=id;if(id==="checks"){{fetch("/api/kicad/drc").then(r=>r.json()).then(j=>drc.textContent=JSON.stringify(j,null,2));fetch("/api/kicad/erc").then(r=>r.json()).then(j=>erc.textContent=JSON.stringify(j,null,2));}}}};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));setTab(location.hash.slice(1)||"overview");
+</script></body></html>"""
+    return body.encode()
+
+
+class Server(BaseHTTPRequestHandler):
+    cwd: Path
+    session: str
+
+    def log_message(self, fmt: str, *values: object) -> None:
+        print("backplane:", fmt % values, file=sys.stderr)
+
+    def send_bytes(self, data: bytes, content_type: str = "application/octet-stream") -> None:
         self.send_response(200)
+        self.send_header("content-type", content_type)
+        self.send_header("content-length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def send_json(self, body: object, status: int = 200) -> None:
+        data = json.dumps(body, indent=2).encode()
+        self.send_response(status)
         self.send_header("content-type", "application/json")
         self.send_header("content-length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
 
-    def do_GET(self):
-        path = urlparse(self.path).path
-        if path == "/healthz":
-            self.send_json({"ok": True, "plugin": "backplane"})
-            return
-        if path == "/api/project":
-            self.send_json({"cwd": str(cwd), "session": args.session, "files": detected()})
-            return
-        files = detected()
-        rows = "\n".join(f"<li><code>{html.escape(name)}</code></li>" for name in files) or "<li>No KiCad/Gerber files detected yet.</li>"
-        body = f"""<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Backplane Portal Plugin</title>
-  <style>
-    :root {{ color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }}
-    body {{ margin: 0; background: #16161e; color: #c0caf5; }}
-    header {{ padding: 18px 22px; border-bottom: 1px solid #3d4666; background: #1e202e; }}
-    main {{ padding: 22px; display: grid; gap: 18px; }}
-    h1 {{ margin: 0; font-size: 22px; color: #e6e9f5; }}
-    h2 {{ margin: 0 0 12px; font-size: 16px; color: #9ece6a; }}
-    .card {{ border: 1px solid #3d4666; border-radius: 8px; background: #1e202e; padding: 18px; }}
-    code {{ color: #7dcfff; }}
-    li {{ margin: 6px 0; }}
-    .muted {{ color: #a9b1d6; }}
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Backplane Portal Plugin</h1>
-    <div class="muted">Session {html.escape(args.session or "unknown")} · {html.escape(str(cwd))}</div>
-  </header>
-  <main>
-    <section class="card">
-      <h2>Detected PCB Files</h2>
-      <ul>{rows}</ul>
-    </section>
-    <section class="card">
-      <h2>Smoke Surface</h2>
-      <p>This validates the Agent Portal plugin contract: local service, forwardable surface, health endpoint, and project detection.</p>
-      <p class="muted">The full Backplane workbench can replace this wrapper behind the same manifest.</p>
-    </section>
-  </main>
-</body>
-</html>"""
-        data = body.encode()
-        self.send_response(200)
-        self.send_header("content-type", "text/html; charset=utf-8")
-        self.send_header("content-length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
+    def do_GET(self) -> None:
+        parsed = urlparse(self.path)
+        query = parse_qs(parsed.query)
+        try:
+            if parsed.path == "/healthz":
+                self.send_json({"ok": True, "plugin": "backplane", "kicad_cli": bool(kicad_cli())})
+            elif parsed.path in ("/api/project", "/api/kicad/manifest"):
+                self.send_json(manifest(self.cwd))
+            elif parsed.path == "/api/kicad/file":
+                target = safe_rel(self.cwd, query.get("path", [""])[0])
+                self.send_bytes(target.read_bytes(), mimetypes.guess_type(target.name)[0] or "text/plain")
+            elif parsed.path == "/api/kicad/drc":
+                self.send_json(run_check(self.cwd, "drc")[1])
+            elif parsed.path == "/api/kicad/erc":
+                self.send_json(run_check(self.cwd, "erc")[1])
+            elif parsed.path.startswith("/kicad-viewer/"):
+                target = (VIEWER_DIR / parsed.path.removeprefix("/kicad-viewer/")).resolve()
+                target.relative_to(VIEWER_DIR)
+                self.send_bytes(target.read_bytes(), mimetypes.guess_type(target.name)[0] or "application/octet-stream")
+            elif parsed.path == "/":
+                self.send_bytes(workbench_html(self.cwd, self.session), "text/html; charset=utf-8")
+            else:
+                self.send_json({"ok": False, "message": "not found"}, 404)
+        except Exception as exc:
+            self.send_json({"ok": False, "message": str(exc)}, 500)
 
-ThreadingHTTPServer(("127.0.0.1", args.port), Handler).serve_forever()
-PY
-    ;;
-  drc)
-    python3 - "$@" <<'PY'
-import json, shutil, sys
-from pathlib import Path
 
-cwd = Path.cwd()
-as_json = False
-args = iter(sys.argv[1:])
-for arg in args:
-    if arg == "--json":
-        as_json = True
-    elif arg == "--cwd":
-        cwd = Path(next(args)).expanduser().resolve()
-boards = sorted(path.relative_to(cwd).as_posix() for path in cwd.rglob("*.kicad_pcb"))
-result = {
-    "ok": shutil.which("kicad-cli") is not None,
-    "cwd": str(cwd),
-    "boards": boards,
-    "message": "kicad-cli is required for real DRC; this smoke wrapper only reports readiness.",
-}
-print(json.dumps(result, indent=2) if as_json else result["message"])
-sys.exit(0 if result["ok"] else 1)
-PY
-    ;;
-  export)
-    sub="${1:-}"
-    shift || true
-    if [ "$sub" != "gerbers" ]; then
-      usage
-      exit 2
-    fi
-    python3 - "$@" <<'PY'
-import argparse, json
-from pathlib import Path
+def main(argv: list[str]) -> int:
+    if not argv:
+        return usage()
+    cmd, rest = argv[0], argv[1:]
+    if cmd == "setup":
+        print("Backplane plugin setup complete.")
+        print(f"Bundled viewer assets: {'yes' if VIEWER_DIR.exists() else 'missing'}")
+        return 0
+    if cmd == "doctor":
+        cwd, as_json = parse_cwd(rest)
+        result = {
+            "ok": True,
+            "cwd": str(cwd),
+            "tools": {
+                "python3": shutil.which("python3") is not None,
+                "node": shutil.which("node") is not None,
+                "kicad-cli": kicad_cli() is not None,
+                "kikit": shutil.which("kikit") is not None,
+            },
+            "viewer_assets": VIEWER_DIR.exists(),
+            "detected_files": [item["path"] for item in detect_files(cwd)][:200],
+            "tabs": TABS,
+        }
+        print(json.dumps(result, indent=2) if as_json else result)
+        return 0
+    if cmd == "serve":
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--port", type=int, required=True)
+        parser.add_argument("--cwd", default=os.getcwd())
+        parser.add_argument("--session", default="")
+        args = parser.parse_args(rest)
+        Server.cwd = Path(args.cwd).expanduser().resolve()
+        Server.session = args.session
+        ThreadingHTTPServer(("127.0.0.1", args.port), Server).serve_forever()
+        return 0
+    if cmd in ("drc", "erc"):
+        cwd, as_json = parse_cwd(rest)
+        code, result = run_check(cwd, cmd)
+        print(json.dumps(result, indent=2) if as_json else result.get("message", json.dumps(result)))
+        return code
+    if cmd == "export":
+        if not rest:
+            return usage()
+        sub, rest = rest[0], rest[1:]
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--cwd", default=os.getcwd())
+        parser.add_argument("--out", required=True)
+        args = parser.parse_args(rest)
+        if sub not in ("gerbers", "jlcpcb"):
+            return usage()
+        code, result = export_gerbers(Path(args.cwd).expanduser().resolve(), Path(args.out).expanduser().resolve())
+        print(json.dumps(result, indent=2))
+        return code
+    if cmd == "mcp":
+        print(json.dumps({"jsonrpc": "2.0", "error": {"code": -32000, "message": "Backplane MCP is not implemented in the Portal plugin yet"}, "id": None}))
+        return 0
+    return usage()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--cwd", default=".")
-parser.add_argument("--out", required=True)
-args = parser.parse_args()
-cwd = Path(args.cwd).expanduser().resolve()
-out = Path(args.out).expanduser().resolve()
-out.mkdir(parents=True, exist_ok=True)
-manifest = {
-    "plugin": "backplane",
-    "cwd": str(cwd),
-    "note": "Smoke export placeholder. Full Backplane/KiCad integration should write Gerbers here.",
-}
-(out / "backplane-export-placeholder.json").write_text(json.dumps(manifest, indent=2) + "\n")
-print(json.dumps({"ok": True, "out": str(out), "files": ["backplane-export-placeholder.json"]}, indent=2))
-PY
-    ;;
-  mcp)
-    echo '{"jsonrpc":"2.0","error":{"code":-32000,"message":"Backplane MCP smoke wrapper is not implemented yet"},"id":null}'
-    ;;
-  *)
-    usage
-    exit 2
-    ;;
-esac
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

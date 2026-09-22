@@ -8,7 +8,8 @@ other electronics design artifacts and the Backplane Portal plugin is available.
 1. Inspect `.portal/plugins.toml` first. Treat an explicit Backplane suggestion
    as project intent.
 2. Run `agent-portal plugin open backplane` when visual PCB context would help.
-   The surface should appear beside chat.
+   The surface should appear beside chat with tabs for schematic, PCB, Gerbers,
+   3D, STEP, BOM, libraries, analysis, panelization, and checks.
 3. Run `agent-portal plugin doctor backplane` or the plugin `doctor` command
    before promising native KiCad checks.
 4. Use the Backplane surface for visual claims. Prefer pointing at board,
@@ -32,8 +33,10 @@ A good PCB turn ends with:
 - artifacts generated or a clear reason they were not;
 - a short visual summary if the surface revealed layout-relevant state.
 
-## Current Test Plugin Limits
+## Tooling Limits
 
-This reference plugin contains a smoke-test wrapper. It validates the Portal
-plugin lifecycle and surface contract, but full KiCad-native rendering and
-automation should be provided by the upstream Backplane runtime.
+The Portal plugin surface can browse project files without KiCad, but real
+ERC/DRC, Gerber/drill export, BOM export from schematic settings, panelization,
+and generated 3D board previews require `kicad-cli` on the launcher host. If it
+is missing, report that as the blocker and do not claim fabrication outputs have
+been validated.

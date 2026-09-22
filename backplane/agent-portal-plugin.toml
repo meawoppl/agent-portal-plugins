@@ -1,12 +1,12 @@
 schema_version = 1
 name = "backplane"
 display_name = "Backplane"
-description = "PCB review, KiCad checks, Gerber export, and board visualization for Agent Portal sessions."
+description = "Backplane PCB workbench for KiCad review, checks, fabrication export, BOMs, Gerbers, panelization, and 3D/STEP inspection."
 homepage = "https://github.com/i2cjak/Backplane"
 license = "MIT"
 
 [compat]
-agent_portal = ">=2.15.0"
+agent_portal = ">=2.14.1525"
 platforms = ["linux", "macos"]
 
 [install]
@@ -35,9 +35,19 @@ description = "Run design-rule checks for the active board when KiCad tooling is
 run = "bin/backplane drc --cwd {cwd} --json"
 
 [[commands]]
+name = "erc"
+description = "Run schematic electrical-rule checks when KiCad tooling is available."
+run = "bin/backplane erc --cwd {cwd} --json"
+
+[[commands]]
 name = "export-gerbers"
 description = "Export fabrication artifacts into the session artifact directory."
 run = "bin/backplane export gerbers --cwd {cwd} --out {artifact_dir}"
+
+[[commands]]
+name = "export-jlcpcb"
+description = "Export a JLCPCB-oriented fabrication package into the session artifact directory."
+run = "bin/backplane export jlcpcb --cwd {cwd} --out {artifact_dir}"
 
 [[skills]]
 name = "pcb-workflow"

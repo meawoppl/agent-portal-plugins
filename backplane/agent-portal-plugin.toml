@@ -11,7 +11,7 @@ platforms = ["linux", "macos"]
 
 [install]
 setup = "bin/backplane setup"
-doctor = "bin/backplane doctor --json"
+doctor = "bin/backplane doctor --json --cwd {cwd}"
 
 [surface]
 kind = "http"

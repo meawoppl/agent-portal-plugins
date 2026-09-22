@@ -233,6 +233,10 @@ function cacheContext(core, sourceIndex) {
   return `${sourceIndex.context}\nscene:${core?.scene_cache_context ?? ""}`;
 }
 
+function timeout(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function installSchematicHydration(core, beforePaint) {
   if (!core?.schematic || core.__backplaneHydratePaint) return;
   const paint = core.paint.bind(core);
@@ -728,7 +732,8 @@ export class RetainedNativeViewer extends EventTarget {
         // ecad-viewer resolves its host replacement before the mature
         // DocumentViewer's deferred `load()` fit pass. Wait for that barrier
         // so restoring the user's camera is the final camera write.
-        if (loaded?.loaded && typeof loaded.loaded.then === "function") await loaded.loaded;
+        if (loaded?.loaded && typeof loaded.loaded.then === "function")
+          await Promise.race([loaded.loaded, timeout(1200)]);
         if (generation !== this.generation || this.disposed || this.current !== current) return;
         const cache = loaded ? installNativeLayerCache(loaded) : undefined;
         const cacheChanged = Boolean(cache && cache !== this.cache);
@@ -798,6 +803,17 @@ export class RetainedNativeViewer extends EventTarget {
     this.active = active;
     this.current?.setActive(active);
     if (!active) this.finishTransition();
+  }
+  activateContext(context) {
+    const tab = context === "pcb" || context === "PCB" ? "PCB" : "SCH";
+    const header = this.current?.shadowRoot?.querySelector("tab-header");
+    if (header && typeof header.activateTab === "function") header.activateTab(tab);
+    else
+      this.current?.shadowRoot
+        ?.querySelectorAll("tab-button")
+        ?.forEach((button) => button.textContent?.trim().toUpperCase() === tab && button.click());
+    this.current?.resize();
+    this.core()?.draw_now?.();
   }
   resize() {
     this.current?.resize();

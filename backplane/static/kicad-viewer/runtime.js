@@ -107,11 +107,13 @@ window.addEventListener("message", (event) => {
           for (const [name, visible] of Object.entries(snapshot.layerVisibility))
             viewer.setLayerVisibility(name, Boolean(visible));
         }
+        viewer.activateContext?.(snapshot.context);
         viewer.setActive(snapshot.active !== false);
         if (snapshot.active !== false) {
           viewer.resize();
           const native = viewer.current;
           if (native) {
+            viewer.activateContext?.(snapshot.context);
             await installCanvasPresentation(native);
             viewer.reseedLayerCache();
             viewer.enhanceGeometrySelection();

@@ -20,7 +20,7 @@ import urllib.request
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, unquote, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlparse
 
 PLUGIN_DIR = Path(os.environ.get("AGENT_PORTAL_PLUGIN_DIR", Path(__file__).resolve().parents[1]))
 VIEWER_DIR = PLUGIN_DIR / "static" / "kicad-viewer"
@@ -448,6 +448,67 @@ def export_gerbers(cwd: Path, out: Path) -> tuple[int, dict]:
     return code, {"ok": code == 0, "board": board.relative_to(cwd).as_posix(), "out": str(out), "zip": str(zip_path), "stdout": stdout1 + stdout2, "stderr": stderr1 + stderr2}
 
 
+def artifact_href(path: str) -> str:
+    return f"/api/kicad/file?path={quote(path)}&download=1"
+
+
+def csv_asset_label(path: str) -> str:
+    name = Path(path).name.lower()
+    if "cpl" in name or "pos" in name or "position" in name:
+        return "Assembly CPL"
+    if "bom" in name:
+        return "BOM"
+    return "CSV"
+
+
+def csv_assets(items: list[dict]) -> str:
+    if not items:
+        return "<p class='muted'>No CSV BOM/CPL files found.</p>"
+    links = []
+    for item in items:
+        path = item["path"]
+        label = csv_asset_label(path)
+        size = int(item.get("size") or 0)
+        links.append(
+            "<a class='asset-download' "
+            f"href='{html.escape(artifact_href(path), quote=True)}' "
+            f"download='{html.escape(Path(path).name, quote=True)}'>"
+            f"<span>{html.escape(label)}</span>"
+            f"<code>{html.escape(path)}</code>"
+            f"<small>{size:,} bytes</small>"
+            "</a>"
+        )
+    return f"<div class='asset-grid'>{''.join(links)}</div>"
+
+
+def is_lcsc_column(header: str) -> bool:
+    normalized = re.sub(r"[^a-z0-9]+", "", header.lower())
+    return "lcsc" in normalized
+
+
+def lcsc_part_links(value: str) -> str:
+    parts = re.findall(r"\bC\d+\b", value.strip(), re.IGNORECASE)
+    if not parts:
+        return html.escape(value)
+    out = html.escape(value)
+    for part in sorted(set(parts), key=len, reverse=True):
+        escaped = html.escape(part)
+        href = f"https://www.lcsc.com/search?q={quote(part.upper())}"
+        out = re.sub(
+            rf"\b{re.escape(escaped)}\b",
+            f"<a href='{href}' target='_blank' rel='noopener noreferrer'>{escaped}</a>",
+            out,
+            flags=re.IGNORECASE,
+        )
+    return out
+
+
+def csv_cell(header: str, value: str) -> str:
+    if is_lcsc_column(header):
+        return lcsc_part_links(value)
+    return html.escape(value)
+
+
 def csv_table(path: Path) -> str:
     if not path.exists():
         return "<p class='muted'>No CSV selected.</p>"
@@ -457,8 +518,17 @@ def csv_table(path: Path) -> str:
         return f"<p class='error'>{html.escape(str(exc))}</p>"
     if not rows:
         return "<p class='muted'>Empty CSV.</p>"
-    head = "".join(f"<th>{html.escape(cell)}</th>" for cell in rows[0])
-    body = "\n".join("<tr>" + "".join(f"<td>{html.escape(cell)}</td>" for cell in row) + "</tr>" for row in rows[1:200])
+    headers = rows[0]
+    head = "".join(f"<th>{html.escape(cell)}</th>" for cell in headers)
+    body = "\n".join(
+        "<tr>"
+        + "".join(
+            f"<td>{csv_cell(headers[index] if index < len(headers) else '', cell)}</td>"
+            for index, cell in enumerate(row)
+        )
+        + "</tr>"
+        for row in rows[1:200]
+    )
     return f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
 
 
@@ -481,14 +551,17 @@ def workbench_html(cwd: Path, session: str) -> bytes:
     for item in data["files"]:
         by_kind.setdefault(item["kind"], []).append(item)
     bom_files = [item for item in data["files"] if item["path"].lower().endswith(".csv")]
-    bom_html = csv_table(cwd / bom_files[0]["path"]) if bom_files else "<p class='muted'>No CSV BOM/CPL files found.</p>"
+    bom_html = (
+        f"<div class='downloads'><h3>Downloads</h3>{csv_assets(bom_files)}</div>"
+        + (csv_table(cwd / bom_files[0]["path"]) if bom_files else "")
+    )
     warnings = "".join(f"<li>{html.escape(w)}</li>" for w in data["warnings"])
     buttons = "".join(f"<button data-tab='{tab}'>{tab.title()}</button>" for tab in ["overview", *TABS])
     body = f"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Backplane · Agent Portal</title>
 <style>
-:root{{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}body{{margin:0;background:#16161e;color:#c0caf5}}header{{padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}.muted{{color:#9aa5ce}}.error{{color:#f7768e}}.ok{{color:#9ece6a}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}code{{color:#7dcfff}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}table{{border-collapse:collapse;width:100%;font-size:12px}}th,td{{border:1px solid #3b4261;padding:6px;text-align:left}}th{{background:#292e42}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}.check-summary{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}}.pill{{border:1px solid #3b4261;border-radius:999px;padding:4px 8px;background:#24283b;font-size:12px}}.pill.error{{border-color:#f7768e;color:#f7768e}}.pill.warning{{border-color:#e0af68;color:#e0af68}}.pill.ok{{border-color:#9ece6a;color:#9ece6a}}.issue-list{{display:grid;gap:8px}}.issue{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px}}.issue-head{{display:flex;gap:8px;align-items:center;justify-content:space-between}}.severity{{text-transform:uppercase;font-size:11px;letter-spacing:.04em;border-radius:4px;padding:2px 6px}}.severity.error{{background:#f7768e22;color:#f7768e}}.severity.warning{{background:#e0af6822;color:#e0af68}}.items{{margin:8px 0 0;padding-left:18px}}details.raw{{margin-top:12px}}details.raw summary{{cursor:pointer;color:#7dcfff}}
+:root{{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}body{{margin:0;background:#16161e;color:#c0caf5}}header{{padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}.muted{{color:#9aa5ce}}.error{{color:#f7768e}}.ok{{color:#9ece6a}}a{{color:#7dcfff}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}code{{color:#7dcfff}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}table{{border-collapse:collapse;width:100%;font-size:12px}}th,td{{border:1px solid #3b4261;padding:6px;text-align:left}}th{{background:#292e42}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}.downloads{{margin-bottom:14px}}.downloads h3{{margin:0 0 8px;font-size:14px;color:#e6e9f5}}.asset-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}}.asset-download{{display:grid;gap:4px;border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px;text-decoration:none}}.asset-download:hover{{border-color:#7aa2f7;background:#20263a}}.asset-download span{{color:#c0caf5;font-weight:600}}.asset-download small{{color:#9aa5ce}}.check-summary{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}}.pill{{border:1px solid #3b4261;border-radius:999px;padding:4px 8px;background:#24283b;font-size:12px}}.pill.error{{border-color:#f7768e;color:#f7768e}}.pill.warning{{border-color:#e0af68;color:#e0af68}}.pill.ok{{border-color:#9ece6a;color:#9ece6a}}.issue-list{{display:grid;gap:8px}}.issue{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px}}.issue-head{{display:flex;gap:8px;align-items:center;justify-content:space-between}}.severity{{text-transform:uppercase;font-size:11px;letter-spacing:.04em;border-radius:4px;padding:2px 6px}}.severity.error{{background:#f7768e22;color:#f7768e}}.severity.warning{{background:#e0af6822;color:#e0af68}}.items{{margin:8px 0 0;padding-left:18px}}details.raw{{margin-top:12px}}details.raw summary{{cursor:pointer;color:#7dcfff}}
 </style></head><body>
 <header><h1>Backplane PCB Workbench</h1><div class="muted">Session {html.escape(session or "unknown")} · {html.escape(str(cwd))}</div></header>
 <nav class="tabs" role="tablist">{buttons}</nav><main>
@@ -526,10 +599,17 @@ class Server(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *values: object) -> None:
         print("backplane:", fmt % values, file=sys.stderr)
 
-    def send_bytes(self, data: bytes, content_type: str = "application/octet-stream") -> None:
+    def send_bytes(
+        self,
+        data: bytes,
+        content_type: str = "application/octet-stream",
+        headers: dict[str, str] | None = None,
+    ) -> None:
         self.send_response(200)
         self.send_header("content-type", content_type)
         self.send_header("content-length", str(len(data)))
+        for key, value in (headers or {}).items():
+            self.send_header(key, value)
         self.end_headers()
         self.wfile.write(data)
 
@@ -560,7 +640,10 @@ class Server(BaseHTTPRequestHandler):
                 )
             elif parsed.path == "/api/kicad/file":
                 target = safe_rel(self.cwd, query.get("path", [""])[0])
-                self.send_bytes(target.read_bytes(), mimetypes.guess_type(target.name)[0] or "text/plain")
+                headers = {}
+                if query.get("download", [""])[0]:
+                    headers["content-disposition"] = f'attachment; filename="{target.name}"'
+                self.send_bytes(target.read_bytes(), mimetypes.guess_type(target.name)[0] or "text/plain", headers)
             elif parsed.path == "/api/kicad/drc":
                 self.send_json(run_check(self.cwd, "drc")[1])
             elif parsed.path == "/api/kicad/erc":

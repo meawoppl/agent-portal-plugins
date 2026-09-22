@@ -65,8 +65,3 @@ any = ["*.kicad_pro", "*.kicad_pcb", "*.kicad_sch"]
 [[detect]]
 name = "gerber-package"
 any = ["*.gbr", "*.gtl", "*.gbl", "*.gts", "*.gto", "*.gbs", "*.gbo", "*.drl", "*.zip"]
-
-[[mcp]]
-name = "backplane"
-command = "bin/backplane"
-args = ["mcp", "--cwd", "{cwd}"]

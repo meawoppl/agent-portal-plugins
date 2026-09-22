@@ -72,7 +72,6 @@ Commands:
   erc [--json] [--cwd PATH]
   export gerbers --out PATH [--cwd PATH]
   export jlcpcb --out PATH [--cwd PATH]
-  mcp [--cwd PATH]
 """,
         end="",
     )
@@ -365,9 +364,6 @@ def main(argv: list[str]) -> int:
         code, result = export_gerbers(Path(args.cwd).expanduser().resolve(), Path(args.out).expanduser().resolve())
         print(json.dumps(result, indent=2))
         return code
-    if cmd == "mcp":
-        print(json.dumps({"jsonrpc": "2.0", "error": {"code": -32000, "message": "Backplane MCP is not implemented in the Portal plugin yet"}, "id": None}))
-        return 0
     return usage()
 
 

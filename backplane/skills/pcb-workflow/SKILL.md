@@ -12,16 +12,21 @@ other electronics design artifacts and the Backplane Portal plugin is available.
    3D, STEP, BOM, libraries, analysis, panelization, and checks.
 3. Run `agent-portal plugin doctor backplane` or the plugin `doctor` command
    before promising native KiCad checks.
-4. Use the Backplane surface for visual claims. Prefer pointing at board,
+4. Use script commands as the automation boundary. Prefer:
+   - `bin/backplane doctor --json --cwd <repo>`;
+   - `bin/backplane drc --json --cwd <repo>`;
+   - `bin/backplane erc --json --cwd <repo>`;
+   - `bin/backplane export jlcpcb --cwd <repo> --out <artifact-dir>`.
+5. Use the Backplane surface for visual claims. Prefer pointing at board,
    schematic, layer, net, BOM, or manufacturing artifacts over relying only on
    prose.
-5. Before saying PCB work is complete, run the available check path:
+6. Before saying PCB work is complete, run the available check path:
    - DRC for board changes;
    - ERC for schematic changes when supported;
    - BOM/fabrication export checks for release/manufacturing changes.
-6. Put generated manufacturing artifacts in the session artifact directory or
+7. Put generated manufacturing artifacts in the session artifact directory or
    the repo's configured fabrication output directory.
-7. Ask before publishing designs or manufacturing outputs to an external
+8. Ask before publishing designs or manufacturing outputs to an external
    service.
 
 ## Completion Standard

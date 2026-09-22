@@ -6,7 +6,7 @@ Portal-hosted session surface plus agent skills.
 The plugin provides:
 
 - `agent-portal-plugin.toml` declares install, surface, commands, detection,
-  skills, prompts, and MCP shape.
+  skills, and prompts.
 - `bin/backplane` is a portable Python runtime with a tabbed PCB workbench.
 - `static/kicad-viewer/` carries Backplane's bundled 3D/STEP viewer runtime
   assets.
@@ -18,6 +18,9 @@ The workbench mirrors Backplane's KiCad panel shape: schematic, PCB, Gerbers,
 DRC/ERC/export/3D generation use `kicad-cli` when available. Without KiCad, the
 surface still detects project files and presents the workflow, but check/export
 commands fail loudly instead of producing placeholder manufacturing output.
+
+The plugin is intentionally script-first. Agents should use the documented CLI
+commands and bundled skill instructions, with no additional integration setup.
 
 ## Try Locally
 

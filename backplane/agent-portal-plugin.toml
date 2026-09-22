@@ -10,7 +10,7 @@ agent_portal = ">=2.14.1525"
 platforms = ["linux", "macos"]
 
 [install]
-setup = "bin/backplane setup"
+setup = "bin/backplane setup --install-kicad"
 doctor = "bin/backplane doctor --json --cwd {cwd}"
 
 [surface]

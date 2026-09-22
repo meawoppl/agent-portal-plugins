@@ -9,11 +9,14 @@ import html
 import json
 import mimetypes
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import time
+import urllib.request
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -21,6 +24,10 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 PLUGIN_DIR = Path(os.environ.get("AGENT_PORTAL_PLUGIN_DIR", Path(__file__).resolve().parents[1]))
 VIEWER_DIR = PLUGIN_DIR / "static" / "kicad-viewer"
+RUNTIME_DIR = PLUGIN_DIR / ".runtime"
+KICAD_RUNTIME_DIR = RUNTIME_DIR / "kicad"
+KICAD_STABLE_INDEX = "https://downloads.kicad.org/kicad/linux/explore/stable/"
+KICAD_FALLBACK_URL = f"{KICAD_STABLE_INDEX}download/kicad-10.0.6-x86_64.AppImage.tar"
 TABS = [
     "schematic",
     "pcb",
@@ -65,7 +72,7 @@ def usage() -> int:
         """backplane portal plugin
 
 Commands:
-  setup
+  setup [--install-kicad] [--force]
   doctor [--json] [--cwd PATH]
   serve --port PORT [--cwd PATH] [--session UUID]
   drc [--json] [--cwd PATH]
@@ -93,7 +100,190 @@ def parse_cwd(args: list[str]) -> tuple[Path, bool]:
 
 
 def kicad_cli() -> str | None:
-    return os.environ.get("BACKPLANE_KICAD_CLI") or os.environ.get("KICAD_CLI") or shutil.which("kicad-cli")
+    managed = managed_kicad_cli()
+    return os.environ.get("BACKPLANE_KICAD_CLI") or os.environ.get("KICAD_CLI") or managed or shutil.which("kicad-cli")
+
+
+def managed_kicad_cli() -> str | None:
+    current = KICAD_RUNTIME_DIR / "current"
+    candidates = [
+        current / "squashfs-root" / "usr" / "bin" / "kicad-cli",
+        current / "usr" / "bin" / "kicad-cli",
+        current / "kicad-cli",
+    ]
+    for candidate in candidates:
+        if candidate.exists() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    return None
+
+
+def tool_version(tool: str | None) -> str | None:
+    if not tool:
+        return None
+    code, stdout, stderr = run([tool, "--version"], Path.cwd())
+    if code != 0:
+        return None
+    return (stdout or stderr).strip().splitlines()[0] if (stdout or stderr).strip() else None
+
+
+def fetch_text(url: str) -> str:
+    request = urllib.request.Request(url, headers={"User-Agent": "agent-portal-backplane/1.0"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return response.read().decode("utf-8", "ignore")
+
+
+def version_key(version: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in re.findall(r"\d+", version))
+
+
+def discover_kicad_appimage_url() -> tuple[str, str]:
+    try:
+        page = fetch_text(KICAD_STABLE_INDEX)
+        matches = []
+        for match in re.finditer(r'href="([^"]*kicad-([0-9][^"/]*)-x86_64\.AppImage\.tar)"', page):
+            url, version = match.group(1), match.group(2)
+            if "-rc" in version or "-lite" in url:
+                continue
+            if url.startswith("/"):
+                url = f"https://downloads.kicad.org{url}"
+            elif not url.startswith("http"):
+                url = f"{KICAD_STABLE_INDEX.rstrip('/')}/{url}"
+            matches.append((version_key(version), version, url))
+        if matches:
+            _key, version, url = sorted(matches)[-1]
+            return version, url
+    except Exception:
+        pass
+    return "10.0.6", KICAD_FALLBACK_URL
+
+
+def safe_extract_tar(archive: Path, dest: Path) -> None:
+    with tarfile.open(archive) as tar:
+        dest_resolved = dest.resolve()
+        for member in tar.getmembers():
+            target = (dest / member.name).resolve()
+            target.relative_to(dest_resolved)
+        tar.extractall(dest)
+
+
+def install_kicad_runtime(force: bool = False) -> dict:
+    if sys.platform != "linux":
+        return {
+            "ok": False,
+            "message": "Managed KiCad runtime install currently supports Linux AppImage hosts only.",
+            "platform": sys.platform,
+        }
+    if os.uname().machine not in ("x86_64", "amd64"):
+        return install_kicad_ubuntu_ppa()
+
+    version, url = discover_kicad_appimage_url()
+    install_dir = KICAD_RUNTIME_DIR / "versions" / version
+    cli = install_dir / "squashfs-root" / "usr" / "bin" / "kicad-cli"
+    current = KICAD_RUNTIME_DIR / "current"
+    if cli.exists() and not force:
+        current.parent.mkdir(parents=True, exist_ok=True)
+        if current.exists() or current.is_symlink():
+            current.unlink()
+        current.symlink_to(install_dir, target_is_directory=True)
+        return {"ok": True, "version": version, "url": url, "kicad_cli": str(cli), "reused": True}
+
+    KICAD_RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="backplane-kicad-", dir=KICAD_RUNTIME_DIR) as tmp_name:
+        tmp = Path(tmp_name)
+        archive = tmp / "kicad.AppImage.tar"
+        request = urllib.request.Request(url, headers={"User-Agent": "agent-portal-backplane/1.0"})
+        with urllib.request.urlopen(request, timeout=600) as response, archive.open("wb") as handle:
+            shutil.copyfileobj(response, handle)
+        safe_extract_tar(archive, tmp)
+        appimages = sorted(tmp.glob("*.AppImage"))
+        if not appimages:
+            appimages = sorted(tmp.rglob("*.AppImage"))
+        if not appimages:
+            return {"ok": False, "message": "KiCad AppImage tar did not contain an AppImage.", "url": url}
+        appimage = appimages[0]
+        appimage.chmod(appimage.stat().st_mode | 0o755)
+        extract_root = tmp / "extract"
+        extract_root.mkdir()
+        code, stdout, stderr = run([str(appimage), "--appimage-extract"], extract_root)
+        if code != 0:
+            return {"ok": False, "message": "KiCad AppImage extraction failed.", "stdout": stdout, "stderr": stderr, "url": url}
+        extracted_cli = extract_root / "squashfs-root" / "usr" / "bin" / "kicad-cli"
+        if not extracted_cli.exists():
+            return {"ok": False, "message": "Extracted KiCad runtime did not include usr/bin/kicad-cli.", "url": url}
+        if install_dir.exists() and force:
+            backup = install_dir.with_name(f"{install_dir.name}.old-{int(time.time())}")
+            install_dir.rename(backup)
+        install_dir.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(extract_root / "squashfs-root"), str(install_dir / "squashfs-root"))
+
+    if current.exists() or current.is_symlink():
+        current.unlink()
+    current.symlink_to(install_dir, target_is_directory=True)
+    return {"ok": True, "version": version, "url": url, "kicad_cli": str(cli), "reused": False}
+
+
+def os_release() -> dict[str, str]:
+    data = {}
+    path = Path("/etc/os-release")
+    if not path.exists():
+        return data
+    for line in path.read_text().splitlines():
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        data[key] = value.strip().strip('"')
+    return data
+
+
+def can_sudo() -> bool:
+    return shutil.which("sudo") is not None and run(["sudo", "-n", "true"], Path.cwd())[0] == 0
+
+
+def install_kicad_ubuntu_ppa() -> dict:
+    release = os_release()
+    if release.get("ID") != "ubuntu":
+        return {
+            "ok": False,
+            "message": "No official KiCad AppImage exists for this Linux architecture. Install KiCad 10 with your distribution package manager or set BACKPLANE_KICAD_CLI.",
+            "machine": os.uname().machine,
+            "os": release,
+        }
+    if not (shutil.which("apt-get") and shutil.which("add-apt-repository")):
+        return {
+            "ok": False,
+            "message": "Ubuntu KiCad 10 install requires apt-get and add-apt-repository.",
+            "machine": os.uname().machine,
+            "os": release,
+        }
+    if not can_sudo():
+        return {
+            "ok": False,
+            "message": "Ubuntu KiCad 10 install requires passwordless sudo for noninteractive setup.",
+            "commands": [
+                "sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases",
+                "sudo apt-get update",
+                "sudo apt-get install --yes --install-recommends kicad",
+            ],
+        }
+    commands = [
+        ["sudo", "add-apt-repository", "--yes", "ppa:kicad/kicad-10.0-releases"],
+        ["sudo", "apt-get", "update"],
+        ["sudo", "apt-get", "install", "--yes", "--install-recommends", "kicad"],
+    ]
+    logs = []
+    for command in commands:
+        code, stdout, stderr = run(command, Path.cwd())
+        logs.append({"command": command, "code": code, "stdout": stdout[-4000:], "stderr": stderr[-4000:]})
+        if code != 0:
+            return {"ok": False, "message": "KiCad 10 PPA install failed.", "logs": logs}
+    return {
+        "ok": True,
+        "method": "ubuntu-ppa",
+        "ppa": "ppa:kicad/kicad-10.0-releases",
+        "kicad_cli": kicad_cli(),
+        "kicad_version": tool_version(kicad_cli()),
+        "logs": logs,
+    }
 
 
 def project_config(cwd: Path) -> dict:
@@ -140,7 +330,8 @@ def manifest(cwd: Path) -> dict:
     warnings = []
     if "_warning" in config:
         warnings.append(config.pop("_warning"))
-    if not kicad_cli():
+    cli = kicad_cli()
+    if not cli:
         warnings.append("kicad-cli is not available; DRC/ERC/export/BOM/3D generation are disabled.")
     return {
         "root": str(cwd),
@@ -148,6 +339,8 @@ def manifest(cwd: Path) -> dict:
         "files": detect_files(cwd),
         "config": config,
         "warnings": warnings,
+        "kicad_cli": cli,
+        "kicad_version": tool_version(cli),
     }
 
 
@@ -180,7 +373,7 @@ def run_check(cwd: Path, kind: str) -> tuple[int, dict]:
         if not cli_supports(cli, ["pcb"], "drc"):
             return 1, {
                 "ok": False,
-                "message": "This kicad-cli does not support PCB DRC. Install KiCad 8+ or Backplane's KiCad runtime.",
+                "message": "This kicad-cli does not support PCB DRC. Run `bin/backplane setup --install-kicad` to install the current KiCad runtime.",
                 "tool": cli,
             }
         source = pick_one(cwd, ".kicad_pcb")
@@ -188,12 +381,16 @@ def run_check(cwd: Path, kind: str) -> tuple[int, dict]:
             return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
         with tempfile.TemporaryDirectory(prefix="backplane-drc-") as tmp:
             out = Path(tmp) / "drc.json"
-            code, stdout, stderr = run([cli, "pcb", "drc", "--format", "json", "--output", str(out), str(source)], cwd)
+            command = [cli, "pcb", "drc", "--format", "json", "--output", str(out)]
+            if cli_supports(cli, ["pcb", "drc"], "--exit-code-violations"):
+                command.append("--exit-code-violations")
+            command.append(str(source))
+            code, stdout, stderr = run(command, cwd)
             return code, {"ok": code == 0, "source": source.relative_to(cwd).as_posix(), "stdout": stdout, "stderr": stderr, "report": out.read_text() if out.exists() else ""}
     if not cli_supports(cli, ["sch"], "erc"):
         return 1, {
             "ok": False,
-            "message": "This kicad-cli does not support schematic ERC. Install KiCad 8+ or Backplane's KiCad runtime.",
+            "message": "This kicad-cli does not support schematic ERC. Run `bin/backplane setup --install-kicad` to install the current KiCad runtime.",
             "tool": cli,
         }
     source = pick_one(cwd, ".kicad_sch")
@@ -201,7 +398,11 @@ def run_check(cwd: Path, kind: str) -> tuple[int, dict]:
         return 1, {"ok": False, "message": "Select a single .kicad_sch or set schematic in .backplane.json"}
     with tempfile.TemporaryDirectory(prefix="backplane-erc-") as tmp:
         out = Path(tmp) / "erc.json"
-        code, stdout, stderr = run([cli, "sch", "erc", "--format", "json", "--output", str(out), str(source)], cwd)
+        command = [cli, "sch", "erc", "--format", "json", "--output", str(out)]
+        if cli_supports(cli, ["sch", "erc"], "--exit-code-violations"):
+            command.append("--exit-code-violations")
+        command.append(str(source))
+        code, stdout, stderr = run(command, cwd)
         return code, {"ok": code == 0, "source": source.relative_to(cwd).as_posix(), "stdout": stdout, "stderr": stderr, "report": out.read_text() if out.exists() else ""}
 
 
@@ -213,8 +414,11 @@ def export_gerbers(cwd: Path, out: Path) -> tuple[int, dict]:
     if not board:
         return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
     out.mkdir(parents=True, exist_ok=True)
-    code1, stdout1, stderr1 = run([cli, "pcb", "export", "gerbers", "--output", str(out), str(board)], cwd)
-    code2, stdout2, stderr2 = run([cli, "pcb", "export", "drill", "--output", str(out), str(board)], cwd)
+    output_dir = str(out)
+    if not output_dir.endswith(os.sep):
+        output_dir += os.sep
+    code1, stdout1, stderr1 = run([cli, "pcb", "export", "gerbers", "--output", output_dir, str(board)], cwd)
+    code2, stdout2, stderr2 = run([cli, "pcb", "export", "drill", "--output", output_dir, str(board)], cwd)
     zip_path = out / f"{board.stem}-gerbers.zip"
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(out.iterdir()):
@@ -333,9 +537,35 @@ def main(argv: list[str]) -> int:
         return usage()
     cmd, rest = argv[0], argv[1:]
     if cmd == "setup":
-        print("Backplane plugin setup complete.")
-        print(f"Bundled viewer assets: {'yes' if VIEWER_DIR.exists() else 'missing'}")
-        return 0
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--install-kicad", action="store_true")
+        parser.add_argument("--force", action="store_true")
+        parser.add_argument("--json", action="store_true")
+        args = parser.parse_args(rest)
+        result = {
+            "ok": True,
+            "viewer_assets": VIEWER_DIR.exists(),
+            "runtime_dir": str(RUNTIME_DIR),
+            "kicad_cli": kicad_cli(),
+            "kicad_version": tool_version(kicad_cli()),
+        }
+        if args.install_kicad:
+            install = install_kicad_runtime(force=args.force)
+            result["kicad_install"] = install
+            result["ok"] = bool(install.get("ok"))
+            result["kicad_cli"] = kicad_cli()
+            result["kicad_version"] = tool_version(kicad_cli())
+        if args.json:
+            print(json.dumps(result, indent=2))
+        else:
+            print("Backplane plugin setup complete.")
+            print(f"Bundled viewer assets: {'yes' if VIEWER_DIR.exists() else 'missing'}")
+            print(f"Runtime directory: {RUNTIME_DIR}")
+            print(f"kicad-cli: {result['kicad_cli'] or 'missing'}")
+            print(f"KiCad version: {result['kicad_version'] or 'unknown'}")
+            if "kicad_install" in result:
+                print(json.dumps(result["kicad_install"], indent=2))
+        return 0 if result["ok"] else 1
     if cmd == "doctor":
         cwd, as_json = parse_cwd(rest)
         result = {
@@ -347,6 +577,14 @@ def main(argv: list[str]) -> int:
                 "kicad-cli": kicad_cli() is not None,
                 "kikit": shutil.which("kikit") is not None,
             },
+            "tool_paths": {
+                "kicad-cli": kicad_cli(),
+                "managed_kicad-cli": managed_kicad_cli(),
+            },
+            "versions": {
+                "kicad": tool_version(kicad_cli()),
+            },
+            "runtime_dir": str(RUNTIME_DIR),
             "viewer_assets": VIEWER_DIR.exists(),
             "detected_files": [item["path"] for item in detect_files(cwd)][:200],
             "tabs": TABS,

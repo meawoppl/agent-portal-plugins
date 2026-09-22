@@ -42,6 +42,8 @@ A good PCB turn ends with:
 
 The Portal plugin surface can browse project files without KiCad, but real
 ERC/DRC, Gerber/drill export, BOM export from schematic settings, panelization,
-and generated 3D board previews require `kicad-cli` on the launcher host. If it
-is missing, report that as the blocker and do not claim fabrication outputs have
-been validated.
+and generated 3D board previews require `kicad-cli`. On Linux x86_64, run
+`bin/backplane setup --install-kicad` to install the managed current-stable
+KiCad runtime into the plugin's `.runtime/` directory. If usable KiCad tooling
+is still unavailable afterward, report that as the blocker and do not claim
+fabrication outputs have been validated.

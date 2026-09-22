@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import html
 import json
 import mimetypes
@@ -25,6 +26,7 @@ from urllib.parse import parse_qs, quote, unquote, urlparse
 PLUGIN_DIR = Path(os.environ.get("AGENT_PORTAL_PLUGIN_DIR", Path(__file__).resolve().parents[1]))
 VIEWER_DIR = PLUGIN_DIR / "static" / "kicad-viewer"
 RUNTIME_DIR = PLUGIN_DIR / ".runtime"
+CACHE_DIR = PLUGIN_DIR / ".portal" / "cache"
 KICAD_RUNTIME_DIR = RUNTIME_DIR / "kicad"
 KICAD_STABLE_INDEX = "https://downloads.kicad.org/kicad/linux/explore/stable/"
 KICAD_FALLBACK_URL = f"{KICAD_STABLE_INDEX}download/kicad-10.0.6-x86_64.AppImage.tar"
@@ -328,11 +330,12 @@ def detect_files(cwd: Path) -> list[dict]:
 
 def kicad_sources(cwd: Path) -> list[dict]:
     suffixes = {".kicad_pro", ".kicad_pcb", ".kicad_sch", ".kicad_sym", ".kicad_mod", ".kicad_wks"}
+    table_names = {"fp-lib-table", "sym-lib-table"}
     sources = []
     for path in cwd.rglob("*"):
         if (
             path.is_file()
-            and path.suffix.lower() in suffixes
+            and (path.suffix.lower() in suffixes or path.name in table_names)
             and ".git" not in path.relative_to(cwd).parts
             and ".portal" not in path.relative_to(cwd).parts
         ):
@@ -343,6 +346,91 @@ def kicad_sources(cwd: Path) -> list[dict]:
                 }
             )
     return sorted(sources, key=lambda item: item["filename"])
+
+
+def kicad_sources_revision(cwd: Path, sources: list[dict]) -> str:
+    latest_mtime = int(max(((cwd / item["filename"]).stat().st_mtime for item in sources), default=time.time()) * 1000)
+    digest = hashlib.sha256()
+    for item in sources:
+        digest.update(item["filename"].encode())
+        digest.update(b"\0")
+        digest.update(str(len(item["content"])).encode())
+        digest.update(b"\0")
+    return f"{latest_mtime}-{digest.hexdigest()[:12]}"
+
+
+def cache_dir_for(cwd: Path) -> Path:
+    digest = hashlib.sha256(str(cwd).encode()).hexdigest()[:16]
+    return CACHE_DIR / digest
+
+
+def warm_viewer_state(cwd: Path) -> dict:
+    sources = kicad_sources(cwd)
+    revision = kicad_sources_revision(cwd, sources)
+    data = manifest(cwd)
+    data["source_revision"] = revision
+    cache_dir = cache_dir_for(cwd)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    model_path = cache_dir / f"{revision}.glb"
+    model_result: dict | None = None
+    if not model_path.exists():
+        code, result = export_glb(cwd, model_path)
+        model_result = result
+        if code != 0 and model_path.exists():
+            model_path.unlink()
+    else:
+        model_result = {"ok": True, "out": str(model_path), "cached": True}
+
+    return {
+        "manifest": data,
+        "sources": sources,
+        "source_revision": revision,
+        "model_path": str(model_path) if model_path.exists() else None,
+        "model_result": model_result,
+        "warmed_at_ms": int(time.time() * 1000),
+    }
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def viewer_asset_status() -> dict:
+    upstream = os.environ.get("BACKPLANE_UPSTREAM_VIEWER_DIR")
+    upstream_dir = Path(upstream).expanduser() if upstream else Path.home() / "repos" / "Backplane" / "apps" / "web" / "public" / "kicad-viewer"
+    if not VIEWER_DIR.exists():
+        return {"ok": False, "message": "Bundled KiCad viewer assets are missing.", "bundled": str(VIEWER_DIR)}
+    if not upstream_dir.exists():
+        return {
+            "ok": None,
+            "message": "No upstream KiCad viewer checkout found; set BACKPLANE_UPSTREAM_VIEWER_DIR to enable drift checks.",
+            "bundled": str(VIEWER_DIR),
+            "upstream": str(upstream_dir),
+        }
+    bundled = {path.relative_to(VIEWER_DIR).as_posix(): path for path in VIEWER_DIR.rglob("*") if path.is_file()}
+    upstream_files = {path.relative_to(upstream_dir).as_posix(): path for path in upstream_dir.rglob("*") if path.is_file()}
+    missing = sorted(set(upstream_files) - set(bundled))
+    extra = sorted(set(bundled) - set(upstream_files))
+    changed = sorted(
+        rel
+        for rel in set(bundled) & set(upstream_files)
+        if bundled[rel].stat().st_size != upstream_files[rel].stat().st_size
+        or file_sha256(bundled[rel]) != file_sha256(upstream_files[rel])
+    )
+    return {
+        "ok": not missing and not extra and not changed,
+        "bundled": str(VIEWER_DIR),
+        "upstream": str(upstream_dir),
+        "missing": missing,
+        "extra": extra,
+        "changed": changed,
+        "file_count": len(bundled),
+    }
 
 
 def manifest(cwd: Path) -> dict:
@@ -464,6 +552,7 @@ def export_glb(cwd: Path, out: Path) -> tuple[int, dict]:
         "export",
         "glb",
         "--force",
+        "--subst-models",
         "--include-tracks",
         "--include-pads",
         "--include-silkscreen",
@@ -640,8 +729,14 @@ def model_viewer(kind: str, url: str) -> str:
     )
 
 
-def workbench_html(cwd: Path, session: str) -> bytes:
-    data = manifest(cwd)
+def workbench_html(cwd: Path, session: str, preloaded: dict | None = None) -> bytes:
+    data = preloaded.get("manifest") if preloaded else manifest(cwd)
+    source_revision = (
+        preloaded.get("source_revision")
+        if preloaded
+        else kicad_sources_revision(cwd, kicad_sources(cwd))
+    )
+    model_url = f"/api/kicad/model.glb?rev={quote(source_revision)}"
     by_kind: dict[str, list[dict]] = {}
     for item in data["files"]:
         by_kind.setdefault(item["kind"], []).append(item)
@@ -664,7 +759,7 @@ def workbench_html(cwd: Path, session: str) -> bytes:
 <section id="schematic"><div class="card"><h2>Schematic</h2><ul>{file_list(by_kind.get("schematic"), "No schematics found.")}</ul>{native_viewer("schematic")}</div></section>
 <section id="pcb"><div class="card"><h2>PCB</h2><ul>{file_list(by_kind.get("pcb"), "No boards found.")}</ul>{native_viewer("pcb")}</div></section>
 <section id="gerbers"><div class="card"><h2>Gerbers</h2><ul>{file_list(by_kind.get("gerber"), "No Gerbers found.")}</ul></div></section>
-<section id="3d"><div class="card"><h2>3D Board</h2><p class="muted">Generated from the active KiCad PCB with <code>kicad-cli pcb export glb</code>.</p>{model_viewer("model", "/api/kicad/model.glb")}</div></section>
+<section id="3d"><div class="card"><h2>3D Board</h2><p class="muted">Generated from the active KiCad PCB with <code>kicad-cli pcb export glb</code>.</p>{model_viewer("model", model_url)}</div></section>
 <section id="step"><div class="card"><h2>STEP</h2><ul>{file_list(by_kind.get("model"), "No STEP/STP/GLB models found.")}</ul><iframe src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="bom"><div class="card"><h2>BOM / Assembly CSV</h2>{bom_html}</div></section>
 <section id="libraries"><div class="grid"><div class="card"><h2>Footprints</h2><ul>{file_list(by_kind.get("footprint"), "No footprints found.")}</ul></div><div class="card"><h2>Symbols</h2><ul>{file_list(by_kind.get("symbol"), "No symbols found.")}</ul></div></div></section>
@@ -690,6 +785,7 @@ document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>setTab(b.data
 class Server(BaseHTTPRequestHandler):
     cwd: Path
     session: str
+    preloaded: dict
 
     def log_message(self, fmt: str, *values: object) -> None:
         print("backplane:", fmt % values, file=sys.stderr)
@@ -721,16 +817,25 @@ class Server(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
         try:
             if parsed.path == "/healthz":
-                self.send_json({"ok": True, "plugin": "backplane", "kicad_cli": bool(kicad_cli())})
-            elif parsed.path in ("/api/project", "/api/kicad/manifest"):
-                self.send_json(manifest(self.cwd))
-            elif parsed.path == "/api/kicad/sources":
-                sources = kicad_sources(self.cwd)
                 self.send_json(
                     {
                         "ok": True,
-                        "revision": str(int(max(((self.cwd / item["filename"]).stat().st_mtime for item in sources), default=time.time()) * 1000)),
-                        "sources": sources,
+                        "plugin": "backplane",
+                        "kicad_cli": bool(kicad_cli()),
+                        "preloaded": bool(getattr(self, "preloaded", None)),
+                        "source_revision": getattr(self, "preloaded", {}).get("source_revision"),
+                        "warmed_at_ms": getattr(self, "preloaded", {}).get("warmed_at_ms"),
+                    }
+                )
+            elif parsed.path in ("/api/project", "/api/kicad/manifest"):
+                self.send_json(self.preloaded.get("manifest") or manifest(self.cwd))
+            elif parsed.path == "/api/kicad/sources":
+                self.send_json(
+                    {
+                        "ok": True,
+                        "revision": self.preloaded.get("source_revision"),
+                        "sources": self.preloaded.get("sources", []),
+                        "warmed_at_ms": self.preloaded.get("warmed_at_ms"),
                     }
                 )
             elif parsed.path == "/api/kicad/file":
@@ -740,13 +845,26 @@ class Server(BaseHTTPRequestHandler):
                     headers["content-disposition"] = f'attachment; filename="{target.name}"'
                 self.send_bytes(target.read_bytes(), mimetypes.guess_type(target.name)[0] or "text/plain", headers)
             elif parsed.path == "/api/kicad/model.glb":
-                with tempfile.TemporaryDirectory(prefix="backplane-glb-") as tmp:
-                    target = Path(tmp) / "board.glb"
-                    code, result = export_glb(self.cwd, target)
-                    if code != 0 or not target.exists():
-                        self.send_json(result, 500)
-                    else:
-                        self.send_bytes(target.read_bytes(), "model/gltf-binary")
+                cached = self.preloaded.get("model_path")
+                target = Path(cached) if cached else None
+                if not target or not target.exists():
+                    with tempfile.TemporaryDirectory(prefix="backplane-glb-") as tmp:
+                        fallback = Path(tmp) / "board.glb"
+                        code, result = export_glb(self.cwd, fallback)
+                        if code != 0 or not fallback.exists():
+                            self.send_json(self.preloaded.get("model_result") or result, 500)
+                        else:
+                            self.send_bytes(
+                                fallback.read_bytes(),
+                                "model/gltf-binary",
+                                {"cache-control": "no-store, max-age=0", "pragma": "no-cache"},
+                            )
+                else:
+                    self.send_bytes(
+                        target.read_bytes(),
+                        "model/gltf-binary",
+                        {"cache-control": "public, max-age=31536000, immutable"},
+                    )
             elif parsed.path == "/api/kicad/drc":
                 self.send_json(run_check(self.cwd, "drc")[1])
             elif parsed.path == "/api/kicad/erc":
@@ -756,7 +874,7 @@ class Server(BaseHTTPRequestHandler):
                 target.relative_to(VIEWER_DIR)
                 self.send_bytes(target.read_bytes(), mimetypes.guess_type(target.name)[0] or "application/octet-stream")
             elif parsed.path == "/":
-                self.send_bytes(workbench_html(self.cwd, self.session), "text/html; charset=utf-8")
+                self.send_bytes(workbench_html(self.cwd, self.session, self.preloaded), "text/html; charset=utf-8")
             else:
                 self.send_json({"ok": False, "message": "not found"}, 404)
         except Exception as exc:
@@ -776,6 +894,7 @@ def main(argv: list[str]) -> int:
         result = {
             "ok": True,
             "viewer_assets": VIEWER_DIR.exists(),
+            "viewer_asset_status": viewer_asset_status(),
             "runtime_dir": str(RUNTIME_DIR),
             "kicad_cli": kicad_cli(),
             "kicad_version": tool_version(kicad_cli()),
@@ -791,6 +910,7 @@ def main(argv: list[str]) -> int:
         else:
             print("Backplane plugin setup complete.")
             print(f"Bundled viewer assets: {'yes' if VIEWER_DIR.exists() else 'missing'}")
+            print(f"Viewer asset drift: {result['viewer_asset_status'].get('ok')}")
             print(f"Runtime directory: {RUNTIME_DIR}")
             print(f"kicad-cli: {result['kicad_cli'] or 'missing'}")
             print(f"KiCad version: {result['kicad_version'] or 'unknown'}")
@@ -817,6 +937,7 @@ def main(argv: list[str]) -> int:
             },
             "runtime_dir": str(RUNTIME_DIR),
             "viewer_assets": VIEWER_DIR.exists(),
+            "viewer_asset_status": viewer_asset_status(),
             "detected_files": [item["path"] for item in detect_files(cwd)][:200],
             "tabs": TABS,
         }
@@ -830,6 +951,7 @@ def main(argv: list[str]) -> int:
         args = parser.parse_args(rest)
         Server.cwd = Path(args.cwd).expanduser().resolve()
         Server.session = args.session
+        Server.preloaded = warm_viewer_state(Server.cwd)
         ThreadingHTTPServer(("127.0.0.1", args.port), Server).serve_forever()
         return 0
     if cmd in ("drc", "erc"):

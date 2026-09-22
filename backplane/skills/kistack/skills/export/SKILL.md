@@ -11,7 +11,7 @@ KiCad does not permit this, so please use the Python script under scripts/conver
 
 JLCPCB BOMs also require an LCSC part number. Ensure that the JLCPCB BOM preset is available and if not inform the user that this needs to be added. 
 
-Determine which PCB and scheamtic output commands you need to use (documentation is available under the references/ directory under this skill). For example, we often use this set of commands:
+Determine which PCB and scheamtic output commands you need to use. Prefer the installed `kicad-cli --help` output and the current KiCad documentation instead of relying on vendored command docs. For example, we often use this set of commands:
 
   kicad-cli version
 

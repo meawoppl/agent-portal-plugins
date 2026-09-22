@@ -46,6 +46,7 @@ KINDS = {
     ".kicad_sch": "schematic",
     ".kicad_mod": "footprint",
     ".kicad_sym": "symbol",
+    ".kicad_wks": "worksheet",
     ".step": "model",
     ".stp": "model",
     ".glb": "model",
@@ -325,6 +326,25 @@ def detect_files(cwd: Path) -> list[dict]:
     return sorted(files, key=lambda item: (item["kind"], item["path"]))
 
 
+def kicad_sources(cwd: Path) -> list[dict]:
+    suffixes = {".kicad_pro", ".kicad_pcb", ".kicad_sch", ".kicad_sym", ".kicad_mod", ".kicad_wks"}
+    sources = []
+    for path in cwd.rglob("*"):
+        if (
+            path.is_file()
+            and path.suffix.lower() in suffixes
+            and ".git" not in path.relative_to(cwd).parts
+            and ".portal" not in path.relative_to(cwd).parts
+        ):
+            sources.append(
+                {
+                    "filename": path.relative_to(cwd).as_posix(),
+                    "content": path.read_text(errors="replace"),
+                }
+            )
+    return sorted(sources, key=lambda item: item["filename"])
+
+
 def manifest(cwd: Path) -> dict:
     config = project_config(cwd)
     warnings = []
@@ -448,6 +468,13 @@ def file_list(items: list[dict] | None, empty: str) -> str:
     return "".join(f"<li><code>{html.escape(item['path'])}</code></li>" for item in items)
 
 
+def native_viewer(kind: str) -> str:
+    return (
+        f"<iframe class='native-viewer' data-kind='{html.escape(kind)}' "
+        "src='/kicad-viewer/runtime.html'></iframe>"
+    )
+
+
 def workbench_html(cwd: Path, session: str) -> bytes:
     data = manifest(cwd)
     by_kind: dict[str, list[dict]] = {}
@@ -466,8 +493,8 @@ def workbench_html(cwd: Path, session: str) -> bytes:
 <header><h1>Backplane PCB Workbench</h1><div class="muted">Session {html.escape(session or "unknown")} · {html.escape(str(cwd))}</div></header>
 <nav class="tabs" role="tablist">{buttons}</nav><main>
 <section id="overview"><div class="grid"><div class="card"><h2>Project</h2><pre>{html.escape(json.dumps(data, indent=2))}</pre></div><div class="card"><h2>Warnings</h2><ul>{warnings or "<li>None</li>"}</ul></div></div></section>
-<section id="schematic"><div class="card"><h2>Schematic</h2><ul>{file_list(by_kind.get("schematic"), "No schematics found.")}</ul></div></section>
-<section id="pcb"><div class="card"><h2>PCB</h2><ul>{file_list(by_kind.get("pcb"), "No boards found.")}</ul></div></section>
+<section id="schematic"><div class="card"><h2>Schematic</h2><ul>{file_list(by_kind.get("schematic"), "No schematics found.")}</ul>{native_viewer("schematic")}</div></section>
+<section id="pcb"><div class="card"><h2>PCB</h2><ul>{file_list(by_kind.get("pcb"), "No boards found.")}</ul>{native_viewer("pcb")}</div></section>
 <section id="gerbers"><div class="card"><h2>Gerbers</h2><ul>{file_list(by_kind.get("gerber"), "No Gerbers found.")}</ul></div></section>
 <section id="3d"><div class="card"><h2>3D Board</h2><p class="muted">Backplane-compatible 3D runtime assets are bundled. Board GLB generation requires <code>kicad-cli pcb export glb</code> support.</p><iframe src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="step"><div class="card"><h2>STEP</h2><ul>{file_list(by_kind.get("model"), "No STEP/STP/GLB models found.")}</ul><iframe src="/kicad-viewer/runtime.html"></iframe></div></section>
@@ -477,8 +504,12 @@ def workbench_html(cwd: Path, session: str) -> bytes:
 <section id="panelization"><div class="card"><h2>Panelization</h2><p class="muted">Panelization preview requires KiKit plus <code>kicad-cli</code>. Configure <code>panelization</code> in <code>.backplane.json</code>.</p></div></section>
 <section id="checks"><div class="grid"><div class="card"><h2>DRC</h2><pre id="drc">Loading...</pre></div><div class="card"><h2>ERC</h2><pre id="erc">Loading...</pre></div></div></section>
 </main><script>
-const setTab=(id)=>{{document.querySelectorAll("section").forEach(el=>el.classList.toggle("active",el.id===id));document.querySelectorAll(".tabs button").forEach(el=>el.classList.toggle("active",el.dataset.tab===id));location.hash=id;if(id==="checks"){{fetch("/api/kicad/drc").then(r=>r.json()).then(j=>drc.textContent=JSON.stringify(j,null,2));fetch("/api/kicad/erc").then(r=>r.json()).then(j=>erc.textContent=JSON.stringify(j,null,2));}}}};
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));setTab(location.hash.slice(1)||"overview");
+let sourceSnapshot;
+const loadSources=()=>sourceSnapshot||=fetch("/api/kicad/sources").then(r=>r.json());
+const postSnapshot=async(frame)=>{{const payload=await loadSources();frame.contentWindow?.postMessage({{type:"backplane-snapshot",kind:"native",context:frame.dataset.kind,revision:payload.revision,sources:payload.sources,active:true}}, location.origin);}};
+window.addEventListener("message", event=>{{if(event.origin!==location.origin)return;if(event.data?.type==="backplane-runtime-ready"){{const frame=[...document.querySelectorAll("iframe.native-viewer")].find(item=>item.contentWindow===event.source);if(frame)void postSnapshot(frame);}}}});
+const setTab=(id)=>{{document.querySelectorAll("section").forEach(el=>el.classList.toggle("active",el.id===id));document.querySelectorAll(".tabs button").forEach(el=>el.classList.toggle("active",el.dataset.tab===id));location.hash=id;document.querySelectorAll(`#${{CSS.escape(id)}} iframe.native-viewer`).forEach(frame=>void postSnapshot(frame));if(id==="checks"){{fetch("/api/kicad/drc").then(r=>r.json()).then(j=>drc.textContent=JSON.stringify(j,null,2));fetch("/api/kicad/erc").then(r=>r.json()).then(j=>erc.textContent=JSON.stringify(j,null,2));}}}};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));setTab(location.hash.slice(1)||"schematic");
 </script></body></html>"""
     return body.encode()
 
@@ -513,6 +544,15 @@ class Server(BaseHTTPRequestHandler):
                 self.send_json({"ok": True, "plugin": "backplane", "kicad_cli": bool(kicad_cli())})
             elif parsed.path in ("/api/project", "/api/kicad/manifest"):
                 self.send_json(manifest(self.cwd))
+            elif parsed.path == "/api/kicad/sources":
+                sources = kicad_sources(self.cwd)
+                self.send_json(
+                    {
+                        "ok": True,
+                        "revision": str(int(max(((self.cwd / item["filename"]).stat().st_mtime for item in sources), default=time.time()) * 1000)),
+                        "sources": sources,
+                    }
+                )
             elif parsed.path == "/api/kicad/file":
                 target = safe_rel(self.cwd, query.get("path", [""])[0])
                 self.send_bytes(target.read_bytes(), mimetypes.guess_type(target.name)[0] or "text/plain")

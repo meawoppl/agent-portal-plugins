@@ -514,6 +514,45 @@ def run_check(cwd: Path, kind: str) -> tuple[int, dict]:
         return code, {"ok": code == 0, "source": source.relative_to(cwd).as_posix(), "stdout": stdout, "stderr": stderr, "report": out.read_text() if out.exists() else ""}
 
 
+def copy_export_artifacts(staging: Path, out: Path, artifacts: list[Path]) -> list[str]:
+    out.mkdir(parents=True, exist_ok=True)
+    copied = []
+    for source in artifacts:
+        if not source.exists() or not source.is_file():
+            continue
+        target = out / source.name
+        shutil.copy2(source, target)
+        copied.append(str(target))
+    return copied
+
+
+def zip_artifacts(zip_path: Path, artifacts: list[Path]) -> None:
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(artifacts, key=lambda item: item.name):
+            if path.exists() and path.is_file() and path != zip_path:
+                archive.write(path, path.name)
+
+
+def gerber_artifacts(path: Path) -> bool:
+    suffix = path.suffix.lower()
+    return suffix in {
+        ".gbr",
+        ".gtl",
+        ".gbl",
+        ".gts",
+        ".gbs",
+        ".gto",
+        ".gbo",
+        ".gtp",
+        ".gbp",
+        ".gta",
+        ".gba",
+        ".gm1",
+        ".gko",
+        ".drl",
+    }
+
+
 def export_gerbers(cwd: Path, out: Path) -> tuple[int, dict]:
     cli = kicad_cli()
     board = pick_one(cwd, ".kicad_pcb")
@@ -521,19 +560,129 @@ def export_gerbers(cwd: Path, out: Path) -> tuple[int, dict]:
         return 1, {"ok": False, "message": "kicad-cli is required"}
     if not board:
         return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
-    out.mkdir(parents=True, exist_ok=True)
-    output_dir = str(out)
-    if not output_dir.endswith(os.sep):
-        output_dir += os.sep
-    code1, stdout1, stderr1 = run([cli, "pcb", "export", "gerbers", "--output", output_dir, str(board)], cwd)
-    code2, stdout2, stderr2 = run([cli, "pcb", "export", "drill", "--output", output_dir, str(board)], cwd)
-    zip_path = out / f"{board.stem}-gerbers.zip"
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as archive:
-        for path in sorted(out.iterdir()):
-            if path.is_file() and path != zip_path:
-                archive.write(path, path.name)
+    with tempfile.TemporaryDirectory(prefix="backplane-gerbers-") as tmp:
+        staging = Path(tmp)
+        output_dir = str(staging)
+        if not output_dir.endswith(os.sep):
+            output_dir += os.sep
+        code1, stdout1, stderr1 = run([cli, "pcb", "export", "gerbers", "--output", output_dir, str(board)], cwd)
+        code2, stdout2, stderr2 = run([cli, "pcb", "export", "drill", "--output", output_dir, str(board)], cwd)
+        generated = [path for path in staging.iterdir() if path.is_file() and gerber_artifacts(path)]
+        copied = copy_export_artifacts(staging, out, generated)
+        zip_path = out / f"{board.stem}-gerbers.zip"
+        zip_artifacts(zip_path, [Path(path) for path in copied])
     code = code1 or code2
-    return code, {"ok": code == 0, "board": board.relative_to(cwd).as_posix(), "out": str(out), "zip": str(zip_path), "stdout": stdout1 + stdout2, "stderr": stderr1 + stderr2}
+    return code, {
+        "ok": code == 0,
+        "board": board.relative_to(cwd).as_posix(),
+        "out": str(out),
+        "zip": str(zip_path),
+        "artifacts": copied,
+        "stdout": stdout1 + stdout2,
+        "stderr": stderr1 + stderr2,
+    }
+
+
+def convert_position_csv(source: Path, destination: Path) -> None:
+    required = {"Ref", "PosX", "PosY", "Rot", "Side"}
+    with source.open(newline="", encoding="utf-8") as src, destination.open("w", newline="", encoding="utf-8") as dst:
+        reader = csv.DictReader(src)
+        if reader.fieldnames is None or not required.issubset(reader.fieldnames):
+            raise ValueError(f"Unexpected position CSV header: {reader.fieldnames!r}")
+        writer = csv.writer(dst)
+        writer.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
+        for row in reader:
+            side = (row["Side"] or "").strip().lower()
+            layer = "T" if side in {"top", "front"} else "B"
+            writer.writerow([row["Ref"], row["PosX"], row["PosY"], layer, row["Rot"]])
+
+
+def export_jlcpcb(cwd: Path, out: Path) -> tuple[int, dict]:
+    cli = kicad_cli()
+    board = pick_one(cwd, ".kicad_pcb")
+    schematic = pick_one(cwd, ".kicad_sch")
+    if not cli:
+        return 1, {"ok": False, "message": "kicad-cli is required"}
+    if not board:
+        return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
+    if not schematic:
+        return 1, {"ok": False, "message": "Select a single .kicad_sch or set schematic in .backplane.json"}
+    with tempfile.TemporaryDirectory(prefix="backplane-jlcpcb-") as tmp:
+        staging = Path(tmp)
+        output_dir = str(staging)
+        if not output_dir.endswith(os.sep):
+            output_dir += os.sep
+        code_g, stdout_g, stderr_g = run([cli, "pcb", "export", "gerbers", "--output", output_dir, str(board)], cwd)
+        code_d, stdout_d, stderr_d = run([cli, "pcb", "export", "drill", "--output", output_dir, str(board)], cwd)
+        bom = staging / f"BOM_{board.stem}.csv"
+        code_b, stdout_b, stderr_b = run(
+            [
+                cli,
+                "sch",
+                "export",
+                "bom",
+                "--output",
+                str(bom),
+                "--fields",
+                "Value,Reference,Footprint,LCSC",
+                "--labels",
+                "Comment,Designator,Footprint,LCSC Part #",
+                "--sort-field",
+                "Reference",
+                "--exclude-dnp",
+                str(schematic),
+            ],
+            cwd,
+        )
+        raw_pos = staging / f"CPL_kicad_{board.stem}.csv"
+        cpl = staging / f"CPL_{board.stem}.csv"
+        code_p, stdout_p, stderr_p = run(
+            [
+                cli,
+                "pcb",
+                "export",
+                "pos",
+                "--output",
+                str(raw_pos),
+                "--format",
+                "csv",
+                "--units",
+                "mm",
+                "--side",
+                "both",
+                "--exclude-dnp",
+                str(board),
+            ],
+            cwd,
+        )
+        convert_error = ""
+        if code_p == 0 and raw_pos.exists():
+            try:
+                convert_position_csv(raw_pos, cpl)
+            except Exception as exc:
+                code_p = 1
+                convert_error = str(exc)
+        generated = [path for path in staging.iterdir() if path.is_file() and (gerber_artifacts(path) or path in {bom, cpl})]
+        copied = copy_export_artifacts(staging, out, generated)
+        zip_path = out / f"{board.stem}-jlcpcb.zip"
+        zip_artifacts(zip_path, [Path(path) for path in copied])
+    code = code_g or code_d or code_b or code_p
+    missing = []
+    if not any(Path(path).name == bom.name for path in copied):
+        missing.append("bom")
+    if not any(Path(path).name == cpl.name for path in copied):
+        missing.append("cpl")
+    return code, {
+        "ok": code == 0 and not missing,
+        "board": board.relative_to(cwd).as_posix(),
+        "schematic": schematic.relative_to(cwd).as_posix(),
+        "out": str(out),
+        "zip": str(zip_path),
+        "artifacts": copied,
+        "missing": missing,
+        "stdout": stdout_g + stdout_d + stdout_b + stdout_p,
+        "stderr": stderr_g + stderr_d + stderr_b + stderr_p + convert_error,
+    }
 
 
 def export_glb(cwd: Path, out: Path) -> tuple[int, dict]:
@@ -969,7 +1118,12 @@ def main(argv: list[str]) -> int:
         args = parser.parse_args(rest)
         if sub not in ("gerbers", "jlcpcb"):
             return usage()
-        code, result = export_gerbers(Path(args.cwd).expanduser().resolve(), Path(args.out).expanduser().resolve())
+        cwd = Path(args.cwd).expanduser().resolve()
+        out = Path(args.out).expanduser().resolve()
+        if sub == "jlcpcb":
+            code, result = export_jlcpcb(cwd, out)
+        else:
+            code, result = export_gerbers(cwd, out)
         print(json.dumps(result, indent=2))
         return code
     return usage()

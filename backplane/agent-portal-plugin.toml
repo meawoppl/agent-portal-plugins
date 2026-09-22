@@ -1,0 +1,62 @@
+schema_version = 1
+name = "backplane"
+display_name = "Backplane"
+description = "PCB review, KiCad checks, Gerber export, and board visualization for Agent Portal sessions."
+homepage = "https://github.com/i2cjak/Backplane"
+license = "MIT"
+
+[compat]
+agent_portal = ">=2.15.0"
+platforms = ["linux", "macos"]
+
+[install]
+setup = "bin/backplane setup"
+doctor = "bin/backplane doctor --json"
+
+[surface]
+kind = "http"
+default_title = "Backplane"
+default_width_percent = 50
+health_path = "/healthz"
+start = "bin/backplane serve --port {port} --session {session_id} --cwd {cwd}"
+ready_url = "http://127.0.0.1:{port}/"
+
+[surface.env]
+AGENT_PORTAL_PLUGIN = "backplane"
+
+[[commands]]
+name = "doctor"
+description = "Report local PCB workflow dependencies and detected project files."
+run = "bin/backplane doctor --json --cwd {cwd}"
+
+[[commands]]
+name = "drc"
+description = "Run design-rule checks for the active board when KiCad tooling is available."
+run = "bin/backplane drc --cwd {cwd} --json"
+
+[[commands]]
+name = "export-gerbers"
+description = "Export fabrication artifacts into the session artifact directory."
+run = "bin/backplane export gerbers --cwd {cwd} --out {artifact_dir}"
+
+[[skills]]
+name = "pcb-workflow"
+path = "skills/pcb-workflow/SKILL.md"
+agents = ["claude", "codex"]
+
+[[prompts]]
+name = "session"
+path = "prompts/session.md"
+
+[[detect]]
+name = "kicad"
+any = ["*.kicad_pro", "*.kicad_pcb", "*.kicad_sch"]
+
+[[detect]]
+name = "gerber-package"
+any = ["*.gbr", "*.gtl", "*.gbl", "*.gts", "*.gto", "*.gbs", "*.gbo", "*.drl", "*.zip"]
+
+[[mcp]]
+name = "backplane"
+command = "bin/backplane"
+args = ["mcp", "--cwd", "{cwd}"]

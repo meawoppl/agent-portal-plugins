@@ -1,0 +1,11 @@
+schema_version = 1
+
+[[suggested_plugins]]
+name = "backplane"
+source = "github:meawoppl/agent-portal-plugins//backplane"
+reason = "This repo contains PCB design files and uses Backplane for review."
+required = false
+
+[suggested_plugins.config]
+default_view = "board"
+fabrication_output = "build/fab"

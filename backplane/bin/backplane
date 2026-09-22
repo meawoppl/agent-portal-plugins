@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+backplane portal plugin smoke wrapper
+
+Commands:
+  setup
+  doctor [--json] [--cwd PATH]
+  serve --port PORT [--cwd PATH] [--session UUID]
+  drc [--json] [--cwd PATH]
+  export gerbers --out PATH [--cwd PATH]
+  mcp [--cwd PATH]
+USAGE
+}
+
+cmd="${1:-}"
+if [ -z "$cmd" ]; then
+  usage
+  exit 2
+fi
+shift || true
+
+case "$cmd" in
+  setup)
+    echo "Backplane plugin setup complete. This smoke wrapper uses bash and python3."
+    ;;
+  doctor)
+    python3 - "$@" <<'PY'
+import json, shutil, sys
+from pathlib import Path
+
+cwd = Path.cwd()
+as_json = False
+args = iter(sys.argv[1:])
+for arg in args:
+    if arg == "--json":
+        as_json = True
+    elif arg == "--cwd":
+        cwd = Path(next(args)).expanduser().resolve()
+
+patterns = ["*.kicad_pro", "*.kicad_pcb", "*.kicad_sch", "*.gbr", "*.gtl", "*.gbl", "*.drl", "*.zip"]
+matches = []
+for pattern in patterns:
+    matches.extend(str(path.relative_to(cwd)) for path in cwd.rglob(pattern) if path.is_file())
+matches = sorted(set(matches))[:200]
+tools = {
+    "python3": shutil.which("python3") is not None,
+    "node": shutil.which("node") is not None,
+    "kicad-cli": shutil.which("kicad-cli") is not None,
+}
+result = {
+    "ok": tools["python3"],
+    "cwd": str(cwd),
+    "tools": tools,
+    "detected_files": matches,
+    "notes": [
+        "This is a Portal plugin smoke wrapper, not the full upstream Backplane runtime.",
+        "Install upstream Backplane for full native PCB inspection workflows.",
+    ],
+}
+if as_json:
+    print(json.dumps(result, indent=2))
+else:
+    print(f"cwd: {cwd}")
+    print("tools:")
+    for name, ok in tools.items():
+        print(f"  {name}: {'ok' if ok else 'missing'}")
+    print("detected files:")
+    for path in matches or ["(none)"]:
+        print(f"  {path}")
+PY
+    ;;
+  serve)
+    python3 - "$@" <<'PY'
+import argparse, html, json, os
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import urlparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--port", type=int, required=True)
+parser.add_argument("--cwd", default=os.getcwd())
+parser.add_argument("--session", default="")
+args = parser.parse_args()
+
+cwd = Path(args.cwd).expanduser().resolve()
+patterns = ["*.kicad_pro", "*.kicad_pcb", "*.kicad_sch", "*.gbr", "*.gtl", "*.gbl", "*.gts", "*.gto", "*.gbs", "*.gbo", "*.drl", "*.zip"]
+
+def detected():
+    files = []
+    for pattern in patterns:
+        files.extend(path.relative_to(cwd).as_posix() for path in cwd.rglob(pattern) if path.is_file())
+    return sorted(set(files))[:300]
+
+class Handler(BaseHTTPRequestHandler):
+    def log_message(self, fmt, *values):
+        print("backplane-surface:", fmt % values)
+
+    def send_json(self, body):
+        data = json.dumps(body, indent=2).encode()
+        self.send_response(200)
+        self.send_header("content-type", "application/json")
+        self.send_header("content-length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        path = urlparse(self.path).path
+        if path == "/healthz":
+            self.send_json({"ok": True, "plugin": "backplane"})
+            return
+        if path == "/api/project":
+            self.send_json({"cwd": str(cwd), "session": args.session, "files": detected()})
+            return
+        files = detected()
+        rows = "\n".join(f"<li><code>{html.escape(name)}</code></li>" for name in files) or "<li>No KiCad/Gerber files detected yet.</li>"
+        body = f"""<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backplane Portal Plugin</title>
+  <style>
+    :root {{ color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }}
+    body {{ margin: 0; background: #16161e; color: #c0caf5; }}
+    header {{ padding: 18px 22px; border-bottom: 1px solid #3d4666; background: #1e202e; }}
+    main {{ padding: 22px; display: grid; gap: 18px; }}
+    h1 {{ margin: 0; font-size: 22px; color: #e6e9f5; }}
+    h2 {{ margin: 0 0 12px; font-size: 16px; color: #9ece6a; }}
+    .card {{ border: 1px solid #3d4666; border-radius: 8px; background: #1e202e; padding: 18px; }}
+    code {{ color: #7dcfff; }}
+    li {{ margin: 6px 0; }}
+    .muted {{ color: #a9b1d6; }}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Backplane Portal Plugin</h1>
+    <div class="muted">Session {html.escape(args.session or "unknown")} · {html.escape(str(cwd))}</div>
+  </header>
+  <main>
+    <section class="card">
+      <h2>Detected PCB Files</h2>
+      <ul>{rows}</ul>
+    </section>
+    <section class="card">
+      <h2>Smoke Surface</h2>
+      <p>This validates the Agent Portal plugin contract: local service, forwardable surface, health endpoint, and project detection.</p>
+      <p class="muted">The full Backplane workbench can replace this wrapper behind the same manifest.</p>
+    </section>
+  </main>
+</body>
+</html>"""
+        data = body.encode()
+        self.send_response(200)
+        self.send_header("content-type", "text/html; charset=utf-8")
+        self.send_header("content-length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+ThreadingHTTPServer(("127.0.0.1", args.port), Handler).serve_forever()
+PY
+    ;;
+  drc)
+    python3 - "$@" <<'PY'
+import json, shutil, sys
+from pathlib import Path
+
+cwd = Path.cwd()
+as_json = False
+args = iter(sys.argv[1:])
+for arg in args:
+    if arg == "--json":
+        as_json = True
+    elif arg == "--cwd":
+        cwd = Path(next(args)).expanduser().resolve()
+boards = sorted(path.relative_to(cwd).as_posix() for path in cwd.rglob("*.kicad_pcb"))
+result = {
+    "ok": shutil.which("kicad-cli") is not None,
+    "cwd": str(cwd),
+    "boards": boards,
+    "message": "kicad-cli is required for real DRC; this smoke wrapper only reports readiness.",
+}
+print(json.dumps(result, indent=2) if as_json else result["message"])
+sys.exit(0 if result["ok"] else 1)
+PY
+    ;;
+  export)
+    sub="${1:-}"
+    shift || true
+    if [ "$sub" != "gerbers" ]; then
+      usage
+      exit 2
+    fi
+    python3 - "$@" <<'PY'
+import argparse, json
+from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--cwd", default=".")
+parser.add_argument("--out", required=True)
+args = parser.parse_args()
+cwd = Path(args.cwd).expanduser().resolve()
+out = Path(args.out).expanduser().resolve()
+out.mkdir(parents=True, exist_ok=True)
+manifest = {
+    "plugin": "backplane",
+    "cwd": str(cwd),
+    "note": "Smoke export placeholder. Full Backplane/KiCad integration should write Gerbers here.",
+}
+(out / "backplane-export-placeholder.json").write_text(json.dumps(manifest, indent=2) + "\n")
+print(json.dumps({"ok": True, "out": str(out), "files": ["backplane-export-placeholder.json"]}, indent=2))
+PY
+    ;;
+  mcp)
+    echo '{"jsonrpc":"2.0","error":{"code":-32000,"message":"Backplane MCP smoke wrapper is not implemented yet"},"id":null}'
+    ;;
+  *)
+    usage
+    exit 2
+    ;;
+esac

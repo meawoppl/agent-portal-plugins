@@ -156,6 +156,11 @@ def run(cmd: list[str], cwd: Path) -> tuple[int, str, str]:
     return proc.returncode, proc.stdout, proc.stderr
 
 
+def cli_supports(cli: str, args: list[str], needle: str) -> bool:
+    code, stdout, stderr = run([cli, *args, "--help"], Path.cwd())
+    return code == 0 and needle in f"{stdout}\n{stderr}"
+
+
 def pick_one(cwd: Path, suffix: str) -> Path | None:
     config = project_config(cwd)
     configured = config.get("pcb" if suffix == ".kicad_pcb" else "schematic")
@@ -172,6 +177,12 @@ def run_check(cwd: Path, kind: str) -> tuple[int, dict]:
     if not cli:
         return 1, {"ok": False, "message": "kicad-cli is required", "tool": None}
     if kind == "drc":
+        if not cli_supports(cli, ["pcb"], "drc"):
+            return 1, {
+                "ok": False,
+                "message": "This kicad-cli does not support PCB DRC. Install KiCad 8+ or Backplane's KiCad runtime.",
+                "tool": cli,
+            }
         source = pick_one(cwd, ".kicad_pcb")
         if not source:
             return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
@@ -179,6 +190,12 @@ def run_check(cwd: Path, kind: str) -> tuple[int, dict]:
             out = Path(tmp) / "drc.json"
             code, stdout, stderr = run([cli, "pcb", "drc", "--format", "json", "--output", str(out), str(source)], cwd)
             return code, {"ok": code == 0, "source": source.relative_to(cwd).as_posix(), "stdout": stdout, "stderr": stderr, "report": out.read_text() if out.exists() else ""}
+    if not cli_supports(cli, ["sch"], "erc"):
+        return 1, {
+            "ok": False,
+            "message": "This kicad-cli does not support schematic ERC. Install KiCad 8+ or Backplane's KiCad runtime.",
+            "tool": cli,
+        }
     source = pick_one(cwd, ".kicad_sch")
     if not source:
         return 1, {"ok": False, "message": "Select a single .kicad_sch or set schematic in .backplane.json"}

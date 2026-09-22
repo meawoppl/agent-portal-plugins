@@ -726,7 +726,8 @@ export class RetainedNativeViewer extends EventTarget {
       try {
         current.setActive(false);
         await current.replaceSources({ revisionKey, sources });
-        await current.ready;
+        if (current.ready && typeof current.ready.then === "function")
+          await Promise.race([current.ready, timeout(1200)]);
         if (generation !== this.generation || this.disposed || this.current !== current) return;
         const loaded = this.core();
         // ecad-viewer resolves its host replacement before the mature

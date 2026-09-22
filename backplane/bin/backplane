@@ -448,6 +448,34 @@ def export_gerbers(cwd: Path, out: Path) -> tuple[int, dict]:
     return code, {"ok": code == 0, "board": board.relative_to(cwd).as_posix(), "out": str(out), "zip": str(zip_path), "stdout": stdout1 + stdout2, "stderr": stderr1 + stderr2}
 
 
+def export_glb(cwd: Path, out: Path) -> tuple[int, dict]:
+    cli = kicad_cli()
+    board = pick_one(cwd, ".kicad_pcb")
+    if not cli:
+        return 1, {"ok": False, "message": "kicad-cli is required"}
+    if not board:
+        return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
+    if not cli_supports(cli, ["pcb", "export"], "glb"):
+        return 1, {"ok": False, "message": "This kicad-cli does not support GLB export.", "tool": cli}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    command = [
+        cli,
+        "pcb",
+        "export",
+        "glb",
+        "--force",
+        "--include-tracks",
+        "--include-pads",
+        "--include-silkscreen",
+        "--include-soldermask",
+        "--output",
+        str(out),
+        str(board),
+    ]
+    code, stdout, stderr = run(command, cwd)
+    return code, {"ok": code == 0, "board": board.relative_to(cwd).as_posix(), "out": str(out), "stdout": stdout, "stderr": stderr}
+
+
 def artifact_href(path: str) -> str:
     return f"/api/kicad/file?path={quote(path)}&download=1"
 
@@ -461,24 +489,83 @@ def csv_asset_label(path: str) -> str:
     return "CSV"
 
 
-def csv_assets(items: list[dict]) -> str:
+def csv_header(path: Path) -> list[str]:
+    try:
+        with path.open(newline="") as handle:
+            return next(csv.reader(handle), [])
+    except Exception:
+        return []
+
+
+def csv_asset_role(cwd: Path, item: dict) -> str:
+    name = Path(item["path"]).name.lower()
+    header = [cell.strip().lower() for cell in csv_header(cwd / item["path"])]
+    if "bom" in name or any("lcsc" in cell for cell in header):
+        return "bom"
+    if "cpl" in name or "pos" in name or "position" in name:
+        return "assembly"
+    if {"designator", "mid x", "mid y", "layer", "rotation"}.issubset(set(header)):
+        return "assembly"
+    return "csv"
+
+
+def csv_asset_score(cwd: Path, item: dict) -> tuple[int, int, str]:
+    name = Path(item["path"]).name.lower()
+    header = [cell.strip().lower() for cell in csv_header(cwd / item["path"])]
+    jlcpcb_cpl = {"designator", "mid x", "mid y", "layer", "rotation"}.issubset(set(header))
+    lcsc_bom = any("lcsc" in cell for cell in header)
+    score = 0
+    if "jlcpcb" in item["path"].lower():
+        score += 10
+    if name.startswith("bom_") or "bom" in name:
+        score += 8
+    if jlcpcb_cpl:
+        score += 8
+    if lcsc_bom:
+        score += 6
+    if "kicad" in name:
+        score -= 4
+    return (score, -int(item.get("size") or 0), item["path"])
+
+
+def csv_asset_link(item: dict, *, alternate: bool = False) -> str:
+    path = item["path"]
+    label = csv_asset_label(path)
+    size = int(item.get("size") or 0)
+    tag = "li" if alternate else "a"
+    link = (
+        "<a class='asset-download' "
+        f"href='{html.escape(artifact_href(path), quote=True)}' "
+        f"download='{html.escape(Path(path).name, quote=True)}'>"
+        f"<span>{html.escape(label)}</span>"
+        f"<code>{html.escape(path)}</code>"
+        f"<small>{size:,} bytes</small>"
+        "</a>"
+    )
+    return f"<{tag}>{link}</{tag}>" if alternate else link
+
+
+def csv_assets(cwd: Path, items: list[dict]) -> str:
     if not items:
         return "<p class='muted'>No CSV BOM/CPL files found.</p>"
-    links = []
+    by_role: dict[str, list[dict]] = {}
     for item in items:
-        path = item["path"]
-        label = csv_asset_label(path)
-        size = int(item.get("size") or 0)
-        links.append(
-            "<a class='asset-download' "
-            f"href='{html.escape(artifact_href(path), quote=True)}' "
-            f"download='{html.escape(Path(path).name, quote=True)}'>"
-            f"<span>{html.escape(label)}</span>"
-            f"<code>{html.escape(path)}</code>"
-            f"<small>{size:,} bytes</small>"
-            "</a>"
+        by_role.setdefault(csv_asset_role(cwd, item), []).append(item)
+    primary = []
+    alternates = []
+    for role in ("bom", "assembly", "csv"):
+        ranked = sorted(by_role.get(role, []), key=lambda item: csv_asset_score(cwd, item), reverse=True)
+        if ranked:
+            primary.append(ranked[0])
+            alternates.extend(ranked[1:])
+    html_parts = [f"<div class='asset-grid'>{''.join(csv_asset_link(item) for item in primary)}</div>"]
+    if alternates:
+        html_parts.append(
+            "<details class='alternate-assets'><summary>Alternate CSVs</summary><ul>"
+            + "".join(csv_asset_link(item, alternate=True) for item in alternates)
+            + "</ul></details>"
         )
-    return f"<div class='asset-grid'>{''.join(links)}</div>"
+    return "".join(html_parts)
 
 
 def is_lcsc_column(header: str) -> bool:
@@ -545,6 +632,14 @@ def native_viewer(kind: str) -> str:
     )
 
 
+def model_viewer(kind: str, url: str) -> str:
+    return (
+        f"<iframe class='model-viewer' data-kind='{html.escape(kind)}' "
+        f"data-url='{html.escape(url, quote=True)}' "
+        "src='/kicad-viewer/runtime.html'></iframe>"
+    )
+
+
 def workbench_html(cwd: Path, session: str) -> bytes:
     data = manifest(cwd)
     by_kind: dict[str, list[dict]] = {}
@@ -552,7 +647,7 @@ def workbench_html(cwd: Path, session: str) -> bytes:
         by_kind.setdefault(item["kind"], []).append(item)
     bom_files = [item for item in data["files"] if item["path"].lower().endswith(".csv")]
     bom_html = (
-        f"<div class='downloads'><h3>Downloads</h3>{csv_assets(bom_files)}</div>"
+        f"<div class='downloads'><h3>Downloads</h3>{csv_assets(cwd, bom_files)}</div>"
         + (csv_table(cwd / bom_files[0]["path"]) if bom_files else "")
     )
     warnings = "".join(f"<li>{html.escape(w)}</li>" for w in data["warnings"])
@@ -561,7 +656,7 @@ def workbench_html(cwd: Path, session: str) -> bytes:
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Backplane · Agent Portal</title>
 <style>
-:root{{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}body{{margin:0;background:#16161e;color:#c0caf5}}header{{padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}.muted{{color:#9aa5ce}}.error{{color:#f7768e}}.ok{{color:#9ece6a}}a{{color:#7dcfff}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}code{{color:#7dcfff}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}table{{border-collapse:collapse;width:100%;font-size:12px}}th,td{{border:1px solid #3b4261;padding:6px;text-align:left}}th{{background:#292e42}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}.downloads{{margin-bottom:14px}}.downloads h3{{margin:0 0 8px;font-size:14px;color:#e6e9f5}}.asset-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}}.asset-download{{display:grid;gap:4px;border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px;text-decoration:none}}.asset-download:hover{{border-color:#7aa2f7;background:#20263a}}.asset-download span{{color:#c0caf5;font-weight:600}}.asset-download small{{color:#9aa5ce}}.check-summary{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}}.pill{{border:1px solid #3b4261;border-radius:999px;padding:4px 8px;background:#24283b;font-size:12px}}.pill.error{{border-color:#f7768e;color:#f7768e}}.pill.warning{{border-color:#e0af68;color:#e0af68}}.pill.ok{{border-color:#9ece6a;color:#9ece6a}}.issue-list{{display:grid;gap:8px}}.issue{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px}}.issue-head{{display:flex;gap:8px;align-items:center;justify-content:space-between}}.severity{{text-transform:uppercase;font-size:11px;letter-spacing:.04em;border-radius:4px;padding:2px 6px}}.severity.error{{background:#f7768e22;color:#f7768e}}.severity.warning{{background:#e0af6822;color:#e0af68}}.items{{margin:8px 0 0;padding-left:18px}}details.raw{{margin-top:12px}}details.raw summary{{cursor:pointer;color:#7dcfff}}
+:root{{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}body{{margin:0;background:#16161e;color:#c0caf5}}header{{padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}.muted{{color:#9aa5ce}}.error{{color:#f7768e}}.ok{{color:#9ece6a}}a{{color:#7dcfff}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}code{{color:#7dcfff}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}table{{border-collapse:collapse;width:100%;font-size:12px}}th,td{{border:1px solid #3b4261;padding:6px;text-align:left}}th{{background:#292e42}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}.downloads{{margin-bottom:14px}}.downloads h3{{margin:0 0 8px;font-size:14px;color:#e6e9f5}}.asset-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}}.asset-download{{display:grid;gap:4px;border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px;text-decoration:none}}.asset-download:hover{{border-color:#7aa2f7;background:#20263a}}.asset-download span{{color:#c0caf5;font-weight:600}}.asset-download small{{color:#9aa5ce}}.alternate-assets{{margin-top:10px}}.alternate-assets summary{{cursor:pointer;color:#7dcfff}}.alternate-assets ul{{display:grid;gap:8px;margin:8px 0 0;padding:0;list-style:none}}.alternate-assets li{{margin:0}}.check-summary{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}}.pill{{border:1px solid #3b4261;border-radius:999px;padding:4px 8px;background:#24283b;font-size:12px}}.pill.error{{border-color:#f7768e;color:#f7768e}}.pill.warning{{border-color:#e0af68;color:#e0af68}}.pill.ok{{border-color:#9ece6a;color:#9ece6a}}.issue-list{{display:grid;gap:8px}}.issue{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px}}.issue-head{{display:flex;gap:8px;align-items:center;justify-content:space-between}}.severity{{text-transform:uppercase;font-size:11px;letter-spacing:.04em;border-radius:4px;padding:2px 6px}}.severity.error{{background:#f7768e22;color:#f7768e}}.severity.warning{{background:#e0af6822;color:#e0af68}}.items{{margin:8px 0 0;padding-left:18px}}details.raw{{margin-top:12px}}details.raw summary{{cursor:pointer;color:#7dcfff}}
 </style></head><body>
 <header><h1>Backplane PCB Workbench</h1><div class="muted">Session {html.escape(session or "unknown")} · {html.escape(str(cwd))}</div></header>
 <nav class="tabs" role="tablist">{buttons}</nav><main>
@@ -569,7 +664,7 @@ def workbench_html(cwd: Path, session: str) -> bytes:
 <section id="schematic"><div class="card"><h2>Schematic</h2><ul>{file_list(by_kind.get("schematic"), "No schematics found.")}</ul>{native_viewer("schematic")}</div></section>
 <section id="pcb"><div class="card"><h2>PCB</h2><ul>{file_list(by_kind.get("pcb"), "No boards found.")}</ul>{native_viewer("pcb")}</div></section>
 <section id="gerbers"><div class="card"><h2>Gerbers</h2><ul>{file_list(by_kind.get("gerber"), "No Gerbers found.")}</ul></div></section>
-<section id="3d"><div class="card"><h2>3D Board</h2><p class="muted">Backplane-compatible 3D runtime assets are bundled. Board GLB generation requires <code>kicad-cli pcb export glb</code> support.</p><iframe src="/kicad-viewer/runtime.html"></iframe></div></section>
+<section id="3d"><div class="card"><h2>3D Board</h2><p class="muted">Generated from the active KiCad PCB with <code>kicad-cli pcb export glb</code>.</p>{model_viewer("model", "/api/kicad/model.glb")}</div></section>
 <section id="step"><div class="card"><h2>STEP</h2><ul>{file_list(by_kind.get("model"), "No STEP/STP/GLB models found.")}</ul><iframe src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="bom"><div class="card"><h2>BOM / Assembly CSV</h2>{bom_html}</div></section>
 <section id="libraries"><div class="grid"><div class="card"><h2>Footprints</h2><ul>{file_list(by_kind.get("footprint"), "No footprints found.")}</ul></div><div class="card"><h2>Symbols</h2><ul>{file_list(by_kind.get("symbol"), "No symbols found.")}</ul></div></div></section>
@@ -580,13 +675,13 @@ def workbench_html(cwd: Path, session: str) -> bytes:
 const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({{"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","'":"&#39;"}}[c]));
 let sourceSnapshot;
 const loadSources=()=>sourceSnapshot||=fetch("/api/kicad/sources").then(r=>r.json());
-const postSnapshot=async(frame)=>{{const payload=await loadSources();frame.contentWindow?.postMessage({{type:"backplane-snapshot",kind:"native",context:frame.dataset.kind,revision:payload.revision,sources:payload.sources,active:true}}, location.origin);}};
-window.addEventListener("message", event=>{{if(event.origin!==location.origin)return;if(event.data?.type==="backplane-runtime-ready"){{const frame=[...document.querySelectorAll("iframe.native-viewer")].find(item=>item.contentWindow===event.source);if(frame)void postSnapshot(frame);}}}});
+const postSnapshot=async(frame)=>{{if(frame.dataset.url){{frame.contentWindow?.postMessage({{type:"backplane-snapshot",kind:frame.dataset.kind,url:frame.dataset.url,active:true}}, location.origin);return;}}const payload=await loadSources();frame.contentWindow?.postMessage({{type:"backplane-snapshot",kind:"native",context:frame.dataset.kind,revision:payload.revision,sources:payload.sources,active:true}}, location.origin);}};
+window.addEventListener("message", event=>{{if(event.origin!==location.origin)return;if(event.data?.type==="backplane-runtime-ready"){{const frame=[...document.querySelectorAll("iframe.native-viewer, iframe.model-viewer")].find(item=>item.contentWindow===event.source);if(frame)void postSnapshot(frame);}}}});
 const parseReport=(check)=>{{try{{return JSON.parse(check.report||"{{}}");}}catch{{return {{}};}}}};
 const reportViolations=(kind, report)=>kind==="erc"?((report.sheets||[]).flatMap(sheet=>(sheet.violations||[]).map(v=>({{...v,sheet:sheet.path}})))):(report.violations||[]);
 const renderCheck=(target, title, check, kind)=>{{const report=parseReport(check);const violations=reportViolations(kind,report);const counts=violations.reduce((acc,v)=>{{const s=v.severity||"unknown";acc[s]=(acc[s]||0)+1;return acc;}},{{}});const status=check.ok?"ok":violations.length?"error":"warning";const items=violations.map(v=>`<article class="issue"><div class="issue-head"><strong>${{esc(v.description||v.type||"Issue")}}</strong><span class="severity ${{esc(v.severity||"warning")}}">${{esc(v.severity||"warning")}}</span></div><div class="muted">${{esc(v.type||"")}}${{v.sheet?` · sheet ${{esc(v.sheet)}}`:""}}</div>${{(v.items||[]).length?`<ul class="items">${{v.items.map(item=>`<li>${{esc(item.description||item.uuid||"item")}}${{item.pos?` <span class="muted">(${{esc(item.pos.x)}}, ${{esc(item.pos.y)}})</span>`:""}}</li>`).join("")}}</ul>`:""}}</article>`).join("");target.innerHTML=`<div class="check-summary"><span class="pill ${{status}}">${{check.ok?"clean":"needs attention"}}</span><span class="pill">${{esc(report.kicad_version||"KiCad")}}</span><span class="pill">${{violations.length}} issue${{violations.length===1?"":"s"}}</span><span class="pill error">${{counts.error||0}} errors</span><span class="pill warning">${{counts.warning||0}} warnings</span></div><p class="muted">${{esc((check.stdout||check.message||"").split("\\n").filter(Boolean).slice(0,3).join(" · "))}}</p>${{items||"<p class='ok'>No issues reported.</p>"}}<details class="raw"><summary>Raw report</summary><pre>${{esc(JSON.stringify(check,null,2))}}</pre></details>`;}};
 const loadChecks=()=>{{fetch("/api/kicad/drc").then(r=>r.json()).then(j=>renderCheck(drc,"DRC",j,"drc"));fetch("/api/kicad/erc").then(r=>r.json()).then(j=>renderCheck(erc,"ERC",j,"erc"));}};
-const setTab=(id)=>{{document.querySelectorAll("section").forEach(el=>el.classList.toggle("active",el.id===id));document.querySelectorAll(".tabs button").forEach(el=>el.classList.toggle("active",el.dataset.tab===id));location.hash=id;document.querySelectorAll(`#${{CSS.escape(id)}} iframe.native-viewer`).forEach(frame=>void postSnapshot(frame));if(id==="checks")loadChecks();}};
+const setTab=(id)=>{{document.querySelectorAll("section").forEach(el=>el.classList.toggle("active",el.id===id));document.querySelectorAll(".tabs button").forEach(el=>el.classList.toggle("active",el.dataset.tab===id));location.hash=id;document.querySelectorAll(`#${{CSS.escape(id)}} iframe.native-viewer, #${{CSS.escape(id)}} iframe.model-viewer`).forEach(frame=>void postSnapshot(frame));if(id==="checks")loadChecks();}};
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));setTab(location.hash.slice(1)||"schematic");
 </script></body></html>"""
     return body.encode()
@@ -644,6 +739,14 @@ class Server(BaseHTTPRequestHandler):
                 if query.get("download", [""])[0]:
                     headers["content-disposition"] = f'attachment; filename="{target.name}"'
                 self.send_bytes(target.read_bytes(), mimetypes.guess_type(target.name)[0] or "text/plain", headers)
+            elif parsed.path == "/api/kicad/model.glb":
+                with tempfile.TemporaryDirectory(prefix="backplane-glb-") as tmp:
+                    target = Path(tmp) / "board.glb"
+                    code, result = export_glb(self.cwd, target)
+                    if code != 0 or not target.exists():
+                        self.send_json(result, 500)
+                    else:
+                        self.send_bytes(target.read_bytes(), "model/gltf-binary")
             elif parsed.path == "/api/kicad/drc":
                 self.send_json(run_check(self.cwd, "drc")[1])
             elif parsed.path == "/api/kicad/erc":

@@ -69,6 +69,24 @@ KINDS = {
     ".csv": "bom",
     ".xml": "netlist",
 }
+DISCOVERY_IGNORED_PARTS = {
+    ".git",
+    ".portal",
+    ".runtime",
+    "__pycache__",
+    "node_modules",
+    "target",
+}
+ACTIVE_SOURCE_IGNORED_PARTS = {
+    *DISCOVERY_IGNORED_PARTS,
+    "build",
+    "dist",
+    "tmp",
+    "temp",
+    "backup",
+    "backups",
+}
+IGNORED_SUFFIXES = (".bak", ".backup", ".orig", ".old", ".tmp", "~")
 
 
 def usage() -> int:
@@ -307,11 +325,22 @@ def safe_rel(cwd: Path, path: str) -> Path:
     return candidate
 
 
+def is_project_file(cwd: Path, path: Path, *, active_source: bool = False) -> bool:
+    try:
+        rel = path.relative_to(cwd)
+    except ValueError:
+        return False
+    ignored = ACTIVE_SOURCE_IGNORED_PARTS if active_source else DISCOVERY_IGNORED_PARTS
+    if any(part in ignored for part in rel.parts):
+        return False
+    lower_name = path.name.lower()
+    return not lower_name.endswith(IGNORED_SUFFIXES)
+
+
 def detect_files(cwd: Path) -> list[dict]:
-    ignored = {".git", "node_modules", "target", ".portal"}
     files: list[dict] = []
     for path in cwd.rglob("*"):
-        if not path.is_file() or any(part in ignored for part in path.relative_to(cwd).parts):
+        if not path.is_file() or not is_project_file(cwd, path):
             continue
         kind = KINDS.get(path.suffix.lower())
         if not kind:
@@ -337,8 +366,7 @@ def kicad_sources(cwd: Path) -> list[dict]:
         if (
             path.is_file()
             and (path.suffix.lower() in suffixes or path.name in table_names)
-            and ".git" not in path.relative_to(cwd).parts
-            and ".portal" not in path.relative_to(cwd).parts
+            and is_project_file(cwd, path, active_source=True)
         ):
             sources.append(
                 {
@@ -474,7 +502,7 @@ def pick_one(cwd: Path, suffix: str) -> Path | None:
         path = (cwd / configured).resolve()
         if path.exists():
             return path
-    matches = sorted(path for path in cwd.rglob(f"*{suffix}") if ".git" not in path.parts)
+    matches = sorted(path for path in cwd.rglob(f"*{suffix}") if is_project_file(cwd, path, active_source=True))
     return matches[0] if len(matches) == 1 else None
 
 

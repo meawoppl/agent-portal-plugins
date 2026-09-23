@@ -1169,13 +1169,27 @@ body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,
 <section id="panelization"><div class="card"><h2>Panelization</h2><p class="muted">Panelization workflow is pending the Rust port.</p></div></section>
 </main><script>
 let sourceSnapshot;
+let sourceSnapshotPromise;
 let activeTab = "schematic";
 let refreshInFlight = false;
-const loadSources = () => sourceSnapshot ||= fetch("/api/kicad/sources").then(r => r.json());
+const loadSources = async () => {{
+  if (sourceSnapshot) return sourceSnapshot;
+  sourceSnapshotPromise ||= fetch("/api/kicad/sources")
+    .then(r => r.json())
+    .then(payload => {{
+      sourceSnapshot = payload;
+      sourceSnapshotPromise = undefined;
+      return payload;
+    }}, err => {{
+      sourceSnapshotPromise = undefined;
+      throw err;
+    }});
+  return sourceSnapshotPromise;
+}};
 const modelUrl = revision => `/api/kicad/model.glb?rev=${{encodeURIComponent(revision || "current")}}`;
 const postSnapshot = async frame => {{
   if (frame.dataset.kind === "model") {{
-    const payload = sourceSnapshot || await loadSources();
+    const payload = await loadSources();
     frame.contentWindow?.postMessage({{type:"backplane-snapshot", kind:"model", url:modelUrl(payload.revision), active:true}}, location.origin);
     return;
   }}

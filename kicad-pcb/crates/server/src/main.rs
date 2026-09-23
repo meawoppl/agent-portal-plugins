@@ -28,7 +28,7 @@ use kicad_pcb_shared::{
     SourceFile, SourcesResponse,
 };
 use notify::{Config as NotifyConfig, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
 use tokio::{
@@ -84,12 +84,16 @@ enum Commands {
         json: bool,
         #[arg(long, default_value = ".")]
         cwd: PathBuf,
+        #[arg(long)]
+        project: Option<String>,
     },
     Erc {
         #[arg(long)]
         json: bool,
         #[arg(long, default_value = ".")]
         cwd: PathBuf,
+        #[arg(long)]
+        project: Option<String>,
     },
     Export {
         #[command(subcommand)]
@@ -104,12 +108,16 @@ enum ExportCommand {
         cwd: PathBuf,
         #[arg(long)]
         out: PathBuf,
+        #[arg(long)]
+        project: Option<String>,
     },
     Jlcpcb {
         #[arg(long, default_value = ".")]
         cwd: PathBuf,
         #[arg(long)]
         out: PathBuf,
+        #[arg(long)]
+        project: Option<String>,
     },
 }
 
@@ -127,6 +135,8 @@ struct ProjectContext {
     id: String,
     name: String,
     root: PathBuf,
+    config: ProjectConfig,
+    shared_libraries: LibraryConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -144,18 +154,50 @@ struct ProjectQuery {
     project: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct WorkspaceConfig {
+    version: Option<u32>,
     default_project: Option<String>,
+    libraries: Option<LibraryConfig>,
     projects: Option<Vec<ProjectConfig>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct ProjectConfig {
     id: String,
     name: Option<String>,
     root: PathBuf,
+    kicad: Option<KicadFilesConfig>,
+    artifacts: Option<ArtifactConfig>,
+    libraries: Option<LibraryConfig>,
+    manufacturer: Option<serde_json::Value>,
+    inherit_libraries: Option<bool>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+struct KicadFilesConfig {
+    project: Option<PathBuf>,
+    schematic: Option<PathBuf>,
+    pcb: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+struct ArtifactConfig {
+    fab: Option<PathBuf>,
+    checks: Option<PathBuf>,
+    gerbers: Option<PathBuf>,
+    jlcpcb: Option<PathBuf>,
+    docs: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+struct LibraryConfig {
+    symbols: Option<Vec<PathBuf>>,
+    footprints: Option<Vec<PathBuf>>,
+    models: Option<Vec<PathBuf>>,
+    datasheets: Option<Vec<PathBuf>>,
 }
 
 #[derive(Debug)]
@@ -178,9 +220,29 @@ async fn main() -> Result<()> {
     match cli.command {
         Commands::Doctor { json, cwd } => {
             let cwd = cwd.canonicalize().context("canonicalize cwd")?;
+            let projects = match project_contexts(&cwd) {
+                Ok(projects) => projects,
+                Err(err) if json => {
+                    let response = serde_json::json!({
+                        "ok": false,
+                        "cwd": cwd,
+                        "message": err.to_string(),
+                    });
+                    print_json_or_debug(true, &response)?;
+                    std::process::exit(1);
+                }
+                Err(err) => return Err(err),
+            };
+            let mut library_warnings = projects
+                .iter()
+                .flat_map(|project| library_warnings(&cwd, project))
+                .collect::<Vec<_>>();
+            library_warnings.sort();
+            library_warnings.dedup();
             let response = serde_json::json!({
                 "ok": true,
                 "cwd": cwd,
+                "projects": projects.iter().map(project_summary).collect::<Vec<_>>(),
                 "tools": {
                     "kicad-cli": kicad_cli().is_some(),
                     "kikit": find_on_path("kikit").is_some(),
@@ -193,6 +255,7 @@ async fn main() -> Result<()> {
                 },
                 "viewer_assets": true,
                 "detected_files": detect_files(&cwd)?.into_iter().map(|item| item.path).collect::<Vec<_>>(),
+                "warnings": library_warnings,
                 "tabs": TABS,
             });
             print_json_or_debug(json, &response)?;
@@ -204,7 +267,7 @@ async fn main() -> Result<()> {
                 .first()
                 .ok_or_else(|| anyhow!("no KiCad PCB projects found"))?
                 .clone();
-            let initial = warm_viewer_state(&default_project.root).await?;
+            let initial = warm_viewer_state(&default_project).await?;
             let mut warmed = HashMap::new();
             warmed.insert(default_project.id.clone(), initial);
             let (events, _) = broadcast::channel(128);
@@ -236,30 +299,40 @@ async fn main() -> Result<()> {
             tracing::info!(%addr, "serving KiCad PCB plugin");
             axum::serve(listener, app).await?;
         }
-        Commands::Drc { json, cwd } => {
-            let result = run_check(&cwd.canonicalize()?, "drc").await?;
+        Commands::Drc { json, cwd, project } => {
+            let cwd = cwd.canonicalize()?;
+            let project = cli_project_context(&cwd, project.as_deref())?;
+            let result = run_check(&project, "drc").await?;
             print_json_or_debug(json, &result)?;
             if !result.ok {
                 std::process::exit(1);
             }
         }
-        Commands::Erc { json, cwd } => {
-            let result = run_check(&cwd.canonicalize()?, "erc").await?;
+        Commands::Erc { json, cwd, project } => {
+            let cwd = cwd.canonicalize()?;
+            let project = cli_project_context(&cwd, project.as_deref())?;
+            let result = run_check(&project, "erc").await?;
             print_json_or_debug(json, &result)?;
             if !result.ok {
                 std::process::exit(1);
             }
         }
         Commands::Export { command } => match command {
-            ExportCommand::Gerbers { cwd, out } => {
-                let result = export_gerbers(&cwd.canonicalize()?, &out).await?;
+            ExportCommand::Gerbers { cwd, out, project } => {
+                let cwd = cwd.canonicalize()?;
+                let project = cli_project_context(&cwd, project.as_deref())?;
+                let out = export_out(&project, &out, "gerbers");
+                let result = export_fab(&project, &out, false).await?;
                 print_json_or_debug(true, &result)?;
                 if !result["ok"].as_bool().unwrap_or(false) {
                     std::process::exit(1);
                 }
             }
-            ExportCommand::Jlcpcb { cwd, out } => {
-                let result = export_jlcpcb(&cwd.canonicalize()?, &out).await?;
+            ExportCommand::Jlcpcb { cwd, out, project } => {
+                let cwd = cwd.canonicalize()?;
+                let project = cli_project_context(&cwd, project.as_deref())?;
+                let out = export_out(&project, &out, "jlcpcb");
+                let result = export_fab(&project, &out, true).await?;
                 print_json_or_debug(true, &result)?;
                 if !result["ok"].as_bool().unwrap_or(false) {
                     std::process::exit(1);
@@ -413,7 +486,7 @@ async fn drc(
     Query(query): Query<ProjectQuery>,
 ) -> Result<Json<CheckResponse>, AppError> {
     let project = selected_project(&state, query.project.as_deref())?;
-    Ok(Json(run_check(&project.root, "drc").await?))
+    Ok(Json(run_check(&project, "drc").await?))
 }
 
 async fn erc(
@@ -421,7 +494,7 @@ async fn erc(
     Query(query): Query<ProjectQuery>,
 ) -> Result<Json<CheckResponse>, AppError> {
     let project = selected_project(&state, query.project.as_deref())?;
-    Ok(Json(run_check(&project.root, "erc").await?))
+    Ok(Json(run_check(&project, "erc").await?))
 }
 
 async fn model_glb(
@@ -504,7 +577,7 @@ async fn refresh_project_viewer_state(
             }
         }
     }
-    let refreshed = warm_viewer_state(&project.root).await?;
+    let refreshed = warm_viewer_state(project).await?;
     let mut warmed = state.warmed.write().await;
     warmed.insert(project.id.clone(), refreshed.clone());
     Ok(refreshed)
@@ -590,7 +663,8 @@ fn is_interesting_event(cwd: &Path, event: &notify::Event) -> bool {
     })
 }
 
-async fn warm_viewer_state(cwd: &Path) -> Result<ViewerState> {
+async fn warm_viewer_state(project: &ProjectContext) -> Result<ViewerState> {
+    let cwd = &project.root;
     let sources = kicad_sources(cwd)?;
     let source_revision = kicad_sources_revision(cwd, &sources)?;
     let mut manifest = manifest_for(cwd).await?;
@@ -600,7 +674,7 @@ async fn warm_viewer_state(cwd: &Path) -> Result<ViewerState> {
     let model_path = cache_dir.join(format!("{source_revision}.glb"));
     let mut model_result = None;
     if !model_path.exists() {
-        let result = export_glb(cwd, &model_path).await?;
+        let result = export_glb(project, &model_path).await?;
         model_result = Some(result.clone());
         if !result["ok"].as_bool().unwrap_or(false) && model_path.exists() {
             let _ = tokio::fs::remove_file(&model_path).await;
@@ -893,11 +967,20 @@ fn is_project_file(cwd: &Path, path: &Path, active_source: bool) -> bool {
 
 fn project_contexts(cwd: &Path) -> Result<Vec<ProjectContext>> {
     let config = workspace_config(cwd)?;
+    validate_workspace_config(cwd, &config)?;
+    let shared_libraries = config.libraries.clone().unwrap_or_default();
     let Some(projects) = config.projects else {
         return Ok(vec![ProjectContext {
             id: "default".to_string(),
             name: "Default Board".to_string(),
             root: cwd.to_path_buf(),
+            config: ProjectConfig {
+                id: "default".to_string(),
+                name: Some("Default Board".to_string()),
+                root: PathBuf::from("."),
+                ..ProjectConfig::default()
+            },
+            shared_libraries,
         }]);
     };
 
@@ -905,11 +988,13 @@ fn project_contexts(cwd: &Path) -> Result<Vec<ProjectContext>> {
         .into_iter()
         .map(|project| {
             let root = safe_rel(cwd, &project.root.to_string_lossy())?;
-            let name = project.name.unwrap_or_else(|| project.id.clone());
+            let name = project.name.clone().unwrap_or_else(|| project.id.clone());
             Ok(ProjectContext {
-                id: project.id,
+                id: project.id.clone(),
                 name,
                 root,
+                config: project,
+                shared_libraries: shared_libraries.clone(),
             })
         })
         .collect::<Result<Vec<_>>>()?;
@@ -918,6 +1003,13 @@ fn project_contexts(cwd: &Path) -> Result<Vec<ProjectContext>> {
             id: "default".to_string(),
             name: "Default Board".to_string(),
             root: cwd.to_path_buf(),
+            config: ProjectConfig {
+                id: "default".to_string(),
+                name: Some("Default Board".to_string()),
+                root: PathBuf::from("."),
+                ..ProjectConfig::default()
+            },
+            shared_libraries,
         });
     }
 
@@ -932,11 +1024,79 @@ fn project_contexts(cwd: &Path) -> Result<Vec<ProjectContext>> {
     Ok(contexts)
 }
 
+fn validate_workspace_config(cwd: &Path, config: &WorkspaceConfig) -> Result<()> {
+    if let Some(version) = config.version {
+        if version != 1 {
+            return Err(anyhow!(
+                "unsupported .kicad-pcb.json version {version}; expected 1"
+            ));
+        }
+    }
+    let Some(projects) = &config.projects else {
+        return Ok(());
+    };
+    let mut ids = HashSet::new();
+    for project in projects {
+        if project.id.trim().is_empty() {
+            return Err(anyhow!("project id cannot be empty"));
+        }
+        if !ids.insert(project.id.as_str()) {
+            return Err(anyhow!("duplicate project id {:?}", project.id));
+        }
+        let root = safe_rel(cwd, &project.root.to_string_lossy())
+            .with_context(|| format!("project {:?} root is invalid", project.id))?;
+        if !root.is_dir() {
+            return Err(anyhow!(
+                "project {:?} root {} is not a directory",
+                project.id,
+                project.root.display()
+            ));
+        }
+        if let Some(kicad) = &project.kicad {
+            validate_optional_file(&root, &kicad.project, "kicad.project", "kicad_pro")?;
+            validate_optional_file(&root, &kicad.schematic, "kicad.schematic", "kicad_sch")?;
+            validate_optional_file(&root, &kicad.pcb, "kicad.pcb", "kicad_pcb")?;
+        }
+    }
+    if let Some(default_project) = &config.default_project {
+        if !ids.contains(default_project.as_str()) {
+            return Err(anyhow!(
+                "defaultProject {:?} does not match any projects[].id",
+                default_project
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_optional_file(
+    root: &Path,
+    path: &Option<PathBuf>,
+    label: &str,
+    extension: &str,
+) -> Result<()> {
+    let Some(path) = path else { return Ok(()) };
+    let resolved = safe_rel(root, &path.to_string_lossy())
+        .with_context(|| format!("{label} path is invalid"))?;
+    if !resolved.is_file() {
+        return Err(anyhow!("{label} {} is not a file", path.display()));
+    }
+    if resolved.extension().and_then(|value| value.to_str()) != Some(extension) {
+        return Err(anyhow!(
+            "{label} {} must have .{extension} extension",
+            path.display()
+        ));
+    }
+    Ok(())
+}
+
 fn workspace_config(cwd: &Path) -> Result<WorkspaceConfig> {
     let path = cwd.join(".kicad-pcb.json");
     if !path.exists() {
         return Ok(WorkspaceConfig {
+            version: None,
             default_project: None,
+            libraries: None,
             projects: None,
         });
     }
@@ -960,7 +1120,116 @@ fn selected_project(state: &AppState, id: Option<&str>) -> Result<ProjectContext
         .ok_or_else(|| anyhow!("no KiCad PCB projects configured"))
 }
 
-async fn run_check(cwd: &Path, kind: &str) -> Result<CheckResponse> {
+fn cli_project_context(cwd: &Path, id: Option<&str>) -> Result<ProjectContext> {
+    let projects = project_contexts(cwd)?;
+    let state = AppState {
+        cwd: cwd.to_path_buf(),
+        session: String::new(),
+        projects,
+        warmed: Arc::new(RwLock::new(HashMap::new())),
+        events: broadcast::channel(1).0,
+    };
+    selected_project(&state, id)
+}
+
+fn project_summary(project: &ProjectContext) -> serde_json::Value {
+    serde_json::json!({
+        "id": project.id,
+        "name": project.name,
+        "root": project.root,
+        "kicad": project.config.kicad,
+        "artifacts": project.config.artifacts,
+        "libraries": {
+            "inherited": project.config.inherit_libraries.unwrap_or(true),
+            "shared": project.shared_libraries,
+            "project": project.config.libraries,
+        },
+        "manufacturer": project.config.manufacturer,
+    })
+}
+
+fn library_warnings(repo_root: &Path, project: &ProjectContext) -> Vec<String> {
+    let mut warnings = Vec::new();
+    if project.config.inherit_libraries.unwrap_or(true) {
+        warnings.extend(missing_library_warnings(
+            repo_root,
+            &project.shared_libraries,
+            "shared",
+        ));
+    }
+    if let Some(libraries) = &project.config.libraries {
+        warnings.extend(missing_library_warnings(
+            &project.root,
+            libraries,
+            &format!("project {}", project.id),
+        ));
+    }
+    warnings
+}
+
+fn missing_library_warnings(root: &Path, libraries: &LibraryConfig, label: &str) -> Vec<String> {
+    let mut warnings = Vec::new();
+    for (kind, paths) in [
+        ("symbols", libraries.symbols.as_ref()),
+        ("footprints", libraries.footprints.as_ref()),
+        ("models", libraries.models.as_ref()),
+        ("datasheets", libraries.datasheets.as_ref()),
+    ] {
+        let Some(paths) = paths else { continue };
+        for path in paths {
+            let target = root.join(path);
+            if !target.exists() {
+                warnings.push(format!(
+                    "{label} {kind} library path does not exist: {}",
+                    path.display()
+                ));
+            }
+        }
+    }
+    warnings
+}
+
+fn configured_source(project: &ProjectContext, extension: &str) -> Result<Option<PathBuf>> {
+    let Some(kicad) = &project.config.kicad else {
+        return Ok(None);
+    };
+    let configured = match extension {
+        "kicad_pro" => &kicad.project,
+        "kicad_sch" => &kicad.schematic,
+        "kicad_pcb" => &kicad.pcb,
+        _ => &None,
+    };
+    let Some(path) = configured else {
+        return Ok(None);
+    };
+    Ok(Some(safe_rel(&project.root, &path.to_string_lossy())?))
+}
+
+fn pick_project_file(project: &ProjectContext, extension: &str) -> Result<Option<PathBuf>> {
+    if let Some(path) = configured_source(project, extension)? {
+        return Ok(Some(path));
+    }
+    pick_one(&project.root, extension)
+}
+
+fn export_out(project: &ProjectContext, out: &Path, kind: &str) -> PathBuf {
+    if out.as_os_str() != "." {
+        return out.to_path_buf();
+    }
+    let artifacts = project.config.artifacts.as_ref();
+    let configured = match kind {
+        "gerbers" => artifacts.and_then(|item| item.gerbers.as_ref()),
+        "jlcpcb" => artifacts.and_then(|item| item.jlcpcb.as_ref()),
+        "checks" => artifacts.and_then(|item| item.checks.as_ref()),
+        "docs" => artifacts.and_then(|item| item.docs.as_ref()),
+        _ => artifacts.and_then(|item| item.fab.as_ref()),
+    };
+    configured
+        .map(|path| project.root.join(path))
+        .unwrap_or_else(|| project.root.join("fab").join(kind))
+}
+
+async fn run_check(project: &ProjectContext, kind: &str) -> Result<CheckResponse> {
     let Some(cli) = kicad_cli() else {
         return Ok(CheckResponse {
             ok: false,
@@ -974,9 +1243,9 @@ async fn run_check(cwd: &Path, kind: &str) -> Result<CheckResponse> {
         });
     };
     let source = if kind == "drc" {
-        pick_one(cwd, "kicad_pcb")?
+        pick_project_file(project, "kicad_pcb")?
     } else {
-        pick_one(cwd, "kicad_sch")?
+        pick_project_file(project, "kicad_sch")?
     };
     let Some(source) = source else {
         return Ok(CheckResponse {
@@ -1020,11 +1289,11 @@ async fn run_check(cwd: &Path, kind: &str) -> Result<CheckResponse> {
         args.push("--exit-code-violations".into());
     }
     args.push(source.as_os_str().into());
-    let output = run_command(&cli, &args, cwd).await?;
+    let output = run_command(&cli, &args, &project.root).await?;
     let report_text = tokio::fs::read_to_string(&report).await.unwrap_or_default();
     Ok(CheckResponse {
         ok: output.status == 0,
-        source: Some(rel(cwd, &source)?),
+        source: Some(rel(&project.root, &source)?),
         command: std::iter::once(cli.clone())
             .chain(args.iter().map(|v| v.to_string_lossy().into_owned()))
             .collect(),
@@ -1036,11 +1305,11 @@ async fn run_check(cwd: &Path, kind: &str) -> Result<CheckResponse> {
     })
 }
 
-async fn export_glb(cwd: &Path, out: &Path) -> Result<serde_json::Value> {
+async fn export_glb(project: &ProjectContext, out: &Path) -> Result<serde_json::Value> {
     let Some(cli) = kicad_cli() else {
         return Ok(serde_json::json!({"ok": false, "message": "kicad-cli is required"}));
     };
-    let Some(board) = pick_one(cwd, "kicad_pcb")? else {
+    let Some(board) = pick_project_file(project, "kicad_pcb")? else {
         return Ok(
             serde_json::json!({"ok": false, "message": "Select a single .kicad_pcb or set pcb in .kicad-pcb.json"}),
         );
@@ -1064,29 +1333,26 @@ async fn export_glb(cwd: &Path, out: &Path) -> Result<serde_json::Value> {
     .map(OsString::from)
     .chain([out.as_os_str().into(), board.as_os_str().into()])
     .collect();
-    let output = run_command(&cli, &args, cwd).await?;
+    let output = run_command(&cli, &args, &project.root).await?;
     Ok(serde_json::json!({
         "ok": output.status == 0,
-        "board": rel(cwd, &board)?,
+        "project": project.id,
+        "board": rel(&project.root, &board)?,
         "out": out,
         "stdout": output.stdout,
         "stderr": output.stderr,
     }))
 }
 
-async fn export_gerbers(cwd: &Path, out: &Path) -> Result<serde_json::Value> {
-    export_fab(cwd, out, false).await
-}
-
-async fn export_jlcpcb(cwd: &Path, out: &Path) -> Result<serde_json::Value> {
-    export_fab(cwd, out, true).await
-}
-
-async fn export_fab(cwd: &Path, out: &Path, jlcpcb: bool) -> Result<serde_json::Value> {
+async fn export_fab(
+    project: &ProjectContext,
+    out: &Path,
+    jlcpcb: bool,
+) -> Result<serde_json::Value> {
     let Some(cli) = kicad_cli() else {
         return Ok(serde_json::json!({"ok": false, "message": "kicad-cli is required"}));
     };
-    let Some(board) = pick_one(cwd, "kicad_pcb")? else {
+    let Some(board) = pick_project_file(project, "kicad_pcb")? else {
         return Ok(
             serde_json::json!({"ok": false, "message": "Select a single .kicad_pcb or set pcb in .kicad-pcb.json"}),
         );
@@ -1103,7 +1369,7 @@ async fn export_fab(cwd: &Path, out: &Path, jlcpcb: bool) -> Result<serde_json::
             output_dir.clone().into(),
             board.as_os_str().into(),
         ],
-        cwd,
+        &project.root,
     )
     .await?;
     let drill = run_command(
@@ -1116,14 +1382,14 @@ async fn export_fab(cwd: &Path, out: &Path, jlcpcb: bool) -> Result<serde_json::
             output_dir.into(),
             board.as_os_str().into(),
         ],
-        cwd,
+        &project.root,
     )
     .await?;
     let mut status = gerber.status | drill.status;
     let mut stdout = format!("{}{}", gerber.stdout, drill.stdout);
     let mut stderr = format!("{}{}", gerber.stderr, drill.stderr);
     if jlcpcb {
-        if let Some(schematic) = pick_one(cwd, "kicad_sch")? {
+        if let Some(schematic) = pick_project_file(project, "kicad_sch")? {
             let bom = tmp.path().join(format!(
                 "BOM_{}.csv",
                 board.file_stem().unwrap().to_string_lossy()
@@ -1145,7 +1411,7 @@ async fn export_fab(cwd: &Path, out: &Path, jlcpcb: bool) -> Result<serde_json::
                     "--exclude-dnp".into(),
                     schematic.as_os_str().into(),
                 ],
-                cwd,
+                &project.root,
             )
             .await?;
             status |= bom_out.status;
@@ -1176,7 +1442,7 @@ async fn export_fab(cwd: &Path, out: &Path, jlcpcb: bool) -> Result<serde_json::
                     "--exclude-dnp".into(),
                     board.as_os_str().into(),
                 ],
-                cwd,
+                &project.root,
             )
             .await?;
             status |= pos.status;
@@ -1207,7 +1473,8 @@ async fn export_fab(cwd: &Path, out: &Path, jlcpcb: bool) -> Result<serde_json::
     zip_artifacts(&zip, &copied)?;
     Ok(serde_json::json!({
         "ok": status == 0,
-        "board": rel(cwd, &board)?,
+        "project": project.id,
+        "board": rel(&project.root, &board)?,
         "out": out,
         "zip": zip,
         "artifacts": copied,

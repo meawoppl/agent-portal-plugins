@@ -65,9 +65,9 @@ For production fabrication outputs, run setup once or set `KICAD_CLI` /
 
 ```console
 kicad-pcb/bin/kicad-pcb setup --install-kicad
-kicad-pcb/bin/kicad-pcb drc --json --cwd /path/to/hardware/repo
-kicad-pcb/bin/kicad-pcb erc --json --cwd /path/to/hardware/repo
-kicad-pcb/bin/kicad-pcb export jlcpcb --cwd /path/to/hardware/repo --out build/jlcpcb
+kicad-pcb/bin/kicad-pcb drc --json --cwd /path/to/hardware/repo --project board-a
+kicad-pcb/bin/kicad-pcb erc --json --cwd /path/to/hardware/repo --project board-a
+kicad-pcb/bin/kicad-pcb export jlcpcb --cwd /path/to/hardware/repo --project board-a --out build/jlcpcb
 ```
 
 ## Rust Rewrite
@@ -182,3 +182,25 @@ The workbench opens `defaultProject` first and shows a board selector when more
 than one project is listed. If the manifest is absent, the plugin keeps the
 single-board convention and treats the repository root as the active board
 folder.
+
+`doctor --json` validates the manifest before reporting tool state. Hard errors
+include unsupported manifest versions, duplicate or empty project ids, missing
+project roots, invalid `defaultProject`, and configured `kicad.*` files that are
+missing or have the wrong extension. Missing shared or project library paths are
+reported as warnings so in-progress repos still open in the workbench.
+
+The Rust workbench and CLI currently honor:
+
+- `defaultProject`
+- `projects[].id`
+- `projects[].name`
+- `projects[].root`
+- `projects[].kicad.project`
+- `projects[].kicad.schematic`
+- `projects[].kicad.pcb`
+- `projects[].artifacts.gerbers`
+- `projects[].artifacts.jlcpcb`
+- top-level and project `libraries` for doctor warnings
+
+The `manufacturer` object is surfaced through `doctor --json` for agents and
+future exporter policy, but it does not alter generated files yet.

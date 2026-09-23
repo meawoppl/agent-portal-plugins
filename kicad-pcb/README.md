@@ -70,6 +70,21 @@ kicad-pcb/bin/kicad-pcb erc --json --cwd /path/to/hardware/repo
 kicad-pcb/bin/kicad-pcb export jlcpcb --cwd /path/to/hardware/repo --out build/jlcpcb
 ```
 
+## Rust Rewrite
+
+The Rust rewrite lives beside the current Python runtime while it reaches full
+parity:
+
+```console
+cd kicad-pcb
+cargo run -p kicad-pcb-server -- doctor --json --cwd /path/to/hardware/repo
+cargo run -p kicad-pcb-server -- serve --port 48888 --cwd /path/to/hardware/repo
+```
+
+The Rust server already covers the core read/check/export path and embeds the
+viewer assets into the binary. The manifest still points at `bin/kicad-pcb`
+until the Rust surface is visually verified against the Python runtime.
+
 ## Example Repo Config
 
 A PCB repository can suggest this plugin with:

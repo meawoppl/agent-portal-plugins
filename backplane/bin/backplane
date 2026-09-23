@@ -492,9 +492,18 @@ def run_check(cwd: Path, kind: str) -> tuple[int, dict]:
             command = [cli, "pcb", "drc", "--format", "json", "--output", str(out)]
             if cli_supports(cli, ["pcb", "drc"], "--exit-code-violations"):
                 command.append("--exit-code-violations")
+            if cli_supports(cli, ["pcb", "drc"], "--schematic-parity"):
+                command.append("--schematic-parity")
             command.append(str(source))
             code, stdout, stderr = run(command, cwd)
-            return code, {"ok": code == 0, "source": source.relative_to(cwd).as_posix(), "stdout": stdout, "stderr": stderr, "report": out.read_text() if out.exists() else ""}
+            return code, {
+                "ok": code == 0,
+                "source": source.relative_to(cwd).as_posix(),
+                "command": command,
+                "stdout": stdout,
+                "stderr": stderr,
+                "report": out.read_text() if out.exists() else "",
+            }
     if not cli_supports(cli, ["sch"], "erc"):
         return 1, {
             "ok": False,
@@ -922,7 +931,7 @@ const loadSources=()=>sourceSnapshot||=fetch("/api/kicad/sources").then(r=>r.jso
 const postSnapshot=async(frame)=>{{if(frame.dataset.url){{frame.contentWindow?.postMessage({{type:"backplane-snapshot",kind:frame.dataset.kind,url:frame.dataset.url,active:true}}, location.origin);return;}}const payload=await loadSources();frame.contentWindow?.postMessage({{type:"backplane-snapshot",kind:"native",context:frame.dataset.kind,revision:payload.revision,sources:payload.sources,active:true}}, location.origin);}};
 window.addEventListener("message", event=>{{if(event.origin!==location.origin)return;if(event.data?.type==="backplane-runtime-ready"){{const frame=[...document.querySelectorAll("iframe.native-viewer, iframe.model-viewer")].find(item=>item.contentWindow===event.source);if(frame)void postSnapshot(frame);}}}});
 const parseReport=(check)=>{{try{{return JSON.parse(check.report||"{{}}");}}catch{{return {{}};}}}};
-const reportViolations=(kind, report)=>kind==="erc"?((report.sheets||[]).flatMap(sheet=>(sheet.violations||[]).map(v=>({{...v,sheet:sheet.path}})))):(report.violations||[]);
+const reportViolations=(kind, report)=>{{if(kind==="erc")return (report.sheets||[]).flatMap(sheet=>(sheet.violations||[]).map(v=>({{...v,sheet:sheet.path}})));return [...(report.violations||[]),...(report.schematic_parity||[]).map(v=>({{...v,type:v.type||"schematic_parity"}}))];}};
 const renderCheck=(target, title, check, kind)=>{{const report=parseReport(check);const violations=reportViolations(kind,report);const counts=violations.reduce((acc,v)=>{{const s=v.severity||"unknown";acc[s]=(acc[s]||0)+1;return acc;}},{{}});const status=check.ok?"ok":violations.length?"error":"warning";const items=violations.map(v=>`<article class="issue"><div class="issue-head"><strong>${{esc(v.description||v.type||"Issue")}}</strong><span class="severity ${{esc(v.severity||"warning")}}">${{esc(v.severity||"warning")}}</span></div><div class="muted">${{esc(v.type||"")}}${{v.sheet?` · sheet ${{esc(v.sheet)}}`:""}}</div>${{(v.items||[]).length?`<ul class="items">${{v.items.map(item=>`<li>${{esc(item.description||item.uuid||"item")}}${{item.pos?` <span class="muted">(${{esc(item.pos.x)}}, ${{esc(item.pos.y)}})</span>`:""}}</li>`).join("")}}</ul>`:""}}</article>`).join("");target.innerHTML=`<div class="check-summary"><span class="pill ${{status}}">${{check.ok?"clean":"needs attention"}}</span><span class="pill">${{esc(report.kicad_version||"KiCad")}}</span><span class="pill">${{violations.length}} issue${{violations.length===1?"":"s"}}</span><span class="pill error">${{counts.error||0}} errors</span><span class="pill warning">${{counts.warning||0}} warnings</span></div><p class="muted">${{esc((check.stdout||check.message||"").split("\\n").filter(Boolean).slice(0,3).join(" · "))}}</p>${{items||"<p class='ok'>No issues reported.</p>"}}<details class="raw"><summary>Raw report</summary><pre>${{esc(JSON.stringify(check,null,2))}}</pre></details>`;}};
 const loadChecks=()=>{{fetch("/api/kicad/drc").then(r=>r.json()).then(j=>renderCheck(drc,"DRC",j,"drc"));fetch("/api/kicad/erc").then(r=>r.json()).then(j=>renderCheck(erc,"ERC",j,"erc"));}};
 const setTab=(id)=>{{document.querySelectorAll("section").forEach(el=>el.classList.toggle("active",el.id===id));document.querySelectorAll(".tabs button").forEach(el=>el.classList.toggle("active",el.dataset.tab===id));location.hash=id;document.querySelectorAll(`#${{CSS.escape(id)}} iframe.native-viewer, #${{CSS.escape(id)}} iframe.model-viewer`).forEach(frame=>void postSnapshot(frame));if(id==="checks")loadChecks();}};

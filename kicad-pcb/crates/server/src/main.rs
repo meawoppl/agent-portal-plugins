@@ -579,14 +579,126 @@ fn kicad_sources(cwd: &Path) -> Result<Vec<SourceFile>> {
             "kicad_pro" | "kicad_pcb" | "kicad_sch" | "kicad_sym" | "kicad_mod" | "kicad_wks"
         ) || matches!(name, "fp-lib-table" | "sym-lib-table");
         if wanted {
+            let content = std::fs::read_to_string(path).unwrap_or_else(|_| String::new());
             sources.push(SourceFile {
                 filename: rel(cwd, path)?,
-                content: std::fs::read_to_string(path).unwrap_or_else(|_| String::new()),
+                content: viewer_source_content(path, content),
             });
         }
     }
     sources.sort_by(|a, b| a.filename.cmp(&b.filename));
     Ok(sources)
+}
+
+fn viewer_source_content(path: &Path, content: String) -> String {
+    if path.extension().and_then(|v| v.to_str()) == Some("kicad_pcb") {
+        synthesize_kicad10_reference_text(&content)
+    } else {
+        content
+    }
+}
+
+fn synthesize_kicad10_reference_text(content: &str) -> String {
+    let mut output = String::with_capacity(content.len());
+    let mut lines = content.lines();
+    while let Some(line) = lines.next() {
+        output.push_str(line);
+        output.push('\n');
+        if !line.trim_start().starts_with("(property \"Reference\" ") {
+            continue;
+        }
+
+        let Some(reference) = quoted_fields(line).get(1).cloned() else {
+            continue;
+        };
+        let indent = line
+            .chars()
+            .take_while(|ch| ch.is_whitespace())
+            .collect::<String>();
+        let mut body = Vec::new();
+        let mut depth = paren_delta(line);
+        while depth > 0 {
+            let Some(next) = lines.next() else { break };
+            depth += paren_delta(next);
+            output.push_str(next);
+            output.push('\n');
+            if depth > 0 {
+                body.push(next.to_string());
+            }
+        }
+        if body
+            .iter()
+            .any(|item| item.trim_start().starts_with("(hide"))
+        {
+            continue;
+        }
+        output.push_str(&format!(
+            "{indent}(fp_text reference \"{}\"\n",
+            sexpr_escape(&reference)
+        ));
+        for item in body {
+            output.push_str(&item);
+            output.push('\n');
+        }
+        output.push_str(&format!("{indent})\n"));
+    }
+    output
+}
+
+fn quoted_fields(line: &str) -> Vec<String> {
+    let mut fields = Vec::new();
+    let mut current = String::new();
+    let mut in_string = false;
+    let mut escaped = false;
+    for ch in line.chars() {
+        if !in_string {
+            if ch == '"' {
+                in_string = true;
+                current.clear();
+            }
+            continue;
+        }
+        if escaped {
+            current.push(ch);
+            escaped = false;
+        } else if ch == '\\' {
+            escaped = true;
+        } else if ch == '"' {
+            fields.push(current.clone());
+            in_string = false;
+        } else {
+            current.push(ch);
+        }
+    }
+    fields
+}
+
+fn paren_delta(line: &str) -> i32 {
+    let mut delta = 0;
+    let mut in_string = false;
+    let mut escaped = false;
+    for ch in line.chars() {
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if ch == '\\' {
+                escaped = true;
+            } else if ch == '"' {
+                in_string = false;
+            }
+        } else if ch == '"' {
+            in_string = true;
+        } else if ch == '(' {
+            delta += 1;
+        } else if ch == ')' {
+            delta -= 1;
+        }
+    }
+    delta
+}
+
+fn sexpr_escape(value: &str) -> String {
+    value.replace('\\', "\\\\").replace('"', "\\\"")
 }
 
 fn kicad_sources_revision(cwd: &Path, sources: &[SourceFile]) -> Result<String> {
@@ -1300,5 +1412,53 @@ impl IntoResponse for AppError {
             Json(serde_json::json!({"ok": false, "message": self.0.to_string()})),
         )
             .into_response()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn synthesizes_kicad10_reference_property_as_fp_text() {
+        let source = r#"(footprint "LED_SMD:LED_1206_3216Metric"
+	(layer "F.Cu")
+	(property "Reference" "D2"
+		(at 0 -2.1 0)
+		(layer "F.SilkS")
+		(uuid "6f2b23a9-7457-476d-8c69-8a57b2f3916a")
+		(effects
+			(font
+				(size 0.85 0.85)
+				(thickness 0.13)
+			)
+		)
+	)
+)
+"#;
+
+        let normalized = synthesize_kicad10_reference_text(source);
+
+        assert!(normalized.contains("(property \"Reference\" \"D2\""));
+        assert!(normalized.contains("(fp_text reference \"D2\""));
+        assert!(normalized.contains("(layer \"F.SilkS\")"));
+        assert!(normalized.contains("(size 0.85 0.85)"));
+    }
+
+    #[test]
+    fn hidden_reference_property_is_not_synthesized() {
+        let source = r#"(footprint "X"
+	(property "Reference" "REF**"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+	)
+)
+"#;
+
+        let normalized = synthesize_kicad10_reference_text(source);
+
+        assert!(normalized.contains("(property \"Reference\" \"REF**\""));
+        assert!(!normalized.contains("(fp_text reference"));
     }
 }

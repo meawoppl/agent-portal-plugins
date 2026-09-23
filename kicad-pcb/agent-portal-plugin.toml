@@ -1,7 +1,7 @@
 schema_version = 1
-name = "backplane"
-display_name = "Backplane"
-description = "Backplane PCB workbench for KiCad review, checks, fabrication export, BOMs, Gerbers, panelization, and 3D/STEP inspection."
+name = "kicad-pcb"
+display_name = "KiCad PCB"
+description = "KiCad PCB workbench for KiCad review, checks, fabrication export, BOMs, Gerbers, panelization, and 3D/STEP inspection."
 homepage = "https://github.com/i2cjak/Backplane"
 license = "MIT"
 
@@ -10,44 +10,44 @@ agent_portal = ">=2.14.1525"
 platforms = ["linux", "macos"]
 
 [install]
-setup = "bin/backplane setup --install-kicad"
-doctor = "bin/backplane doctor --json --cwd {cwd}"
+setup = "bin/kicad-pcb setup --install-kicad"
+doctor = "bin/kicad-pcb doctor --json --cwd {cwd}"
 
 [surface]
 kind = "http"
-default_title = "Backplane"
+default_title = "KiCad PCB"
 default_width_percent = 50
 health_path = "/healthz"
-start = "bin/backplane serve --port {port} --session {session_id} --cwd {cwd}"
+start = "bin/kicad-pcb serve --port {port} --session {session_id} --cwd {cwd}"
 ready_url = "http://127.0.0.1:{port}/"
 
 [surface.env]
-AGENT_PORTAL_PLUGIN = "backplane"
+AGENT_PORTAL_PLUGIN = "kicad-pcb"
 
 [[commands]]
 name = "doctor"
 description = "Report local PCB workflow dependencies and detected project files."
-run = "bin/backplane doctor --json --cwd {cwd}"
+run = "bin/kicad-pcb doctor --json --cwd {cwd}"
 
 [[commands]]
 name = "drc"
 description = "Run design-rule checks for the active board when KiCad tooling is available."
-run = "bin/backplane drc --cwd {cwd} --json"
+run = "bin/kicad-pcb drc --cwd {cwd} --json"
 
 [[commands]]
 name = "erc"
 description = "Run schematic electrical-rule checks when KiCad tooling is available."
-run = "bin/backplane erc --cwd {cwd} --json"
+run = "bin/kicad-pcb erc --cwd {cwd} --json"
 
 [[commands]]
 name = "export-gerbers"
 description = "Export fabrication artifacts into the session artifact directory."
-run = "bin/backplane export gerbers --cwd {cwd} --out {artifact_dir}"
+run = "bin/kicad-pcb export gerbers --cwd {cwd} --out {artifact_dir}"
 
 [[commands]]
 name = "export-jlcpcb"
 description = "Export a JLCPCB-oriented fabrication package into the session artifact directory."
-run = "bin/backplane export jlcpcb --cwd {cwd} --out {artifact_dir}"
+run = "bin/kicad-pcb export jlcpcb --cwd {cwd} --out {artifact_dir}"
 
 [[skills]]
 name = "pcb-workflow"

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Agent Portal Backplane plugin runtime."""
+"""Agent Portal KiCad PCB plugin runtime."""
 
 from __future__ import annotations
 
@@ -91,7 +91,7 @@ IGNORED_SUFFIXES = (".bak", ".backup", ".orig", ".old", ".tmp", "~")
 
 def usage() -> int:
     print(
-        """backplane portal plugin
+        """kicad-pcb portal plugin
 
 Commands:
   setup [--install-kicad] [--force]
@@ -123,7 +123,13 @@ def parse_cwd(args: list[str]) -> tuple[Path, bool]:
 
 def kicad_cli() -> str | None:
     managed = managed_kicad_cli()
-    return os.environ.get("BACKPLANE_KICAD_CLI") or os.environ.get("KICAD_CLI") or managed or shutil.which("kicad-cli")
+    return (
+        os.environ.get("KICAD_PCB_KICAD_CLI")
+        or os.environ.get("BACKPLANE_KICAD_CLI")
+        or os.environ.get("KICAD_CLI")
+        or managed
+        or shutil.which("kicad-cli")
+    )
 
 
 def managed_kicad_cli() -> str | None:
@@ -149,7 +155,7 @@ def tool_version(tool: str | None) -> str | None:
 
 
 def fetch_text(url: str) -> str:
-    request = urllib.request.Request(url, headers={"User-Agent": "agent-portal-backplane/1.0"})
+    request = urllib.request.Request(url, headers={"User-Agent": "agent-portal-kicad-pcb/1.0"})
     with urllib.request.urlopen(request, timeout=30) as response:
         return response.read().decode("utf-8", "ignore")
 
@@ -210,10 +216,10 @@ def install_kicad_runtime(force: bool = False) -> dict:
         return {"ok": True, "version": version, "url": url, "kicad_cli": str(cli), "reused": True}
 
     KICAD_RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="backplane-kicad-", dir=KICAD_RUNTIME_DIR) as tmp_name:
+    with tempfile.TemporaryDirectory(prefix="kicad-pcb-kicad-", dir=KICAD_RUNTIME_DIR) as tmp_name:
         tmp = Path(tmp_name)
         archive = tmp / "kicad.AppImage.tar"
-        request = urllib.request.Request(url, headers={"User-Agent": "agent-portal-backplane/1.0"})
+        request = urllib.request.Request(url, headers={"User-Agent": "agent-portal-kicad-pcb/1.0"})
         with urllib.request.urlopen(request, timeout=600) as response, archive.open("wb") as handle:
             shutil.copyfileobj(response, handle)
         safe_extract_tar(archive, tmp)
@@ -266,7 +272,7 @@ def install_kicad_ubuntu_ppa() -> dict:
     if release.get("ID") != "ubuntu":
         return {
             "ok": False,
-            "message": "No official KiCad AppImage exists for this Linux architecture. Install KiCad 10 with your distribution package manager or set BACKPLANE_KICAD_CLI.",
+            "message": "No official KiCad AppImage exists for this Linux architecture. Install KiCad 10 with your distribution package manager or set KICAD_PCB_KICAD_CLI.",
             "machine": os.uname().machine,
             "os": release,
         }
@@ -309,14 +315,16 @@ def install_kicad_ubuntu_ppa() -> dict:
 
 
 def project_config(cwd: Path) -> dict:
-    path = cwd / ".backplane.json"
+    path = cwd / ".kicad-pcb.json"
+    if not path.exists():
+        path = cwd / ".backplane.json"
     if not path.exists():
         return {}
     try:
         data = json.loads(path.read_text())
         return data if isinstance(data, dict) else {}
     except Exception as exc:
-        return {"_warning": f"Could not parse .backplane.json: {exc}"}
+        return {"_warning": f"Could not parse {path.name}: {exc}"}
 
 
 def safe_rel(cwd: Path, path: str) -> Path:
@@ -434,14 +442,14 @@ def file_sha256(path: Path) -> str:
 
 
 def viewer_asset_status() -> dict:
-    upstream = os.environ.get("BACKPLANE_UPSTREAM_VIEWER_DIR")
+    upstream = os.environ.get("KICAD_PCB_UPSTREAM_VIEWER_DIR") or os.environ.get("BACKPLANE_UPSTREAM_VIEWER_DIR")
     upstream_dir = Path(upstream).expanduser() if upstream else Path.home() / "repos" / "Backplane" / "apps" / "web" / "public" / "kicad-viewer"
     if not VIEWER_DIR.exists():
         return {"ok": False, "message": "Bundled KiCad viewer assets are missing.", "bundled": str(VIEWER_DIR)}
     if not upstream_dir.exists():
         return {
             "ok": None,
-            "message": "No upstream KiCad viewer checkout found; set BACKPLANE_UPSTREAM_VIEWER_DIR to enable drift checks.",
+            "message": "No upstream KiCad viewer checkout found; set KICAD_PCB_UPSTREAM_VIEWER_DIR to enable drift checks.",
             "bundled": str(VIEWER_DIR),
             "upstream": str(upstream_dir),
         }
@@ -514,13 +522,13 @@ def run_check(cwd: Path, kind: str) -> tuple[int, dict]:
         if not cli_supports(cli, ["pcb"], "drc"):
             return 1, {
                 "ok": False,
-                "message": "This kicad-cli does not support PCB DRC. Run `bin/backplane setup --install-kicad` to install the current KiCad runtime.",
+                "message": "This kicad-cli does not support PCB DRC. Run `bin/kicad-pcb setup --install-kicad` to install the current KiCad runtime.",
                 "tool": cli,
             }
         source = pick_one(cwd, ".kicad_pcb")
         if not source:
-            return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
-        with tempfile.TemporaryDirectory(prefix="backplane-drc-") as tmp:
+            return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .kicad-pcb.json"}
+        with tempfile.TemporaryDirectory(prefix="kicad-pcb-drc-") as tmp:
             out = Path(tmp) / "drc.json"
             command = [cli, "pcb", "drc", "--format", "json", "--output", str(out)]
             if cli_supports(cli, ["pcb", "drc"], "--exit-code-violations"):
@@ -540,13 +548,13 @@ def run_check(cwd: Path, kind: str) -> tuple[int, dict]:
     if not cli_supports(cli, ["sch"], "erc"):
         return 1, {
             "ok": False,
-            "message": "This kicad-cli does not support schematic ERC. Run `bin/backplane setup --install-kicad` to install the current KiCad runtime.",
+            "message": "This kicad-cli does not support schematic ERC. Run `bin/kicad-pcb setup --install-kicad` to install the current KiCad runtime.",
             "tool": cli,
         }
     source = pick_one(cwd, ".kicad_sch")
     if not source:
-        return 1, {"ok": False, "message": "Select a single .kicad_sch or set schematic in .backplane.json"}
-    with tempfile.TemporaryDirectory(prefix="backplane-erc-") as tmp:
+        return 1, {"ok": False, "message": "Select a single .kicad_sch or set schematic in .kicad-pcb.json"}
+    with tempfile.TemporaryDirectory(prefix="kicad-pcb-erc-") as tmp:
         out = Path(tmp) / "erc.json"
         command = [cli, "sch", "erc", "--format", "json", "--output", str(out)]
         if cli_supports(cli, ["sch", "erc"], "--exit-code-violations"):
@@ -601,8 +609,8 @@ def export_gerbers(cwd: Path, out: Path) -> tuple[int, dict]:
     if not cli:
         return 1, {"ok": False, "message": "kicad-cli is required"}
     if not board:
-        return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
-    with tempfile.TemporaryDirectory(prefix="backplane-gerbers-") as tmp:
+        return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .kicad-pcb.json"}
+    with tempfile.TemporaryDirectory(prefix="kicad-pcb-gerbers-") as tmp:
         staging = Path(tmp)
         output_dir = str(staging)
         if not output_dir.endswith(os.sep):
@@ -646,10 +654,10 @@ def export_jlcpcb(cwd: Path, out: Path) -> tuple[int, dict]:
     if not cli:
         return 1, {"ok": False, "message": "kicad-cli is required"}
     if not board:
-        return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
+        return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .kicad-pcb.json"}
     if not schematic:
-        return 1, {"ok": False, "message": "Select a single .kicad_sch or set schematic in .backplane.json"}
-    with tempfile.TemporaryDirectory(prefix="backplane-jlcpcb-") as tmp:
+        return 1, {"ok": False, "message": "Select a single .kicad_sch or set schematic in .kicad-pcb.json"}
+    with tempfile.TemporaryDirectory(prefix="kicad-pcb-jlcpcb-") as tmp:
         staging = Path(tmp)
         output_dir = str(staging)
         if not output_dir.endswith(os.sep):
@@ -733,7 +741,7 @@ def export_glb(cwd: Path, out: Path) -> tuple[int, dict]:
     if not cli:
         return 1, {"ok": False, "message": "kicad-cli is required"}
     if not board:
-        return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .backplane.json"}
+        return 1, {"ok": False, "message": "Select a single .kicad_pcb or set pcb in .kicad-pcb.json"}
     if not cli_supports(cli, ["pcb", "export"], "glb"):
         return 1, {"ok": False, "message": "This kicad-cli does not support GLB export.", "tool": cli}
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -940,11 +948,11 @@ def workbench_html(cwd: Path, session: str, preloaded: dict | None = None) -> by
     buttons = "".join(f"<button data-tab='{tab}'>{tab.title()}</button>" for tab in ["overview", *TABS])
     body = f"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Backplane · Agent Portal</title>
+<title>KiCad PCB · Agent Portal</title>
 <style>
 :root{{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}body{{margin:0;background:#16161e;color:#c0caf5}}header{{padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}.muted{{color:#9aa5ce}}.error{{color:#f7768e}}.ok{{color:#9ece6a}}a{{color:#7dcfff}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}code{{color:#7dcfff}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}table{{border-collapse:collapse;width:100%;font-size:12px}}th,td{{border:1px solid #3b4261;padding:6px;text-align:left}}th{{background:#292e42}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}.downloads{{margin-bottom:14px}}.downloads h3{{margin:0 0 8px;font-size:14px;color:#e6e9f5}}.asset-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}}.asset-download{{display:grid;gap:4px;border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px;text-decoration:none}}.asset-download:hover{{border-color:#7aa2f7;background:#20263a}}.asset-download span{{color:#c0caf5;font-weight:600}}.asset-download small{{color:#9aa5ce}}.alternate-assets{{margin-top:10px}}.alternate-assets summary{{cursor:pointer;color:#7dcfff}}.alternate-assets ul{{display:grid;gap:8px;margin:8px 0 0;padding:0;list-style:none}}.alternate-assets li{{margin:0}}.check-summary{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}}.pill{{border:1px solid #3b4261;border-radius:999px;padding:4px 8px;background:#24283b;font-size:12px}}.pill.error{{border-color:#f7768e;color:#f7768e}}.pill.warning{{border-color:#e0af68;color:#e0af68}}.pill.ok{{border-color:#9ece6a;color:#9ece6a}}.issue-list{{display:grid;gap:8px}}.issue{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px}}.issue-head{{display:flex;gap:8px;align-items:center;justify-content:space-between}}.severity{{text-transform:uppercase;font-size:11px;letter-spacing:.04em;border-radius:4px;padding:2px 6px}}.severity.error{{background:#f7768e22;color:#f7768e}}.severity.warning{{background:#e0af6822;color:#e0af68}}.items{{margin:8px 0 0;padding-left:18px}}details.raw{{margin-top:12px}}details.raw summary{{cursor:pointer;color:#7dcfff}}
 </style></head><body>
-<header><h1>Backplane PCB Workbench</h1><div class="muted">Session {html.escape(session or "unknown")} · {html.escape(str(cwd))}</div></header>
+<header><h1>KiCad PCB Workbench</h1><div class="muted">Session {html.escape(session or "unknown")} · {html.escape(str(cwd))}</div></header>
 <nav class="tabs" role="tablist">{buttons}</nav><main>
 <section id="overview"><div class="grid"><div class="card"><h2>Project</h2><pre>{html.escape(json.dumps(data, indent=2))}</pre></div><div class="card"><h2>Warnings</h2><ul>{warnings or "<li>None</li>"}</ul></div></div></section>
 <section id="schematic"><div class="card"><h2>Schematic</h2><ul>{file_list(by_kind.get("schematic"), "No schematics found.")}</ul>{native_viewer("schematic")}</div></section>
@@ -954,8 +962,8 @@ def workbench_html(cwd: Path, session: str, preloaded: dict | None = None) -> by
 <section id="step"><div class="card"><h2>STEP</h2><ul>{file_list(by_kind.get("model"), "No STEP/STP/GLB models found.")}</ul><iframe src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="bom"><div class="card"><h2>BOM / Assembly CSV</h2>{bom_html}</div></section>
 <section id="libraries"><div class="grid"><div class="card"><h2>Footprints</h2><ul>{file_list(by_kind.get("footprint"), "No footprints found.")}</ul></div><div class="card"><h2>Symbols</h2><ul>{file_list(by_kind.get("symbol"), "No symbols found.")}</ul></div></div></section>
-<section id="analysis"><div class="card"><h2>Analysis</h2><p class="muted">Use <code>analysisUrl</code> in <code>.backplane.json</code> for EMerge/antenna workflow dashboards.</p></div></section>
-<section id="panelization"><div class="card"><h2>Panelization</h2><p class="muted">Panelization preview requires KiKit plus <code>kicad-cli</code>. Configure <code>panelization</code> in <code>.backplane.json</code>.</p></div></section>
+<section id="analysis"><div class="card"><h2>Analysis</h2><p class="muted">Use <code>analysisUrl</code> in <code>.kicad-pcb.json</code> for EMerge/antenna workflow dashboards.</p></div></section>
+<section id="panelization"><div class="card"><h2>Panelization</h2><p class="muted">Panelization preview requires KiKit plus <code>kicad-cli</code>. Configure <code>panelization</code> in <code>.kicad-pcb.json</code>.</p></div></section>
 <section id="checks"><div class="grid"><div class="card"><h2>DRC</h2><div id="drc">Loading...</div></div><div class="card"><h2>ERC</h2><div id="erc">Loading...</div></div></div></section>
 </main><script>
 const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({{"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","'":"&#39;"}}[c]));
@@ -1003,7 +1011,7 @@ class Server(BaseHTTPRequestHandler):
             return cls.preloaded
 
     def log_message(self, fmt: str, *values: object) -> None:
-        print("backplane:", fmt % values, file=sys.stderr)
+        print("kicad-pcb:", fmt % values, file=sys.stderr)
 
     def send_bytes(
         self,
@@ -1036,7 +1044,7 @@ class Server(BaseHTTPRequestHandler):
                 self.send_json(
                     {
                         "ok": True,
-                        "plugin": "backplane",
+                        "plugin": "kicad-pcb",
                         "kicad_cli": bool(kicad_cli()),
                         "preloaded": bool(state),
                         "source_revision": state.get("source_revision"),
@@ -1077,7 +1085,7 @@ class Server(BaseHTTPRequestHandler):
                 cached = state.get("model_path")
                 target = Path(cached) if cached else None
                 if not target or not target.exists():
-                    with tempfile.TemporaryDirectory(prefix="backplane-glb-") as tmp:
+                    with tempfile.TemporaryDirectory(prefix="kicad-pcb-glb-") as tmp:
                         fallback = Path(tmp) / "board.glb"
                         code, result = export_glb(self.cwd, fallback)
                         if code != 0 or not fallback.exists():
@@ -1137,7 +1145,7 @@ def main(argv: list[str]) -> int:
         if args.json:
             print(json.dumps(result, indent=2))
         else:
-            print("Backplane plugin setup complete.")
+            print("KiCad PCB plugin setup complete.")
             print(f"Bundled viewer assets: {'yes' if VIEWER_DIR.exists() else 'missing'}")
             print(f"Viewer asset drift: {result['viewer_asset_status'].get('ok')}")
             print(f"Runtime directory: {RUNTIME_DIR}")

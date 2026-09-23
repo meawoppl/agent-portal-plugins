@@ -1,6 +1,6 @@
-Backplane is available for this session. Use it for PCB and electronics work:
+KiCad PCB is available for this session. Use it for PCB and electronics work:
 
-- open the Backplane surface when visual board, schematic, BOM, or Gerber state
+- open the KiCad PCB surface when visual board, schematic, BOM, or Gerber state
   matters;
 - run doctor before relying on native KiCad tooling;
 - use script commands (`doctor`, `drc`, `erc`, `export jlcpcb`) as the proof

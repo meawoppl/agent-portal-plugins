@@ -1,0 +1,11 @@
+schema_version = 1
+
+[[suggested_plugins]]
+name = "kicad-pcb"
+source = "github:meawoppl/agent-portal-plugins//kicad-pcb"
+reason = "This repo contains PCB design files and uses KiCad PCB review."
+required = false
+
+[suggested_plugins.config]
+default_view = "board"
+fabrication_output = "build/fab"

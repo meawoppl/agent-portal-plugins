@@ -54,6 +54,10 @@ export function createBoardModel(host, status, options = {}) {
   controls.zoomSpeed = 1.05;
   controls.panSpeed = 0.42;
   controls.staticMoving = true;
+  // CAD users expect middle-drag to move the view pivot. TrackballControls
+  // pans by translating both the camera and target, so the next rotate orbits
+  // around the newly dragged center while wheel zoom keeps dolly available.
+  controls.mouseButtons.MIDDLE = THREE.MOUSE.PAN;
   controls.minZoom = 0.00001;
   controls.maxZoom = 10000;
   const loader = new GLTFLoader();

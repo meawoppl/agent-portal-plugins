@@ -24,6 +24,28 @@ CEL_RAMP.generateMipmaps = false;
 CEL_RAMP.needsUpdate = true;
 CEL_RAMP.userData.shared = true;
 
+function isSilkscreen(object) {
+  for (let current = object; current; current = current.parent) {
+    if (/_silkscreen(?:_|$)/i.test(current.name || "")) return true;
+  }
+  return false;
+}
+
+function stabilizeSilkscreen(mesh) {
+  // KiCad GLB places silkscreen extremely close to the soldermask. At oblique
+  // camera angles that causes depth fighting, and the outline pass amplifies it
+  // into dark, broken glyphs. Keep silk depth-tested against components, but
+  // bias it toward the camera and keep it out of the depth texture used for
+  // cel outlines.
+  mesh.renderOrder = 20;
+  for (const material of [mesh.material].flat().filter(Boolean)) {
+    material.depthWrite = false;
+    material.polygonOffset = true;
+    material.polygonOffsetFactor = -4;
+    material.polygonOffsetUnits = -4;
+  }
+}
+
 // KiCad emits one primitive per copper face. Batch only static board surfaces;
 // component models and their hierarchy are left intact.
 function batchBoardSurfaces(content) {
@@ -93,6 +115,7 @@ export function prepareBoardModel(content) {
   content.traverse((mesh) => {
     if (!mesh.isMesh || !mesh.material) return;
     mesh.material = Array.isArray(mesh.material) ? mesh.material.map(flat) : flat(mesh.material);
+    if (isSilkscreen(mesh)) stabilizeSilkscreen(mesh);
   });
   const retained = new Set();
   content.traverse((mesh) => {

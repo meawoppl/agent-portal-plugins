@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import threading
 import time
 import urllib.request
 import zipfile
@@ -390,6 +391,10 @@ def warm_viewer_state(cwd: Path) -> dict:
         "model_result": model_result,
         "warmed_at_ms": int(time.time() * 1000),
     }
+
+
+def current_source_revision(cwd: Path) -> str:
+    return kicad_sources_revision(cwd, kicad_sources(cwd))
 
 
 def file_sha256(path: Path) -> str:
@@ -927,15 +932,21 @@ def workbench_html(cwd: Path, session: str, preloaded: dict | None = None) -> by
 </main><script>
 const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({{"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","'":"&#39;"}}[c]));
 let sourceSnapshot;
+let activeTab="schematic";
+let refreshInFlight=false;
 const loadSources=()=>sourceSnapshot||=fetch("/api/kicad/sources").then(r=>r.json());
-const postSnapshot=async(frame)=>{{if(frame.dataset.url){{frame.contentWindow?.postMessage({{type:"backplane-snapshot",kind:frame.dataset.kind,url:frame.dataset.url,active:true}}, location.origin);return;}}const payload=await loadSources();frame.contentWindow?.postMessage({{type:"backplane-snapshot",kind:"native",context:frame.dataset.kind,revision:payload.revision,sources:payload.sources,active:true}}, location.origin);}};
+const modelUrl=(revision)=>`/api/kicad/model.glb?rev=${{encodeURIComponent(revision||"current")}}`;
+const postSnapshot=async(frame)=>{{if(frame.dataset.kind==="model"){{const payload=sourceSnapshot||await loadSources();const url=modelUrl(payload.revision);frame.dataset.url=url;frame.contentWindow?.postMessage({{type:"backplane-snapshot",kind:frame.dataset.kind,url,active:true}}, location.origin);return;}}const payload=await loadSources();frame.contentWindow?.postMessage({{type:"backplane-snapshot",kind:"native",context:frame.dataset.kind,revision:payload.revision,sources:payload.sources,active:true}}, location.origin);}};
 window.addEventListener("message", event=>{{if(event.origin!==location.origin)return;if(event.data?.type==="backplane-runtime-ready"){{const frame=[...document.querySelectorAll("iframe.native-viewer, iframe.model-viewer")].find(item=>item.contentWindow===event.source);if(frame)void postSnapshot(frame);}}}});
 const parseReport=(check)=>{{try{{return JSON.parse(check.report||"{{}}");}}catch{{return {{}};}}}};
 const reportViolations=(kind, report)=>{{if(kind==="erc")return (report.sheets||[]).flatMap(sheet=>(sheet.violations||[]).map(v=>({{...v,sheet:sheet.path}})));return [...(report.violations||[]),...(report.schematic_parity||[]).map(v=>({{...v,type:v.type||"schematic_parity"}}))];}};
 const renderCheck=(target, title, check, kind)=>{{const report=parseReport(check);const violations=reportViolations(kind,report);const counts=violations.reduce((acc,v)=>{{const s=v.severity||"unknown";acc[s]=(acc[s]||0)+1;return acc;}},{{}});const status=check.ok?"ok":violations.length?"error":"warning";const items=violations.map(v=>`<article class="issue"><div class="issue-head"><strong>${{esc(v.description||v.type||"Issue")}}</strong><span class="severity ${{esc(v.severity||"warning")}}">${{esc(v.severity||"warning")}}</span></div><div class="muted">${{esc(v.type||"")}}${{v.sheet?` · sheet ${{esc(v.sheet)}}`:""}}</div>${{(v.items||[]).length?`<ul class="items">${{v.items.map(item=>`<li>${{esc(item.description||item.uuid||"item")}}${{item.pos?` <span class="muted">(${{esc(item.pos.x)}}, ${{esc(item.pos.y)}})</span>`:""}}</li>`).join("")}}</ul>`:""}}</article>`).join("");target.innerHTML=`<div class="check-summary"><span class="pill ${{status}}">${{check.ok?"clean":"needs attention"}}</span><span class="pill">${{esc(report.kicad_version||"KiCad")}}</span><span class="pill">${{violations.length}} issue${{violations.length===1?"":"s"}}</span><span class="pill error">${{counts.error||0}} errors</span><span class="pill warning">${{counts.warning||0}} warnings</span></div><p class="muted">${{esc((check.stdout||check.message||"").split("\\n").filter(Boolean).slice(0,3).join(" · "))}}</p>${{items||"<p class='ok'>No issues reported.</p>"}}<details class="raw"><summary>Raw report</summary><pre>${{esc(JSON.stringify(check,null,2))}}</pre></details>`;}};
 const loadChecks=()=>{{fetch("/api/kicad/drc").then(r=>r.json()).then(j=>renderCheck(drc,"DRC",j,"drc"));fetch("/api/kicad/erc").then(r=>r.json()).then(j=>renderCheck(erc,"ERC",j,"erc"));}};
-const setTab=(id)=>{{document.querySelectorAll("section").forEach(el=>el.classList.toggle("active",el.id===id));document.querySelectorAll(".tabs button").forEach(el=>el.classList.toggle("active",el.dataset.tab===id));location.hash=id;document.querySelectorAll(`#${{CSS.escape(id)}} iframe.native-viewer, #${{CSS.escape(id)}} iframe.model-viewer`).forEach(frame=>void postSnapshot(frame));if(id==="checks")loadChecks();}};
+const refreshPane=async()=>{{if(refreshInFlight)return;refreshInFlight=true;try{{const status=await fetch("/api/kicad/revision").then(r=>r.json());if(!sourceSnapshot||status.changed||status.revision!==sourceSnapshot.revision){{sourceSnapshot=undefined;const payload=await loadSources();document.querySelectorAll("iframe.native-viewer, iframe.model-viewer").forEach(frame=>void postSnapshot(frame));if(activeTab==="checks")loadChecks();}}}}catch(err){{console.warn("Backplane refresh failed",err);}}finally{{refreshInFlight=false;}}}};
+const setTab=(id)=>{{activeTab=id;document.querySelectorAll("section").forEach(el=>el.classList.toggle("active",el.id===id));document.querySelectorAll(".tabs button").forEach(el=>el.classList.toggle("active",el.dataset.tab===id));location.hash=id;document.querySelectorAll(`#${{CSS.escape(id)}} iframe.native-viewer, #${{CSS.escape(id)}} iframe.model-viewer`).forEach(frame=>void postSnapshot(frame));if(id==="checks")loadChecks();}};
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));setTab(location.hash.slice(1)||"schematic");
+setInterval(refreshPane, 2500);
+document.addEventListener("visibilitychange",()=>{{if(!document.hidden)void refreshPane();}});
 </script></body></html>"""
     return body.encode()
 
@@ -944,6 +955,24 @@ class Server(BaseHTTPRequestHandler):
     cwd: Path
     session: str
     preloaded: dict
+    preloaded_lock = threading.Lock()
+
+    @classmethod
+    def viewer_state(cls) -> dict:
+        with cls.preloaded_lock:
+            return cls.preloaded
+
+    @classmethod
+    def refresh_viewer_state(cls) -> dict:
+        revision = current_source_revision(cls.cwd)
+        with cls.preloaded_lock:
+            if cls.preloaded.get("source_revision") == revision:
+                return cls.preloaded
+        refreshed = warm_viewer_state(cls.cwd)
+        with cls.preloaded_lock:
+            if cls.preloaded.get("source_revision") != refreshed.get("source_revision"):
+                cls.preloaded = refreshed
+            return cls.preloaded
 
     def log_message(self, fmt: str, *values: object) -> None:
         print("backplane:", fmt % values, file=sys.stderr)
@@ -974,26 +1003,39 @@ class Server(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
         try:
+            state = self.viewer_state()
             if parsed.path == "/healthz":
                 self.send_json(
                     {
                         "ok": True,
                         "plugin": "backplane",
                         "kicad_cli": bool(kicad_cli()),
-                        "preloaded": bool(getattr(self, "preloaded", None)),
-                        "source_revision": getattr(self, "preloaded", {}).get("source_revision"),
-                        "warmed_at_ms": getattr(self, "preloaded", {}).get("warmed_at_ms"),
+                        "preloaded": bool(state),
+                        "source_revision": state.get("source_revision"),
+                        "warmed_at_ms": state.get("warmed_at_ms"),
                     }
                 )
             elif parsed.path in ("/api/project", "/api/kicad/manifest"):
-                self.send_json(self.preloaded.get("manifest") or manifest(self.cwd))
-            elif parsed.path == "/api/kicad/sources":
+                self.send_json(state.get("manifest") or manifest(self.cwd))
+            elif parsed.path == "/api/kicad/revision":
+                revision = current_source_revision(self.cwd)
                 self.send_json(
                     {
                         "ok": True,
-                        "revision": self.preloaded.get("source_revision"),
-                        "sources": self.preloaded.get("sources", []),
-                        "warmed_at_ms": self.preloaded.get("warmed_at_ms"),
+                        "revision": revision,
+                        "changed": revision != state.get("source_revision"),
+                        "warmed_revision": state.get("source_revision"),
+                        "warmed_at_ms": state.get("warmed_at_ms"),
+                    }
+                )
+            elif parsed.path == "/api/kicad/sources":
+                state = self.refresh_viewer_state()
+                self.send_json(
+                    {
+                        "ok": True,
+                        "revision": state.get("source_revision"),
+                        "sources": state.get("sources", []),
+                        "warmed_at_ms": state.get("warmed_at_ms"),
                     }
                 )
             elif parsed.path == "/api/kicad/file":
@@ -1003,14 +1045,15 @@ class Server(BaseHTTPRequestHandler):
                     headers["content-disposition"] = f'attachment; filename="{target.name}"'
                 self.send_bytes(target.read_bytes(), mimetypes.guess_type(target.name)[0] or "text/plain", headers)
             elif parsed.path == "/api/kicad/model.glb":
-                cached = self.preloaded.get("model_path")
+                state = self.refresh_viewer_state()
+                cached = state.get("model_path")
                 target = Path(cached) if cached else None
                 if not target or not target.exists():
                     with tempfile.TemporaryDirectory(prefix="backplane-glb-") as tmp:
                         fallback = Path(tmp) / "board.glb"
                         code, result = export_glb(self.cwd, fallback)
                         if code != 0 or not fallback.exists():
-                            self.send_json(self.preloaded.get("model_result") or result, 500)
+                            self.send_json(state.get("model_result") or result, 500)
                         else:
                             self.send_bytes(
                                 fallback.read_bytes(),
@@ -1032,7 +1075,7 @@ class Server(BaseHTTPRequestHandler):
                 target.relative_to(VIEWER_DIR)
                 self.send_bytes(target.read_bytes(), mimetypes.guess_type(target.name)[0] or "application/octet-stream")
             elif parsed.path == "/":
-                self.send_bytes(workbench_html(self.cwd, self.session, self.preloaded), "text/html; charset=utf-8")
+                self.send_bytes(workbench_html(self.cwd, self.session, state), "text/html; charset=utf-8")
             else:
                 self.send_json({"ok": False, "message": "not found"}, 404)
         except Exception as exc:

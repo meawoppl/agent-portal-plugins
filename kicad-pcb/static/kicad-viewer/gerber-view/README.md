@@ -1,7 +1,7 @@
 Vendored build of pastebom.com's `gerber-view` crate.
 
 Source: https://github.com/meawoppl/pastebom.com/tree/meawoppl/gerber-view-embeddable/crates/gerber-view
-Source commit used here: def0730
+Source commit used here: 91ee2d7
 
 Build command:
 

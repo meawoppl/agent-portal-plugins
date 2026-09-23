@@ -103,3 +103,82 @@ required = false
 default_view = "board"
 fabrication_output = "build/fab"
 ```
+
+## Hardware Workspace Manifest
+
+`.kicad-pcb.json` is an Agent Portal plugin manifest, not a KiCad file. Use it
+at the repository root when a repo contains multiple boards or shared hardware
+libraries. Paths in top-level sections are relative to the repo root. Paths
+inside a project are relative to that project's `root`.
+
+```json
+{
+  "version": 1,
+  "defaultProject": "direction-led-tester",
+  "libraries": {
+    "symbols": ["libraries/symbols/company.kicad_sym"],
+    "footprints": ["libraries/footprints/company.pretty"],
+    "models": ["libraries/3dmodels"],
+    "datasheets": ["libraries/datasheets"]
+  },
+  "projects": [
+    {
+      "id": "direction-led-tester",
+      "name": "Direction LED Tester",
+      "root": "boards/direction-led-tester",
+      "kicad": {
+        "project": "direction-led-tester.kicad_pro",
+        "schematic": "direction-led-tester.kicad_sch",
+        "pcb": "direction-led-tester.kicad_pcb"
+      },
+      "libraries": {
+        "symbols": ["direction-led-tester.kicad_sym"],
+        "footprints": ["pretty"],
+        "models": ["3dmodels"]
+      },
+      "artifacts": {
+        "fab": "fab",
+        "checks": "fab/checks",
+        "gerbers": "fab/gerbers",
+        "jlcpcb": "fab/jlcpcb",
+        "docs": "docs"
+      },
+      "manufacturer": {
+        "default": "jlcpcb",
+        "bom": "fab/jlcpcb/BOM_direction-led-tester.csv",
+        "cpl": "fab/jlcpcb/CPL_direction-led-tester.csv",
+        "package": "fab/jlcpcb/direction-led-tester-jlcpcb.zip"
+      }
+    }
+  ]
+}
+```
+
+Recommended layout:
+
+```text
+repo/
+  .portal/plugins.toml
+  .kicad-pcb.json
+  libraries/
+    symbols/
+    footprints/
+    3dmodels/
+    datasheets/
+  boards/
+    board-a/
+      board-a.kicad_pro
+      board-a.kicad_sch
+      board-a.kicad_pcb
+      fp-lib-table
+      sym-lib-table
+      fab/checks/
+      fab/gerbers/
+      fab/jlcpcb/
+      docs/
+```
+
+The workbench opens `defaultProject` first and shows a board selector when more
+than one project is listed. If the manifest is absent, the plugin keeps the
+single-board convention and treats the repository root as the active board
+folder.

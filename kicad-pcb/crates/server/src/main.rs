@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     ffi::OsString,
     io::Write,
     net::SocketAddr,
@@ -117,8 +117,16 @@ enum ExportCommand {
 struct AppState {
     cwd: PathBuf,
     session: String,
-    warmed: Arc<RwLock<ViewerState>>,
+    projects: Vec<ProjectContext>,
+    warmed: Arc<RwLock<HashMap<String, ViewerState>>>,
     events: broadcast::Sender<ServerEvent>,
+}
+
+#[derive(Debug, Clone)]
+struct ProjectContext {
+    id: String,
+    name: String,
+    root: PathBuf,
 }
 
 #[derive(Debug, Clone)]
@@ -129,6 +137,25 @@ struct ViewerState {
     model_path: Option<PathBuf>,
     model_result: Option<serde_json::Value>,
     warmed_at_ms: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct ProjectQuery {
+    project: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct WorkspaceConfig {
+    default_project: Option<String>,
+    projects: Option<Vec<ProjectConfig>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ProjectConfig {
+    id: String,
+    name: Option<String>,
+    root: PathBuf,
 }
 
 #[derive(Debug)]
@@ -172,12 +199,20 @@ async fn main() -> Result<()> {
         }
         Commands::Serve { port, cwd, session } => {
             let cwd = cwd.canonicalize().context("canonicalize cwd")?;
-            let initial = warm_viewer_state(&cwd).await?;
+            let projects = project_contexts(&cwd)?;
+            let default_project = projects
+                .first()
+                .ok_or_else(|| anyhow!("no KiCad PCB projects found"))?
+                .clone();
+            let initial = warm_viewer_state(&default_project.root).await?;
+            let mut warmed = HashMap::new();
+            warmed.insert(default_project.id.clone(), initial);
             let (events, _) = broadcast::channel(128);
             let state = AppState {
                 cwd,
                 session,
-                warmed: Arc::new(RwLock::new(initial)),
+                projects,
+                warmed: Arc::new(RwLock::new(warmed)),
                 events,
             };
             spawn_file_watcher(state.clone());
@@ -247,9 +282,19 @@ where
     Ok(())
 }
 
-async fn index(State(state): State<AppState>) -> Html<String> {
-    let warmed = state.warmed.read().await.clone();
-    Html(workbench_html(&state.cwd, &state.session, &warmed))
+async fn index(
+    State(state): State<AppState>,
+    Query(query): Query<ProjectQuery>,
+) -> Result<Html<String>, AppError> {
+    let project = selected_project(&state, query.project.as_deref())?;
+    let warmed = refresh_project_viewer_state(&state, &project).await?;
+    Ok(Html(workbench_html(
+        &state.cwd,
+        &state.session,
+        &project,
+        &state.projects,
+        &warmed,
+    )))
 }
 
 async fn events_ws(State(state): State<AppState>, ws: WebSocketUpgrade) -> Response {
@@ -262,6 +307,10 @@ async fn event_socket(state: AppState, socket: WebSocket) {
 
     let initial = {
         let warmed = state.warmed.read().await;
+        let warmed = warmed
+            .values()
+            .next()
+            .expect("serve initializes at least one warmed project");
         ServerEvent::Revision {
             revision: warmed.source_revision.clone(),
             previous_revision: None,
@@ -299,7 +348,14 @@ async fn event_socket(state: AppState, socket: WebSocket) {
 }
 
 async fn healthz(State(state): State<AppState>) -> Json<HealthResponse> {
-    let warmed = state.warmed.read().await;
+    let project = state
+        .projects
+        .first()
+        .expect("serve initializes at least one project");
+    let warmed = match refresh_project_viewer_state(&state, project).await {
+        Ok(warmed) => warmed,
+        Err(_) => state.warmed.read().await[&project.id].clone(),
+    };
     Json(HealthResponse {
         ok: true,
         plugin: "kicad-pcb".to_string(),
@@ -311,23 +367,39 @@ async fn healthz(State(state): State<AppState>) -> Json<HealthResponse> {
 }
 
 async fn manifest(State(state): State<AppState>) -> Json<ManifestResponse> {
-    Json(state.warmed.read().await.manifest.clone())
+    let project = state
+        .projects
+        .first()
+        .expect("serve initializes at least one project");
+    let warmed = match refresh_project_viewer_state(&state, project).await {
+        Ok(warmed) => warmed,
+        Err(_) => state.warmed.read().await[&project.id].clone(),
+    };
+    Json(warmed.manifest)
 }
 
-async fn revision(State(state): State<AppState>) -> Result<Json<RevisionResponse>, AppError> {
-    let current = current_source_revision(&state.cwd)?;
-    let warmed = state.warmed.read().await;
+async fn revision(
+    State(state): State<AppState>,
+    Query(query): Query<ProjectQuery>,
+) -> Result<Json<RevisionResponse>, AppError> {
+    let project = selected_project(&state, query.project.as_deref())?;
+    let current = current_source_revision(&project.root)?;
+    let warmed = refresh_project_viewer_state(&state, &project).await?;
     Ok(Json(RevisionResponse {
         ok: true,
         changed: current != warmed.source_revision,
         revision: current,
-        warmed_revision: Some(warmed.source_revision.clone()),
+        warmed_revision: Some(warmed.source_revision),
         warmed_at_ms: Some(warmed.warmed_at_ms),
     }))
 }
 
-async fn sources(State(state): State<AppState>) -> Result<Json<SourcesResponse>, AppError> {
-    let warmed = refresh_viewer_state(&state).await?;
+async fn sources(
+    State(state): State<AppState>,
+    Query(query): Query<ProjectQuery>,
+) -> Result<Json<SourcesResponse>, AppError> {
+    let project = selected_project(&state, query.project.as_deref())?;
+    let warmed = refresh_project_viewer_state(&state, &project).await?;
     Ok(Json(SourcesResponse {
         ok: true,
         revision: warmed.source_revision,
@@ -336,16 +408,28 @@ async fn sources(State(state): State<AppState>) -> Result<Json<SourcesResponse>,
     }))
 }
 
-async fn drc(State(state): State<AppState>) -> Result<Json<CheckResponse>, AppError> {
-    Ok(Json(run_check(&state.cwd, "drc").await?))
+async fn drc(
+    State(state): State<AppState>,
+    Query(query): Query<ProjectQuery>,
+) -> Result<Json<CheckResponse>, AppError> {
+    let project = selected_project(&state, query.project.as_deref())?;
+    Ok(Json(run_check(&project.root, "drc").await?))
 }
 
-async fn erc(State(state): State<AppState>) -> Result<Json<CheckResponse>, AppError> {
-    Ok(Json(run_check(&state.cwd, "erc").await?))
+async fn erc(
+    State(state): State<AppState>,
+    Query(query): Query<ProjectQuery>,
+) -> Result<Json<CheckResponse>, AppError> {
+    let project = selected_project(&state, query.project.as_deref())?;
+    Ok(Json(run_check(&project.root, "erc").await?))
 }
 
-async fn model_glb(State(state): State<AppState>) -> Result<Response, AppError> {
-    let warmed = refresh_viewer_state(&state).await?;
+async fn model_glb(
+    State(state): State<AppState>,
+    Query(query): Query<ProjectQuery>,
+) -> Result<Response, AppError> {
+    let project = selected_project(&state, query.project.as_deref())?;
+    let warmed = refresh_project_viewer_state(&state, &project).await?;
     if let Some(path) = warmed.model_path {
         if path.exists() {
             let bytes = tokio::fs::read(path).await?;
@@ -366,13 +450,15 @@ async fn model_glb(State(state): State<AppState>) -> Result<Response, AppError> 
 struct FileQuery {
     path: String,
     download: Option<String>,
+    project: Option<String>,
 }
 
 async fn file(
     State(state): State<AppState>,
     Query(query): Query<FileQuery>,
 ) -> Result<Response, AppError> {
-    let target = safe_rel(&state.cwd, &query.path)?;
+    let project = selected_project(&state, query.project.as_deref())?;
+    let target = safe_rel(&project.root, &query.path)?;
     let bytes = tokio::fs::read(&target).await?;
     let mime = mime_guess::from_path(&target)
         .first_or_octet_stream()
@@ -405,20 +491,23 @@ async fn viewer_asset(axum::extract::Path(path): axum::extract::Path<String>) ->
         .into_response()
 }
 
-async fn refresh_viewer_state(state: &AppState) -> Result<ViewerState> {
-    let revision = current_source_revision(&state.cwd)?;
+async fn refresh_project_viewer_state(
+    state: &AppState,
+    project: &ProjectContext,
+) -> Result<ViewerState> {
+    let revision = current_source_revision(&project.root)?;
     {
         let warmed = state.warmed.read().await;
-        if warmed.source_revision == revision {
-            return Ok(warmed.clone());
+        if let Some(warmed) = warmed.get(&project.id) {
+            if warmed.source_revision == revision {
+                return Ok(warmed.clone());
+            }
         }
     }
-    let refreshed = warm_viewer_state(&state.cwd).await?;
+    let refreshed = warm_viewer_state(&project.root).await?;
     let mut warmed = state.warmed.write().await;
-    if warmed.source_revision != refreshed.source_revision {
-        *warmed = refreshed;
-    }
-    Ok(warmed.clone())
+    warmed.insert(project.id.clone(), refreshed.clone());
+    Ok(refreshed)
 }
 
 fn spawn_file_watcher(state: AppState) {
@@ -457,21 +546,31 @@ async fn watch_project_files(state: AppState) -> Result<()> {
                 sleep(Duration::from_millis(50)).await;
             }
         }
-        let previous = {
-            let warmed = state.warmed.read().await;
-            warmed.source_revision.clone()
-        };
-        match refresh_viewer_state(&state).await {
-            Ok(warmed) if warmed.source_revision != previous => {
-                let _ = state.events.send(ServerEvent::Revision {
-                    revision: warmed.source_revision,
-                    previous_revision: Some(previous),
-                    warmed_at_ms: warmed.warmed_at_ms,
-                    reason: "watch".to_string(),
-                });
+        let projects = state.projects.clone();
+        for project in projects {
+            let previous = {
+                let warmed = state.warmed.read().await;
+                warmed
+                    .get(&project.id)
+                    .map(|state| state.source_revision.clone())
+            };
+            let Some(previous) = previous else {
+                continue;
+            };
+            match refresh_project_viewer_state(&state, &project).await {
+                Ok(warmed) if warmed.source_revision != previous => {
+                    let _ = state.events.send(ServerEvent::Revision {
+                        revision: warmed.source_revision,
+                        previous_revision: Some(previous),
+                        warmed_at_ms: warmed.warmed_at_ms,
+                        reason: "watch".to_string(),
+                    });
+                }
+                Ok(_) => {}
+                Err(err) => {
+                    tracing::warn!(error = %err, project = %project.id, "failed to refresh KiCad PCB viewer state")
+                }
             }
-            Ok(_) => {}
-            Err(err) => tracing::warn!(error = %err, "failed to refresh KiCad PCB viewer state"),
         }
     }
     Ok(())
@@ -790,6 +889,75 @@ fn is_project_file(cwd: &Path, path: &Path, active_source: bool) -> bool {
     ![".bak", ".backup", ".orig", ".old", ".tmp", "~"]
         .iter()
         .any(|suffix| name.ends_with(suffix))
+}
+
+fn project_contexts(cwd: &Path) -> Result<Vec<ProjectContext>> {
+    let config = workspace_config(cwd)?;
+    let Some(projects) = config.projects else {
+        return Ok(vec![ProjectContext {
+            id: "default".to_string(),
+            name: "Default Board".to_string(),
+            root: cwd.to_path_buf(),
+        }]);
+    };
+
+    let mut contexts = projects
+        .into_iter()
+        .map(|project| {
+            let root = safe_rel(cwd, &project.root.to_string_lossy())?;
+            let name = project.name.unwrap_or_else(|| project.id.clone());
+            Ok(ProjectContext {
+                id: project.id,
+                name,
+                root,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if contexts.is_empty() {
+        contexts.push(ProjectContext {
+            id: "default".to_string(),
+            name: "Default Board".to_string(),
+            root: cwd.to_path_buf(),
+        });
+    }
+
+    if let Some(default_project) = config.default_project {
+        if let Some(index) = contexts
+            .iter()
+            .position(|project| project.id == default_project)
+        {
+            contexts.swap(0, index);
+        }
+    }
+    Ok(contexts)
+}
+
+fn workspace_config(cwd: &Path) -> Result<WorkspaceConfig> {
+    let path = cwd.join(".kicad-pcb.json");
+    if !path.exists() {
+        return Ok(WorkspaceConfig {
+            default_project: None,
+            projects: None,
+        });
+    }
+    let content =
+        std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    serde_json::from_str(&content).with_context(|| format!("parse {}", path.display()))
+}
+
+fn selected_project(state: &AppState, id: Option<&str>) -> Result<ProjectContext> {
+    let wanted = id.filter(|id| !id.is_empty());
+    if let Some(wanted) = wanted {
+        if let Some(project) = state.projects.iter().find(|project| project.id == wanted) {
+            return Ok(project.clone());
+        }
+        return Err(anyhow!("unknown KiCad PCB project {wanted:?}"));
+    }
+    state
+        .projects
+        .first()
+        .cloned()
+        .ok_or_else(|| anyhow!("no KiCad PCB projects configured"))
 }
 
 async fn run_check(cwd: &Path, kind: &str) -> Result<CheckResponse> {
@@ -1242,7 +1410,13 @@ fn is_manufacturing_csv(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
-fn workbench_html(cwd: &Path, session: &str, warmed: &ViewerState) -> String {
+fn workbench_html(
+    cwd: &Path,
+    session: &str,
+    project: &ProjectContext,
+    projects: &[ProjectContext],
+    warmed: &ViewerState,
+) -> String {
     let tabs = TABS
         .iter()
         .copied()
@@ -1262,6 +1436,22 @@ fn workbench_html(cwd: &Path, session: &str, warmed: &ViewerState) -> String {
         .collect::<String>();
     let gerber_paths = selected_gerber_files(&warmed.manifest.files);
     let gerber_sources = serde_json::to_string(&gerber_paths).unwrap_or_else(|_| "[]".to_string());
+    let project_id = serde_json::to_string(&project.id).unwrap_or_else(|_| "\"\"".to_string());
+    let project_options = projects
+        .iter()
+        .map(|item| {
+            let selected = if item.id == project.id {
+                " selected"
+            } else {
+                ""
+            };
+            format!(
+                "<option value='{}'{selected}>{}</option>",
+                escape_attr(&item.id),
+                escape(&item.name)
+            )
+        })
+        .collect::<String>();
     let gerber_files = if gerber_paths.is_empty() {
         "<li class='muted'>No generated Gerber or drill files found. Run <code>kicad-pcb export gerbers</code> or <code>kicad-pcb export jlcpcb</code>.</li>".to_string()
     } else {
@@ -1269,7 +1459,8 @@ fn workbench_html(cwd: &Path, session: &str, warmed: &ViewerState) -> String {
             .iter()
             .map(|path| {
                 format!(
-                    "<li><a href='/api/kicad/file?download=1&amp;path={}'>{}</a></li>",
+                    "<li><a href='/api/kicad/file?download=1&amp;project={}&amp;path={}'>{}</a></li>",
+                    escape_attr(&percent_encode(&project.id)),
                     escape_attr(&percent_encode(path)),
                     escape(path)
                 )
@@ -1281,15 +1472,15 @@ fn workbench_html(cwd: &Path, session: &str, warmed: &ViewerState) -> String {
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KiCad PCB · Agent Portal</title>
 <style>
-body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}header{{padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}a{{color:#7dcfff}}.muted{{color:#9aa5ce}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}code{{color:#7dcfff}}.gerber-layout{{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}}#gerberViewer{{height:70vh;min-height:420px;border:1px solid #3b4261;border-radius:8px;overflow:hidden;background:#11131d}}.side-panel{{border:1px solid #3b4261;border-radius:8px;background:#16161e;padding:10px;overflow:auto;max-height:70vh}}.side-panel h3{{font-size:13px;margin:0 0 8px;color:#e6e9f5}}.side-panel ul{{margin:0 0 14px;padding-left:18px}}.warning{{color:#e0af68}}@media (max-width: 860px){{.gerber-layout{{grid-template-columns:1fr}}.side-panel{{max-height:none}}}}
+body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}header{{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}a{{color:#7dcfff}}select{{border:1px solid #3b4261;border-radius:6px;background:#24283b;color:#c0caf5;padding:7px 10px}}.muted{{color:#9aa5ce}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}code{{color:#7dcfff}}.gerber-layout{{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}}#gerberViewer{{height:70vh;min-height:420px;border:1px solid #3b4261;border-radius:8px;overflow:hidden;background:#11131d}}.side-panel{{border:1px solid #3b4261;border-radius:8px;background:#16161e;padding:10px;overflow:auto;max-height:70vh}}.side-panel h3{{font-size:13px;margin:0 0 8px;color:#e6e9f5}}.side-panel ul{{margin:0 0 14px;padding-left:18px}}.warning{{color:#e0af68}}@media (max-width: 860px){{header{{align-items:flex-start;flex-direction:column}}.gerber-layout{{grid-template-columns:1fr}}.side-panel{{max-height:none}}}}
 </style></head><body>
-<header><h1>KiCad PCB Workbench</h1><div class="muted">Session {session} · {cwd}</div></header>
+<header><div><h1>KiCad PCB Workbench</h1><div class="muted">Session {session} · {cwd}</div></div><label class="muted">Board <select id="projectSelect">{project_options}</select></label></header>
 <nav class="tabs">{tabs}</nav><main>
 <section id="schematic"><div class="card"><h2>Schematic</h2><iframe class="native-viewer" data-kind="schematic" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="pcb"><div class="card"><h2>PCB</h2><iframe class="native-viewer" data-kind="pcb" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="3d"><div class="card"><h2>3D Board</h2><iframe class="model-viewer" data-kind="model" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="checks"><div class="card"><h2>Checks</h2><pre id="checksOut">Open checks...</pre></div></section>
-<section id="gerbers"><div class="card"><h2>Gerbers</h2><div class="gerber-layout"><div id="gerberViewer"></div><aside class="side-panel"><h3>Layers</h3><div id="gerberStatus" class="muted">Loading Gerber viewer...</div><ul id="gerberLayers"></ul><h3>Files</h3><ul>{gerber_files}</ul><div id="gerberWarnings"></div></aside></div></div></section>
+<section id="gerbers"><div class="card"><h2>Gerbers</h2><div class="gerber-layout"><div id="gerberViewer"></div><aside class="side-panel"><h3>Layers</h3><div id="gerberStatus" class="muted">Loading Gerber viewer...</div><ul id="gerberLayers"></ul><h3>Files</h3><ul>{gerber_files}</ul><div id="gerberWarnings"></div><div id="gerberSkipped" class="muted"></div></aside></div></div></section>
 <section id="step"><div class="card"><h2>STEP</h2><ul>{files}</ul></div></section>
 <section id="bom"><div class="card"><h2>BOM</h2><ul>{files}</ul></div></section>
 <section id="libraries"><div class="card"><h2>Libraries</h2><ul>{files}</ul></div></section>
@@ -1303,9 +1494,12 @@ let refreshInFlight = false;
 let gerberViewer;
 let gerberLoadPromise;
 const gerberSources = {gerber_sources};
+const projectId = {project_id};
+const projectParam = () => `project=${{encodeURIComponent(projectId)}}`;
+const api = path => `${{path}}${{path.includes("?") ? "&" : "?"}}${{projectParam()}}`;
 const loadSources = async () => {{
   if (sourceSnapshot) return sourceSnapshot;
-  sourceSnapshotPromise ||= fetch("/api/kicad/sources")
+  sourceSnapshotPromise ||= fetch(api("/api/kicad/sources"))
     .then(r => r.json())
     .then(payload => {{
       sourceSnapshot = payload;
@@ -1317,7 +1511,7 @@ const loadSources = async () => {{
     }});
   return sourceSnapshotPromise;
 }};
-const modelUrl = revision => `/api/kicad/model.glb?rev=${{encodeURIComponent(revision || "current")}}`;
+const modelUrl = revision => `/api/kicad/model.glb?${{projectParam()}}&rev=${{encodeURIComponent(revision || "current")}}`;
 const viewerFrames = () => document.querySelectorAll("iframe.native-viewer, iframe.model-viewer");
 const postSnapshot = async frame => {{
   if (frame.dataset.kind === "model") {{
@@ -1336,12 +1530,13 @@ window.addEventListener("message", event => {{
   }}
 }});
 const loadChecks = async () => {{
-  const [drc, erc] = await Promise.all([fetch("/api/kicad/drc").then(r=>r.json()), fetch("/api/kicad/erc").then(r=>r.json())]);
+  const [drc, erc] = await Promise.all([fetch(api("/api/kicad/drc")).then(r=>r.json()), fetch(api("/api/kicad/erc")).then(r=>r.json())]);
   checksOut.textContent = JSON.stringify({{drc, erc}}, null, 2);
 }};
 const renderGerberProject = project => {{
   const layers = document.getElementById("gerberLayers");
   const warnings = document.getElementById("gerberWarnings");
+  const skipped = document.getElementById("gerberSkipped");
   const status = document.getElementById("gerberStatus");
   layers.innerHTML = "";
   for (const layer of project.layers || []) {{
@@ -1355,6 +1550,17 @@ const renderGerberProject = project => {{
     item.className = "warning";
     item.textContent = warning;
     warnings.appendChild(item);
+  }}
+  skipped.innerHTML = "";
+  if ((project.skipped || []).length) {{
+    const title = document.createElement("h3");
+    title.textContent = "Skipped";
+    skipped.appendChild(title);
+  }}
+  for (const itemText of project.skipped || []) {{
+    const item = document.createElement("div");
+    item.textContent = itemText;
+    skipped.appendChild(item);
   }}
   status.textContent = `${{(project.layers || []).length}} layer${{(project.layers || []).length === 1 ? "" : "s"}} loaded`;
 }};
@@ -1372,7 +1578,7 @@ const loadGerbers = async () => {{
     const viewer = new module.GerberViewer({{controls:true, background:"#11131d", padding:18}});
     viewer.mount(document.getElementById("gerberViewer"));
     viewer.onChange(renderGerberProject);
-    const project = await viewer.setSources(gerberSources.map(path => ({{url:`/api/kicad/file?path=${{encodeURIComponent(path)}}`}})));
+    const project = await viewer.setSources(gerberSources.map(path => ({{url:`/api/kicad/file?${{projectParam()}}&path=${{encodeURIComponent(path)}}`}})));
     renderGerberProject(project);
     viewer.fit();
     gerberViewer = viewer;
@@ -1388,7 +1594,7 @@ const refreshPane = async () => {{
   if (refreshInFlight) return;
   refreshInFlight = true;
   try {{
-    const status = await fetch("/api/kicad/revision").then(r => r.json());
+    const status = await fetch(api("/api/kicad/revision")).then(r => r.json());
     if (!sourceSnapshot || status.changed || status.revision !== sourceSnapshot.revision) {{
       sourceSnapshot = undefined;
       await loadSources();
@@ -1408,7 +1614,7 @@ const applyRevision = async event => {{
 }};
 const connectEvents = () => {{
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
-  const socket = new WebSocket(`${{proto}}//${{location.host}}/ws/events`);
+  const socket = new WebSocket(`${{proto}}//${{location.host}}/ws/events?${{projectParam()}}`);
   socket.onmessage = event => {{
     try {{
       const payload = JSON.parse(event.data);
@@ -1429,6 +1635,12 @@ const setTab = id => {{
   if (id === "gerbers") void loadGerbers();
 }};
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setTab(b.dataset.tab));
+document.getElementById("projectSelect")?.addEventListener("change", event => {{
+  const next = event.target.value;
+  const url = new URL(location.href);
+  url.searchParams.set("project", next);
+  location.href = url.toString();
+}});
 setTab(document.getElementById(location.hash.slice(1)) ? location.hash.slice(1) : "schematic");
 loadSources().then(() => viewerFrames().forEach(frame => void postSnapshot(frame))).catch(err => console.warn("KiCad PCB preload failed", err));
 connectEvents();
@@ -1441,6 +1653,8 @@ document.addEventListener("visibilitychange", () => {{ if (!document.hidden) voi
         files = files,
         gerber_files = gerber_files,
         gerber_sources = gerber_sources,
+        project_id = project_id,
+        project_options = project_options,
     )
 }
 
@@ -1482,17 +1696,6 @@ fn gerber_files_with_prefix(files: &[FileEntry], prefix: &str) -> Vec<String> {
 }
 
 fn is_embeddable_gerber_file(path: &str) -> bool {
-    let name = Path::new(path)
-        .file_name()
-        .and_then(|value| value.to_str())
-        .unwrap_or_default()
-        .to_ascii_lowercase();
-    if ["courtyard", "adhesive", "margin"]
-        .iter()
-        .any(|marker| name.contains(marker))
-    {
-        return false;
-    }
     Path::new(path)
         .extension()
         .and_then(|value| value.to_str())

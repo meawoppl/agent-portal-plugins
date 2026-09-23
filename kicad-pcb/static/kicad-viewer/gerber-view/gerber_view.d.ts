@@ -13,7 +13,7 @@ export class GerberViewer {
      */
     addSources(sources: any): Promise<any>;
     /**
-     * Remove all layers and warnings. Pending loads from earlier calls are discarded.
+     * Remove all layers and diagnostics. Pending loads from earlier calls are discarded.
      */
     clear(): void;
     /**
@@ -46,7 +46,8 @@ export class GerberViewer {
     onChange(callback?: Function | null): void;
     /**
      * Summary of the loaded project: layers (name, label, function, side, colour,
-     * visibility, counts, bbox), board bbox in millimetres, warnings, and view side.
+     * visibility, counts, bbox), board bbox in millimetres, `warnings` (problems),
+     * `skipped` (non-fabrication or empty files), and view side.
      */
     project(): any;
     /**
@@ -85,7 +86,7 @@ export class GerberViewer {
 }
 
 /**
- * Parse sources without rendering. Resolves with `{ layers, bbox, warnings }`, where
+ * Parse sources without rendering. Resolves with `{ layers, bbox, warnings, skipped }`, where
  * each layer has `name`, `function`, `side`, `inner`, `drawings`, `clear_drawings`,
  * and `bbox`. Coordinates are millimetres with Y pointing down.
  */

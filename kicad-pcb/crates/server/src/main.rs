@@ -1260,12 +1260,28 @@ fn workbench_html(cwd: &Path, session: &str, warmed: &ViewerState) -> String {
             )
         })
         .collect::<String>();
+    let gerber_paths = selected_gerber_files(&warmed.manifest.files);
+    let gerber_sources = serde_json::to_string(&gerber_paths).unwrap_or_else(|_| "[]".to_string());
+    let gerber_files = if gerber_paths.is_empty() {
+        "<li class='muted'>No generated Gerber or drill files found. Run <code>kicad-pcb export gerbers</code> or <code>kicad-pcb export jlcpcb</code>.</li>".to_string()
+    } else {
+        gerber_paths
+            .iter()
+            .map(|path| {
+                format!(
+                    "<li><a href='/api/kicad/file?download=1&amp;path={}'>{}</a></li>",
+                    escape_attr(&percent_encode(path)),
+                    escape(path)
+                )
+            })
+            .collect::<String>()
+    };
     format!(
-        r#"<!doctype html>
+        r##"<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KiCad PCB · Agent Portal</title>
 <style>
-body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}header{{padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}.muted{{color:#9aa5ce}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}code{{color:#7dcfff}}
+body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}header{{padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}a{{color:#7dcfff}}.muted{{color:#9aa5ce}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}code{{color:#7dcfff}}.gerber-layout{{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}}#gerberViewer{{height:70vh;min-height:420px;border:1px solid #3b4261;border-radius:8px;overflow:hidden;background:#11131d}}.side-panel{{border:1px solid #3b4261;border-radius:8px;background:#16161e;padding:10px;overflow:auto;max-height:70vh}}.side-panel h3{{font-size:13px;margin:0 0 8px;color:#e6e9f5}}.side-panel ul{{margin:0 0 14px;padding-left:18px}}.warning{{color:#e0af68}}@media (max-width: 860px){{.gerber-layout{{grid-template-columns:1fr}}.side-panel{{max-height:none}}}}
 </style></head><body>
 <header><h1>KiCad PCB Workbench</h1><div class="muted">Session {session} · {cwd}</div></header>
 <nav class="tabs">{tabs}</nav><main>
@@ -1273,7 +1289,7 @@ body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,
 <section id="pcb"><div class="card"><h2>PCB</h2><iframe class="native-viewer" data-kind="pcb" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="3d"><div class="card"><h2>3D Board</h2><iframe class="model-viewer" data-kind="model" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="checks"><div class="card"><h2>Checks</h2><pre id="checksOut">Open checks...</pre></div></section>
-<section id="gerbers"><div class="card"><h2>Gerbers</h2><ul>{files}</ul></div></section>
+<section id="gerbers"><div class="card"><h2>Gerbers</h2><div class="gerber-layout"><div id="gerberViewer"></div><aside class="side-panel"><h3>Layers</h3><div id="gerberStatus" class="muted">Loading Gerber viewer...</div><ul id="gerberLayers"></ul><h3>Files</h3><ul>{gerber_files}</ul><div id="gerberWarnings"></div></aside></div></div></section>
 <section id="step"><div class="card"><h2>STEP</h2><ul>{files}</ul></div></section>
 <section id="bom"><div class="card"><h2>BOM</h2><ul>{files}</ul></div></section>
 <section id="libraries"><div class="card"><h2>Libraries</h2><ul>{files}</ul></div></section>
@@ -1284,6 +1300,9 @@ let sourceSnapshot;
 let sourceSnapshotPromise;
 let activeTab = "schematic";
 let refreshInFlight = false;
+let gerberViewer;
+let gerberLoadPromise;
+const gerberSources = {gerber_sources};
 const loadSources = async () => {{
   if (sourceSnapshot) return sourceSnapshot;
   sourceSnapshotPromise ||= fetch("/api/kicad/sources")
@@ -1319,6 +1338,51 @@ window.addEventListener("message", event => {{
 const loadChecks = async () => {{
   const [drc, erc] = await Promise.all([fetch("/api/kicad/drc").then(r=>r.json()), fetch("/api/kicad/erc").then(r=>r.json())]);
   checksOut.textContent = JSON.stringify({{drc, erc}}, null, 2);
+}};
+const renderGerberProject = project => {{
+  const layers = document.getElementById("gerberLayers");
+  const warnings = document.getElementById("gerberWarnings");
+  const status = document.getElementById("gerberStatus");
+  layers.innerHTML = "";
+  for (const layer of project.layers || []) {{
+    const item = document.createElement("li");
+    item.textContent = `${{layer.label}} · ${{layer.name}}`;
+    layers.appendChild(item);
+  }}
+  warnings.innerHTML = "";
+  for (const warning of project.warnings || []) {{
+    const item = document.createElement("div");
+    item.className = "warning";
+    item.textContent = warning;
+    warnings.appendChild(item);
+  }}
+  status.textContent = `${{(project.layers || []).length}} layer${{(project.layers || []).length === 1 ? "" : "s"}} loaded`;
+}};
+const loadGerbers = async () => {{
+  if (gerberViewer) return gerberViewer;
+  if (gerberLoadPromise) return gerberLoadPromise;
+  gerberLoadPromise = (async () => {{
+    const status = document.getElementById("gerberStatus");
+    if (!gerberSources.length) {{
+      status.textContent = "No generated Gerber or drill files found.";
+      return undefined;
+    }}
+    const module = await import("/kicad-viewer/gerber-view/gerber_view.js");
+    await module.default("/kicad-viewer/gerber-view/gerber_view_bg.wasm");
+    const viewer = new module.GerberViewer({{controls:true, background:"#11131d", padding:18}});
+    viewer.mount(document.getElementById("gerberViewer"));
+    viewer.onChange(renderGerberProject);
+    const project = await viewer.setSources(gerberSources.map(path => ({{url:`/api/kicad/file?path=${{encodeURIComponent(path)}}`}})));
+    renderGerberProject(project);
+    viewer.fit();
+    gerberViewer = viewer;
+    return viewer;
+  }})().catch(err => {{
+    document.getElementById("gerberStatus").textContent = `Gerber viewer failed: ${{err?.message || err}}`;
+    console.error("Gerber viewer failed", err);
+    gerberLoadPromise = undefined;
+  }});
+  return gerberLoadPromise;
 }};
 const refreshPane = async () => {{
   if (refreshInFlight) return;
@@ -1362,6 +1426,7 @@ const setTab = id => {{
   document.querySelectorAll(".tabs button").forEach(el => el.classList.toggle("active", el.dataset.tab === id));
   document.querySelectorAll(`#${{CSS.escape(id)}} iframe.native-viewer, #${{CSS.escape(id)}} iframe.model-viewer`).forEach(frame => void postSnapshot(frame));
   if (id === "checks") void loadChecks();
+  if (id === "gerbers") void loadGerbers();
 }};
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setTab(b.dataset.tab));
 setTab(document.getElementById(location.hash.slice(1)) ? location.hash.slice(1) : "schematic");
@@ -1369,12 +1434,94 @@ loadSources().then(() => viewerFrames().forEach(frame => void postSnapshot(frame
 connectEvents();
 setInterval(refreshPane, 30000);
 document.addEventListener("visibilitychange", () => {{ if (!document.hidden) void refreshPane(); }});
-</script></body></html>"#,
+</script></body></html>"##,
         session = escape(session),
         cwd = escape(&cwd.display().to_string()),
         tabs = tabs,
         files = files,
+        gerber_files = gerber_files,
+        gerber_sources = gerber_sources,
     )
+}
+
+fn selected_gerber_files(files: &[FileEntry]) -> Vec<String> {
+    let generated_sets = [
+        "fab/gerbers/",
+        "fab/jlcpcb/",
+        "fabrication/gerbers/",
+        "fabrication/jlcpcb/",
+    ];
+    for prefix in generated_sets {
+        let selected = gerber_files_with_prefix(files, prefix);
+        if !selected.is_empty() {
+            return selected;
+        }
+    }
+    let mut selected = files
+        .iter()
+        .filter(|file| file.kind == "gerber" && is_embeddable_gerber_file(&file.path))
+        .filter(|file| {
+            !path_has_component(&file.path, &["tmp", "temp", "build", "backup", "backups"])
+        })
+        .map(|file| file.path.clone())
+        .collect::<Vec<_>>();
+    selected.sort();
+    selected
+}
+
+fn gerber_files_with_prefix(files: &[FileEntry], prefix: &str) -> Vec<String> {
+    let mut selected = files
+        .iter()
+        .filter(|file| file.kind == "gerber")
+        .filter(|file| file.path.starts_with(prefix))
+        .filter(|file| is_embeddable_gerber_file(&file.path))
+        .map(|file| file.path.clone())
+        .collect::<Vec<_>>();
+    selected.sort();
+    selected
+}
+
+fn is_embeddable_gerber_file(path: &str) -> bool {
+    let name = Path::new(path)
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    if ["courtyard", "adhesive", "margin"]
+        .iter()
+        .any(|marker| name.contains(marker))
+    {
+        return false;
+    }
+    Path::new(path)
+        .extension()
+        .and_then(|value| value.to_str())
+        .map(|ext| {
+            matches!(
+                ext.to_ascii_lowercase().as_str(),
+                "gbr"
+                    | "gtl"
+                    | "gbl"
+                    | "gts"
+                    | "gbs"
+                    | "gto"
+                    | "gbo"
+                    | "gtp"
+                    | "gbp"
+                    | "gta"
+                    | "gba"
+                    | "gm1"
+                    | "gko"
+                    | "drl"
+            )
+        })
+        .unwrap_or(false)
+}
+
+fn path_has_component(path: &str, components: &[&str]) -> bool {
+    Path::new(path)
+        .components()
+        .any(|part| components.contains(&part.as_os_str().to_string_lossy().as_ref()))
 }
 
 fn title(value: &str) -> String {
@@ -1391,6 +1538,22 @@ fn escape(value: &str) -> String {
         .replace('<', "&lt;")
         .replace('>', "&gt;")
         .replace('"', "&quot;")
+}
+
+fn escape_attr(value: &str) -> String {
+    escape(value).replace('\'', "&#39;")
+}
+
+fn percent_encode(value: &str) -> String {
+    value
+        .bytes()
+        .map(|byte| match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                (byte as char).to_string()
+            }
+            _ => format!("%{byte:02X}"),
+        })
+        .collect()
 }
 
 #[derive(Debug)]

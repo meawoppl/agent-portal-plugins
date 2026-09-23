@@ -600,7 +600,7 @@ fn kicad_sources_revision(cwd: &Path, sources: &[SourceFile]) -> Result<String> 
     for source in sources {
         digest.update(source.filename.as_bytes());
         digest.update([0]);
-        digest.update(source.content.len().to_string().as_bytes());
+        digest.update(source.content.as_bytes());
         digest.update([0]);
     }
     Ok(format!("{latest}-{:x}", digest.finalize())[..26].to_string())

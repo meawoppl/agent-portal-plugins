@@ -54,10 +54,6 @@ export function createBoardModel(host, status, options = {}) {
   controls.zoomSpeed = 1.05;
   controls.panSpeed = 0.42;
   controls.staticMoving = true;
-  // CAD users expect middle-drag to move the view pivot. TrackballControls
-  // pans by translating both the camera and target, so the next rotate orbits
-  // around the newly dragged center while wheel zoom keeps dolly available.
-  controls.mouseButtons.MIDDLE = THREE.MOUSE.PAN;
   controls.minZoom = 0.00001;
   controls.maxZoom = 10000;
   const loader = new GLTFLoader();
@@ -120,7 +116,46 @@ export function createBoardModel(host, status, options = {}) {
     controlsDirty = true;
     invalidate();
   };
+  let middlePan;
+  const panByPixels = (dx, dy) => {
+    const width = renderer.domElement.clientWidth || 1;
+    const height = renderer.domElement.clientHeight || 1;
+    const x = (-dx * (camera.right - camera.left)) / (camera.zoom * width);
+    const y = (dy * (camera.top - camera.bottom)) / (camera.zoom * height);
+    const xAxis = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0).multiplyScalar(x);
+    const yAxis = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1).multiplyScalar(y);
+    const offset = xAxis.add(yAxis);
+    camera.position.add(offset);
+    controls.target.add(offset);
+    updateControls();
+  };
+  const middlePanDown = (event) => {
+    if (event.button !== 1 || disposed || !active) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    middlePan = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    renderer.domElement.setPointerCapture?.(event.pointerId);
+  };
+  const middlePanMove = (event) => {
+    if (!middlePan || event.pointerId !== middlePan.id) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    panByPixels(event.clientX - middlePan.x, event.clientY - middlePan.y);
+    middlePan.x = event.clientX;
+    middlePan.y = event.clientY;
+  };
+  const middlePanEnd = (event) => {
+    if (!middlePan || event.pointerId !== middlePan.id) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    renderer.domElement.releasePointerCapture?.(event.pointerId);
+    middlePan = undefined;
+  };
   controls.addEventListener("start", updateControls);
+  renderer.domElement.addEventListener("pointerdown", middlePanDown, { capture: true });
+  renderer.domElement.addEventListener("pointermove", middlePanMove, { capture: true });
+  renderer.domElement.addEventListener("pointerup", middlePanEnd, { capture: true });
+  renderer.domElement.addEventListener("pointercancel", middlePanEnd, { capture: true });
   renderer.domElement.addEventListener("pointermove", updateControls);
   renderer.domElement.addEventListener("wheel", updateControls, { passive: true });
   const fit = (direction = new THREE.Vector3(1, 1.5, 1), up) => {
@@ -299,6 +334,10 @@ export function createBoardModel(host, status, options = {}) {
     observer.disconnect();
     controls.dispose();
     controls.removeEventListener("start", updateControls);
+    renderer.domElement.removeEventListener("pointerdown", middlePanDown, { capture: true });
+    renderer.domElement.removeEventListener("pointermove", middlePanMove, { capture: true });
+    renderer.domElement.removeEventListener("pointerup", middlePanEnd, { capture: true });
+    renderer.domElement.removeEventListener("pointercancel", middlePanEnd, { capture: true });
     renderer.domElement.removeEventListener("pointermove", updateControls);
     renderer.domElement.removeEventListener("wheel", updateControls);
     finishTransition();

@@ -66,6 +66,17 @@ pub struct CheckResponse {
     pub tool: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "type")]
+pub enum ServerEvent {
+    Revision {
+        revision: String,
+        previous_revision: Option<String>,
+        warmed_at_ms: u64,
+        reason: String,
+    },
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -82,6 +93,19 @@ mod tests {
         };
         let json = serde_json::to_string(&value).unwrap();
         let parsed: HealthResponse = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed, value);
+    }
+
+    #[test]
+    fn server_event_roundtrip() {
+        let value = ServerEvent::Revision {
+            revision: "2-abcd".to_string(),
+            previous_revision: Some("1-abcd".to_string()),
+            warmed_at_ms: 99,
+            reason: "watch".to_string(),
+        };
+        let json = serde_json::to_string(&value).unwrap();
+        let parsed: ServerEvent = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed, value);
     }
 }

@@ -58,6 +58,7 @@ struct AppState {
 Routes:
 
 - `GET /healthz`
+- `GET /ws/events`
 - `GET /api/project`
 - `GET /api/kicad/manifest`
 - `GET /api/kicad/revision`
@@ -77,7 +78,11 @@ Port the inline HTML/JS to Yew:
 
 - Tab state as Yew state.
 - A typed API client using `gloo_net`.
-- Revision polling every 2.5s plus visibility-return refresh.
+- A persistent `/ws/events` connection for source/output revision events.
+- A slow revision poll only as a fallback/reconnect safety net.
+- Background refresh semantics: keep the current rendered frame visible while a
+  new source/model/check revision is fetched and prepared; promote the new
+  snapshot only after the viewer/runtime reports readiness.
 - Components:
   - `OverviewTab`
   - `NativeViewerTab` for schematic/PCB iframe handoff
@@ -148,6 +153,12 @@ Revision rules:
   enough;
 - `/api/kicad/revision` stays cheap;
 - `/api/kicad/sources` refreshes warmed state when revision changes.
+- The Rust server watches the worktree with a debounced filesystem watcher,
+  refreshes warmed state before broadcasting, and sends typed `Revision` events
+  over `/ws/events`.
+- Browser clients should respond to pushed events by fetching warmed sources and
+  posting snapshots to hidden/retained viewer state. Polling is fallback, not
+  the primary update mechanism.
 
 ## Containerized Plugins
 

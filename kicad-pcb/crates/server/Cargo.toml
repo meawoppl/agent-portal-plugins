@@ -12,9 +12,11 @@ path = "src/main.rs"
 anyhow.workspace = true
 axum.workspace = true
 clap.workspace = true
+futures.workspace = true
 include_dir.workspace = true
 kicad-pcb-shared = { path = "../shared" }
 mime_guess.workspace = true
+notify.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
@@ -25,4 +27,3 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 walkdir.workspace = true
 zip.workspace = true
-

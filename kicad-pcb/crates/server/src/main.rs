@@ -11,22 +11,31 @@ use std::{
 use anyhow::{anyhow, Context, Result};
 use axum::{
     body::Body,
-    extract::{Query, State},
+    extract::{
+        ws::{Message, WebSocket, WebSocketUpgrade},
+        Query, State,
+    },
     http::{header, HeaderValue, StatusCode},
     response::{Html, IntoResponse, Response},
     routing::get,
     Json, Router,
 };
 use clap::{Parser, Subcommand};
+use futures::{SinkExt, StreamExt};
 use include_dir::{include_dir, Dir};
 use kicad_pcb_shared::{
-    CheckResponse, FileEntry, HealthResponse, ManifestResponse, RevisionResponse, SourceFile,
-    SourcesResponse,
+    CheckResponse, FileEntry, HealthResponse, ManifestResponse, RevisionResponse, ServerEvent,
+    SourceFile, SourcesResponse,
 };
+use notify::{Config as NotifyConfig, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
-use tokio::{process::Command, sync::RwLock};
+use tokio::{
+    process::Command,
+    sync::{broadcast, mpsc, RwLock},
+    time::{sleep, Duration},
+};
 use tower_http::trace::TraceLayer;
 use walkdir::WalkDir;
 use zip::{write::SimpleFileOptions, ZipWriter};
@@ -109,6 +118,7 @@ struct AppState {
     cwd: PathBuf,
     session: String,
     warmed: Arc<RwLock<ViewerState>>,
+    events: broadcast::Sender<ServerEvent>,
 }
 
 #[derive(Debug, Clone)]
@@ -163,13 +173,17 @@ async fn main() -> Result<()> {
         Commands::Serve { port, cwd, session } => {
             let cwd = cwd.canonicalize().context("canonicalize cwd")?;
             let initial = warm_viewer_state(&cwd).await?;
+            let (events, _) = broadcast::channel(128);
             let state = AppState {
                 cwd,
                 session,
                 warmed: Arc::new(RwLock::new(initial)),
+                events,
             };
+            spawn_file_watcher(state.clone());
             let app = Router::new()
                 .route("/", get(index))
+                .route("/ws/events", get(events_ws))
                 .route("/healthz", get(healthz))
                 .route("/api/project", get(manifest))
                 .route("/api/kicad/manifest", get(manifest))
@@ -236,6 +250,52 @@ where
 async fn index(State(state): State<AppState>) -> Html<String> {
     let warmed = state.warmed.read().await.clone();
     Html(workbench_html(&state.cwd, &state.session, &warmed))
+}
+
+async fn events_ws(State(state): State<AppState>, ws: WebSocketUpgrade) -> Response {
+    ws.on_upgrade(move |socket| event_socket(state, socket))
+}
+
+async fn event_socket(state: AppState, socket: WebSocket) {
+    let (mut sender, mut receiver) = socket.split();
+    let mut events = state.events.subscribe();
+
+    let initial = {
+        let warmed = state.warmed.read().await;
+        ServerEvent::Revision {
+            revision: warmed.source_revision.clone(),
+            previous_revision: None,
+            warmed_at_ms: warmed.warmed_at_ms,
+            reason: "initial".to_string(),
+        }
+    };
+    if let Ok(text) = serde_json::to_string(&initial) {
+        if sender.send(Message::Text(text)).await.is_err() {
+            return;
+        }
+    }
+
+    loop {
+        tokio::select! {
+            incoming = receiver.next() => {
+                if incoming.is_none() {
+                    break;
+                }
+            }
+            event = events.recv() => {
+                match event {
+                    Ok(event) => {
+                        let Ok(text) = serde_json::to_string(&event) else { continue };
+                        if sender.send(Message::Text(text)).await.is_err() {
+                            break;
+                        }
+                    }
+                    Err(broadcast::error::RecvError::Lagged(_)) => continue,
+                    Err(broadcast::error::RecvError::Closed) => break,
+                }
+            }
+        }
+    }
 }
 
 async fn healthz(State(state): State<AppState>) -> Json<HealthResponse> {
@@ -359,6 +419,76 @@ async fn refresh_viewer_state(state: &AppState) -> Result<ViewerState> {
         *warmed = refreshed;
     }
     Ok(warmed.clone())
+}
+
+fn spawn_file_watcher(state: AppState) {
+    tokio::spawn(async move {
+        if let Err(err) = watch_project_files(state).await {
+            tracing::warn!(error = %err, "KiCad PCB file watcher stopped");
+        }
+    });
+}
+
+async fn watch_project_files(state: AppState) -> Result<()> {
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let cwd = state.cwd.clone();
+    let mut watcher = RecommendedWatcher::new(
+        move |result| {
+            let _ = tx.send(result);
+        },
+        NotifyConfig::default(),
+    )?;
+    watcher.watch(&cwd, RecursiveMode::Recursive)?;
+
+    while let Some(result) = rx.recv().await {
+        let event = match result {
+            Ok(event) => event,
+            Err(err) => {
+                tracing::debug!(error = %err, "ignored file watch error");
+                continue;
+            }
+        };
+        if !is_interesting_event(&cwd, &event) {
+            continue;
+        }
+        sleep(Duration::from_millis(150)).await;
+        while let Ok(Ok(event)) = rx.try_recv() {
+            if is_interesting_event(&cwd, &event) {
+                sleep(Duration::from_millis(50)).await;
+            }
+        }
+        let previous = {
+            let warmed = state.warmed.read().await;
+            warmed.source_revision.clone()
+        };
+        match refresh_viewer_state(&state).await {
+            Ok(warmed) if warmed.source_revision != previous => {
+                let _ = state.events.send(ServerEvent::Revision {
+                    revision: warmed.source_revision,
+                    previous_revision: Some(previous),
+                    warmed_at_ms: warmed.warmed_at_ms,
+                    reason: "watch".to_string(),
+                });
+            }
+            Ok(_) => {}
+            Err(err) => tracing::warn!(error = %err, "failed to refresh KiCad PCB viewer state"),
+        }
+    }
+    Ok(())
+}
+
+fn is_interesting_event(cwd: &Path, event: &notify::Event) -> bool {
+    match event.kind {
+        EventKind::Access(_) | EventKind::Other => return false,
+        _ => {}
+    }
+    event.paths.iter().any(|path| {
+        path.is_file()
+            && is_project_file(cwd, path, true)
+            && (kind_for(path).is_some()
+                || path.file_name().and_then(|v| v.to_str()) == Some("fp-lib-table")
+                || path.file_name().and_then(|v| v.to_str()) == Some("sym-lib-table"))
+    })
 }
 
 async fn warm_viewer_state(cwd: &Path) -> Result<ViewerState> {
@@ -1076,6 +1206,29 @@ const refreshPane = async () => {{
     }}
   }} finally {{ refreshInFlight = false; }}
 }};
+const applyRevision = async event => {{
+  if (!event?.revision || sourceSnapshot?.revision === event.revision) return;
+  sourceSnapshot = undefined;
+  await loadSources();
+  // The retained native viewer prepares replacement sources internally and
+  // keeps the previous canvas alive until the new parse/render is usable.
+  document.querySelectorAll("iframe.native-viewer, iframe.model-viewer").forEach(frame => void postSnapshot(frame));
+  if (activeTab === "checks") await loadChecks();
+}};
+const connectEvents = () => {{
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  const socket = new WebSocket(`${{proto}}//${{location.host}}/ws/events`);
+  socket.onmessage = event => {{
+    try {{
+      const payload = JSON.parse(event.data);
+      if (payload.type === "Revision") void applyRevision(payload);
+    }} catch (err) {{
+      console.warn("KiCad PCB event decode failed", err);
+    }}
+  }};
+  socket.onclose = () => setTimeout(connectEvents, 1000);
+  socket.onerror = () => socket.close();
+}};
 const setTab = id => {{
   activeTab = id;
   document.querySelectorAll("section").forEach(el => el.classList.toggle("active", el.id === id));
@@ -1085,7 +1238,9 @@ const setTab = id => {{
 }};
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setTab(b.dataset.tab));
 setTab(location.hash.slice(1) || "schematic");
-setInterval(refreshPane, 2500);
+connectEvents();
+setInterval(refreshPane, 30000);
+document.addEventListener("visibilitychange", () => {{ if (!document.hidden) void refreshPane(); }});
 </script></body></html>"#,
         session = escape(session),
         cwd = escape(&cwd.display().to_string()),

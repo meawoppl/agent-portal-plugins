@@ -1131,8 +1131,9 @@ fn is_manufacturing_csv(path: &Path) -> bool {
 }
 
 fn workbench_html(cwd: &Path, session: &str, warmed: &ViewerState) -> String {
-    let tabs = std::iter::once("overview")
-        .chain(TABS.iter().copied())
+    let tabs = TABS
+        .iter()
+        .copied()
         .map(|tab| format!("<button data-tab='{tab}'>{}</button>", title(tab)))
         .collect::<String>();
     let files = warmed
@@ -1156,7 +1157,6 @@ body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,
 </style></head><body>
 <header><h1>KiCad PCB Workbench</h1><div class="muted">Session {session} · {cwd}</div></header>
 <nav class="tabs">{tabs}</nav><main>
-<section id="overview"><div class="card"><h2>Project</h2><ul>{files}</ul><pre id="manifest"></pre></div></section>
 <section id="schematic"><div class="card"><h2>Schematic</h2><iframe class="native-viewer" data-kind="schematic" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="pcb"><div class="card"><h2>PCB</h2><iframe class="native-viewer" data-kind="pcb" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="3d"><div class="card"><h2>3D Board</h2><iframe class="model-viewer" data-kind="model" src="/kicad-viewer/runtime.html"></iframe></div></section>
@@ -1187,6 +1187,7 @@ const loadSources = async () => {{
   return sourceSnapshotPromise;
 }};
 const modelUrl = revision => `/api/kicad/model.glb?rev=${{encodeURIComponent(revision || "current")}}`;
+const viewerFrames = () => document.querySelectorAll("iframe.native-viewer, iframe.model-viewer");
 const postSnapshot = async frame => {{
   if (frame.dataset.kind === "model") {{
     const payload = await loadSources();
@@ -1199,7 +1200,7 @@ const postSnapshot = async frame => {{
 window.addEventListener("message", event => {{
   if (event.origin !== location.origin) return;
   if (event.data?.type === "backplane-runtime-ready") {{
-    const frame = [...document.querySelectorAll("iframe.native-viewer, iframe.model-viewer")].find(item => item.contentWindow === event.source);
+    const frame = [...viewerFrames()].find(item => item.contentWindow === event.source);
     if (frame) void postSnapshot(frame);
   }}
 }});
@@ -1215,7 +1216,7 @@ const refreshPane = async () => {{
     if (!sourceSnapshot || status.changed || status.revision !== sourceSnapshot.revision) {{
       sourceSnapshot = undefined;
       await loadSources();
-      document.querySelectorAll("iframe.native-viewer, iframe.model-viewer").forEach(frame => void postSnapshot(frame));
+      viewerFrames().forEach(frame => void postSnapshot(frame));
       if (activeTab === "checks") await loadChecks();
     }}
   }} finally {{ refreshInFlight = false; }}
@@ -1226,7 +1227,7 @@ const applyRevision = async event => {{
   await loadSources();
   // The retained native viewer prepares replacement sources internally and
   // keeps the previous canvas alive until the new parse/render is usable.
-  document.querySelectorAll("iframe.native-viewer, iframe.model-viewer").forEach(frame => void postSnapshot(frame));
+  viewerFrames().forEach(frame => void postSnapshot(frame));
   if (activeTab === "checks") await loadChecks();
 }};
 const connectEvents = () => {{
@@ -1251,7 +1252,8 @@ const setTab = id => {{
   if (id === "checks") void loadChecks();
 }};
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setTab(b.dataset.tab));
-setTab(location.hash.slice(1) || "schematic");
+setTab(document.getElementById(location.hash.slice(1)) ? location.hash.slice(1) : "schematic");
+loadSources().then(() => viewerFrames().forEach(frame => void postSnapshot(frame))).catch(err => console.warn("KiCad PCB preload failed", err));
 connectEvents();
 setInterval(refreshPane, 30000);
 document.addEventListener("visibilitychange", () => {{ if (!document.hidden) void refreshPane(); }});

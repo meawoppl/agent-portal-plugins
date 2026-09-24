@@ -204,3 +204,12 @@ The Rust workbench and CLI currently honor:
 
 The `manufacturer` object is surfaced through `doctor --json` for agents and
 future exporter policy, but it does not alter generated files yet.
+
+The Rust workbench's **BOM / Assembly CSV** tab previews BOM and placement CSVs
+for the selected board, with artifact downloads and LCSC part links. Name files
+with `bom`, `cpl`, `pos`, `position`, or `placement` as a filename token (for
+example `fab/bom/module-bom.csv` or `fab/jlcpcb/CPL_module.csv`). Unrelated CSVs
+such as carrier pinouts are not treated as BOMs. Quoted fields and multiline
+notes are supported. Previews are limited to 500 rows and 2 MB; downloads
+preserve the complete original file. The tab reloads on activation and every
+10 seconds while visible, independently of schematic/PCB revision changes.

@@ -1,3 +1,4 @@
+mod bom;
 use std::{
     collections::{HashMap, HashSet},
     ffi::OsString,
@@ -291,6 +292,7 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/drc", get(drc))
                 .route("/api/kicad/erc", get(erc))
                 .route("/api/kicad/file", get(file))
+                .route("/api/kicad/bom", get(bom::endpoint))
                 .route("/kicad-viewer/*path", get(viewer_asset))
                 .layer(TraceLayer::new_for_http())
                 .with_state(state);
@@ -908,7 +910,11 @@ fn kind_for(path: &Path) -> Option<&'static str> {
         "step" | "stp" | "glb" => "model",
         "gbr" | "gtl" | "gbl" | "gts" | "gbs" | "gto" | "gbo" | "gtp" | "gbp" | "gta" | "gba"
         | "gm1" | "gko" | "drl" | "zip" => "gerber",
-        "csv" => "bom",
+        "csv" => match bom::role(path) {
+            Some("BOM") => "bom",
+            Some(_) => "placement",
+            None => "csv",
+        },
         "xml" => "netlist",
         _ => return None,
     })
@@ -1749,7 +1755,7 @@ body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,
 <section id="checks"><div class="card"><h2>Checks</h2><pre id="checksOut">Open checks...</pre></div></section>
 <section id="gerbers"><div class="card"><h2>Gerbers</h2><div class="gerber-layout"><div id="gerberViewer"></div><aside class="side-panel"><h3>Layers</h3><div id="gerberStatus" class="muted">Loading Gerber viewer...</div><ul id="gerberLayers"></ul><h3>Files</h3><ul>{gerber_files}</ul><div id="gerberWarnings"></div><div id="gerberSkipped" class="muted"></div></aside></div></div></section>
 <section id="step"><div class="card"><h2>STEP</h2><ul>{files}</ul></div></section>
-<section id="bom"><div class="card"><h2>BOM</h2><ul>{files}</ul></div></section>
+<section id="bom"><div class="card"><h2>BOM / Assembly CSV</h2><div id="bomContent">Select this tab to load BOM/assembly artifacts.</div></div></section>
 <section id="libraries"><div class="card"><h2>Libraries</h2><ul>{files}</ul></div></section>
 <section id="analysis"><div class="card"><h2>Analysis</h2><p class="muted">Analysis workflow is pending the Rust port.</p></div></section>
 <section id="panelization"><div class="card"><h2>Panelization</h2><p class="muted">Panelization workflow is pending the Rust port.</p></div></section>
@@ -1857,6 +1863,12 @@ const loadGerbers = async () => {{
   }});
   return gerberLoadPromise;
 }};
+const loadBom = async () => {{
+  const el=document.getElementById("bomContent");
+  try {{ const r=await fetch(api("/api/kicad/bom")); if(!r.ok) throw new Error(`HTTP ${{r.status}}`); el.innerHTML=await r.text(); }}
+  catch(e) {{ el.textContent=`Unable to load BOM: ${{e.message}}`; }}
+}};
+const bomStyle=document.createElement("style");bomStyle.textContent=".bom-table{{border-collapse:collapse;width:100%;font-size:13px}}.bom-table th,.bom-table td{{padding:8px;text-align:left;border-bottom:1px solid #565f89;white-space:pre-wrap;vertical-align:top}}.bom-table th{{position:sticky;top:0;background:#24283b}}";document.head.append(bomStyle);
 const refreshPane = async () => {{
   if (refreshInFlight) return;
   refreshInFlight = true;
@@ -1899,6 +1911,7 @@ const setTab = id => {{
   document.querySelectorAll(".tabs button").forEach(el => el.classList.toggle("active", el.dataset.tab === id));
   document.querySelectorAll(`#${{CSS.escape(id)}} iframe.native-viewer, #${{CSS.escape(id)}} iframe.model-viewer`).forEach(frame => void postSnapshot(frame));
   if (id === "checks") void loadChecks();
+  if (id === "bom") void loadBom();
   if (id === "gerbers") void loadGerbers();
 }};
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setTab(b.dataset.tab));
@@ -1912,6 +1925,7 @@ setTab(document.getElementById(location.hash.slice(1)) ? location.hash.slice(1) 
 loadSources().then(() => viewerFrames().forEach(frame => void postSnapshot(frame))).catch(err => console.warn("KiCad PCB preload failed", err));
 connectEvents();
 setInterval(refreshPane, 30000);
+setInterval(() => {{ if (activeTab === "bom" && !document.hidden) void loadBom(); }}, 10000);
 document.addEventListener("visibilitychange", () => {{ if (!document.hidden) void refreshPane(); }});
 </script></body></html>"##,
         session = escape(session),

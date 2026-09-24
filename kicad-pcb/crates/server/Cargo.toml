@@ -9,6 +9,7 @@ name = "kicad-pcb-rs"
 path = "src/main.rs"
 
 [dependencies]
+csv = "1"
 anyhow.workspace = true
 axum.workspace = true
 clap.workspace = true

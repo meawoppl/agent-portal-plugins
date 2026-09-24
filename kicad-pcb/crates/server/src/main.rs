@@ -615,9 +615,11 @@ async fn watch_project_files(state: AppState) -> Result<()> {
         if !is_interesting_event(&cwd, &event) {
             continue;
         }
+        let mut artifact_changed = event_affects_artifacts(&cwd, &event);
         sleep(Duration::from_millis(150)).await;
         while let Ok(Ok(event)) = rx.try_recv() {
             if is_interesting_event(&cwd, &event) {
+                artifact_changed |= event_affects_artifacts(&cwd, &event);
                 sleep(Duration::from_millis(50)).await;
             }
         }
@@ -641,6 +643,14 @@ async fn watch_project_files(state: AppState) -> Result<()> {
                         reason: "watch".to_string(),
                     });
                 }
+                Ok(warmed) if artifact_changed => {
+                    let _ = state.events.send(ServerEvent::Revision {
+                        revision: warmed.source_revision,
+                        previous_revision: Some(previous),
+                        warmed_at_ms: warmed.warmed_at_ms,
+                        reason: "artifact-watch".to_string(),
+                    });
+                }
                 Ok(_) => {}
                 Err(err) => {
                     tracing::warn!(error = %err, project = %project.id, "failed to refresh KiCad PCB viewer state")
@@ -649,6 +659,17 @@ async fn watch_project_files(state: AppState) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn event_affects_artifacts(cwd: &Path, event: &notify::Event) -> bool {
+    event.paths.iter().any(|path| {
+        path.is_file()
+            && is_project_file(cwd, path, true)
+            && matches!(
+                kind_for(path),
+                Some("bom" | "placement" | "csv" | "gerber" | "model" | "netlist")
+            )
+    })
 }
 
 fn is_interesting_event(cwd: &Path, event: &notify::Event) -> bool {
@@ -1883,13 +1904,17 @@ const refreshPane = async () => {{
   }} finally {{ refreshInFlight = false; }}
 }};
 const applyRevision = async event => {{
-  if (!event?.revision || sourceSnapshot?.revision === event.revision) return;
-  sourceSnapshot = undefined;
-  await loadSources();
-  // The retained native viewer prepares replacement sources internally and
-  // keeps the previous canvas alive until the new parse/render is usable.
-  viewerFrames().forEach(frame => void postSnapshot(frame));
+  if (!event?.revision) return;
+  const sourceChanged = sourceSnapshot?.revision !== event.revision;
+  if (sourceChanged) {{
+    sourceSnapshot = undefined;
+    await loadSources();
+    // The retained native viewer prepares replacement sources internally and
+    // keeps the previous canvas alive until the new parse/render is usable.
+    viewerFrames().forEach(frame => void postSnapshot(frame));
+  }}
   if (activeTab === "checks") await loadChecks();
+  if (activeTab === "bom") await loadBom();
 }};
 const connectEvents = () => {{
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
@@ -1924,8 +1949,6 @@ document.getElementById("projectSelect")?.addEventListener("change", event => {{
 setTab(document.getElementById(location.hash.slice(1)) ? location.hash.slice(1) : "schematic");
 loadSources().then(() => viewerFrames().forEach(frame => void postSnapshot(frame))).catch(err => console.warn("KiCad PCB preload failed", err));
 connectEvents();
-setInterval(refreshPane, 30000);
-setInterval(() => {{ if (activeTab === "bom" && !document.hidden) void loadBom(); }}, 10000);
 document.addEventListener("visibilitychange", () => {{ if (!document.hidden) void refreshPane(); }});
 </script></body></html>"##,
         session = escape(session),

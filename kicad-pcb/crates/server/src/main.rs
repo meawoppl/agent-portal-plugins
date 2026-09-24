@@ -293,6 +293,7 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/erc", get(erc))
                 .route("/api/kicad/file", get(file))
                 .route("/api/kicad/bom", get(bom::endpoint))
+                .route("/api/kicad/libraries", get(libraries_endpoint))
                 .route("/kicad-viewer/*path", get(viewer_asset))
                 .layer(TraceLayer::new_for_http())
                 .with_state(state);
@@ -550,6 +551,14 @@ async fn file(
         );
     }
     Ok(response)
+}
+
+async fn libraries_endpoint(
+    State(state): State<AppState>,
+    Query(query): Query<ProjectQuery>,
+) -> Result<Html<String>, AppError> {
+    let project = selected_project(&state, query.project.as_deref())?;
+    Ok(Html(render_library_links(&project)?))
 }
 
 async fn viewer_asset(axum::extract::Path(path): axum::extract::Path<String>) -> Response {
@@ -1215,6 +1224,258 @@ fn missing_library_warnings(root: &Path, libraries: &LibraryConfig, label: &str)
     warnings
 }
 
+#[derive(Debug, Clone, Default)]
+struct SchematicSymbolLink {
+    reference: String,
+    value: Option<String>,
+    symbol: String,
+    footprint: Option<String>,
+}
+
+#[derive(Debug, Clone, Default)]
+struct PcbFootprintLink {
+    reference: String,
+    footprint: String,
+    models: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+struct LibraryLinkRow {
+    reference: String,
+    value: String,
+    symbol: String,
+    schematic_footprint: String,
+    pcb_footprint: String,
+    models: Vec<String>,
+}
+
+fn render_library_links(project: &ProjectContext) -> Result<String> {
+    let rows = library_links(project)?;
+    if rows.is_empty() {
+        return Ok(
+            "<p class='muted'>No schematic symbol to footprint links found.</p>".to_string(),
+        );
+    }
+    let body = rows
+        .iter()
+        .map(|row| {
+            let models = if row.models.is_empty() {
+                "<span class='muted'>No 3D model linked from footprint</span>".to_string()
+            } else {
+                row.models
+                    .iter()
+                    .map(|model| format!("<code>{}</code>", escape(model)))
+                    .collect::<Vec<_>>()
+                    .join("<br>")
+            };
+            format!(
+                "<tr><td><strong>{}</strong><div class='muted'>{}</div></td><td><code>{}</code></td><td><code>{}</code></td><td><code>{}</code></td><td>{}</td></tr>",
+                escape(&row.reference),
+                escape(&row.value),
+                escape(&row.symbol),
+                escape(&row.schematic_footprint),
+                escape(&row.pcb_footprint),
+                models,
+            )
+        })
+        .collect::<String>();
+    Ok(format!(
+        "<table class='library-link-table'><thead><tr><th>Ref / value</th><th>Symbol</th><th>Schematic footprint</th><th>PCB footprint</th><th>3D model</th></tr></thead><tbody>{body}</tbody></table>"
+    ))
+}
+
+fn library_links(project: &ProjectContext) -> Result<Vec<LibraryLinkRow>> {
+    let schematic_symbols = pick_project_file(project, "kicad_sch")?
+        .map(|path| parse_schematic_symbols(&path))
+        .transpose()?
+        .unwrap_or_default();
+    let pcb_footprints = pick_project_file(project, "kicad_pcb")?
+        .map(|path| parse_pcb_footprints(&path))
+        .transpose()?
+        .unwrap_or_default();
+    let footprints_by_ref = pcb_footprints
+        .into_iter()
+        .filter(|footprint| !footprint.reference.is_empty())
+        .map(|footprint| (footprint.reference.clone(), footprint))
+        .collect::<HashMap<_, _>>();
+
+    let mut rows = schematic_symbols
+        .into_iter()
+        .filter(|symbol| !symbol.reference.is_empty())
+        .map(|symbol| {
+            let pcb = footprints_by_ref.get(&symbol.reference);
+            LibraryLinkRow {
+                reference: symbol.reference,
+                value: symbol.value.unwrap_or_else(|| "-".to_string()),
+                symbol: symbol.symbol,
+                schematic_footprint: symbol.footprint.unwrap_or_else(|| "-".to_string()),
+                pcb_footprint: pcb
+                    .map(|footprint| footprint.footprint.clone())
+                    .unwrap_or_else(|| "-".to_string()),
+                models: pcb
+                    .map(|footprint| footprint.models.clone())
+                    .unwrap_or_default(),
+            }
+        })
+        .collect::<Vec<_>>();
+    rows.sort_by(|a, b| natural_ref_key(&a.reference).cmp(&natural_ref_key(&b.reference)));
+    Ok(rows)
+}
+
+fn parse_schematic_symbols(path: &Path) -> Result<Vec<SchematicSymbolLink>> {
+    let content = std::fs::read_to_string(path)
+        .with_context(|| format!("read schematic {}", path.display()))?;
+    Ok(sexpr_blocks(&content, "symbol")
+        .into_iter()
+        .filter_map(|block| {
+            let symbol = sexpr_lib_id(&block)?;
+            let reference = sexpr_property(&block, "Reference")?;
+            Some(SchematicSymbolLink {
+                reference,
+                value: sexpr_property(&block, "Value"),
+                symbol,
+                footprint: sexpr_property(&block, "Footprint"),
+            })
+        })
+        .filter(|symbol| {
+            !symbol.reference.starts_with('#')
+                && !symbol.reference.starts_with("Sheet")
+                && symbol.reference != "REF**"
+        })
+        .collect())
+}
+
+fn parse_pcb_footprints(path: &Path) -> Result<Vec<PcbFootprintLink>> {
+    let content =
+        std::fs::read_to_string(path).with_context(|| format!("read PCB {}", path.display()))?;
+    Ok(sexpr_blocks(&content, "footprint")
+        .into_iter()
+        .filter_map(|block| {
+            let footprint = first_quoted(&block)?;
+            let reference = sexpr_property(&block, "Reference")
+                .or_else(|| legacy_fp_text(&block, "reference"))
+                .unwrap_or_default();
+            let models = sexpr_model_paths(&block);
+            Some(PcbFootprintLink {
+                reference,
+                footprint,
+                models,
+            })
+        })
+        .filter(|footprint| !footprint.reference.is_empty() && footprint.reference != "REF**")
+        .collect())
+}
+
+fn sexpr_blocks(content: &str, head: &str) -> Vec<String> {
+    let needle = format!("({head}");
+    let mut blocks = Vec::new();
+    let mut offset = 0;
+    while let Some(found) = content[offset..].find(&needle) {
+        let start = offset + found;
+        if !is_sexpr_head_boundary(content, start + needle.len()) {
+            offset = start + needle.len();
+            continue;
+        }
+        let Some(end) = sexpr_block_end(content, start) else {
+            break;
+        };
+        blocks.push(content[start..end].to_string());
+        offset = start + 1;
+    }
+    blocks
+}
+
+fn is_sexpr_head_boundary(content: &str, index: usize) -> bool {
+    content[index..]
+        .chars()
+        .next()
+        .is_some_and(|ch| ch.is_whitespace() || ch == ')' || ch == '"')
+}
+
+fn sexpr_block_end(content: &str, start: usize) -> Option<usize> {
+    let mut depth = 0i32;
+    let mut in_string = false;
+    let mut escaped = false;
+    for (relative, ch) in content[start..].char_indices() {
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if ch == '\\' {
+                escaped = true;
+            } else if ch == '"' {
+                in_string = false;
+            }
+            continue;
+        }
+        match ch {
+            '"' => in_string = true,
+            '(' => depth += 1,
+            ')' => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some(start + relative + ch.len_utf8());
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+fn first_quoted(block: &str) -> Option<String> {
+    quoted_fields(block.lines().next().unwrap_or_default())
+        .into_iter()
+        .next()
+}
+
+fn sexpr_lib_id(block: &str) -> Option<String> {
+    let index = block.find("(lib_id ")?;
+    quoted_fields(&block[index..]).into_iter().next()
+}
+
+fn sexpr_property(block: &str, name: &str) -> Option<String> {
+    let mut offset = 0;
+    while let Some(found) = block[offset..].find("(property ") {
+        let start = offset + found;
+        let fields = quoted_fields(&block[start..]);
+        if fields.first().is_some_and(|field| field == name) {
+            return fields.get(1).cloned();
+        }
+        offset = start + "(property ".len();
+    }
+    None
+}
+
+fn legacy_fp_text(block: &str, kind: &str) -> Option<String> {
+    let needle = format!("(fp_text {kind} ");
+    let index = block.find(&needle)?;
+    quoted_fields(&block[index..]).into_iter().next()
+}
+
+fn sexpr_model_paths(block: &str) -> Vec<String> {
+    let mut models = sexpr_blocks(block, "model")
+        .into_iter()
+        .filter_map(|model| first_quoted(&model))
+        .collect::<Vec<_>>();
+    models.sort();
+    models.dedup();
+    models
+}
+
+fn natural_ref_key(reference: &str) -> (String, u32, String) {
+    let prefix = reference
+        .chars()
+        .take_while(|ch| !ch.is_ascii_digit())
+        .collect::<String>();
+    let digits = reference
+        .chars()
+        .skip(prefix.len())
+        .take_while(|ch| ch.is_ascii_digit())
+        .collect::<String>();
+    let number = digits.parse::<u32>().unwrap_or(u32::MAX);
+    (prefix, number, reference.to_string())
+}
+
 fn configured_source(project: &ProjectContext, extension: &str) -> Result<Option<PathBuf>> {
     let Some(kicad) = &project.config.kicad else {
         return Ok(None);
@@ -1760,7 +2021,7 @@ body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,
 <section id="gerbers"><div class="card"><h2>Gerbers</h2><div class="gerber-layout"><div id="gerberViewer"></div><aside class="side-panel"><h3>Layers</h3><div id="gerberStatus" class="muted">Loading Gerber viewer...</div><ul id="gerberLayers"></ul><h3>Files</h3><ul>{gerber_files}</ul><div id="gerberWarnings"></div><div id="gerberSkipped" class="muted"></div></aside></div></div></section>
 <section id="step"><div class="card"><h2>STEP</h2><ul>{files}</ul></div></section>
 <section id="bom"><div class="card"><h2>BOM / Assembly CSV</h2><div id="bomContent">Select this tab to load BOM/assembly artifacts.</div></div></section>
-<section id="libraries"><div class="card"><h2>Libraries</h2><ul>{files}</ul></div></section>
+<section id="libraries"><div class="card"><h2>Libraries</h2><div id="librariesContent">Select this tab to load symbol, footprint, and 3D-model links.</div></div></section>
 <section id="analysis"><div class="card"><h2>Analysis</h2><p class="muted">Analysis workflow is pending the Rust port.</p></div></section>
 <section id="panelization"><div class="card"><h2>Panelization</h2><p class="muted">Panelization workflow is pending the Rust port.</p></div></section>
 </main><script>
@@ -1921,7 +2182,12 @@ const loadBom = async () => {{
   try {{ const r=await fetch(api("/api/kicad/bom")); if(!r.ok) throw new Error(`HTTP ${{r.status}}`); el.innerHTML=await r.text(); }}
   catch(e) {{ el.textContent=`Unable to load BOM: ${{e.message}}`; }}
 }};
-const bomStyle=document.createElement("style");bomStyle.textContent=".bom-table{{border-collapse:collapse;width:100%;font-size:13px}}.bom-table th,.bom-table td{{padding:8px;text-align:left;border-bottom:1px solid #565f89;white-space:pre-wrap;vertical-align:top}}.bom-table th{{position:sticky;top:0;background:#24283b}}";document.head.append(bomStyle);
+const loadLibraries = async () => {{
+  const el=document.getElementById("librariesContent");
+  try {{ const r=await fetch(api("/api/kicad/libraries")); if(!r.ok) throw new Error(`HTTP ${{r.status}}`); el.innerHTML=await r.text(); }}
+  catch(e) {{ el.textContent=`Unable to load libraries: ${{e.message}}`; }}
+}};
+const tableStyle=document.createElement("style");tableStyle.textContent=".bom-table,.library-link-table{{border-collapse:collapse;width:100%;font-size:13px}}.bom-table th,.bom-table td,.library-link-table th,.library-link-table td{{padding:8px;text-align:left;border-bottom:1px solid #565f89;white-space:pre-wrap;vertical-align:top}}.bom-table th,.library-link-table th{{position:sticky;top:0;background:#24283b}}";document.head.append(tableStyle);
 const refreshPane = async () => {{
   if (refreshInFlight) return;
   refreshInFlight = true;
@@ -1948,6 +2214,7 @@ const applyRevision = async event => {{
   await refreshGerbers(`${{event.revision}}-${{event.warmed_at_ms || ""}}-${{event.reason || ""}}`);
   if (activeTab === "checks") await loadChecks();
   if (activeTab === "bom") await loadBom();
+  if (activeTab === "libraries") await loadLibraries();
 }};
 const connectEvents = () => {{
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
@@ -1970,6 +2237,7 @@ const setTab = id => {{
   document.querySelectorAll(`#${{CSS.escape(id)}} iframe.native-viewer, #${{CSS.escape(id)}} iframe.model-viewer`).forEach(frame => void postSnapshot(frame));
   if (id === "checks") void loadChecks();
   if (id === "bom") void loadBom();
+  if (id === "libraries") void loadLibraries();
   if (id === "gerbers") void loadGerbers();
 }};
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setTab(b.dataset.tab));
@@ -2181,5 +2449,51 @@ mod tests {
         assert!(is_gerber_artifact(Path::new("module-In1_Cu.g1")));
         assert!(is_embeddable_gerber_file("fab/gerbers/module-In2_Cu.g2"));
         assert!(!is_embeddable_gerber_file("fab/gerbers/module-job.gbrjob"));
+    }
+
+    #[test]
+    fn parses_symbol_footprint_and_model_links() {
+        let tmp = TempDir::new().expect("temp dir");
+        let schematic = tmp.path().join("board.kicad_sch");
+        let pcb = tmp.path().join("board.kicad_pcb");
+        std::fs::write(
+            &schematic,
+            r#"(kicad_sch
+  (symbol (lib_id "Device:R")
+    (property "Reference" "R1")
+    (property "Value" "10k")
+    (property "Footprint" "Resistor_SMD:R_0603_1608Metric")
+  )
+)
+"#,
+        )
+        .expect("write schematic");
+        std::fs::write(
+            &pcb,
+            r#"(kicad_pcb
+  (footprint "Resistor_SMD:R_0603_1608Metric"
+    (property "Reference" "R1")
+    (property "Value" "10k")
+    (model "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0603_1608Metric.step")
+  )
+)
+"#,
+        )
+        .expect("write pcb");
+
+        let symbols = parse_schematic_symbols(&schematic).expect("symbols");
+        let footprints = parse_pcb_footprints(&pcb).expect("footprints");
+
+        assert_eq!(symbols[0].reference, "R1");
+        assert_eq!(
+            symbols[0].footprint.as_deref(),
+            Some("Resistor_SMD:R_0603_1608Metric")
+        );
+        assert_eq!(footprints[0].reference, "R1");
+        assert_eq!(footprints[0].footprint, "Resistor_SMD:R_0603_1608Metric");
+        assert_eq!(
+            footprints[0].models,
+            vec!["${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0603_1608Metric.step"]
+        );
     }
 }

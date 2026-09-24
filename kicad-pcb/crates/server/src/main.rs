@@ -929,8 +929,7 @@ fn kind_for(path: &Path) -> Option<&'static str> {
         "kicad_sym" => "symbol",
         "kicad_wks" => "worksheet",
         "step" | "stp" | "glb" => "model",
-        "gbr" | "gtl" | "gbl" | "gts" | "gbs" | "gto" | "gbo" | "gtp" | "gbp" | "gta" | "gba"
-        | "gm1" | "gko" | "drl" | "zip" => "gerber",
+        ext if is_gerber_extension(ext) || ext == "zip" => "gerber",
         "csv" => match bom::role(path) {
             Some("BOM") => "bom",
             Some(_) => "placement",
@@ -1673,25 +1672,9 @@ fn now_ms() -> u64 {
 }
 
 fn is_gerber_artifact(path: &Path) -> bool {
-    matches!(
-        path.extension()
-            .and_then(|v| v.to_str())
-            .unwrap_or_default(),
-        "gbr"
-            | "gtl"
-            | "gbl"
-            | "gts"
-            | "gbs"
-            | "gto"
-            | "gbo"
-            | "gtp"
-            | "gbp"
-            | "gta"
-            | "gba"
-            | "gm1"
-            | "gko"
-            | "drl"
-    )
+    path.extension()
+        .and_then(|v| v.to_str())
+        .is_some_and(is_gerber_extension)
 }
 
 fn is_manufacturing_csv(path: &Path) -> bool {
@@ -2053,26 +2036,35 @@ fn is_embeddable_gerber_file(path: &str) -> bool {
     Path::new(path)
         .extension()
         .and_then(|value| value.to_str())
-        .map(|ext| {
-            matches!(
-                ext.to_ascii_lowercase().as_str(),
-                "gbr"
-                    | "gtl"
-                    | "gbl"
-                    | "gts"
-                    | "gbs"
-                    | "gto"
-                    | "gbo"
-                    | "gtp"
-                    | "gbp"
-                    | "gta"
-                    | "gba"
-                    | "gm1"
-                    | "gko"
-                    | "drl"
-            )
-        })
-        .unwrap_or(false)
+        .is_some_and(is_gerber_extension)
+}
+
+fn is_gerber_extension(ext: &str) -> bool {
+    let ext = ext.to_ascii_lowercase();
+    matches!(
+        ext.as_str(),
+        "gbr"
+            | "gtl"
+            | "gbl"
+            | "gts"
+            | "gbs"
+            | "gto"
+            | "gbo"
+            | "gtp"
+            | "gbp"
+            | "gta"
+            | "gba"
+            | "gm1"
+            | "gko"
+            | "drl"
+    ) || numbered_inner_gerber_extension(&ext)
+}
+
+fn numbered_inner_gerber_extension(ext: &str) -> bool {
+    let Some(number) = ext.strip_prefix('g') else {
+        return false;
+    };
+    !number.is_empty() && number.bytes().all(|byte| byte.is_ascii_digit())
 }
 
 fn path_has_component(path: &str, components: &[&str]) -> bool {
@@ -2180,5 +2172,14 @@ mod tests {
 
         assert!(normalized.contains("(property \"Reference\" \"REF**\""));
         assert!(!normalized.contains("(fp_text reference"));
+    }
+
+    #[test]
+    fn numbered_kicad_inner_copper_gerbers_are_embeddable() {
+        assert_eq!(kind_for(Path::new("module-In1_Cu.g1")), Some("gerber"));
+        assert_eq!(kind_for(Path::new("module-In2_Cu.g2")), Some("gerber"));
+        assert!(is_gerber_artifact(Path::new("module-In1_Cu.g1")));
+        assert!(is_embeddable_gerber_file("fab/gerbers/module-In2_Cu.g2"));
+        assert!(!is_embeddable_gerber_file("fab/gerbers/module-job.gbrjob"));
     }
 }

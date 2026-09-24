@@ -103,6 +103,7 @@ window.addEventListener("message", (event) => {
           error.textContent = "";
         }
         await viewer.ready;
+        viewer.enhanceGeometrySelection();
         if (snapshot.layerVisibility) {
           for (const [name, visible] of Object.entries(snapshot.layerVisibility))
             viewer.setLayerVisibility(name, Boolean(visible));

@@ -220,11 +220,90 @@ function installClickPointerSync(core) {
   const canvas = core?.canvas;
   if (!canvas || core.__backplaneClickPointerSync || typeof core.on_mouse_change !== "function")
     return;
+  let down;
+  let dragged = false;
+  const point = (event) => ({ x: event.clientX, y: event.clientY, button: event.button });
+  const reset = () => {
+    down = undefined;
+    dragged = false;
+  };
+  canvas.addEventListener(
+    "mousedown",
+    (event) => {
+      down = point(event);
+      dragged = false;
+    },
+    { capture: true },
+  );
+  canvas.addEventListener(
+    "mousemove",
+    (event) => {
+      if (!down) return;
+      if (Math.hypot(event.clientX - down.x, event.clientY - down.y) > 4) dragged = true;
+    },
+    { capture: true },
+  );
+  canvas.addEventListener("mouseup", () => setTimeout(reset, 0), { capture: true });
   // The mature click listener reads its last mousemove position. Capture the
   // click first so direct/touch clicks without a preceding mousemove resolve
-  // the actual world coordinate instead of the initial (0, 0).
-  canvas.addEventListener("click", (event) => core.on_mouse_change(event), { capture: true });
+  // the actual world coordinate instead of the initial (0, 0). Browsers also
+  // synthesize a click after a mouse drag; suppress that one so panning does
+  // not open the vendor properties panel.
+  canvas.addEventListener(
+    "click",
+    (event) => {
+      if (dragged) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        reset();
+        return;
+      }
+      core.on_mouse_change(event);
+      reset();
+    },
+    { capture: true },
+  );
   core.__backplaneClickPointerSync = true;
+}
+
+function installShadowDragClickGuard(root) {
+  if (!root || root.__backplaneDragClickGuard) return;
+  let down;
+  let dragged = false;
+  const canvasFrom = (event) =>
+    event.composedPath?.().find((item) => item instanceof HTMLCanvasElement);
+  root.addEventListener(
+    "mousedown",
+    (event) => {
+      if (!canvasFrom(event)) return;
+      down = { x: event.clientX, y: event.clientY };
+      dragged = false;
+    },
+    { capture: true },
+  );
+  root.addEventListener(
+    "mousemove",
+    (event) => {
+      if (!down) return;
+      if (Math.hypot(event.clientX - down.x, event.clientY - down.y) > 4) dragged = true;
+    },
+    { capture: true },
+  );
+  root.addEventListener("mouseup", () => setTimeout(() => (down = undefined), 0), {
+    capture: true,
+  });
+  root.addEventListener(
+    "click",
+    (event) => {
+      if (!dragged || !canvasFrom(event)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      down = undefined;
+      dragged = false;
+    },
+    { capture: true },
+  );
+  root.__backplaneDragClickGuard = true;
 }
 
 function cacheContext(core, sourceIndex) {
@@ -239,8 +318,10 @@ function timeout(ms) {
 
 function installSchematicHydration(core, beforePaint) {
   if (!core?.schematic || core.__backplaneHydratePaint) return;
+  installClickPointerSync(core);
   const paint = core.paint.bind(core);
   core.paint = (...args) => {
+    installClickPointerSync(core);
     hydrateSchematicPinInstances(core);
     beforePaint?.(core);
     return paint(...args);
@@ -447,7 +528,11 @@ export class RetainedNativeViewer extends EventTarget {
   }
 
   core() {
-    return this.current?.shadowRoot?.querySelector("kc-board-app, kc-schematic-app")?.viewer;
+    const apps = [
+      ...(this.current?.shadowRoot?.querySelectorAll("kc-board-app, kc-schematic-app") ?? []),
+    ];
+    const visible = apps.find((app) => getComputedStyle(app).display !== "none");
+    return (visible ?? apps[0])?.viewer;
   }
 
   createElement() {
@@ -491,6 +576,7 @@ export class RetainedNativeViewer extends EventTarget {
       this.dispatchEvent(new CustomEvent("crossprobe", { detail: selection }));
     });
     this.host.appendChild(viewer);
+    installShadowDragClickGuard(viewer.shadowRoot);
     this.current = viewer;
     return viewer;
   }
@@ -803,7 +889,8 @@ export class RetainedNativeViewer extends EventTarget {
   setActive(active) {
     this.active = active;
     this.current?.setActive(active);
-    if (!active) this.finishTransition();
+    if (active) this.enhanceGeometrySelection();
+    else this.finishTransition();
   }
   activateContext(context) {
     const tab = context === "pcb" || context === "PCB" ? "PCB" : "SCH";

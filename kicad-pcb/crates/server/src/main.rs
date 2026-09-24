@@ -1766,14 +1766,14 @@ fn workbench_html(
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KiCad PCB · Agent Portal</title>
 <style>
-body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}header{{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}a{{color:#7dcfff}}select{{border:1px solid #3b4261;border-radius:6px;background:#24283b;color:#c0caf5;padding:7px 10px}}.muted{{color:#9aa5ce}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}code{{color:#7dcfff}}.gerber-layout{{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}}#gerberViewer{{height:70vh;min-height:420px;border:1px solid #3b4261;border-radius:8px;overflow:hidden;background:#11131d}}.side-panel{{border:1px solid #3b4261;border-radius:8px;background:#16161e;padding:10px;overflow:auto;max-height:70vh}}.side-panel h3{{font-size:13px;margin:0 0 8px;color:#e6e9f5}}.side-panel ul{{margin:0 0 14px;padding-left:18px}}.warning{{color:#e0af68}}@media (max-width: 860px){{header{{align-items:flex-start;flex-direction:column}}.gerber-layout{{grid-template-columns:1fr}}.side-panel{{max-height:none}}}}
+body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}header{{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}a{{color:#7dcfff}}select{{border:1px solid #3b4261;border-radius:6px;background:#24283b;color:#c0caf5;padding:7px 10px}}.muted{{color:#9aa5ce}}.ok{{color:#9ece6a}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}code{{color:#7dcfff}}.check-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}}.check-summary{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}}.pill{{border:1px solid #3b4261;border-radius:999px;padding:4px 8px;background:#24283b;font-size:12px}}.pill.error{{border-color:#f7768e;color:#f7768e}}.pill.warning{{border-color:#e0af68;color:#e0af68}}.pill.ok{{border-color:#9ece6a;color:#9ece6a}}.issue-list{{display:grid;gap:8px}}.issue{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px}}.issue-head{{display:flex;gap:8px;align-items:center;justify-content:space-between}}.severity{{text-transform:uppercase;font-size:11px;letter-spacing:.04em;border-radius:4px;padding:2px 6px}}.severity.error{{background:#f7768e22;color:#f7768e}}.severity.warning{{background:#e0af6822;color:#e0af68}}.items{{margin:8px 0 0;padding-left:18px}}details.raw{{margin-top:12px}}details.raw summary{{cursor:pointer;color:#7dcfff}}.gerber-layout{{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}}#gerberViewer{{height:70vh;min-height:420px;border:1px solid #3b4261;border-radius:8px;overflow:hidden;background:#11131d}}.side-panel{{border:1px solid #3b4261;border-radius:8px;background:#16161e;padding:10px;overflow:auto;max-height:70vh}}.side-panel h3{{font-size:13px;margin:0 0 8px;color:#e6e9f5}}.side-panel ul{{margin:0 0 14px;padding-left:18px}}.warning{{color:#e0af68}}@media (max-width: 860px){{header{{align-items:flex-start;flex-direction:column}}.gerber-layout{{grid-template-columns:1fr}}.side-panel{{max-height:none}}}}
 </style></head><body>
 <header><div><h1>KiCad PCB Workbench</h1><div class="muted">Session {session} · {cwd}</div></div><label class="muted">Board <select id="projectSelect">{project_options}</select></label></header>
 <nav class="tabs">{tabs}</nav><main>
 <section id="schematic"><div class="card"><h2>Schematic</h2><iframe class="native-viewer" data-kind="schematic" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="pcb"><div class="card"><h2>PCB</h2><iframe class="native-viewer" data-kind="pcb" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="3d"><div class="card"><h2>3D Board</h2><iframe class="model-viewer" data-kind="model" src="/kicad-viewer/runtime.html"></iframe></div></section>
-<section id="checks"><div class="card"><h2>Checks</h2><pre id="checksOut">Open checks...</pre></div></section>
+<section id="checks"><div class="check-grid"><div class="card"><h2>DRC</h2><div id="drcOut">Open checks...</div></div><div class="card"><h2>ERC</h2><div id="ercOut">Open checks...</div></div></div></section>
 <section id="gerbers"><div class="card"><h2>Gerbers</h2><div class="gerber-layout"><div id="gerberViewer"></div><aside class="side-panel"><h3>Layers</h3><div id="gerberStatus" class="muted">Loading Gerber viewer...</div><ul id="gerberLayers"></ul><h3>Files</h3><ul>{gerber_files}</ul><div id="gerberWarnings"></div><div id="gerberSkipped" class="muted"></div></aside></div></div></section>
 <section id="step"><div class="card"><h2>STEP</h2><ul>{files}</ul></div></section>
 <section id="bom"><div class="card"><h2>BOM / Assembly CSV</h2><div id="bomContent">Select this tab to load BOM/assembly artifacts.</div></div></section>
@@ -1824,9 +1824,45 @@ window.addEventListener("message", event => {{
     if (frame) void postSnapshot(frame);
   }}
 }});
+const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}}[c]));
+const parseReport = check => {{
+  try {{ return JSON.parse(check?.report || "{{}}"); }} catch {{ return {{}}; }}
+}};
+const reportIssues = (kind, report) => {{
+  if (kind === "erc") {{
+    return (report.sheets || []).flatMap(sheet => (sheet.violations || []).map(issue => ({{...issue, sheet:sheet.path}})));
+  }}
+  return [
+    ...(report.unconnected_items || []).map(issue => ({{...issue, type:issue.type || "unconnected_items"}})),
+    ...(report.schematic_parity || []).map(issue => ({{...issue, type:issue.type || "schematic_parity"}})),
+    ...(report.violations || []),
+  ];
+}};
+const issueCard = issue => {{
+  const severity = issue.severity || "warning";
+  const itemList = (issue.items || []).map(item => {{
+    const pos = item.pos ? ` <span class="muted">(${{esc(item.pos.x)}}, ${{esc(item.pos.y)}})</span>` : "";
+    return `<li>${{esc(item.description || item.uuid || "item")}}${{pos}}</li>`;
+  }}).join("");
+  const meta = [issue.type, issue.sheet ? `sheet ${{issue.sheet}}` : ""].filter(Boolean).join(" · ");
+  return `<article class="issue"><div class="issue-head"><strong>${{esc(issue.description || issue.type || "Issue")}}</strong><span class="severity ${{esc(severity)}}">${{esc(severity)}}</span></div><div class="muted">${{esc(meta)}}</div>${{itemList ? `<ul class="items">${{itemList}}</ul>` : ""}}</article>`;
+}};
+const renderCheck = (target, check, kind) => {{
+  const report = parseReport(check);
+  const issues = reportIssues(kind, report);
+  const counts = issues.reduce((acc, issue) => {{
+    const severity = issue.severity || "warning";
+    acc[severity] = (acc[severity] || 0) + 1;
+    return acc;
+  }}, {{}});
+  const status = check.ok ? "ok" : (counts.error || issues.length ? "error" : "warning");
+  const summary = (check.stdout || check.message || "").split("\\n").filter(Boolean).slice(0, 3).join(" · ");
+  target.innerHTML = `<div class="check-summary"><span class="pill ${{status}}">${{check.ok ? "clean" : "needs attention"}}</span><span class="pill">${{esc(report.kicad_version || check.source || "KiCad")}}</span><span class="pill">${{issues.length}} issue${{issues.length === 1 ? "" : "s"}}</span><span class="pill error">${{counts.error || 0}} errors</span><span class="pill warning">${{counts.warning || 0}} warnings</span></div><p class="muted">${{esc(summary)}}</p>${{issues.length ? `<div class="issue-list">${{issues.map(issueCard).join("")}}</div>` : "<p class='ok'>No issues reported.</p>"}}<details class="raw"><summary>Raw report</summary><pre>${{esc(JSON.stringify(check, null, 2))}}</pre></details>`;
+}};
 const loadChecks = async () => {{
   const [drc, erc] = await Promise.all([fetch(api("/api/kicad/drc")).then(r=>r.json()), fetch(api("/api/kicad/erc")).then(r=>r.json())]);
-  checksOut.textContent = JSON.stringify({{drc, erc}}, null, 2);
+  renderCheck(document.getElementById("drcOut"), drc, "drc");
+  renderCheck(document.getElementById("ercOut"), erc, "erc");
 }};
 const renderGerberProject = project => {{
   const layers = document.getElementById("gerberLayers");

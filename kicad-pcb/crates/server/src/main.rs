@@ -1787,6 +1787,7 @@ let activeTab = "schematic";
 let refreshInFlight = false;
 let gerberViewer;
 let gerberLoadPromise;
+let gerberRevisionKey;
 const gerberSources = {gerber_sources};
 const projectId = {project_id};
 const projectParam = () => `project=${{encodeURIComponent(projectId)}}`;
@@ -1858,6 +1859,7 @@ const renderGerberProject = project => {{
   }}
   status.textContent = `${{(project.layers || []).length}} layer${{(project.layers || []).length === 1 ? "" : "s"}} loaded`;
 }};
+const gerberSourcePayload = revision => gerberSources.map(path => ({{url:`/api/kicad/file?${{projectParam()}}&path=${{encodeURIComponent(path)}}&rev=${{encodeURIComponent(revision || "current")}}`}}));
 const loadGerbers = async () => {{
   if (gerberViewer) return gerberViewer;
   if (gerberLoadPromise) return gerberLoadPromise;
@@ -1872,7 +1874,9 @@ const loadGerbers = async () => {{
     const viewer = new module.GerberViewer({{controls:true, background:"#11131d", padding:18}});
     viewer.mount(document.getElementById("gerberViewer"));
     viewer.onChange(renderGerberProject);
-    const project = await viewer.setSources(gerberSources.map(path => ({{url:`/api/kicad/file?${{projectParam()}}&path=${{encodeURIComponent(path)}}`}})));
+    const revision = sourceSnapshot?.revision || "current";
+    const project = await viewer.setSources(gerberSourcePayload(revision));
+    gerberRevisionKey = revision;
     renderGerberProject(project);
     viewer.fit();
     gerberViewer = viewer;
@@ -1883,6 +1887,15 @@ const loadGerbers = async () => {{
     gerberLoadPromise = undefined;
   }});
   return gerberLoadPromise;
+}};
+const refreshGerbers = async revision => {{
+  if (!gerberViewer || !gerberSources.length) return;
+  const nextRevision = revision || sourceSnapshot?.revision || "current";
+  if (gerberRevisionKey === nextRevision) return;
+  gerberRevisionKey = nextRevision;
+  const project = await gerberViewer.setSources(gerberSourcePayload(nextRevision));
+  renderGerberProject(project);
+  gerberViewer.resize();
 }};
 const loadBom = async () => {{
   const el=document.getElementById("bomContent");
@@ -1913,6 +1926,7 @@ const applyRevision = async event => {{
     // keeps the previous canvas alive until the new parse/render is usable.
     viewerFrames().forEach(frame => void postSnapshot(frame));
   }}
+  await refreshGerbers(`${{event.revision}}-${{event.warmed_at_ms || ""}}-${{event.reason || ""}}`);
   if (activeTab === "checks") await loadChecks();
   if (activeTab === "bom") await loadBom();
 }};

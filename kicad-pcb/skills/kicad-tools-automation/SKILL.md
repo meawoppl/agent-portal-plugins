@@ -17,6 +17,17 @@ The wrapper resolves the plugin-managed `kct` from `.runtime/kicad-tools` or
 `KICAD_PCB_KCT`, records the command, and keeps execution rooted in the active
 repo.
 
+For other PCB tools, use the generic passthrough:
+
+```console
+bin/kicad-pcb tool --json --cwd <repo> -- <kct|kicad-cli|kikit> <arguments...>
+```
+
+Everything after `--` is forwarded verbatim. Treat the examples below as
+starting points; when upstream `kct`, `kicad-cli`, or `kikit` syntax changes,
+check the tool's current `--help` and pass the current arguments through the
+wrapper instead of adding or relying on plugin-specific aliases.
+
 Before using `kct`, run:
 
 ```console

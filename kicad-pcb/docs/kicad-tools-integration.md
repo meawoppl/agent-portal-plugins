@@ -45,10 +45,14 @@ All calls should go through the plugin wrapper:
 
 ```console
 bin/kicad-pcb kct --json --cwd <repo> -- <kct arguments...>
+bin/kicad-pcb tool --json --cwd <repo> -- <kct|kicad-cli|kikit> <arguments...>
 ```
 
-The wrapper records the invoked command and cwd in JSON, which makes agent
-summaries auditable.
+The wrapper forwards everything after `--` verbatim to the selected upstream
+tool and records the invoked command and cwd in JSON, which makes agent
+summaries auditable. Do not add plugin aliases for specific upstream
+subcommands unless Portal needs a durable UI affordance; otherwise the upstream
+CLI should be allowed to evolve without changing this plugin.
 
 ## What The Plugin Uses
 

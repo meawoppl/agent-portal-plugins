@@ -41,7 +41,13 @@ kicad-pcb/bin/kicad-pcb doctor --json --cwd /path/to/hardware/repo
 kicad-pcb/bin/kicad-pcb kct --cwd /path/to/hardware/repo -- symbols board.kicad_sch --format json
 kicad-pcb/bin/kicad-pcb kct --cwd /path/to/hardware/repo -- nets board.kicad_sch --net VCC
 kicad-pcb/bin/kicad-pcb kct --cwd /path/to/hardware/repo -- readiness . --format json
+kicad-pcb/bin/kicad-pcb tool --cwd /path/to/hardware/repo -- kicad-cli version
 ```
+
+The wrapper forwards arguments verbatim after `--`. Keep plugin commands thin:
+prefer `kct -- <current upstream args>` or
+`tool -- <kct|kicad-cli|kikit> <current upstream args>` over adding
+plugin-specific aliases for upstream subcommands.
 
 Use `kct` for workflows that KiCad's native CLI does not cover well:
 

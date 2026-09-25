@@ -103,6 +103,7 @@ Commands:
   export gerbers --out PATH [--cwd PATH]
   export jlcpcb --out PATH [--cwd PATH]
   kct [--json] [--cwd PATH] -- <kct arguments...>
+  tool [--json] [--cwd PATH] -- <kct|kicad-cli|kikit> <arguments...>
 """,
         end="",
     )
@@ -137,6 +138,35 @@ def kicad_cli() -> str | None:
 def kct_cli() -> str | None:
     managed = managed_kct_cli()
     return os.environ.get("KICAD_PCB_KCT") or managed or shutil.which("kct") or shutil.which("kicad-tools")
+
+
+def resolve_tool(name: str) -> str | None:
+    if name in {"kct", "kicad-tools"}:
+        return kct_cli()
+    if name == "kicad-cli":
+        return kicad_cli()
+    if name == "kikit":
+        return shutil.which("kikit")
+    return None
+
+
+def parse_passthrough(rest: list[str]) -> tuple[Path, bool, list[str]]:
+    cwd, as_json = parse_cwd(rest)
+    if "--" in rest:
+        return cwd, as_json, rest[rest.index("--") + 1 :]
+    pass_args = []
+    skip_next = False
+    for item in rest:
+        if skip_next:
+            skip_next = False
+            continue
+        if item == "--json":
+            continue
+        if item == "--cwd":
+            skip_next = True
+            continue
+        pass_args.append(item)
+    return cwd, as_json, pass_args
 
 
 def managed_kct_cli() -> str | None:
@@ -1272,22 +1302,7 @@ def main(argv: list[str]) -> int:
         print(json.dumps(result, indent=2) if as_json else result)
         return 0
     if cmd == "kct":
-        cwd, as_json = parse_cwd(rest)
-        pass_args = []
-        if "--" in rest:
-            pass_args = rest[rest.index("--") + 1 :]
-        else:
-            skip_next = False
-            for index, item in enumerate(rest):
-                if skip_next:
-                    skip_next = False
-                    continue
-                if item == "--json":
-                    continue
-                if item == "--cwd":
-                    skip_next = True
-                    continue
-                pass_args.append(item)
+        cwd, as_json, pass_args = parse_passthrough(rest)
         tool = kct_cli()
         if not tool:
             result = {
@@ -1304,6 +1319,44 @@ def main(argv: list[str]) -> int:
             "ok": code == 0,
             "tool": tool,
             "command": [tool, *pass_args],
+            "cwd": str(cwd),
+            "stdout": stdout,
+            "stderr": stderr,
+        }
+        if as_json:
+            print(json.dumps(result, indent=2))
+        else:
+            sys.stdout.write(stdout)
+            sys.stderr.write(stderr)
+        return code
+    if cmd == "tool":
+        cwd, as_json, pass_args = parse_passthrough(rest)
+        if not pass_args:
+            result = {
+                "ok": False,
+                "message": "Tool name required. Allowed tools: kct, kicad-cli, kikit.",
+                "allowed_tools": ["kct", "kicad-cli", "kikit"],
+            }
+            print(json.dumps(result, indent=2))
+            return 1
+        requested, tool_args = pass_args[0], pass_args[1:]
+        tool = resolve_tool(requested)
+        if not tool:
+            result = {
+                "ok": False,
+                "message": f"{requested} is not available or is not an allowed KiCad PCB tool.",
+                "allowed_tools": ["kct", "kicad-cli", "kikit"],
+            }
+            print(json.dumps(result, indent=2))
+            return 1
+        if not tool_args:
+            tool_args = ["--help"]
+        code, stdout, stderr = run([tool, *tool_args], cwd)
+        result = {
+            "ok": code == 0,
+            "tool": tool,
+            "requested_tool": requested,
+            "command": [tool, *tool_args],
             "cwd": str(cwd),
             "stdout": stdout,
             "stderr": stderr,

@@ -118,6 +118,14 @@ enum Commands {
         #[arg(last = true, trailing_var_arg = true)]
         args: Vec<OsString>,
     },
+    Tool {
+        #[arg(long)]
+        json: bool,
+        #[arg(long, default_value = ".")]
+        cwd: PathBuf,
+        #[arg(last = true, trailing_var_arg = true)]
+        args: Vec<OsString>,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -410,6 +418,52 @@ async fn main() -> Result<()> {
             let response = serde_json::json!({
                 "ok": output.status == 0,
                 "tool": tool,
+                "command": std::iter::once(OsString::from(&tool)).chain(pass_args.clone()).map(|item| item.to_string_lossy().into_owned()).collect::<Vec<_>>(),
+                "cwd": cwd,
+                "stdout": output.stdout,
+                "stderr": output.stderr,
+            });
+            if json {
+                print_json_or_debug(true, &response)?;
+            } else {
+                print!("{}", response["stdout"].as_str().unwrap_or_default());
+                eprint!("{}", response["stderr"].as_str().unwrap_or_default());
+            }
+            if !response["ok"].as_bool().unwrap_or(false) {
+                std::process::exit(1);
+            }
+        }
+        Commands::Tool { json, cwd, args } => {
+            let cwd = cwd.canonicalize()?;
+            let Some((requested, tool_args)) = args.split_first() else {
+                let response = serde_json::json!({
+                    "ok": false,
+                    "message": "Tool name required. Allowed tools: kct, kicad-cli, kikit.",
+                    "allowed_tools": ["kct", "kicad-cli", "kikit"],
+                });
+                print_json_or_debug(true, &response)?;
+                std::process::exit(1);
+            };
+            let requested = requested.to_string_lossy();
+            let Some(tool) = resolve_tool(&requested) else {
+                let response = serde_json::json!({
+                    "ok": false,
+                    "message": format!("{requested} is not available or is not an allowed KiCad PCB tool."),
+                    "allowed_tools": ["kct", "kicad-cli", "kikit"],
+                });
+                print_json_or_debug(true, &response)?;
+                std::process::exit(1);
+            };
+            let pass_args = if tool_args.is_empty() {
+                vec![OsString::from("--help")]
+            } else {
+                tool_args.to_vec()
+            };
+            let output = run_command(&tool, &pass_args, &cwd).await?;
+            let response = serde_json::json!({
+                "ok": output.status == 0,
+                "tool": tool,
+                "requested_tool": requested,
                 "command": std::iter::once(OsString::from(&tool)).chain(pass_args.clone()).map(|item| item.to_string_lossy().into_owned()).collect::<Vec<_>>(),
                 "cwd": cwd,
                 "stdout": output.stdout,
@@ -1981,6 +2035,15 @@ fn kct_cli() -> Option<String> {
         .or_else(|| managed_kct_cli().ok().flatten())
         .or_else(|| find_on_path("kct"))
         .or_else(|| find_on_path("kicad-tools"))
+}
+
+fn resolve_tool(name: &str) -> Option<String> {
+    match name {
+        "kct" | "kicad-tools" => kct_cli(),
+        "kicad-cli" => kicad_cli(),
+        "kikit" => find_on_path("kikit"),
+        _ => None,
+    }
 }
 
 fn managed_kct_cli() -> Result<Option<String>> {

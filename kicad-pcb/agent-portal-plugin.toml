@@ -55,19 +55,9 @@ description = "Run the kicad-tools automation CLI inside the active repo. Pass k
 run = "bin/kicad-pcb kct --json --cwd {cwd} --"
 
 [[commands]]
-name = "readiness"
-description = "Run kicad-tools manufacturing readiness checks when kct is installed."
-run = "bin/kicad-pcb kct --json --cwd {cwd} -- readiness . --format json"
-
-[[commands]]
-name = "sync-check"
-description = "Analyze schematic-to-PCB drift with kicad-tools when kct is installed."
-run = "bin/kicad-pcb kct --json --cwd {cwd} -- sync --analyze ."
-
-[[commands]]
-name = "route"
-description = "Run kicad-tools routing automation. Agents should pass explicit kct route arguments after --."
-run = "bin/kicad-pcb kct --json --cwd {cwd} -- route"
+name = "tool"
+description = "Run an allowed KiCad PCB tool inside the active repo. Usage: tool -- <kct|kicad-cli|kikit> <args...>."
+run = "bin/kicad-pcb tool --json --cwd {cwd} --"
 
 [[skills]]
 name = "pcb-workflow"

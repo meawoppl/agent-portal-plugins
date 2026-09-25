@@ -73,6 +73,23 @@ native acceleration without dragging in every optional GPU/research dependency.
 Use `--kicad-tools-extra all` only when a task explicitly needs the entire
 upstream extra set.
 
+## Sources Of Inspiration
+
+This plugin intentionally learns from adjacent KiCad automation projects. Treat
+these repositories as watchlist inputs for periodic scrape/review jobs that
+look for workflows, checks, viewer improvements, skills, and manufacturing
+ideas worth bringing into the Portal plugin:
+
+- `https://github.com/i2cjak/Backplane` - original Backplane workflow and
+  browser PCB/schematic viewer lineage.
+- `https://github.com/rjwalters/kicad-tools` - agent-oriented KiCad CLI
+  automation, routing, manufacturer rules, readiness reports, parts lookup,
+  repair flows, and structured JSON operations.
+- `https://github.com/American-Embedded/kistack` - reusable KiCad/electronics
+  skills bundled under `skills/kistack/`.
+- `https://github.com/meawoppl/pastebom.com` - Gerber/BOM viewing and
+  manufacturing artifact review patterns.
+
 ## Bundled KiStack Skills
 
 This plugin includes the American Embedded KiStack electronics workflow skills and vendors the bundle from

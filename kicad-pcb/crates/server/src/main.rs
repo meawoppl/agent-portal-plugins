@@ -66,6 +66,16 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    Setup {
+        #[arg(long)]
+        install_kicad_tools: bool,
+        #[arg(long, default_value = "agent")]
+        kicad_tools_extra: String,
+        #[arg(long)]
+        force: bool,
+        #[arg(long)]
+        json: bool,
+    },
     Doctor {
         #[arg(long)]
         json: bool,
@@ -99,6 +109,14 @@ enum Commands {
     Export {
         #[command(subcommand)]
         command: ExportCommand,
+    },
+    Kct {
+        #[arg(long)]
+        json: bool,
+        #[arg(long, default_value = ".")]
+        cwd: PathBuf,
+        #[arg(last = true, trailing_var_arg = true)]
+        args: Vec<OsString>,
     },
 }
 
@@ -219,6 +237,33 @@ async fn main() -> Result<()> {
 
     let cli = Cli::parse();
     match cli.command {
+        Commands::Setup {
+            install_kicad_tools,
+            kicad_tools_extra,
+            force,
+            json,
+        } => {
+            let mut response = serde_json::json!({
+                "ok": true,
+                "runtime_dir": plugin_dir()?.join(".runtime"),
+                "kct": kct_cli(),
+                "kct_version": kct_version().await,
+            });
+            if install_kicad_tools {
+                let install = install_kicad_tools_runtime(force, &kicad_tools_extra).await?;
+                response["ok"] = serde_json::Value::Bool(
+                    response["ok"].as_bool().unwrap_or(false)
+                        && install["ok"].as_bool().unwrap_or(false),
+                );
+                response["kicad_tools_install"] = install;
+                response["kct"] = serde_json::json!(kct_cli());
+                response["kct_version"] = serde_json::json!(kct_version().await);
+            }
+            print_json_or_debug(json, &response)?;
+            if !response["ok"].as_bool().unwrap_or(false) {
+                std::process::exit(1);
+            }
+        }
         Commands::Doctor { json, cwd } => {
             let cwd = cwd.canonicalize().context("canonicalize cwd")?;
             let projects = match project_contexts(&cwd) {
@@ -247,12 +292,15 @@ async fn main() -> Result<()> {
                 "tools": {
                     "kicad-cli": kicad_cli().is_some(),
                     "kikit": find_on_path("kikit").is_some(),
+                    "kct": kct_cli().is_some(),
                 },
                 "tool_paths": {
                     "kicad-cli": kicad_cli(),
+                    "kct": kct_cli(),
                 },
                 "versions": {
                     "kicad": tool_version(kicad_cli()).await,
+                    "kicad-tools": kct_version().await,
                 },
                 "viewer_assets": true,
                 "detected_files": detect_files(&cwd)?.into_iter().map(|item| item.path).collect::<Vec<_>>(),
@@ -342,6 +390,41 @@ async fn main() -> Result<()> {
                 }
             }
         },
+        Commands::Kct { json, cwd, args } => {
+            let cwd = cwd.canonicalize()?;
+            let Some(tool) = kct_cli() else {
+                let response = serde_json::json!({
+                    "ok": false,
+                    "message": "kicad-tools is required. Run `kicad-pcb setup --install-kicad-tools`.",
+                    "tool": null,
+                });
+                print_json_or_debug(true, &response)?;
+                std::process::exit(1);
+            };
+            let pass_args = if args.is_empty() {
+                vec![OsString::from("--help")]
+            } else {
+                args
+            };
+            let output = run_command(&tool, &pass_args, &cwd).await?;
+            let response = serde_json::json!({
+                "ok": output.status == 0,
+                "tool": tool,
+                "command": std::iter::once(OsString::from(&tool)).chain(pass_args.clone()).map(|item| item.to_string_lossy().into_owned()).collect::<Vec<_>>(),
+                "cwd": cwd,
+                "stdout": output.stdout,
+                "stderr": output.stderr,
+            });
+            if json {
+                print_json_or_debug(true, &response)?;
+            } else {
+                print!("{}", response["stdout"].as_str().unwrap_or_default());
+                eprint!("{}", response["stderr"].as_str().unwrap_or_default());
+            }
+            if !response["ok"].as_bool().unwrap_or(false) {
+                std::process::exit(1);
+            }
+        }
     }
     Ok(())
 }
@@ -1868,12 +1951,120 @@ async fn tool_version(tool: Option<String>) -> Option<String> {
         .map(str::to_string)
 }
 
+async fn kct_version() -> Option<String> {
+    let tool = kct_cli()?;
+    let output = run_command(&tool, &["--version".into()], Path::new("."))
+        .await
+        .ok()?;
+    if output.status != 0 {
+        return None;
+    }
+    output
+        .stdout
+        .lines()
+        .next()
+        .or_else(|| output.stderr.lines().next())
+        .map(str::to_string)
+}
+
 fn kicad_cli() -> Option<String> {
     std::env::var("KICAD_PCB_KICAD_CLI")
         .ok()
         .or_else(|| std::env::var("BACKPLANE_KICAD_CLI").ok())
         .or_else(|| std::env::var("KICAD_CLI").ok())
         .or_else(|| find_on_path("kicad-cli"))
+}
+
+fn kct_cli() -> Option<String> {
+    std::env::var("KICAD_PCB_KCT")
+        .ok()
+        .or_else(|| managed_kct_cli().ok().flatten())
+        .or_else(|| find_on_path("kct"))
+        .or_else(|| find_on_path("kicad-tools"))
+}
+
+fn managed_kct_cli() -> Result<Option<String>> {
+    let bin = if cfg!(windows) {
+        "Scripts/kct.exe"
+    } else {
+        "bin/kct"
+    };
+    let candidate = plugin_dir()?.join(".runtime").join("kicad-tools").join(bin);
+    Ok(candidate.exists().then(|| candidate.display().to_string()))
+}
+
+async fn install_kicad_tools_runtime(force: bool, extra: &str) -> Result<serde_json::Value> {
+    let Some(python) = find_on_path("python3").or_else(|| find_on_path("python")) else {
+        return Ok(serde_json::json!({
+            "ok": false,
+            "message": "Python 3 is required to install kicad-tools.",
+        }));
+    };
+    let runtime = plugin_dir()?.join(".runtime").join("kicad-tools");
+    if force && runtime.exists() {
+        let backup = runtime.with_file_name(format!("kicad-tools.old-{}", now_ms()));
+        std::fs::rename(&runtime, backup)?;
+    }
+    if !runtime.exists() {
+        let output = run_command(
+            &python,
+            &["-m".into(), "venv".into(), runtime.as_os_str().into()],
+            &plugin_dir()?,
+        )
+        .await?;
+        if output.status != 0 {
+            return Ok(serde_json::json!({
+                "ok": false,
+                "message": "Failed to create kicad-tools virtualenv.",
+                "stdout": output.stdout,
+                "stderr": output.stderr,
+            }));
+        }
+    }
+    let pip = runtime
+        .join(if cfg!(windows) { "Scripts" } else { "bin" })
+        .join(if cfg!(windows) { "pip.exe" } else { "pip" });
+    let package = kicad_tools_package(extra);
+    let mut logs = Vec::new();
+    for args in [
+        vec!["install".into(), "--upgrade".into(), "pip".into()],
+        vec!["install".into(), "--upgrade".into(), package.clone().into()],
+    ] {
+        let output = run_command(&pip.display().to_string(), &args, &plugin_dir()?).await?;
+        let log = serde_json::json!({
+            "command": std::iter::once(pip.display().to_string()).chain(args.iter().map(|item| item.to_string_lossy().into_owned())).collect::<Vec<_>>(),
+            "code": output.status,
+            "stdout": output.stdout.chars().rev().take(4000).collect::<String>().chars().rev().collect::<String>(),
+            "stderr": output.stderr.chars().rev().take(4000).collect::<String>().chars().rev().collect::<String>(),
+        });
+        let ok = output.status == 0;
+        logs.push(log);
+        if !ok {
+            return Ok(serde_json::json!({
+                "ok": false,
+                "message": format!("Failed to install {package}."),
+                "logs": logs,
+            }));
+        }
+    }
+    Ok(serde_json::json!({
+        "ok": kct_cli().is_some(),
+        "package": package,
+        "kct": kct_cli(),
+        "version": kct_version().await,
+        "runtime_dir": runtime,
+        "logs": logs,
+    }))
+}
+
+fn kicad_tools_package(extra: &str) -> String {
+    if matches!(extra, "" | "base" | "none") {
+        "kicad-tools".to_string()
+    } else if extra == "agent" {
+        "kicad-tools[placement,parts,datasheet,report,native]".to_string()
+    } else {
+        format!("kicad-tools[{extra}]")
+    }
 }
 
 fn find_on_path(name: &str) -> Option<String> {

@@ -29,6 +29,7 @@ VIEWER_DIR = PLUGIN_DIR / "static" / "kicad-viewer"
 RUNTIME_DIR = PLUGIN_DIR / ".runtime"
 CACHE_DIR = PLUGIN_DIR / ".portal" / "cache"
 KICAD_RUNTIME_DIR = RUNTIME_DIR / "kicad"
+KCT_RUNTIME_DIR = RUNTIME_DIR / "kicad-tools"
 KICAD_STABLE_INDEX = "https://downloads.kicad.org/kicad/linux/explore/stable/"
 KICAD_FALLBACK_URL = f"{KICAD_STABLE_INDEX}download/kicad-10.0.6-x86_64.AppImage.tar"
 TABS = [
@@ -94,13 +95,14 @@ def usage() -> int:
         """kicad-pcb portal plugin
 
 Commands:
-  setup [--install-kicad] [--force]
+  setup [--install-kicad] [--install-kicad-tools] [--force]
   doctor [--json] [--cwd PATH]
   serve --port PORT [--cwd PATH] [--session UUID]
   drc [--json] [--cwd PATH]
   erc [--json] [--cwd PATH]
   export gerbers --out PATH [--cwd PATH]
   export jlcpcb --out PATH [--cwd PATH]
+  kct [--json] [--cwd PATH] -- <kct arguments...>
 """,
         end="",
     )
@@ -132,6 +134,23 @@ def kicad_cli() -> str | None:
     )
 
 
+def kct_cli() -> str | None:
+    managed = managed_kct_cli()
+    return os.environ.get("KICAD_PCB_KCT") or managed or shutil.which("kct") or shutil.which("kicad-tools")
+
+
+def managed_kct_cli() -> str | None:
+    bin_name = "kct.exe" if sys.platform == "win32" else "kct"
+    candidates = [
+        KCT_RUNTIME_DIR / "bin" / bin_name,
+        KCT_RUNTIME_DIR / "Scripts" / bin_name,
+    ]
+    for candidate in candidates:
+        if candidate.exists() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    return None
+
+
 def managed_kicad_cli() -> str | None:
     current = KICAD_RUNTIME_DIR / "current"
     candidates = [
@@ -145,6 +164,10 @@ def managed_kicad_cli() -> str | None:
     return None
 
 
+def python3() -> str | None:
+    return shutil.which("python3") or shutil.which("python")
+
+
 def tool_version(tool: str | None) -> str | None:
     if not tool:
         return None
@@ -152,6 +175,56 @@ def tool_version(tool: str | None) -> str | None:
     if code != 0:
         return None
     return (stdout or stderr).strip().splitlines()[0] if (stdout or stderr).strip() else None
+
+
+def kct_version() -> str | None:
+    tool = kct_cli()
+    if not tool:
+        return None
+    code, stdout, stderr = run([tool, "--version"], Path.cwd())
+    if code != 0:
+        return None
+    return (stdout or stderr).strip().splitlines()[0] if (stdout or stderr).strip() else None
+
+
+def kicad_tools_package(extra: str) -> str:
+    if extra in {"", "base", "none"}:
+        return "kicad-tools"
+    if extra == "agent":
+        return "kicad-tools[placement,parts,datasheet,report,native]"
+    return f"kicad-tools[{extra}]"
+
+
+def install_kicad_tools_runtime(force: bool = False, extra: str = "agent") -> dict:
+    py = python3()
+    if not py:
+        return {"ok": False, "message": "Python 3 is required to install kicad-tools."}
+    if force and KCT_RUNTIME_DIR.exists():
+        backup = KCT_RUNTIME_DIR.with_name(f"{KCT_RUNTIME_DIR.name}.old-{int(time.time())}")
+        KCT_RUNTIME_DIR.rename(backup)
+    if not KCT_RUNTIME_DIR.exists():
+        code, stdout, stderr = run([py, "-m", "venv", str(KCT_RUNTIME_DIR)], PLUGIN_DIR)
+        if code != 0:
+            return {"ok": False, "message": "Failed to create kicad-tools virtualenv.", "stdout": stdout, "stderr": stderr}
+    pip = KCT_RUNTIME_DIR / ("Scripts" if sys.platform == "win32" else "bin") / "pip"
+    package = kicad_tools_package(extra)
+    logs = []
+    for command in (
+        [str(pip), "install", "--upgrade", "pip"],
+        [str(pip), "install", "--upgrade", package],
+    ):
+        code, stdout, stderr = run(command, PLUGIN_DIR)
+        logs.append({"command": command, "code": code, "stdout": stdout[-4000:], "stderr": stderr[-4000:]})
+        if code != 0:
+            return {"ok": False, "message": f"Failed to install {package}.", "logs": logs}
+    return {
+        "ok": kct_cli() is not None,
+        "package": package,
+        "kct": kct_cli(),
+        "version": kct_version(),
+        "runtime_dir": str(KCT_RUNTIME_DIR),
+        "logs": logs,
+    }
 
 
 def fetch_text(url: str) -> str:
@@ -1125,6 +1198,8 @@ def main(argv: list[str]) -> int:
     if cmd == "setup":
         parser = argparse.ArgumentParser()
         parser.add_argument("--install-kicad", action="store_true")
+        parser.add_argument("--install-kicad-tools", action="store_true")
+        parser.add_argument("--kicad-tools-extra", default="agent")
         parser.add_argument("--force", action="store_true")
         parser.add_argument("--json", action="store_true")
         args = parser.parse_args(rest)
@@ -1135,6 +1210,8 @@ def main(argv: list[str]) -> int:
             "runtime_dir": str(RUNTIME_DIR),
             "kicad_cli": kicad_cli(),
             "kicad_version": tool_version(kicad_cli()),
+            "kct": kct_cli(),
+            "kct_version": kct_version(),
         }
         if args.install_kicad:
             install = install_kicad_runtime(force=args.force)
@@ -1142,6 +1219,12 @@ def main(argv: list[str]) -> int:
             result["ok"] = bool(install.get("ok"))
             result["kicad_cli"] = kicad_cli()
             result["kicad_version"] = tool_version(kicad_cli())
+        if args.install_kicad_tools:
+            install = install_kicad_tools_runtime(force=args.force, extra=args.kicad_tools_extra)
+            result["kicad_tools_install"] = install
+            result["ok"] = bool(result["ok"]) and bool(install.get("ok"))
+            result["kct"] = kct_cli()
+            result["kct_version"] = kct_version()
         if args.json:
             print(json.dumps(result, indent=2))
         else:
@@ -1151,8 +1234,12 @@ def main(argv: list[str]) -> int:
             print(f"Runtime directory: {RUNTIME_DIR}")
             print(f"kicad-cli: {result['kicad_cli'] or 'missing'}")
             print(f"KiCad version: {result['kicad_version'] or 'unknown'}")
+            print(f"kct: {result['kct'] or 'missing'}")
+            print(f"kicad-tools version: {result['kct_version'] or 'unknown'}")
             if "kicad_install" in result:
                 print(json.dumps(result["kicad_install"], indent=2))
+            if "kicad_tools_install" in result:
+                print(json.dumps(result["kicad_tools_install"], indent=2))
         return 0 if result["ok"] else 1
     if cmd == "doctor":
         cwd, as_json = parse_cwd(rest)
@@ -1164,13 +1251,17 @@ def main(argv: list[str]) -> int:
                 "node": shutil.which("node") is not None,
                 "kicad-cli": kicad_cli() is not None,
                 "kikit": shutil.which("kikit") is not None,
+                "kct": kct_cli() is not None,
             },
             "tool_paths": {
                 "kicad-cli": kicad_cli(),
                 "managed_kicad-cli": managed_kicad_cli(),
+                "kct": kct_cli(),
+                "managed_kct": managed_kct_cli(),
             },
             "versions": {
                 "kicad": tool_version(kicad_cli()),
+                "kicad-tools": kct_version(),
             },
             "runtime_dir": str(RUNTIME_DIR),
             "viewer_assets": VIEWER_DIR.exists(),
@@ -1180,6 +1271,49 @@ def main(argv: list[str]) -> int:
         }
         print(json.dumps(result, indent=2) if as_json else result)
         return 0
+    if cmd == "kct":
+        cwd, as_json = parse_cwd(rest)
+        pass_args = []
+        if "--" in rest:
+            pass_args = rest[rest.index("--") + 1 :]
+        else:
+            skip_next = False
+            for index, item in enumerate(rest):
+                if skip_next:
+                    skip_next = False
+                    continue
+                if item == "--json":
+                    continue
+                if item == "--cwd":
+                    skip_next = True
+                    continue
+                pass_args.append(item)
+        tool = kct_cli()
+        if not tool:
+            result = {
+                "ok": False,
+                "message": "kicad-tools is required. Run `bin/kicad-pcb setup --install-kicad-tools`.",
+                "tool": None,
+            }
+            print(json.dumps(result, indent=2))
+            return 1
+        if not pass_args:
+            pass_args = ["--help"]
+        code, stdout, stderr = run([tool, *pass_args], cwd)
+        result = {
+            "ok": code == 0,
+            "tool": tool,
+            "command": [tool, *pass_args],
+            "cwd": str(cwd),
+            "stdout": stdout,
+            "stderr": stderr,
+        }
+        if as_json:
+            print(json.dumps(result, indent=2))
+        else:
+            sys.stdout.write(stdout)
+            sys.stderr.write(stderr)
+        return code
     if cmd == "serve":
         parser = argparse.ArgumentParser()
         parser.add_argument("--port", type=int, required=True)

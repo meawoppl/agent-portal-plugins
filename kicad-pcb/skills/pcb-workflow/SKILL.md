@@ -16,7 +16,10 @@ other electronics design artifacts and the KiCad PCB Portal plugin is available.
    - `bin/kicad-pcb doctor --json --cwd <repo>`;
    - `bin/kicad-pcb drc --json --cwd <repo>`;
    - `bin/kicad-pcb erc --json --cwd <repo>`;
-   - `bin/kicad-pcb export jlcpcb --cwd <repo> --out <artifact-dir>`.
+   - `bin/kicad-pcb export jlcpcb --cwd <repo> --out <artifact-dir>`;
+   - `bin/kicad-pcb kct --json --cwd <repo> -- <kct arguments...>` for
+     routing, readiness, manufacturer rules, parts lookup, sync drift, or
+     repair workflows from `kicad-tools`.
 5. Use the KiCad PCB surface for visual claims. Prefer pointing at board,
    schematic, layer, net, BOM, or manufacturing artifacts over relying only on
    prose.
@@ -42,8 +45,14 @@ A good PCB turn ends with:
 
 The Portal plugin surface can browse project files without KiCad, but real
 ERC/DRC, Gerber/drill export, BOM export from schematic settings, panelization,
-and generated 3D board previews require `kicad-cli`. On Linux x86_64, run
-`bin/kicad-pcb setup --install-kicad` to install the managed current-stable
-KiCad runtime into the plugin's `.runtime/` directory. If usable KiCad tooling
-is still unavailable afterward, report that as the blocker and do not claim
-fabrication outputs have been validated.
+generated 3D board previews, and advanced `kicad-tools` automation require
+local tooling. On Linux x86_64, run
+`bin/kicad-pcb setup --install-kicad --install-kicad-tools` to install managed
+tooling into the plugin's `.runtime/` directory. If usable tooling is still
+unavailable afterward, report that as the blocker and do not claim fabrication
+outputs have been validated.
+
+Use the `kicad-tools-automation` skill before running `kct` mutation commands
+such as routing, placement optimization, sync-netlist, repair, zone fill, or
+stitching. Those commands are design edits and require the same review standard
+as manual schematic/PCB changes.

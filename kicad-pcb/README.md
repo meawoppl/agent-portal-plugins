@@ -26,6 +26,47 @@ manufacturing output.
 The plugin is intentionally script-first. Agents should use the documented CLI
 commands and bundled skill instructions, with no additional integration setup.
 
+## kicad-tools Automation
+
+The plugin also integrates `rjwalters/kicad-tools` as the heavy automation
+layer. Setup installs it into the plugin-owned virtualenv at
+`.runtime/kicad-tools`, so the user's global Python environment is not changed.
+Set `KICAD_PCB_KCT` to override the managed `kct` executable.
+See `docs/kicad-tools-integration.md` for the full command, UI, and skill
+mapping.
+
+```console
+kicad-pcb/bin/kicad-pcb setup --install-kicad-tools
+kicad-pcb/bin/kicad-pcb doctor --json --cwd /path/to/hardware/repo
+kicad-pcb/bin/kicad-pcb kct --cwd /path/to/hardware/repo -- symbols board.kicad_sch --format json
+kicad-pcb/bin/kicad-pcb kct --cwd /path/to/hardware/repo -- nets board.kicad_sch --net VCC
+kicad-pcb/bin/kicad-pcb kct --cwd /path/to/hardware/repo -- readiness . --format json
+```
+
+Use `kct` for workflows that KiCad's native CLI does not cover well:
+
+- schematic/PCB drift and sync analysis;
+- manufacturer-specific rule floors and `.kicad_dru` generation;
+- order-readiness reports that bind checks, artifacts, BOM/CPL, and human
+  review evidence;
+- LCSC/JLCPCB part lookup and BOM enrichment;
+- 3D model substitution and transform provenance;
+- routing, placement, zone, stitch, and repair experiments.
+
+Mutation commands such as `route`, `route-auto`, `pcb sync-netlist`,
+`fix-footprints`, `fix-drc`, `fix-erc`, `repair-clearance`, `zones`, `stitch`,
+and placement optimization must be treated as design edits. Run them only on a
+clean working tree or an explicit branch/snapshot, then verify with the
+workbench, native ERC/DRC, schematic parity, Gerbers, BOM/CPL, and 3D view
+before calling the design complete.
+
+By default, setup installs the plugin's `agent` kicad-tools bundle:
+`kicad-tools[placement,parts,datasheet,report,native]`. This covers routing,
+placement, readiness/reporting, parts/BOM enrichment, datasheet workflows, and
+native acceleration without dragging in every optional GPU/research dependency.
+Use `--kicad-tools-extra all` only when a task explicitly needs the entire
+upstream extra set.
+
 ## Bundled KiStack Skills
 
 This plugin includes the American Embedded KiStack electronics workflow skills and vendors the bundle from
@@ -64,7 +105,7 @@ For production fabrication outputs, run setup once or set `KICAD_CLI` /
 `KICAD_PCB_KICAD_CLI` or legacy `BACKPLANE_KICAD_CLI` to a desired executable:
 
 ```console
-kicad-pcb/bin/kicad-pcb setup --install-kicad
+kicad-pcb/bin/kicad-pcb setup --install-kicad --install-kicad-tools
 kicad-pcb/bin/kicad-pcb drc --json --cwd /path/to/hardware/repo --project board-a
 kicad-pcb/bin/kicad-pcb erc --json --cwd /path/to/hardware/repo --project board-a
 kicad-pcb/bin/kicad-pcb export jlcpcb --cwd /path/to/hardware/repo --project board-a --out build/jlcpcb

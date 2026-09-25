@@ -10,7 +10,7 @@ agent_portal = ">=2.14.1525"
 platforms = ["linux", "macos"]
 
 [install]
-setup = "bin/kicad-pcb setup --install-kicad"
+setup = "bin/kicad-pcb setup --install-kicad --install-kicad-tools"
 doctor = "bin/kicad-pcb doctor --json --cwd {cwd}"
 
 [surface]
@@ -49,9 +49,34 @@ name = "export-jlcpcb"
 description = "Export a JLCPCB-oriented fabrication package into the session artifact directory."
 run = "bin/kicad-pcb export jlcpcb --cwd {cwd} --out {artifact_dir}"
 
+[[commands]]
+name = "kct"
+description = "Run the kicad-tools automation CLI inside the active repo. Pass kct arguments after --."
+run = "bin/kicad-pcb kct --json --cwd {cwd} --"
+
+[[commands]]
+name = "readiness"
+description = "Run kicad-tools manufacturing readiness checks when kct is installed."
+run = "bin/kicad-pcb kct --json --cwd {cwd} -- readiness . --format json"
+
+[[commands]]
+name = "sync-check"
+description = "Analyze schematic-to-PCB drift with kicad-tools when kct is installed."
+run = "bin/kicad-pcb kct --json --cwd {cwd} -- sync --analyze ."
+
+[[commands]]
+name = "route"
+description = "Run kicad-tools routing automation. Agents should pass explicit kct route arguments after --."
+run = "bin/kicad-pcb kct --json --cwd {cwd} -- route"
+
 [[skills]]
 name = "pcb-workflow"
 path = "skills/pcb-workflow/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "kicad-tools-automation"
+path = "skills/kicad-tools-automation/SKILL.md"
 agents = ["claude", "codex"]
 
 [[skills]]

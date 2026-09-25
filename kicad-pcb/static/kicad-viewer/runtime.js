@@ -116,6 +116,7 @@ window.addEventListener("message", (event) => {
           if (native) {
             viewer.activateContext?.(snapshot.context);
             await installCanvasPresentation(native);
+            viewer.restoreView?.();
             viewer.reseedLayerCache();
             viewer.enhanceGeometrySelection();
             viewer.publishLayers();

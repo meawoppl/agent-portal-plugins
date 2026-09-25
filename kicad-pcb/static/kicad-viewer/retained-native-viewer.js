@@ -525,6 +525,7 @@ export class RetainedNativeViewer extends EventTarget {
     this.disposed = false;
     this.generation = 0;
     this.programmaticProbeDepth = 0;
+    this.pendingView = undefined;
   }
 
   core() {
@@ -787,6 +788,23 @@ export class RetainedNativeViewer extends EventTarget {
     this.overlay = undefined;
   }
 
+  captureView() {
+    const camera = this.core()?.viewport?.camera;
+    return camera
+      ? { x: camera.center.x, y: camera.center.y, zoom: camera.zoom }
+      : undefined;
+  }
+
+  restoreView(view = this.pendingView) {
+    const camera = this.core()?.viewport?.camera;
+    if (!view || !camera) return false;
+    camera.center.set(view.x, view.y);
+    camera.zoom = view.zoom;
+    this.core()?.draw_now?.();
+    this.pendingView = undefined;
+    return true;
+  }
+
   async replaceSources({ revisionKey, sources, layerVisibility = {} }) {
     if (this.disposed) return this.ready;
     const generation = ++this.generation;
@@ -798,9 +816,8 @@ export class RetainedNativeViewer extends EventTarget {
       this.applyVisibility();
       return;
     }
-    const core = this.core();
-    const camera = core?.viewport?.camera;
-    const view = camera ? { x: camera.center.x, y: camera.center.y, zoom: camera.zoom } : undefined;
+    const view = this.captureView();
+    this.pendingView = view;
     const regions = this.bounds(next.changed);
     const snapshot = this.capture();
     this.current ??= this.createElement();
@@ -843,10 +860,7 @@ export class RetainedNativeViewer extends EventTarget {
         }
         if ((cacheChanged || hydration.hydrated > 0) && cache)
           cache.setSignatures(next.signatures, cacheContext(loaded, next), { active: true });
-        if (view && loaded?.viewport?.camera) {
-          loaded.viewport.camera.center.set(view.x, view.y);
-          loaded.viewport.camera.zoom = view.zoom;
-        }
+        this.restoreView(view);
         this.enhanceGeometrySelection();
         this.applyVisibility();
         current.setActive(this.active);

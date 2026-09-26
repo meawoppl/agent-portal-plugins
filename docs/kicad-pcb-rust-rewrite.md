@@ -65,7 +65,10 @@ Routes:
 - `GET /api/kicad/drc`
 - `GET /api/kicad/erc`
 - `GET /api/kicad/file?path=...&download=1`
-- future: `GET /api/kicad/bom`, `GET /api/kicad/gerber/render`, `GET /api/kicad/step`
+- `GET /api/kicad/gerbers` (current build, else published Gerber sources)
+- `GET /api/build/status`, `POST /api/build/run`, `POST /api/build/publish`
+- `GET /api/build/events` (SSE), `GET /api/build/artifact`
+- future: `GET /api/kicad/gerber/render`
 
 All responses get shared serde structs. Avoid ad hoc JSON maps except for raw
 KiCad reports that are intentionally passed through.
@@ -131,9 +134,11 @@ whitelisted outputs. Never zip arbitrary pre-existing destination contents.
 Keep plugin-managed state under the plugin install/home root:
 
 ```text
-.portal/cache/<repo-hash>/
-  <source-revision>.glb
-  checks/
+.portal/cache/<project-root-hash>/
+  builds/
+    history.json                 # revision -> stage dirs, last used (GC)
+    <stage>-<input-key>/         # content-addressed stage outputs
+      result.json
   gerber-renders/
 .runtime/
   kicad/
@@ -146,8 +151,11 @@ Revision rules:
 - active KiCad sources exclude `tmp/`, `build/`, `dist/`, backups, and backup
   suffixes;
 - artifact discovery keeps `fab/` and `build/` outputs visible for downloads;
-- source revision includes file paths, mtimes, and content digests where cheap
-  enough;
+- source revision is a content hash (relative path + sha256) of the schematic
+  set and PCB set, with no mtimes; stage cache keys use only the set(s) the
+  stage reads (see the kicad-pcb README "Automatic Build Pipeline");
+- projects nested inside another project's root are excluded from the outer
+  project's sources and watch scope;
 - `/api/kicad/revision` stays cheap;
 - `/api/kicad/sources` refreshes warmed state when revision changes.
 - The Rust server watches the worktree with a debounced filesystem watcher,

@@ -19,6 +19,9 @@ pub(crate) fn role(path: &Path) -> Option<&'static str> {
 }
 
 fn cell(value: &str, header: &str) -> String {
+    if is_designator_header(header) {
+        return designator_cell(value);
+    }
     let text = escape(value);
     let id = value.trim();
     if header.to_ascii_lowercase().contains("lcsc")
@@ -30,6 +33,118 @@ fn cell(value: &str, header: &str) -> String {
     } else {
         text
     }
+}
+
+fn is_designator_header(header: &str) -> bool {
+    let h = header.trim().to_ascii_lowercase();
+    matches!(
+        h.as_str(),
+        "designator" | "designators" | "reference" | "references" | "ref" | "refs"
+    )
+}
+
+fn designator_cell(value: &str) -> String {
+    let compact = compact_designators(value);
+    let formatted = wrap_commas(&compact, 5);
+    if compact == value.trim() {
+        formatted
+    } else {
+        format!(
+            "<span title='{}'>{formatted}</span>",
+            escape_attr(value.trim())
+        )
+    }
+}
+
+fn compact_designators(value: &str) -> String {
+    let mut groups: Vec<(String, Vec<u32>)> = Vec::new();
+    let mut leftovers = Vec::new();
+    for part in value.split(',').map(str::trim).filter(|v| !v.is_empty()) {
+        if let Some((prefix, number)) = split_designator(part) {
+            if let Some((_, nums)) = groups.iter_mut().find(|(p, _)| p == &prefix) {
+                nums.push(number);
+            } else {
+                groups.push((prefix, vec![number]));
+            }
+        } else {
+            leftovers.push(part.to_string());
+        }
+    }
+
+    let parsed_count = groups.iter().map(|(_, nums)| nums.len()).sum::<usize>();
+    if parsed_count < 6 || !leftovers.is_empty() {
+        return value.trim().to_string();
+    }
+
+    let mut parts = Vec::new();
+    for (prefix, mut nums) in groups {
+        nums.sort_unstable();
+        nums.dedup();
+        parts.push(format!("{prefix}({})", compact_ranges(&nums)));
+    }
+    parts.join(", ")
+}
+
+fn split_designator(value: &str) -> Option<(String, u32)> {
+    let split_at = value
+        .char_indices()
+        .rev()
+        .find(|(_, c)| !c.is_ascii_digit())
+        .map(|(idx, c)| idx + c.len_utf8())
+        .unwrap_or(0);
+    if split_at == value.len() {
+        return None;
+    }
+    let (prefix, number) = value.split_at(split_at);
+    if prefix.is_empty()
+        || !prefix.chars().all(|c| c.is_ascii_alphabetic())
+        || number.is_empty()
+        || (number.len() > 1 && number.starts_with('0'))
+    {
+        return None;
+    }
+    Some((prefix.to_string(), number.parse().ok()?))
+}
+
+fn compact_ranges(nums: &[u32]) -> String {
+    let mut parts = Vec::new();
+    let mut i = 0;
+    while i < nums.len() {
+        let start = nums[i];
+        let mut end = start;
+        while i + 1 < nums.len() && nums[i + 1] == end + 1 {
+            i += 1;
+            end = nums[i];
+        }
+        if start == end {
+            parts.push(start.to_string());
+        } else {
+            parts.push(format!("{start}-{end}"));
+        }
+        i += 1;
+    }
+    parts.join(",")
+}
+
+fn wrap_commas(value: &str, group_size: usize) -> String {
+    let parts: Vec<_> = value.split(',').map(str::trim).collect();
+    let mut html = String::new();
+    for (i, part) in parts.iter().enumerate() {
+        if i > 0 {
+            html.push_str(", ");
+            if i % group_size == 0 {
+                html.push_str("<br>");
+            } else {
+                html.push_str("<wbr>");
+            }
+        }
+        html.push_str(&escape(part));
+    }
+    html
+}
+
+fn escape_attr(value: &str) -> String {
+    escape(value).replace('\'', "&#39;")
 }
 
 fn table(path: &Path) -> Result<String> {
@@ -155,9 +270,31 @@ mod tests {
         )
         .unwrap();
         let h = table(&p).unwrap();
-        assert!(h.contains("R1,R2"));
+        assert!(h.contains("R1, <wbr>R2"));
         assert!(h.contains("C123.html"));
         assert!(h.contains("&lt;script&gt;"));
         assert!(!h.contains("<script>"));
+    }
+
+    #[test]
+    fn long_designator_runs_are_compacted() {
+        let d = tempfile::tempdir().unwrap();
+        let p = d.path().join("bom.csv");
+        std::fs::write(
+            &p,
+            "Designator,Qty\n\"D1,D2,D3,D4,D5,D6,D7,D8,D9,D10\",10\n",
+        )
+        .unwrap();
+        let h = table(&p).unwrap();
+        assert!(h.contains("D(1-10)"));
+        assert!(h.contains("title='D1,D2,D3,D4,D5,D6,D7,D8,D9,D10'"));
+    }
+
+    #[test]
+    fn mixed_designators_get_break_opportunities() {
+        let h = cell("D1,D3,R7,C1,J2,TP10", "References");
+        assert!(h.contains("<br>"));
+        assert!(h.contains("<wbr>"));
+        assert!(h.contains("TP10"));
     }
 }

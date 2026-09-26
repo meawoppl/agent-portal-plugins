@@ -8,21 +8,21 @@ let inspectorId = 0;
 // close, and the vendor's update lifecycle remain owned by the viewer.
 const BASE_PROPERTIES_CSS = `
 :host {
-  --backplane-bg: #111617;
-  --backplane-panel: #171e20;
-  --backplane-panel-raised: #1e292a;
-  --backplane-line: #354243;
-  --backplane-line-strong: #536461;
-  --backplane-fg: #d7e3dc;
-  --backplane-muted: #9aada2;
-  --backplane-accent: #a6d4ad;
-  --panel-subtitle-bg: var(--backplane-panel-raised);
-  --panel-subtitle-fg: var(--backplane-fg);
-  --fg: var(--backplane-fg);
-  --scrollbar-bg: var(--backplane-bg);
-  --scrollbar-fg: var(--backplane-line-strong);
-  --scrollbar-hover-fg: var(--backplane-accent);
-  color: var(--backplane-fg);
+  --kicad-pcb-bg: #111617;
+  --kicad-pcb-panel: #171e20;
+  --kicad-pcb-panel-raised: #1e292a;
+  --kicad-pcb-line: #354243;
+  --kicad-pcb-line-strong: #536461;
+  --kicad-pcb-fg: #d7e3dc;
+  --kicad-pcb-muted: #9aada2;
+  --kicad-pcb-accent: #a6d4ad;
+  --panel-subtitle-bg: var(--kicad-pcb-panel-raised);
+  --panel-subtitle-fg: var(--kicad-pcb-fg);
+  --fg: var(--kicad-pcb-fg);
+  --scrollbar-bg: var(--kicad-pcb-bg);
+  --scrollbar-fg: var(--kicad-pcb-line-strong);
+  --scrollbar-hover-fg: var(--kicad-pcb-accent);
+  color: var(--kicad-pcb-fg);
   font-family: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -34,7 +34,7 @@ a[aria-label*="KiCAD Prism" i] {
 kc-board-properties-panel,
 kc-schematic-properties-panel {
   --floating-pro-panel-width: min(24rem, calc(100% - 1rem));
-  --backplane-properties-height: clamp(18rem, 36vh, 24rem);
+  --kicad-pcb-properties-height: clamp(18rem, 36vh, 24rem);
   position: absolute !important;
   inset: auto 0 0 auto !important;
   width: 0 !important;
@@ -44,7 +44,7 @@ kc-schematic-properties-panel {
   display: block !important;
   overflow: visible !important;
   pointer-events: none;
-  color: var(--backplane-fg);
+  color: var(--kicad-pcb-fg);
   font-family: inherit;
   font-size: 14px;
   line-height: 1.35;
@@ -56,11 +56,11 @@ kc-schematic-properties-panel[hidden] {
 }
 
 kc-ui-panel {
-  background: var(--backplane-panel) !important;
-  border: 1px solid var(--backplane-line) !important;
+  background: var(--kicad-pcb-panel) !important;
+  border: 1px solid var(--kicad-pcb-line) !important;
   border-radius: 0 !important;
   box-shadow: 0 10px 28px #0008 !important;
-  color: var(--backplane-fg) !important;
+  color: var(--kicad-pcb-fg) !important;
 }
 
 :host(kc-board-properties-panel) > kc-ui-panel,
@@ -71,7 +71,7 @@ kc-ui-panel {
   box-sizing: border-box !important;
   width: 100vw !important;
   max-width: none !important;
-  height: var(--backplane-properties-height) !important;
+  height: var(--kicad-pcb-properties-height) !important;
   min-height: 0 !important;
   max-height: calc(100vh - 0.5rem) !important;
   display: flex !important;
@@ -79,24 +79,24 @@ kc-ui-panel {
   font-size: 14px !important;
   line-height: 1.35 !important;
   pointer-events: auto;
-  background: var(--backplane-panel) !important;
-  border: 1px solid var(--backplane-line) !important;
+  background: var(--kicad-pcb-panel) !important;
+  border: 1px solid var(--kicad-pcb-line) !important;
   border-radius: 0 !important;
   box-shadow: 0 10px 28px #0008 !important;
-  color: var(--backplane-fg) !important;
+  color: var(--kicad-pcb-fg) !important;
 }
 
-kc-board-properties-panel[data-backplane-properties-expanded="true"],
-kc-schematic-properties-panel[data-backplane-properties-expanded="true"],
-:host([data-backplane-properties-expanded="true"]) {
-  --backplane-properties-height: min(70vh, 42rem);
+kc-board-properties-panel[data-kicad-pcb-properties-expanded="true"],
+kc-schematic-properties-panel[data-kicad-pcb-properties-expanded="true"],
+:host([data-kicad-pcb-properties-expanded="true"]) {
+  --kicad-pcb-properties-height: min(70vh, 42rem);
 }
 
 kc-ui-panel-title,
 kc-ui-panel-title-with-close {
-  background: var(--backplane-panel-raised) !important;
-  border-bottom: 1px solid var(--backplane-line) !important;
-  color: var(--backplane-muted) !important;
+  background: var(--kicad-pcb-panel-raised) !important;
+  border-bottom: 1px solid var(--kicad-pcb-line) !important;
+  color: var(--kicad-pcb-muted) !important;
   font-family: inherit !important;
   letter-spacing: 0.01em;
 }
@@ -114,8 +114,8 @@ kc-ui-panel-body {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   overflow: auto !important;
-  background: var(--backplane-panel) !important;
-  color: var(--backplane-fg) !important;
+  background: var(--kicad-pcb-panel) !important;
+  color: var(--kicad-pcb-fg) !important;
 }
 
 button,
@@ -125,7 +125,7 @@ select {
 }
 
 kc-ui-icon {
-  color: var(--backplane-accent) !important;
+  color: var(--kicad-pcb-accent) !important;
   font-family: inherit !important;
 }
 
@@ -133,13 +133,13 @@ kc-ui-icon {
   kc-board-properties-panel,
   kc-schematic-properties-panel {
     --floating-pro-panel-width: calc(100% - 1rem);
-    --backplane-properties-height: min(42vh, 20rem);
+    --kicad-pcb-properties-height: min(42vh, 20rem);
   }
 
-  kc-board-properties-panel[data-backplane-properties-expanded="true"],
-  kc-schematic-properties-panel[data-backplane-properties-expanded="true"],
-  :host([data-backplane-properties-expanded="true"]) {
-    --backplane-properties-height: min(84vh, 38rem);
+  kc-board-properties-panel[data-kicad-pcb-properties-expanded="true"],
+  kc-schematic-properties-panel[data-kicad-pcb-properties-expanded="true"],
+  :host([data-kicad-pcb-properties-expanded="true"]) {
+    --kicad-pcb-properties-height: min(84vh, 38rem);
   }
 
   :host(kc-ui-panel-title-with-close) {
@@ -323,7 +323,7 @@ function normalizeBooleanIcons(root) {
           ? "No"
           : undefined;
     if (!replacement || text === replacement) continue;
-    icon.dataset.backplaneBooleanIcon = replacement;
+    icon.dataset.kicadPcbBooleanIcon = replacement;
     icon.setAttribute("aria-label", replacement);
     icon.textContent = replacement;
   }
@@ -454,7 +454,7 @@ function renderAllProperties(parent, rows) {
 
 function createInspector() {
   const host = document.createElement("div");
-  host.dataset.backplanePropertyInspector = "true";
+  host.dataset.kicadPcbPropertyInspector = "true";
   const shadow = host.attachShadow({ mode: "open" });
   const style = document.createElement("style");
   style.textContent = INSPECTOR_CSS;
@@ -494,14 +494,14 @@ function updateInspector(panel, body, list, rows) {
     "toggle",
     expanded ? `Collapse properties (${propertyCount})` : `All properties (${propertyCount})`,
   );
-  const propertiesId = `backplane-properties-${++inspectorId}`;
+  const propertiesId = `kicad-pcb-properties-${++inspectorId}`;
   toggle.type = "button";
   toggle.setAttribute("aria-expanded", String(expanded));
   toggle.setAttribute("aria-controls", propertiesId);
   toggle.addEventListener("click", () => {
     state.expanded = !state.expanded;
-    if (state.expanded) panel.setAttribute("data-backplane-properties-expanded", "true");
-    else panel.removeAttribute("data-backplane-properties-expanded");
+    if (state.expanded) panel.setAttribute("data-kicad-pcb-properties-expanded", "true");
+    else panel.removeAttribute("data-kicad-pcb-properties-expanded");
     updateInspector(panel, body, list, rows);
   });
   header.append(heading, toggle);

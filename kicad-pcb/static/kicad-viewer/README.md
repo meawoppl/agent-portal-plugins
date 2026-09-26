@@ -1,6 +1,6 @@
 # KiCad viewer vendor bundle
 
-This directory contains the browser viewer artifacts used by Backplane's KiCad
+This directory contains the browser viewer artifacts used by KiCad PCB plugin
 views. The retained native controllers reuse the mature KiCanvas geometry
 engine/parser and the bundled Three.js assets; they keep the renderer and GPU
 context alive while saved sources are replaced. The ECAD bundle manifest records
@@ -16,7 +16,7 @@ The Gerber camera hook at `src/kicad/vendor/fabrication-viewport.ts` and the
 server renderer at `apps/server/src/kicad/vendor/prismGerber.ts` retain the
 Apache-2.0 KiCAD-Prism parser/renderer, with attribution and the vendor license
 kept beside the source. `runtime.html`, `runtime.js`, `retained-native-viewer.js`,
-`model-appearance.js`, and `schematic-sizing.js` are Backplane adapters. The
+`model-appearance.js`, and `schematic-sizing.js` are KiCad PCB adapters. The
 native controllers retain parsed layers and cameras across updates, use
 highlight overlays for selection, and keep layer colors available to the UI.
 

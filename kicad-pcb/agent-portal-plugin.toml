@@ -2,7 +2,7 @@ schema_version = 1
 name = "kicad-pcb"
 display_name = "KiCad PCB"
 description = "KiCad PCB workbench for KiCad review, checks, fabrication export, BOMs, Gerbers, panelization, and 3D/STEP inspection."
-homepage = "https://github.com/i2cjak/Backplane"
+homepage = "https://github.com/meawoppl/agent-portal-plugins/tree/main/kicad-pcb"
 license = "MIT"
 
 [compat]

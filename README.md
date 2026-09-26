@@ -7,16 +7,16 @@ Each plugin lives in a subdirectory and contains its own
 Install syntax is intentionally subdirectory-aware:
 
 ```console
-agent-portal plugin install github:meawoppl/agent-portal-plugins//backplane
+agent-portal plugin install github:meawoppl/agent-portal-plugins//kicad-pcb
 ```
 
 The installed checkout still materializes as one plugin directory:
 
 ```text
-~/agent-portal-plugins/backplane
+~/agent-portal-plugins/kicad-pcb
 ```
 
 ## Plugins
 
-- [`backplane`](backplane/) - PCB/electronics workflow test plugin for the
+- [`kicad-pcb`](kicad-pcb/) - KiCad PCB/electronics workflow plugin for the
   Portal plugin architecture.

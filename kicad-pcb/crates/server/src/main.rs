@@ -2033,7 +2033,6 @@ async fn kct_version() -> Option<String> {
 fn kicad_cli() -> Option<String> {
     std::env::var("KICAD_PCB_KICAD_CLI")
         .ok()
-        .or_else(|| std::env::var("BACKPLANE_KICAD_CLI").ok())
         .or_else(|| std::env::var("KICAD_CLI").ok())
         .or_else(|| find_on_path("kicad-cli"))
 }
@@ -2318,15 +2317,15 @@ const viewerFrames = () => document.querySelectorAll("iframe.native-viewer, ifra
 const postSnapshot = async frame => {{
   if (frame.dataset.kind === "model") {{
     const payload = await loadSources();
-    frame.contentWindow?.postMessage({{type:"backplane-snapshot", kind:"model", url:modelUrl(payload.revision), active:true}}, location.origin);
+    frame.contentWindow?.postMessage({{type:"kicad-pcb-snapshot", kind:"model", url:modelUrl(payload.revision), active:true}}, location.origin);
     return;
   }}
   const payload = await loadSources();
-  frame.contentWindow?.postMessage({{type:"backplane-snapshot", kind:"native", context:frame.dataset.kind, revision:payload.revision, sources:payload.sources, active:true}}, location.origin);
+  frame.contentWindow?.postMessage({{type:"kicad-pcb-snapshot", kind:"native", context:frame.dataset.kind, revision:payload.revision, sources:payload.sources, active:true}}, location.origin);
 }};
 window.addEventListener("message", event => {{
   if (event.origin !== location.origin) return;
-  if (event.data?.type === "backplane-runtime-ready") {{
+  if (event.data?.type === "kicad-pcb-runtime-ready") {{
     const frame = [...viewerFrames()].find(item => item.contentWindow === event.source);
     if (frame) void postSnapshot(frame);
   }}

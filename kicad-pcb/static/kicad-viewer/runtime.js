@@ -36,13 +36,13 @@ window.addEventListener("keydown", (event) => {
     event.key === "H" ||
     event.key === "Escape"
   )
-    send({ type: "backplane-native-key", key: event.key });
+    send({ type: "kicad-pcb-native-key", key: event.key });
 });
 window.addEventListener("message", (event) => {
   if (
     event.source !== parent ||
     event.origin !== location.origin ||
-    event.data?.type !== "backplane-snapshot"
+    event.data?.type !== "kicad-pcb-snapshot"
   )
     return;
   const snapshot = event.data;
@@ -74,20 +74,20 @@ window.addEventListener("message", (event) => {
           viewer = new RetainedNativeViewer(host);
           viewer.addEventListener("selection", (event) =>
             send({
-              type: "backplane-selection",
+              type: "kicad-pcb-selection",
               selection: event.detail,
               userInitiated: event.detail?.userInitiated === true,
             }),
           );
           viewer.addEventListener("crossprobe", (event) =>
             send({
-              type: "backplane-crossprobe",
+              type: "kicad-pcb-crossprobe",
               selection: event.detail,
               userInitiated: event.detail?.userInitiated === true,
             }),
           );
           viewer.addEventListener("layers", (event) =>
-            send({ type: "backplane-layers", layers: event.detail }),
+            send({ type: "kicad-pcb-layers", layers: event.detail }),
           );
         }
         if (revision !== snapshot.revision) {
@@ -128,7 +128,7 @@ window.addEventListener("message", (event) => {
           if (snapshot.probe && probeId !== snapshot.probe.id) {
             probeId = snapshot.probe.id;
             const found = viewer.requestCrossProbe(snapshot.probe);
-            send({ type: "backplane-probe-result", found, value: snapshot.probe.value });
+            send({ type: "kicad-pcb-probe-result", found, value: snapshot.probe.value });
           }
           if (snapshot.netHighlight && netHighlightId !== snapshot.netHighlight.id) {
             netHighlightId = snapshot.netHighlight.id;
@@ -149,6 +149,6 @@ window.addEventListener("message", (event) => {
     });
 });
 parent.postMessage(
-  { type: "backplane-runtime-ready" },
+  { type: "kicad-pcb-runtime-ready" },
   location.origin === "null" ? "*" : location.origin,
 );

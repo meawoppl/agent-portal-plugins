@@ -11,7 +11,7 @@ The plugin provides:
 - `static/kicad-viewer/` carries bundled 3D/STEP viewer runtime
   assets.
 - `skills/pcb-workflow/SKILL.md` teaches agents how to use the workbench, and
-  `skills/kistack/` vendors Backplane's KiStack electronics skill bundle.
+  `skills/kistack/` vendors the KiStack electronics skill bundle.
 - `prompts/session.md` is the session reminder text Portal can inject.
 
 The workbench mirrors the KiCad panel shape: schematic, PCB, Gerbers,
@@ -125,7 +125,7 @@ http://127.0.0.1:48888/
 ```
 
 For production fabrication outputs, run setup once or set `KICAD_CLI` /
-`KICAD_PCB_KICAD_CLI` or legacy `BACKPLANE_KICAD_CLI` to a desired executable:
+`KICAD_PCB_KICAD_CLI` to a desired executable:
 
 ```console
 kicad-pcb/bin/kicad-pcb setup --install-kicad --install-kicad-tools

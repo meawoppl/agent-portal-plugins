@@ -60,8 +60,8 @@ export async function installCanvasPresentation(element) {
       ...viewer.theme,
       ...convertPalette(definition?.[section] ?? darkFallback[section], color),
     };
-    viewer.__backplaneLayerCache?.clear();
-    if (!viewer.__backplaneHiddenWorksheet) {
+    viewer.__kicadPcbLayerCache?.clear();
+    if (!viewer.__kicadPcbHiddenWorksheet) {
       const paint = viewer.paint.bind(viewer);
       const hidePaper = () => {
         const names =
@@ -78,7 +78,7 @@ export async function installCanvasPresentation(element) {
         hidePaper();
         return result;
       };
-      viewer.__backplaneHiddenWorksheet = true;
+      viewer.__kicadPcbHiddenWorksheet = true;
     }
     viewer.renderer.background_color = viewer.theme.background;
     if (viewer.renderer.gl) viewer.renderer.gl.clearColor(...viewer.theme.background.to_array());

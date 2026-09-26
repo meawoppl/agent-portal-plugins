@@ -89,7 +89,7 @@ function rebindBBox(entry, item) {
 }
 
 export function installNativeLayerCache(core) {
-  if (!core || core.__backplaneLayerCache) return core?.__backplaneLayerCache;
+  if (!core || core.__kicadPcbLayerCache) return core?.__kicadPcbLayerCache;
   const state = {
     activeSignatures: new Map(),
     nextSignatures: new Map(),
@@ -172,7 +172,7 @@ export function installNativeLayerCache(core) {
       state.nextContext = undefined;
     },
   };
-  core.__backplaneLayerCache = api;
+  core.__kicadPcbLayerCache = api;
   return api;
 }
 

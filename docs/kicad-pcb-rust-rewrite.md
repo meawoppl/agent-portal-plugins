@@ -8,10 +8,9 @@ single-binary plugin that follows the shape of
 Yew/Trunk frontend embedded into the server binary, and a narrow tool-runner
 boundary for KiCad/EDA commands.
 
-The rename from `backplane` to `kicad-pcb` is the first migration step. The
-viewer still contains Backplane-derived browser assets internally; those names
-should be treated as viewer protocol details until the viewer itself is split
-or repackaged.
+The plugin is named `kicad-pcb`. Viewer assets may still carry upstream
+implementation history in attribution files, but public commands, manifests,
+protocol messages, examples, and documentation should use the `kicad-pcb` name.
 
 ## Target Shape
 
@@ -21,7 +20,6 @@ kicad-pcb/
   Cargo.toml
   bin/
     kicad-pcb                # released Rust binary, or dev wrapper while building
-    backplane                # temporary compatibility wrapper
   crates/
     shared/                  # serde API types, no native-only deps
     server/                  # Axum app, tool runners, cache, static serving
@@ -92,10 +90,9 @@ Port the inline HTML/JS to Yew:
   - `GerberTab`
   - `LibrariesTab`
 
-Keep the existing `/kicad-viewer/runtime.html` iframe protocol initially:
-`backplane-snapshot`, `backplane-runtime-ready`, etc. Rename that protocol only
-when the vendored viewer is owned as a package and all assets are updated
-together.
+Keep the existing `/kicad-viewer/runtime.html` iframe shape initially, but name
+messages with the `kicad-pcb-*` prefix so browser tooling and diagnostics match
+the plugin name.
 
 ## Tool Runner Boundary
 
@@ -213,7 +210,7 @@ the backend can switch from `Command::new("kicad-cli")` to
 
 1. **Rename plugin to `kicad-pcb`**
    - Done in `agent-portal-plugins` commit `97b1f4a`.
-   - Keep `bin/backplane` compatibility wrapper temporarily.
+   - Public commands and docs use only `kicad-pcb`.
 
 2. **Introduce Rust workspace skeleton**
    - Add `Cargo.toml`, `crates/shared`, `crates/server`, `frontend`.
@@ -243,9 +240,9 @@ the backend can switch from `Command::new("kicad-cli")` to
    - Publish `ghcr.io/.../kicad-pcb-plugin` image.
 
 8. **Retire compatibility names**
-   - Remove `bin/backplane` wrapper.
-   - Migrate docs/examples from `.backplane.json` fallback to `.kicad-pcb.json`.
-   - Keep viewer protocol names until viewer package split.
+   - Remove legacy wrappers, env vars, config fallbacks, and protocol names.
+   - Keep only source attribution or third-party implementation terms where the
+     text names an upstream project.
 
 ## Acceptance
 

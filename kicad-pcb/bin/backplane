@@ -1,4 +1,0 @@
-#!/usr/bin/env sh
-SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-echo "warning: bin/backplane is deprecated; use bin/kicad-pcb instead" >&2
-exec "$SCRIPT_DIR/kicad-pcb" "$@"

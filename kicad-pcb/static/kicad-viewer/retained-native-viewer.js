@@ -170,7 +170,7 @@ function chooseFootprintHit(core, hits, position) {
 function installFootprintClickResolver(core) {
   if (
     !core?.board ||
-    core.__backplaneFootprintClickResolver ||
+    core.__kicadPcbFootprintClickResolver ||
     typeof core.on_click !== "function" ||
     typeof core.find_items_under_pos !== "function"
   )
@@ -190,7 +190,7 @@ function installFootprintClickResolver(core) {
       // connected net through the retained-viewer event listener for H.
       delete footprintSelection.net;
       delete footprintSelection.netCode;
-      core.__backplanePendingFootprintNet =
+      core.__kicadPcbPendingFootprintNet =
         physicalNet?.kind === "pad" && footprintAncestor(physicalNet.item) === selected.item
           ? physicalNet
           : undefined;
@@ -198,7 +198,7 @@ function installFootprintClickResolver(core) {
       try {
         return originalOnClick(position, ...args);
       } finally {
-        delete core.__backplanePendingFootprintNet;
+        delete core.__kicadPcbPendingFootprintNet;
         core.find_items_under_pos = originalFindItems;
       }
     }
@@ -213,12 +213,12 @@ function installFootprintClickResolver(core) {
     }
     return originalOnClick(position, ...args);
   };
-  core.__backplaneFootprintClickResolver = true;
+  core.__kicadPcbFootprintClickResolver = true;
 }
 
 function installClickPointerSync(core) {
   const canvas = core?.canvas;
-  if (!canvas || core.__backplaneClickPointerSync || typeof core.on_mouse_change !== "function")
+  if (!canvas || core.__kicadPcbClickPointerSync || typeof core.on_mouse_change !== "function")
     return;
   let down;
   let dragged = false;
@@ -263,11 +263,11 @@ function installClickPointerSync(core) {
     },
     { capture: true },
   );
-  core.__backplaneClickPointerSync = true;
+  core.__kicadPcbClickPointerSync = true;
 }
 
 function installShadowDragClickGuard(root) {
-  if (!root || root.__backplaneDragClickGuard) return;
+  if (!root || root.__kicadPcbDragClickGuard) return;
   let down;
   let dragged = false;
   const canvasFrom = (event) =>
@@ -303,7 +303,7 @@ function installShadowDragClickGuard(root) {
     },
     { capture: true },
   );
-  root.__backplaneDragClickGuard = true;
+  root.__kicadPcbDragClickGuard = true;
 }
 
 function cacheContext(core, sourceIndex) {
@@ -317,7 +317,7 @@ function timeout(ms) {
 }
 
 function installSchematicHydration(core, beforePaint) {
-  if (!core?.schematic || core.__backplaneHydratePaint) return;
+  if (!core?.schematic || core.__kicadPcbHydratePaint) return;
   installClickPointerSync(core);
   const paint = core.paint.bind(core);
   core.paint = (...args) => {
@@ -326,7 +326,7 @@ function installSchematicHydration(core, beforePaint) {
     beforePaint?.(core);
     return paint(...args);
   };
-  core.__backplaneHydratePaint = true;
+  core.__kicadPcbHydratePaint = true;
 }
 
 function paintGeometryGlow(
@@ -543,8 +543,8 @@ export class RetainedNativeViewer extends EventTarget {
     viewer.style.cssText = "display:block;width:100%;height:100%";
     viewer.addEventListener("ecad-viewer:selection", (event) => {
       const pendingNet =
-        this.core()?.__backplanePendingFootprintNet && event.detail?.itemType === "footprint"
-          ? this.core().__backplanePendingFootprintNet
+        this.core()?.__kicadPcbPendingFootprintNet && event.detail?.itemType === "footprint"
+          ? this.core().__kicadPcbPendingFootprintNet
           : undefined;
       const detail = pendingNet
         ? { ...event.detail, net: pendingNet.net, netCode: pendingNet.netCode }
@@ -614,7 +614,7 @@ export class RetainedNativeViewer extends EventTarget {
     installClickPointerSync(core);
     if (core.board) {
       const enhanceBoardPainter = (painter) => {
-        if (!painter || painter.__backplaneHighlight) return;
+        if (!painter || painter.__kicadPcbHighlight) return;
         const paintFootprintGlow = (footprint) => {
           painter.clear_interactive();
           const color = core.layers.selection_fg.color.constructor.from_css("#80dcff");
@@ -646,21 +646,21 @@ export class RetainedNativeViewer extends EventTarget {
         painter.outline_footprint = paintFootprintGlow;
         // Keep the selected item's underglow stable while the pointer moves.
         core.on_hover = () => {};
-        painter.__backplaneHighlight = true;
+        painter.__kicadPcbHighlight = true;
       };
-      if (!core.__backplaneCreatePainter) {
+      if (!core.__kicadPcbCreatePainter) {
         const createPainter = core.create_painter.bind(core);
         core.create_painter = (...args) => {
           const painter = createPainter(...args);
           enhanceBoardPainter(painter);
           return painter;
         };
-        core.__backplaneCreatePainter = true;
+        core.__kicadPcbCreatePainter = true;
       }
       installFootprintClickResolver(core);
       enhanceBoardPainter(core.painter);
     }
-    if (core.schematic && !core.__backplaneHighlight) {
+    if (core.schematic && !core.__kicadPcbHighlight) {
       // The bbox is used only to resolve the source item, never as selection artwork.
       core.paint_selected = (bbox) => {
         core.layers.selection_bg.clear();
@@ -686,7 +686,7 @@ export class RetainedNativeViewer extends EventTarget {
       };
       core.layers.overlay.clear();
       core.on_hover = () => {};
-      core.__backplaneHighlight = true;
+      core.__kicadPcbHighlight = true;
     }
   }
 

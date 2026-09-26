@@ -35,13 +35,15 @@ use tempfile::TempDir;
 use tokio::{
     process::Command,
     sync::{broadcast, mpsc, RwLock},
-    time::{sleep, Duration},
+    time::{timeout, Duration},
 };
 use tower_http::trace::TraceLayer;
 use walkdir::WalkDir;
 use zip::{write::SimpleFileOptions, ZipWriter};
 
 static VIEWER_ASSETS: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../../static/kicad-viewer");
+
+const FILE_WATCH_QUIET_PERIOD: Duration = Duration::from_millis(100);
 
 const TABS: &[&str] = &[
     "schematic",
@@ -762,11 +764,18 @@ async fn watch_project_files(state: AppState) -> Result<()> {
             continue;
         }
         let mut artifact_changed = event_affects_artifacts(&cwd, &event);
-        sleep(Duration::from_millis(150)).await;
-        while let Ok(Ok(event)) = rx.try_recv() {
-            if is_interesting_event(&cwd, &event) {
-                artifact_changed |= event_affects_artifacts(&cwd, &event);
-                sleep(Duration::from_millis(50)).await;
+        loop {
+            match timeout(FILE_WATCH_QUIET_PERIOD, rx.recv()).await {
+                Ok(Some(Ok(event))) => {
+                    if is_interesting_event(&cwd, &event) {
+                        artifact_changed |= event_affects_artifacts(&cwd, &event);
+                    }
+                }
+                Ok(Some(Err(err))) => {
+                    tracing::debug!(error = %err, "ignored file watch error");
+                }
+                Ok(None) => return Ok(()),
+                Err(_) => break,
             }
         }
         let projects = state.projects.clone();

@@ -29,7 +29,7 @@ use sha2::{Digest, Sha256};
 
 use crate::{
     sexp::{self, Sexp},
-    thumbnails::{JobState, RenderKind, RenderSpec, Renderer},
+    thumbnails::{file_digest, JobState, RenderKind, RenderSpec, Renderer},
     AppError, AppState, LibraryConfig, ProjectContext, ProjectQuery,
 };
 
@@ -1216,6 +1216,43 @@ fn footprint_pcb_text(
     )
 }
 
+/// Footprint reduced to only visible 3D model nodes.
+///
+/// The library view already renders the footprint itself in the Footprint cell.
+/// Rendering only the model here lets parts that reuse the same 3D asset share a
+/// single PNG/GLB render job instead of paying for the same STEP many times.
+fn model_only_footprint(fp: &Sexp) -> Sexp {
+    let mut items = vec![
+        Sexp::atom("footprint"),
+        Sexp::string("kicad-pcb-model"),
+        sexp::parse("(layer \"F.Cu\")").expect("static layer"),
+        sexp::parse("(attr smd)").expect("static attr"),
+    ];
+    items.extend(fp.children("model").cloned());
+    Sexp::List(items)
+}
+
+/// Stable identity for cache sharing across different paths to identical model
+/// bytes. The real render input keeps real paths so KiCad can open the model.
+fn model_cache_identity(model_node: &Sexp) -> String {
+    let mut identity = model_node.clone();
+    identity.walk_mut(&mut |node| {
+        if !node.is("model") {
+            return;
+        }
+        let Some(path) = node.str_at(1) else {
+            return;
+        };
+        let digest = file_digest(Path::new(&path)).unwrap_or_else(|| format!("missing:{path}"));
+        if let Some(fields) = node.items_mut() {
+            if fields.len() > 1 {
+                fields[1] = Sexp::string(&format!("sha256:{digest}"));
+            }
+        }
+    });
+    identity.to_string()
+}
+
 /// Rewrite model paths to resolved absolute files, dropping missing models.
 /// Returns the model refs and the files that exist.
 fn resolve_models(fp: &mut Sexp, resolver: &Resolver) -> (Vec<ModelRef>, Vec<PathBuf>) {
@@ -1901,6 +1938,7 @@ fn symbol_draft(
             kind: RenderKind::Symbol,
             item: name,
             input: symbol_lib_text(&chain, lib_version),
+            cache_identity: None,
             model_files: Vec::new(),
         }),
         placeholder: None,
@@ -1930,6 +1968,7 @@ fn footprint_drafts(
             kind: RenderKind::Footprint,
             item: "item".to_string(),
             input: footprint_mod_text(node, "item", version),
+            cache_identity: None,
             model_files: Vec::new(),
         }),
         placeholder: None,
@@ -1979,12 +2018,22 @@ fn footprint_drafts(
                 ),
             ));
         }
-        let pcb = footprint_pcb_text(&with_models, fpid, "", &ctx.pcb, THUMB_BOARD_THICKNESS);
+        let model_node = model_only_footprint(&with_models);
+        let cache_identity = model_cache_identity(&model_node);
+        let model_pcb = footprint_pcb_text(
+            &model_node,
+            "kicad-pcb-model",
+            "",
+            &ctx.pcb,
+            THUMB_BOARD_THICKNESS,
+        );
+        let glb_pcb = footprint_pcb_text(&model_node, "kicad-pcb-model", "", &ctx.pcb, "1.6");
         ThumbDraft {
             spec: Some(RenderSpec {
                 kind: RenderKind::Model,
                 item: String::new(),
-                input: pcb.clone(),
+                input: model_pcb,
+                cache_identity: Some(cache_identity.clone()),
                 model_files: files.clone(),
             }),
             placeholder: None,
@@ -1993,7 +2042,8 @@ fn footprint_drafts(
             glb: Some(RenderSpec {
                 kind: RenderKind::Glb,
                 item: String::new(),
-                input: footprint_pcb_text(&with_models, fpid, "", &ctx.pcb, "1.6"),
+                input: glb_pcb,
+                cache_identity: Some(cache_identity),
                 model_files: files,
             }),
         }
@@ -2241,6 +2291,31 @@ mod tests {
         let mut vars = HashMap::new();
         vars.insert("A".to_string(), "/x".to_string());
         assert_eq!(expand_vars("${A}/b $(A) ${B}", &vars), "/x/b /x ${B}");
+    }
+
+    #[test]
+    fn model_cache_identity_uses_model_content_not_path() {
+        let dir = tempfile::tempdir().unwrap();
+        let a = dir.path().join("a.step");
+        let b = dir.path().join("b.step");
+        std::fs::write(&a, b"same-step").unwrap();
+        std::fs::write(&b, b"same-step").unwrap();
+
+        let node = |name: &str, path: &Path| {
+            sexp::parse(&format!(
+                r#"(footprint "{name}" (layer "F.Cu") (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu")) (model "{}" (offset (xyz 1 2 3)) (scale (xyz 1 1 1)) (rotate (xyz 0 0 90))))"#,
+                path.display()
+            ))
+            .unwrap()
+        };
+
+        let ida = model_cache_identity(&model_only_footprint(&node("A", &a)));
+        let idb = model_cache_identity(&model_only_footprint(&node("B", &b)));
+        assert_eq!(ida, idb);
+
+        std::fs::write(&b, b"different-step").unwrap();
+        let changed = model_cache_identity(&model_only_footprint(&node("B", &b)));
+        assert_ne!(ida, changed);
     }
 
     #[test]

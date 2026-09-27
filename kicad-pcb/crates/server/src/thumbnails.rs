@@ -93,6 +93,10 @@ pub struct RenderSpec {
     pub item: String,
     /// Complete file contents handed to kicad-cli.
     pub input: String,
+    /// Optional normalized identity used only for cache-key generation. The
+    /// renderer still receives `input`; this lets equivalent generated inputs
+    /// share expensive renders while retaining real local paths for KiCad.
+    pub cache_identity: Option<String>,
     /// Model files referenced by `input`; their bytes participate in the key.
     pub model_files: Vec<PathBuf>,
 }
@@ -107,7 +111,7 @@ impl RenderSpec {
         cache_key(
             self.kind,
             &self.item,
-            &self.input,
+            self.cache_identity.as_deref().unwrap_or(&self.input),
             &model_hashes,
             kicad_version,
         )
@@ -713,12 +717,32 @@ mod tests {
             kind: RenderKind::Model,
             item: String::new(),
             input: "(kicad_pcb)".to_string(),
+            cache_identity: None,
             model_files: vec![model.clone()],
         };
         let first = spec.key("10");
         assert_eq!(first, spec.key("10"));
         std::fs::write(&model, b"two!").unwrap();
         assert_ne!(first, spec.key("10"));
+    }
+
+    #[test]
+    fn cache_identity_can_alias_different_generated_inputs() {
+        let a = RenderSpec {
+            kind: RenderKind::Model,
+            item: String::new(),
+            input: "(kicad_pcb (footprint \"A\"))".to_string(),
+            cache_identity: Some("same-model".to_string()),
+            model_files: Vec::new(),
+        };
+        let b = RenderSpec {
+            kind: RenderKind::Model,
+            item: String::new(),
+            input: "(kicad_pcb (footprint \"B\"))".to_string(),
+            cache_identity: Some("same-model".to_string()),
+            model_files: Vec::new(),
+        };
+        assert_eq!(a.key("10"), b.key("10"));
     }
 
     #[test]

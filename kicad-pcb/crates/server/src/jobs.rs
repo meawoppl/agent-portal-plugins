@@ -49,10 +49,11 @@ pub(crate) enum Stage {
     Jlcpcb,
     Glb,
     Step,
+    Quality,
 }
 
 impl Stage {
-    pub(crate) const ALL: [Stage; 8] = [
+    pub(crate) const ALL: [Stage; 9] = [
         Stage::Erc,
         Stage::Drc,
         Stage::Bom,
@@ -61,6 +62,7 @@ impl Stage {
         Stage::Jlcpcb,
         Stage::Glb,
         Stage::Step,
+        Stage::Quality,
     ];
 
     pub(crate) fn id(self) -> &'static str {
@@ -73,6 +75,7 @@ impl Stage {
             Stage::Jlcpcb => "jlcpcb",
             Stage::Glb => "glb",
             Stage::Step => "step",
+            Stage::Quality => "quality",
         }
     }
 
@@ -86,6 +89,7 @@ impl Stage {
             Stage::Jlcpcb => "JLCPCB",
             Stage::Glb => "GLB",
             Stage::Step => "STEP",
+            Stage::Quality => "Quality",
         }
     }
 
@@ -97,7 +101,7 @@ impl Stage {
     pub(crate) fn deps(self) -> (bool, bool) {
         match self {
             Stage::Erc | Stage::Bom | Stage::SchPdf => (true, false),
-            Stage::Drc | Stage::Jlcpcb => (true, true),
+            Stage::Drc | Stage::Jlcpcb | Stage::Quality => (true, true),
             Stage::Gerbers | Stage::Glb | Stage::Step => (false, true),
         }
     }
@@ -113,8 +117,15 @@ impl Stage {
             Stage::Bom => 50,
             Stage::Jlcpcb => 40,
             Stage::SchPdf => 30,
+            Stage::Quality => 20,
             Stage::Step => 10,
         }
+    }
+
+    /// Stages that shell out to kicad-cli. Quality runs kct and in-plugin
+    /// audits, so it works without KiCad.
+    pub(crate) fn needs_kicad(self) -> bool {
+        self != Stage::Quality
     }
 
     fn default_timeout(self) -> Duration {
@@ -311,6 +322,7 @@ pub(crate) fn stage_key(
     project: &ProjectContext,
     hashes: &SourceHashes,
     kicad_version: &str,
+    kct_version: &str,
 ) -> String {
     let mut digest = Sha256::new();
     digest.update(b"kicad-pcb-build/v1\0");
@@ -333,6 +345,20 @@ pub(crate) fn stage_key(
     if pcb {
         digest.update(b"\0pcb\0");
         digest.update(hashes.pcb.as_bytes());
+    }
+    if stage == Stage::Quality {
+        digest.update(b"\0quality\0");
+        digest.update(crate::quality::AUDIT_VERSION.as_bytes());
+        digest.update([0]);
+        digest.update(kct_version.as_bytes());
+        digest.update([0]);
+        digest.update(crate::quality::profile_sha(project).as_bytes());
+        digest.update([0]);
+        digest.update(
+            serde_json::to_string(&project.quality.config)
+                .unwrap_or_default()
+                .as_bytes(),
+        );
     }
     if stage == Stage::Jlcpcb {
         if let Some(path) = artifacts::placement_offsets_path(project) {
@@ -535,6 +561,7 @@ struct Inner {
     settings: BuildSettings,
     kicad_version: String,
     kicad_available: bool,
+    kct_version: String,
     projects: Vec<ProjectContext>,
     events: broadcast::Sender<ServerEvent>,
     completed: broadcast::Sender<String>,
@@ -558,6 +585,7 @@ impl BuildEngine {
         settings: BuildSettings,
         projects: Vec<ProjectContext>,
         kicad_version: Option<String>,
+        kct_version: Option<String>,
         events: broadcast::Sender<ServerEvent>,
     ) -> Self {
         let semaphore = Arc::new(Semaphore::new(settings.concurrency));
@@ -565,6 +593,7 @@ impl BuildEngine {
             inner: Arc::new(Inner {
                 kicad_available: kicad_version.is_some(),
                 kicad_version: kicad_version.unwrap_or_else(|| "unavailable".to_string()),
+                kct_version: kct_version.unwrap_or_else(|| "unavailable".to_string()),
                 settings,
                 projects,
                 events,
@@ -646,7 +675,13 @@ impl BuildEngine {
         let mut keys = BTreeMap::new();
         let mut results = BTreeMap::new();
         for stage in &settings.stages {
-            let key = stage_key(*stage, project, &hashes.hashes, &self.inner.kicad_version);
+            let key = stage_key(
+                *stage,
+                project,
+                &hashes.hashes,
+                &self.inner.kicad_version,
+                &self.inner.kct_version,
+            );
             let stage_dir = dir.join(stage_dir_name(*stage, &key));
             if mode == Mode::Force && !self.lock().running.contains_key(&key) {
                 let _ = std::fs::remove_dir_all(&stage_dir);
@@ -678,7 +713,7 @@ impl BuildEngine {
                     .filter(|status| &status.input_key == key);
                 let status = if let Some(result) = results.get(stage) {
                     status_from_result(*stage, result, prior.map(|p| !p.cached).unwrap_or(true))
-                } else if !self.inner.kicad_available {
+                } else if !self.inner.kicad_available && stage.needs_kicad() {
                     idle_status(*stage, key, "failed", Some("kicad-cli is required".into()))
                 } else if sched.running.contains_key(key) {
                     prior
@@ -793,7 +828,7 @@ impl BuildEngine {
             if let Some(result) = read_result(&dir) {
                 return Ok((result, dir));
             }
-            if !self.inner.kicad_available {
+            if !self.inner.kicad_available && stage.needs_kicad() {
                 return Err(anyhow!("kicad-cli is required"));
             }
             let limit = self.inner.settings.timeouts[&stage] * 4 + Duration::from_secs(60);
@@ -844,8 +879,14 @@ impl BuildEngine {
         project: &ProjectContext,
         stage: Stage,
     ) -> Result<kicad_pcb_shared::CheckResponse> {
-        if !self.inner.kicad_available || !self.inner.settings.stages.contains(&stage) {
-            return crate::run_check(project, stage.id()).await;
+        let uncached = (!self.inner.kicad_available && stage.needs_kicad())
+            || !self.inner.settings.stages.contains(&stage);
+        if uncached {
+            return if stage == Stage::Quality {
+                crate::quality::run_check(project).await
+            } else {
+                crate::run_check(project, stage.id()).await
+            };
         }
         let (_, dir) = self.ensure(project, stage).await?;
         let text = tokio::fs::read_to_string(dir.join("check.json"))
@@ -1030,6 +1071,7 @@ impl BuildEngine {
             project,
             &verify.hashes,
             &self.inner.kicad_version,
+            &self.inner.kct_version,
         );
         if verify_key != job.key {
             let _ = tokio::fs::remove_dir_all(&tmp).await;
@@ -1046,7 +1088,7 @@ impl BuildEngine {
             elapsed_ms,
             outputs,
             kicad_version: self.inner.kicad_version.clone(),
-            log: tail(&outcome.log, 8000),
+            log: tail_text(&outcome.log, 8000),
         };
         tokio::fs::write(tmp.join("result.json"), serde_json::to_vec_pretty(&result)?).await?;
         if final_dir.exists() {
@@ -1151,7 +1193,7 @@ fn list_outputs(dir: &Path) -> Vec<String> {
     outputs
 }
 
-fn tail(text: &str, limit: usize) -> String {
+pub(crate) fn tail_text(text: &str, limit: usize) -> String {
     if text.len() <= limit {
         return text.to_string();
     }
@@ -1556,14 +1598,43 @@ mod tests {
             pcb: "p2".into(),
             ..base.clone()
         };
-        let key = |stage, hashes: &SourceHashes| stage_key(stage, &project, hashes, "10.0.6");
+        let key =
+            |stage, hashes: &SourceHashes| stage_key(stage, &project, hashes, "10.0.6", "kct");
         assert_eq!(key(Stage::Erc, &base), key(Stage::Erc, &pcb_edit));
         assert_ne!(key(Stage::Drc, &base), key(Stage::Drc, &pcb_edit));
         assert_ne!(key(Stage::Glb, &base), key(Stage::Glb, &pcb_edit));
         assert_ne!(
-            stage_key(Stage::Erc, &project, &base, "10.0.6"),
-            stage_key(Stage::Erc, &project, &base, "10.0.7"),
+            stage_key(Stage::Erc, &project, &base, "10.0.6", "kct"),
+            stage_key(Stage::Erc, &project, &base, "10.0.7", "kct"),
             "KiCad upgrades invalidate outputs"
+        );
+        assert_ne!(key(Stage::Quality, &base), key(Stage::Quality, &pcb_edit));
+        let sch_edit = SourceHashes {
+            sch: "s2".into(),
+            ..base.clone()
+        };
+        assert_ne!(key(Stage::Quality, &base), key(Stage::Quality, &sch_edit));
+        assert_ne!(
+            stage_key(
+                Stage::Quality,
+                &project,
+                &base,
+                "10.0.6",
+                "kicad-tools 0.21.1"
+            ),
+            stage_key(
+                Stage::Quality,
+                &project,
+                &base,
+                "10.0.6",
+                "kicad-tools 0.22.0"
+            ),
+            "kct upgrades re-run quality checks"
+        );
+        assert_eq!(
+            stage_key(Stage::Erc, &project, &base, "10.0.6", "a"),
+            stage_key(Stage::Erc, &project, &base, "10.0.6", "b"),
+            "kct version only affects the quality stage"
         );
     }
 

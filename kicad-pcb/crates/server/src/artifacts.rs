@@ -207,6 +207,7 @@ pub(crate) async fn execute(stage: Stage, project: &ProjectContext, out: &Path) 
             )
             .await
         }
+        Stage::Quality => crate::quality::execute(project, out).await,
         Stage::Gerbers => Ok(json_outcome(&crate::export_fab(project, out, false).await?)),
         Stage::Jlcpcb => Ok(json_outcome(&crate::export_fab(project, out, true).await?)),
         Stage::Glb => {
@@ -411,6 +412,12 @@ fn publish_target(project: &ProjectContext, stage: Stage, file: &str) -> Option<
     let dir = match stage {
         Stage::Erc | Stage::Drc => {
             if file != format!("{}.json", stage.id()) {
+                return None;
+            }
+            artifact_dir(project, "checks")
+        }
+        Stage::Quality => {
+            if file != "quality.json" {
                 return None;
             }
             artifact_dir(project, "checks")
@@ -652,10 +659,12 @@ fn summarize(items: &[String]) -> String {
 pub(crate) fn doctor_report(
     projects: &[ProjectContext],
     kicad_version: Option<&str>,
+    kct_version: Option<&str>,
     config: Option<&jobs::BuildConfig>,
 ) -> serde_json::Value {
     let settings = jobs::BuildSettings::from_config(config);
     let kicad_version = kicad_version.unwrap_or("unavailable");
+    let kct_version = kct_version.unwrap_or("unavailable");
     let entries = projects
         .iter()
         .map(|project| {
@@ -671,7 +680,13 @@ pub(crate) fn doctor_report(
                 .map(|stage| {
                     (
                         *stage,
-                        jobs::stage_key(*stage, project, &hashes.hashes, kicad_version),
+                        jobs::stage_key(
+                            *stage,
+                            project,
+                            &hashes.hashes,
+                            kicad_version,
+                            kct_version,
+                        ),
                     )
                 })
                 .collect();

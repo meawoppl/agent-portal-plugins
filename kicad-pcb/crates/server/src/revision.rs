@@ -490,6 +490,7 @@ pub(crate) mod tests_support {
             shared_libraries: Default::default(),
             repo_root: repo.to_path_buf(),
             excluded_roots: excluded.iter().map(|item| repo.join(item)).collect(),
+            quality: Default::default(),
         }
     }
 }

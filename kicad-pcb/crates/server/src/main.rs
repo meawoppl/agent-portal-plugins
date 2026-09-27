@@ -2,10 +2,13 @@ mod artifacts;
 mod audits;
 mod bom;
 mod jobs;
+mod library;
 mod profile;
 mod quality;
 mod revision;
+mod sexp;
 mod sexpr;
+mod thumbnails;
 mod watch;
 use std::{
     collections::{HashMap, HashSet},
@@ -404,6 +407,7 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/file", get(file))
                 .route("/api/kicad/bom", get(bom::endpoint))
                 .route("/api/kicad/libraries", get(libraries_endpoint))
+                .merge(library::routes())
                 .route("/kicad-viewer/*path", get(viewer_asset))
                 .merge(jobs::routes())
                 .layer(TraceLayer::new_for_http())
@@ -2323,10 +2327,10 @@ body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,
 <section id="gerbers"><div class="card"><h2>Gerbers</h2><div class="gerber-layout"><div id="gerberViewer"></div><aside class="side-panel"><h3>Layers</h3><div id="gerberStatus" class="muted">Loading Gerber viewer...</div><ul id="gerberLayers"></ul><h3>Files</h3><div id="gerberOrigin" class="muted"></div><ul id="gerberFiles"></ul><div id="gerberWarnings"></div><div id="gerberSkipped" class="muted"></div></aside></div></div></section>
 <section id="step"><div class="card"><h2>STEP</h2><ul>{files}</ul></div></section>
 <section id="bom"><div class="card"><h2>BOM / Assembly CSV</h2><div id="bomContent">Select this tab to load BOM/assembly artifacts.</div></div></section>
-<section id="libraries"><div class="card"><h2>Libraries</h2><div id="librariesContent">Select this tab to load symbol, footprint, and 3D-model links.</div></div></section>
+<section id="libraries"><div class="card"><h2>Libraries</h2><div id="librariesContent">Select this tab to load the part library.</div></div></section>
 <section id="analysis"><div class="card"><h2>Analysis</h2><p class="muted">Analysis workflow is pending the Rust port.</p></div></section>
 <section id="panelization"><div class="card"><h2>Panelization</h2><p class="muted">Panelization workflow is pending the Rust port.</p></div></section>
-</main><script>
+</main><script src="/api/kicad/library/ui.js"></script><script>
 let sourceSnapshot;
 let sourceSnapshotPromise;
 let activeTab = "schematic";
@@ -2527,8 +2531,8 @@ const loadBom = async () => {{
 }};
 const loadLibraries = async () => {{
   const el=document.getElementById("librariesContent");
-  try {{ const r=await fetch(api("/api/kicad/libraries")); if(!r.ok) throw new Error(`HTTP ${{r.status}}`); el.innerHTML=await r.text(); }}
-  catch(e) {{ el.textContent=`Unable to load libraries: ${{e.message}}`; }}
+  if (window.KicadLibrary) return window.KicadLibrary.load(el, api);
+  el.textContent="Library view script failed to load.";
 }};
 const tableStyle=document.createElement("style");tableStyle.textContent=".bom-table,.library-link-table{{border-collapse:collapse;width:100%;font-size:13px}}.bom-table th,.bom-table td,.library-link-table th,.library-link-table td{{padding:8px;text-align:left;border-bottom:1px solid #565f89;white-space:pre-wrap;vertical-align:top}}.bom-table th,.library-link-table th{{position:sticky;top:0;background:#24283b}}";document.head.append(tableStyle);
 const refreshPane = async () => {{

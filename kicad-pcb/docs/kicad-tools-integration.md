@@ -24,7 +24,7 @@ resolves tools in this order:
 Install or refresh it with:
 
 ```console
-bin/kicad-pcb setup --install-kicad-tools
+bin/kicad-pcb-rs setup --install-kicad-tools
 ```
 
 The default package extra is `agent`, which expands to:
@@ -44,8 +44,8 @@ optional set, including heavier GPU/research dependencies. Use
 All calls should go through the plugin wrapper:
 
 ```console
-bin/kicad-pcb kct --json --cwd <repo> -- <kct arguments...>
-bin/kicad-pcb tool --json --cwd <repo> -- <kct|kicad-cli|kikit> <arguments...>
+bin/kicad-pcb-rs kct --json --cwd <repo> -- <kct arguments...>
+bin/kicad-pcb-rs tool --json --cwd <repo> -- <kct|kicad-cli|kikit> <arguments...>
 ```
 
 The wrapper forwards everything after `--` verbatim to the selected upstream
@@ -73,6 +73,33 @@ High-value `kicad-tools` capabilities:
 - Editing workflows: routing, route-auto, zones, stitching, clearance repair,
   footprint repair, ERC/DRC repair, placement analysis, and optimization.
 
+## Layout Quality Stage
+
+The `quality` build stage runs these commands and normalizes the results into
+the Checks tab's Layout quality card:
+
+```text
+kct check <pcb> --format json --drc-only [--mfr <profile manufacturing.fab>]
+kct -q detect-mistakes <pcb> --format json
+kct optimize-traces <scratch copy> --dry-run --format json
+```
+
+The integration is designed to track kct upgrades without plugin changes:
+
+- Every `kct check` rule id passes through, except families that duplicate
+  native KiCad DRC (`clearance*`, `dimension_*`, `min_*`, `hole_*`, and
+  similar). Set `quality.includeDrcRules` to keep those.
+- `detect-mistakes` findings become `mistake.<category>.<title-slug>`.
+- Rule ids map to `qualityProfile` items by substring (`via_in_pad`,
+  `via_under`, `pin1`, `width_consistency`, `cpl`, ...). A new upstream rule
+  therefore gets its severity from the profile as soon as it appears.
+- The kct version is part of the stage cache key.
+- Each in-plugin audit lists the kct rule ids that would replace it (see
+  `AUDITS` in `crates/server/src/audits.rs`). When `kct check` reports one of
+  those ids, the audit is skipped and the report lists it under
+  `audits.superseded_by_kct`. `quality.pluginAudits: false` turns off all
+  audits.
+
 ## Skill Interaction
 
 Agents should load the normal `pcb-workflow` skill for all KiCad work. Load
@@ -98,7 +125,7 @@ The current workbench tabs map to `kicad-tools` like this:
 | --- | --- | --- |
 | Schematic | KiCad viewer | `symbols`, `nets`, `sch summary`, `sch connections` |
 | PCB | KiCad viewer | `pcb summary`, `net-status`, routing/repair commands |
-| Checks | `kicad-cli` ERC/DRC | `check`, `validate --sync`, manufacturer DRC floors |
+| Checks | `kicad-cli` ERC/DRC | Layout quality card: `check`, `detect-mistakes`, `optimize-traces --dry-run`, plus plugin audits |
 | BOM | CSV discovery | `bom`, `parts availability`, BOM enrichment |
 | Libraries | local parser | symbol/footprint/model drift and model substitutions |
 | Gerbers | KiCad export + viewer | readiness artifact binding and submission review |

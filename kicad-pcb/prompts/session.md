@@ -3,8 +3,13 @@ KiCad PCB is available for this session. Use it for PCB and electronics work:
 - open the KiCad PCB surface when visual board, schematic, BOM, or Gerber state
   matters;
 - run doctor before relying on native KiCad tooling;
-- use script commands (`doctor`, `drc`, `erc`, `export jlcpcb`) as the proof
-  path for PCB changes;
+- use script commands (`doctor`, `drc`, `erc`, `quality`) as the proof path
+  for PCB changes. Read the workspace `qualityProfile` first. "DRC clean" is
+  not done until the layout-quality stage and the review checklist pass;
+- prefer `kct` commands over ad-hoc pcbnew scripts;
+- produce fab outputs with the build strip's Publish, not ad-hoc exports.
+  Check the stale badge, then post the Gerber ZIP, BOM, and CPL as separate
+  `portal://file/...` links;
 - when editing a PCB, identify the canonical configured `.kicad_pcb` path and
   keep saving meaningful milestones to that same active board unless the user
   explicitly asks for an alternate design;

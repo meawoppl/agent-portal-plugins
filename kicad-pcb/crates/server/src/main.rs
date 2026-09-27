@@ -1,6 +1,7 @@
 mod artifacts;
 mod audits;
 mod bom;
+mod jlc_corrections;
 mod jobs;
 mod library;
 mod profile;
@@ -1865,6 +1866,7 @@ async fn export_fab(
     let mut status = gerber.status | drill.status;
     let mut stdout = format!("{}{}", gerber.stdout, drill.stdout);
     let mut stderr = format!("{}{}", gerber.stderr, drill.stderr);
+    let mut corrections = None;
     if jlcpcb {
         if let Some(schematic) = pick_project_file(project, "kicad_sch")? {
             let bom = tmp.path().join(format!(
@@ -1927,13 +1929,15 @@ async fn export_fab(
             stderr.push_str(&pos.stderr);
             if raw.exists() {
                 convert_position_csv(&raw, &cpl)?;
-                if bom.exists() {
-                    if let Some(count) = artifacts::apply_placement_offsets(project, &bom, &cpl)? {
-                        stdout.push_str(&format!(
-                            "Applied JLCPCB placement offsets to {count} placements\n"
-                        ));
-                    }
-                }
+                let report = artifacts::apply_placement_corrections(
+                    project,
+                    Some(&schematic),
+                    &board,
+                    Some(&bom),
+                    &cpl,
+                )?;
+                stdout.push_str(&report.log());
+                corrections = Some(report);
             }
         }
     }
@@ -1955,8 +1959,19 @@ async fn export_fab(
         board.file_stem().unwrap().to_string_lossy()
     ));
     zip_artifacts(&zip, &copied)?;
+    // Sidecar record of every CPL correction (kept out of the upload ZIP).
+    let sidecar = out.join(format!(
+        "{}-placement-corrections.json",
+        board.file_stem().unwrap().to_string_lossy()
+    ));
+    match corrections.as_ref().filter(|report| !report.is_empty()) {
+        Some(report) => std::fs::write(&sidecar, serde_json::to_vec_pretty(report)?)?,
+        None if sidecar.is_file() => std::fs::remove_file(&sidecar)?,
+        None => {}
+    }
     Ok(serde_json::json!({
         "ok": status == 0,
+        "placement_corrections": corrections,
         "project": project.id,
         "board": rel(&project.root, &board)?,
         "out": out,

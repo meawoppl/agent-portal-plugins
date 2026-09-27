@@ -236,10 +236,14 @@ pub(crate) async fn execute(stage: Stage, project: &ProjectContext, out: &Path) 
 }
 
 // ---------------------------------------------------------------------------
-// JLCPCB placement offsets
+// JLCPCB placement corrections
+//
+// Part-level `JLCPCB Rotation Offset` / `JLCPCB Position Offset` fields (see
+// `jlc_corrections`) are the supported mechanism. The per-board LCSC-keyed
+// offsets table is still read as a deprecated fallback.
 
-/// Offsets file: `manufacturer.placementOffsets` (project-relative) or
-/// `docs/jlcpcb-placement-offsets.json` when present.
+/// Deprecated offsets table: `manufacturer.placementOffsets`
+/// (project-relative) or `docs/jlcpcb-placement-offsets.json` when present.
 pub(crate) fn placement_offsets_path(project: &ProjectContext) -> Option<PathBuf> {
     let configured = project
         .config
@@ -267,23 +271,90 @@ struct PlacementOffset {
     verified_native_rotation_degrees: Option<f64>,
 }
 
-/// Applies per-LCSC-part rotation/translation corrections to a JLCPCB CPL,
-/// with the same safety checks as the reference carrier export: translated
-/// parts must be top-side and still at their verified native rotation, and
-/// rotation corrections are top-side only.
-pub(crate) fn apply_placement_offsets(
-    project: &ProjectContext,
-    bom: &Path,
-    cpl: &Path,
-) -> Result<Option<usize>> {
-    let Some(offsets_path) = placement_offsets_path(project) else {
-        return Ok(None);
-    };
-    let offsets: BTreeMap<String, serde_json::Value> = serde_json::from_str(
-        &std::fs::read_to_string(&offsets_path)
-            .with_context(|| format!("read {}", offsets_path.display()))?,
-    )
-    .with_context(|| format!("parse {}", offsets_path.display()))?;
+/// One corrected CPL row.
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct AppliedCorrection {
+    pub reference: String,
+    pub layer: String,
+    /// `property` (part fields) or `table` (deprecated offsets file).
+    pub source: &'static str,
+    /// `footprint` / `schematic` for properties; the table path otherwise.
+    pub origin: String,
+    pub lcsc: Option<String>,
+    /// Rotation delta applied to the CPL row, degrees.
+    pub rotation_deg: f64,
+    /// Footprint-local offset from the part property (KiCad +Y down).
+    pub local_offset_mm: Option<[f64; 2]>,
+    /// Translation applied to the CPL row (+Y up).
+    pub cpl_offset_mm: [f64; 2],
+}
+
+impl AppliedCorrection {
+    fn describe(&self) -> String {
+        use crate::jlc_corrections::num;
+        let mut parts = Vec::new();
+        if self.rotation_deg != 0.0 {
+            parts.push(format!("rotation {:+}°", num(self.rotation_deg)));
+        }
+        if let Some([x, y]) = self.local_offset_mm {
+            parts.push(format!("local offset ({},{}) mm", num(x), num(y)));
+        }
+        if self.cpl_offset_mm != [0.0, 0.0] {
+            parts.push(format!(
+                "CPL shift ({},{}) mm",
+                num(self.cpl_offset_mm[0]),
+                num(self.cpl_offset_mm[1])
+            ));
+        }
+        if parts.is_empty() {
+            parts.push("none (explicit zero)".into());
+        }
+        format!(
+            "{} [{}] {} (source: {} {})",
+            self.reference,
+            self.layer,
+            parts.join(", "),
+            self.source,
+            self.origin
+        )
+    }
+}
+
+/// Everything the CPL correction pass did, for the build log and the
+/// `*-placement-corrections.json` sidecar.
+#[derive(Debug, Default, Serialize)]
+pub(crate) struct CorrectionReport {
+    pub applied: Vec<AppliedCorrection>,
+    pub warnings: Vec<String>,
+    /// Deprecated offsets table that was consulted, if any.
+    pub legacy_table: Option<String>,
+}
+
+impl CorrectionReport {
+    pub(crate) fn is_empty(&self) -> bool {
+        self.applied.is_empty() && self.warnings.is_empty() && self.legacy_table.is_none()
+    }
+
+    pub(crate) fn log(&self) -> String {
+        let mut out = String::new();
+        if !self.applied.is_empty() {
+            out.push_str(&format!(
+                "JLCPCB CPL corrections applied to {} placement{}:\n",
+                self.applied.len(),
+                if self.applied.len() == 1 { "" } else { "s" }
+            ));
+            for item in &self.applied {
+                out.push_str(&format!("  {}\n", item.describe()));
+            }
+        }
+        for warning in &self.warnings {
+            out.push_str(&format!("warning: {warning}\n"));
+        }
+        out
+    }
+}
+
+fn lcsc_by_ref(bom: &Path) -> Result<BTreeMap<String, String>> {
     let mut part_by_ref = BTreeMap::new();
     let mut reader = csv::Reader::from_path(bom)?;
     let headers = reader.headers()?.clone();
@@ -298,28 +369,116 @@ pub(crate) fn apply_placement_offsets(
             part_by_ref.insert(reference.trim().to_string(), part.clone());
         }
     }
+    Ok(part_by_ref)
+}
+
+/// Applies JLCPCB corrections to a CPL in place.
+///
+/// Part properties (footprint, else schematic symbol) take precedence. Parts
+/// without properties fall back to the deprecated LCSC-keyed table, with its
+/// original safety checks: translated parts must be top-side at their
+/// verified native rotation, and rotation corrections are top-side only.
+/// Invalid property values or failed table checks are errors.
+pub(crate) fn apply_placement_corrections(
+    project: &ProjectContext,
+    schematic: Option<&Path>,
+    board: &Path,
+    bom: Option<&Path>,
+    cpl: &Path,
+) -> Result<CorrectionReport> {
+    use crate::jlc_corrections::{self as jlc, clean};
+    let mut report = CorrectionReport::default();
+    let properties = jlc::collect(schematic, board, &mut report.warnings)?;
+    let part_by_ref = match bom {
+        Some(bom) if bom.is_file() => lcsc_by_ref(bom)?,
+        _ => BTreeMap::new(),
+    };
+    let mut table: BTreeMap<String, serde_json::Value> = BTreeMap::new();
+    if let Some(path) = placement_offsets_path(project) {
+        let rel = crate::rel(&project.root, &path).unwrap_or_else(|_| path.display().to_string());
+        table = serde_json::from_str(
+            &std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?,
+        )
+        .with_context(|| format!("parse {}", path.display()))?;
+        report.warnings.push(format!(
+            "{rel} is deprecated: move each entry to `{}` / `{}` fields on the parts (footprint-local frame) and delete the file",
+            jlc::ROTATION_FIELD,
+            jlc::POSITION_FIELD
+        ));
+        if part_by_ref.is_empty() {
+            report
+                .warnings
+                .push(format!("{rel} ignored: no JLCPCB BOM to map LCSC parts"));
+            table.clear();
+        }
+        report.legacy_table = Some(rel);
+    }
 
     let mut reader = csv::Reader::from_path(cpl)?;
     let mut writer = csv::Writer::from_writer(Vec::new());
     writer.write_record(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])?;
-    let mut adjusted = 0;
     for row in reader.records() {
         let row = row?;
-        let reference = row.get(0).unwrap_or_default();
+        let reference = row.get(0).unwrap_or_default().to_string();
         let parse = |index: usize| -> Result<f64> {
             row.get(index)
                 .unwrap_or_default()
                 .trim()
+                .trim_end_matches("mm")
                 .parse::<f64>()
                 .with_context(|| format!("CPL {reference}: bad number"))
         };
-        let (mut x, mut y, layer, native) =
-            (parse(1)?, parse(2)?, row.get(3).unwrap_or("T"), parse(4)?);
+        let (mut x, mut y, layer, native) = (
+            parse(1)?,
+            parse(2)?,
+            row.get(3).unwrap_or("T").to_string(),
+            parse(4)?,
+        );
         let mut rotation = native;
-        let part = part_by_ref.get(reference).cloned().unwrap_or_default();
-        if let Some(raw) = offsets.get(&part) {
+        let part = part_by_ref.get(&reference).cloned();
+        let lcsc = part.clone().filter(|value| !value.is_empty());
+        if let Some(resolved) = properties.get(&reference) {
+            if resolved.placement.bottom != (layer != "T") {
+                return Err(anyhow!(
+                    "{reference}: CPL side {layer} disagrees with the board footprint; re-export"
+                ));
+            }
+            if let Some(part) = &lcsc {
+                if table.contains_key(part) {
+                    report.warnings.push(format!(
+                        "{reference}: part property overrides the deprecated table entry for {part}"
+                    ));
+                }
+            }
+            let (dx, dy) = resolved.cpl_offset();
+            let delta = resolved.cpl_rotation();
+            x += dx;
+            y += dy;
+            rotation += delta;
+            if resolved.placement.bottom && resolved.correction.rotation_deg != 0.0 {
+                report.warnings.push(format!(
+                    "{reference}: bottom-side rotation correction applied mirrored ({:+}°); confirm in the JLCPCB preview",
+                    jlc::num(delta)
+                ));
+            }
+            report.applied.push(AppliedCorrection {
+                reference: reference.clone(),
+                layer: layer.clone(),
+                source: "property",
+                origin: resolved.origin.label().into(),
+                lcsc,
+                rotation_deg: clean(delta),
+                local_offset_mm: resolved.correction.has_offset().then_some([
+                    resolved.correction.offset_mm.0,
+                    resolved.correction.offset_mm.1,
+                ]),
+                cpl_offset_mm: [dx, dy],
+            });
+        } else if let Some(raw) = part.as_ref().and_then(|part| table.get(part)) {
+            let part = part.clone().unwrap_or_default();
             let offset: PlacementOffset = serde_json::from_value(raw.clone())
                 .with_context(|| format!("placement offset for {part}"))?;
+            let (mut dx, mut dy) = (0.0, 0.0);
             if offset.cpl_offset_x_mm != 0.0 || offset.cpl_offset_y_mm != 0.0 {
                 let verified = offset.verified_native_rotation_degrees.ok_or_else(|| {
                     anyhow!("placement offset for {part} translates but lacks verified_native_rotation_degrees")
@@ -329,8 +488,9 @@ pub(crate) fn apply_placement_offsets(
                         "{reference} ({part}): placement changed since offset was verified (side {layer}, rotation {native}); reverify the translation"
                     ));
                 }
-                x += offset.cpl_offset_x_mm;
-                y += offset.cpl_offset_y_mm;
+                (dx, dy) = (offset.cpl_offset_x_mm, offset.cpl_offset_y_mm);
+                x += dx;
+                y += dy;
             }
             if offset.rotation_offset_degrees != 0.0 {
                 if layer != "T" {
@@ -340,18 +500,29 @@ pub(crate) fn apply_placement_offsets(
                 }
                 rotation += offset.rotation_offset_degrees;
             }
-            adjusted += 1;
+            report.applied.push(AppliedCorrection {
+                reference: reference.clone(),
+                layer: layer.clone(),
+                source: "table",
+                origin: report.legacy_table.clone().unwrap_or_default(),
+                lcsc: Some(part),
+                rotation_deg: offset.rotation_offset_degrees,
+                local_offset_mm: None,
+                cpl_offset_mm: [dx, dy],
+            });
         }
         writer.write_record([
-            reference.to_string(),
-            format!("{x:.6}"),
-            format!("{y:.6}"),
-            layer.to_string(),
-            format!("{:.6}", rotation.rem_euclid(360.0)),
+            reference,
+            format!("{:.6}", clean(x)),
+            format!("{:.6}", clean(y)),
+            layer,
+            format!("{:.6}", jlc::normalize_degrees(rotation)),
         ])?;
     }
-    std::fs::write(cpl, writer.into_inner()?)?;
-    Ok(Some(adjusted))
+    if !report.applied.is_empty() {
+        std::fs::write(cpl, writer.into_inner()?)?;
+    }
+    Ok(report)
 }
 
 // ---------------------------------------------------------------------------
@@ -795,11 +966,38 @@ pub(crate) async fn gerbers_endpoint(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::jlc_corrections as jlc;
     use crate::revision::tests_support::project;
     use tempfile::TempDir;
 
+    fn footprint(reference: &str, layer: &str, at: &str, props: &[(&str, &str)]) -> String {
+        let props = props
+            .iter()
+            .map(|(name, value)| {
+                format!(r#"(property "{name}" "{value}" (at 0 0 0) (layer "F.Fab") (hide yes))"#)
+            })
+            .collect::<String>();
+        format!(
+            r#"(footprint "Lib:{reference}" (layer "{layer}") (at {at}) (property "Reference" "{reference}" (at 0 0 0) (layer "F.SilkS")) {props})"#
+        )
+    }
+
+    fn board(footprints: &[String]) -> String {
+        format!("(kicad_pcb (version 20260206) {})", footprints.join(" "))
+    }
+
+    fn rows(text: &str) -> BTreeMap<String, Vec<String>> {
+        text.lines()
+            .skip(1)
+            .map(|line| {
+                let cols: Vec<String> = line.split(',').map(str::to_string).collect();
+                (cols[0].clone(), cols)
+            })
+            .collect()
+    }
+
     #[test]
-    fn placement_offsets_apply_with_safety_checks() {
+    fn legacy_table_applies_with_safety_checks() {
         let tmp = TempDir::new().unwrap();
         let repo = tmp.path().canonicalize().unwrap();
         let project = project(&repo, "a", ".");
@@ -809,6 +1007,8 @@ mod tests {
             r#"{"C1":{"rotation_offset_degrees":-90},"C2":{"cpl_offset_y_mm":2.5,"verified_native_rotation_degrees":0}}"#,
         )
         .unwrap();
+        let pcb = repo.join("b.kicad_pcb");
+        std::fs::write(&pcb, board(&[])).unwrap();
         let bom = repo.join("BOM.csv");
         let cpl = repo.join("CPL.csv");
         std::fs::write(
@@ -821,9 +1021,13 @@ mod tests {
             "Designator,Mid X,Mid Y,Layer,Rotation\nU1,1,2,T,0\nU2,1,2,T,90\nJ1,5,5,T,0\nR1,3,3,B,180\n",
         )
         .unwrap();
+        let report = apply_placement_corrections(&project, None, &pcb, Some(&bom), &cpl).unwrap();
+        assert_eq!(report.applied.len(), 3);
+        assert!(report.applied.iter().all(|item| item.source == "table"));
+        assert!(report.warnings[0].contains("deprecated"));
         assert_eq!(
-            apply_placement_offsets(&project, &bom, &cpl).unwrap(),
-            Some(3)
+            report.legacy_table.as_deref(),
+            Some("docs/jlcpcb-placement-offsets.json")
         );
         let text = std::fs::read_to_string(&cpl).unwrap();
         assert!(text.contains("U1,1.000000,2.000000,T,270.000000"));
@@ -832,7 +1036,153 @@ mod tests {
         assert!(text.contains("R1,3.000000,3.000000,B,180.000000"));
 
         std::fs::write(&cpl, "Designator,Mid X,Mid Y,Layer,Rotation\nJ1,5,5,T,90\n").unwrap();
-        assert!(apply_placement_offsets(&project, &bom, &cpl).is_err());
+        assert!(apply_placement_corrections(&project, None, &pcb, Some(&bom), &cpl).is_err());
+    }
+
+    #[test]
+    fn part_properties_take_precedence_over_table() {
+        let tmp = TempDir::new().unwrap();
+        let repo = tmp.path().canonicalize().unwrap();
+        let project = project(&repo, "a", ".");
+        std::fs::create_dir_all(repo.join("docs")).unwrap();
+        // Table entry that would fail its native-rotation check if used.
+        std::fs::write(
+            repo.join("docs/jlcpcb-placement-offsets.json"),
+            r#"{"C2":{"cpl_offset_y_mm":9,"verified_native_rotation_degrees":0}}"#,
+        )
+        .unwrap();
+        let pcb = repo.join("b.kicad_pcb");
+        std::fs::write(
+            &pcb,
+            board(&[
+                footprint(
+                    "J1",
+                    "F.Cu",
+                    "5 -5 90",
+                    &[(jlc::POSITION_FIELD, "1, 0 mm"), (jlc::ROTATION_FIELD, "")],
+                ),
+                footprint("J2", "B.Cu", "8 -8 90", &[(jlc::POSITION_FIELD, "0,1")]),
+                footprint("U1", "B.Cu", "1 -2 0", &[(jlc::ROTATION_FIELD, "-90")]),
+            ]),
+        )
+        .unwrap();
+        let bom = repo.join("BOM.csv");
+        std::fs::write(
+            &bom,
+            "Comment,Designator,Footprint,LCSC Part #\ny,\"J1,J2\",f,C2\nx,U1,f,C1\n",
+        )
+        .unwrap();
+        let cpl = repo.join("CPL.csv");
+        std::fs::write(
+            &cpl,
+            "Designator,Mid X,Mid Y,Layer,Rotation\nJ1,5,5,T,90\nJ2,8,8,B,90\nU1,1,2,B,0\n",
+        )
+        .unwrap();
+        let report = apply_placement_corrections(&project, None, &pcb, Some(&bom), &cpl).unwrap();
+        let text = rows(&std::fs::read_to_string(&cpl).unwrap());
+        // Top, 90°: local +X maps to board -Y (up), i.e. CPL +Y.
+        assert_eq!(text["J1"], ["J1", "5.000000", "6.000000", "T", "90.000000"]);
+        // Bottom, 90°: local +Y mirrors to -Y, rotates to board -X.
+        assert_eq!(text["J2"], ["J2", "7.000000", "8.000000", "B", "90.000000"]);
+        // Bottom rotation corrections are mirrored.
+        assert_eq!(text["U1"], ["U1", "1.000000", "2.000000", "B", "90.000000"]);
+        assert!(report.applied.iter().all(|item| item.source == "property"));
+        assert_eq!(report.applied[0].local_offset_mm, Some([1.0, 0.0]));
+        assert_eq!(report.applied[0].cpl_offset_mm, [0.0, 1.0]);
+        assert!(report
+            .warnings
+            .iter()
+            .any(|w| w.starts_with("J1: part property overrides")));
+        assert!(report
+            .warnings
+            .iter()
+            .any(|w| w.starts_with("U1: bottom-side")));
+        let log = report.log();
+        assert!(log.contains(
+            "J1 [T] local offset (1,0) mm, CPL shift (0,1) mm (source: property footprint)"
+        ));
+
+        std::fs::write(
+            &pcb,
+            board(&[footprint(
+                "J1",
+                "F.Cu",
+                "5 -5 90",
+                &[(jlc::POSITION_FIELD, "1")],
+            )]),
+        )
+        .unwrap();
+        let err = apply_placement_corrections(&project, None, &pcb, Some(&bom), &cpl).unwrap_err();
+        assert!(format!("{err:#}").contains("J1"));
+    }
+
+    /// Reproduces the programming carrier's released (v1) corrected CPL from
+    /// part properties alone. Native rows are `kicad-cli pcb export pos
+    /// --use-drill-file-origin` output (aux origin 20,165); footprints are at
+    /// their `.kicad_pcb` placements.
+    #[test]
+    fn carrier_v1_cpl_from_part_properties() {
+        let tmp = TempDir::new().unwrap();
+        let repo = tmp.path().canonicalize().unwrap();
+        let project = project(&repo, "carrier", ".");
+        let rot = [(jlc::ROTATION_FIELD, "-90")];
+        let mut footprints = vec![
+            footprint(
+                "J3",
+                "F.Cu",
+                "100 22.8 180",
+                &[(jlc::POSITION_FIELD, "0,-1.425")],
+            ),
+            footprint("SW1", "F.Cu", "65 47", &[(jlc::POSITION_FIELD, "0,-2.75")]),
+            footprint("U1", "F.Cu", "80 31", &rot),
+            footprint("U2", "F.Cu", "100 31 -90", &rot),
+            footprint("D1", "F.Cu", "73 28 180", &[]),
+        ];
+        let tssop = [
+            ("U3", 12.0, 73.0),
+            ("U4", 49.0, 73.0),
+            ("U5", 12.0, 32.0),
+            ("U6", 49.0, 32.0),
+            ("U7", 96.0, 73.0),
+            ("U8", 133.0, 73.0),
+            ("U9", 96.0, 32.0),
+            ("U10", 133.0, 32.0),
+            ("U11", 122.0, 108.0),
+        ];
+        let mut native = String::from("Designator,Mid X,Mid Y,Layer,Rotation\n");
+        native.push_str("J3,80.000000,142.200000,T,180.000000\n");
+        native.push_str("SW1,45.000000,118.000000,T,0.000000\n");
+        native.push_str("U1,60.000000,134.000000,T,0.000000\n");
+        native.push_str("U2,80.000000,134.000000,T,-90.000000\n");
+        native.push_str("D1,53.000000,137.000000,T,180.000000\n");
+        let mut expected = BTreeMap::from([
+            ("J3", "80.000000,140.775000,T,180.000000".to_string()),
+            ("SW1", "45.000000,120.750000,T,0.000000".to_string()),
+            ("U1", "60.000000,134.000000,T,270.000000".to_string()),
+            ("U2", "80.000000,134.000000,T,180.000000".to_string()),
+            ("D1", "53.000000,137.000000,T,180.000000".to_string()),
+        ]);
+        for (reference, x, y) in tssop {
+            footprints.push(footprint(
+                reference,
+                "F.Cu",
+                &format!("{} {}", x + 20.0, 165.0 - y),
+                &rot,
+            ));
+            native.push_str(&format!("{reference},{x:.6},{y:.6},T,0.000000\n"));
+            expected.insert(reference, format!("{x:.6},{y:.6},T,270.000000"));
+        }
+        let pcb = repo.join("carrier.kicad_pcb");
+        std::fs::write(&pcb, board(&footprints)).unwrap();
+        let cpl = repo.join("CPL_carrier.csv");
+        std::fs::write(&cpl, native).unwrap();
+        let report = apply_placement_corrections(&project, None, &pcb, None, &cpl).unwrap();
+        assert_eq!(report.applied.len(), 13);
+        assert!(report.warnings.is_empty(), "{:?}", report.warnings);
+        let text = rows(&std::fs::read_to_string(&cpl).unwrap());
+        for (reference, row) in expected {
+            assert_eq!(text[reference][1..].join(","), row, "{reference}");
+        }
     }
 
     #[test]

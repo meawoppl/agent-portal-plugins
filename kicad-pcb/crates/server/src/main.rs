@@ -5,7 +5,9 @@ mod jobs;
 mod profile;
 mod quality;
 mod revision;
+mod sexp;
 mod sexpr;
+mod thumbnails;
 mod watch;
 use std::{
     collections::{HashMap, HashSet},

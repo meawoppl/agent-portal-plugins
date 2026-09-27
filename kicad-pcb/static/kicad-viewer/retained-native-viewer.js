@@ -177,6 +177,11 @@ function installFootprintClickResolver(core) {
     return;
   const originalOnClick = core.on_click.bind(core);
   const findItems = core.find_items_under_pos.bind(core);
+  const netSelectionItem = (net) => {
+    if (!net?.net) return undefined;
+    const number = Number(net.netCode);
+    return Number.isFinite(number) ? { net: String(net.net), number } : { net: String(net.net) };
+  };
   core.on_click = (position, ...args) => {
     const selected = chooseFootprintHit(core, findItems(position), position);
     const physicalNet = resolveBoardNetAtPoint(core.board, position, {
@@ -204,7 +209,8 @@ function installFootprintClickResolver(core) {
     }
     if (physicalNet?.item) {
       const originalFindItems = core.find_items_under_pos;
-      core.find_items_under_pos = () => [{ item: physicalNet.item }];
+      const item = netSelectionItem(physicalNet) ?? physicalNet.item;
+      core.find_items_under_pos = () => [{ item }];
       try {
         return originalOnClick(position, ...args);
       } finally {

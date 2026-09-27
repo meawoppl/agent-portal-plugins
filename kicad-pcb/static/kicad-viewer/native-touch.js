@@ -1,4 +1,6 @@
 // Adapt touch input to Prism's existing camera without replacing its renderer.
+import { prepareGestureSurface } from "./gesture-surface.js";
+
 const installed = new WeakSet();
 
 export function installNativeTouch(element) {
@@ -15,7 +17,7 @@ function installTouch(viewer) {
   const camera = viewer.viewport.camera;
   const fitZoom = camera.zoom;
   let previous;
-  canvas.style.touchAction = "none";
+  prepareGestureSurface(canvas);
 
   const position = (touches) => {
     if (!touches.length) return undefined;
@@ -65,7 +67,7 @@ function installTouch(viewer) {
   };
   const end = (event) => {
     event.stopImmediatePropagation();
-    previous = position(event.touches);
+    previous = event.touches.length ? position(event.touches) : undefined;
   };
   // Capture prevents Prism's legacy touch handler from applying a second camera move.
   const options = { capture: true, passive: false };

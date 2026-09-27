@@ -50,7 +50,9 @@ export function createBoardModel(host, status, options = {}) {
   renderer.domElement.setAttribute("aria-label", "3D board model");
   host.appendChild(renderer.domElement);
   const controls = new TrackballControls(camera, renderer.domElement);
-  controls.rotateSpeed = 1.6;
+  const pointerRotateSpeed = 1.6;
+  const touchRotateSpeed = 5.0;
+  controls.rotateSpeed = pointerRotateSpeed;
   controls.zoomSpeed = 1.05;
   controls.panSpeed = 0.42;
   controls.staticMoving = true;
@@ -151,7 +153,76 @@ export function createBoardModel(host, status, options = {}) {
     renderer.domElement.releasePointerCapture?.(event.pointerId);
     middlePan = undefined;
   };
+  const touchPointers = new Map();
+  let twoTouch;
+  const setTouchRotateActive = (enabled) => {
+    controls.rotateSpeed = enabled ? touchRotateSpeed : pointerRotateSpeed;
+  };
+  const touchPair = () => [...touchPointers.values()].slice(0, 2);
+  const touchCenter = (points) => ({
+    x: (points[0].x + points[1].x) / 2,
+    y: (points[0].y + points[1].y) / 2,
+  });
+  const touchDistance = (points) =>
+    Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+  const beginTwoTouch = (event) => {
+    const points = touchPair();
+    if (points.length < 2) return;
+    twoTouch = { center: touchCenter(points), distance: touchDistance(points) };
+    controls.enabled = false;
+    for (const id of touchPointers.keys()) renderer.domElement.setPointerCapture?.(id);
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+  const touchPanZoomDown = (event) => {
+    if (event.pointerType !== "touch" || disposed || !active) return;
+    touchPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (touchPointers.size >= 2) beginTwoTouch(event);
+    else setTouchRotateActive(true);
+  };
+  const touchPanZoomMove = (event) => {
+    if (event.pointerType !== "touch" || !touchPointers.has(event.pointerId)) return;
+    touchPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (!twoTouch) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const points = touchPair();
+    if (points.length < 2) return;
+    const center = touchCenter(points);
+    const distance = touchDistance(points);
+    panByPixels(center.x - twoTouch.center.x, center.y - twoTouch.center.y);
+    if (twoTouch.distance > 0 && distance > 0) {
+      camera.zoom = Math.max(
+        controls.minZoom,
+        Math.min(controls.maxZoom, camera.zoom * (distance / twoTouch.distance)),
+      );
+      camera.updateProjectionMatrix();
+      updateControls();
+    }
+    twoTouch = { center, distance };
+  };
+  const touchPanZoomEnd = (event) => {
+    if (event.pointerType !== "touch" || !touchPointers.has(event.pointerId)) return;
+    touchPointers.delete(event.pointerId);
+    renderer.domElement.releasePointerCapture?.(event.pointerId);
+    if (!twoTouch) {
+      setTouchRotateActive(touchPointers.size === 1);
+      return;
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (touchPointers.size >= 2) beginTwoTouch(event);
+    else {
+      twoTouch = undefined;
+      controls.enabled = active;
+      setTouchRotateActive(touchPointers.size === 1);
+    }
+  };
   controls.addEventListener("start", updateControls);
+  renderer.domElement.addEventListener("pointerdown", touchPanZoomDown, { capture: true });
+  renderer.domElement.addEventListener("pointermove", touchPanZoomMove, { capture: true });
+  renderer.domElement.addEventListener("pointerup", touchPanZoomEnd, { capture: true });
+  renderer.domElement.addEventListener("pointercancel", touchPanZoomEnd, { capture: true });
   renderer.domElement.addEventListener("pointerdown", middlePanDown, { capture: true });
   renderer.domElement.addEventListener("pointermove", middlePanMove, { capture: true });
   renderer.domElement.addEventListener("pointerup", middlePanEnd, { capture: true });
@@ -334,6 +405,10 @@ export function createBoardModel(host, status, options = {}) {
     observer.disconnect();
     controls.dispose();
     controls.removeEventListener("start", updateControls);
+    renderer.domElement.removeEventListener("pointerdown", touchPanZoomDown, { capture: true });
+    renderer.domElement.removeEventListener("pointermove", touchPanZoomMove, { capture: true });
+    renderer.domElement.removeEventListener("pointerup", touchPanZoomEnd, { capture: true });
+    renderer.domElement.removeEventListener("pointercancel", touchPanZoomEnd, { capture: true });
     renderer.domElement.removeEventListener("pointerdown", middlePanDown, { capture: true });
     renderer.domElement.removeEventListener("pointermove", middlePanMove, { capture: true });
     renderer.domElement.removeEventListener("pointerup", middlePanEnd, { capture: true });
@@ -356,7 +431,7 @@ export function createBoardModel(host, status, options = {}) {
       // geometries do not stay alive until the tab becomes visible again.
       if (!value) finishTransition();
       active = value;
-      controls.enabled = value;
+      controls.enabled = value && !twoTouch;
       if (active) resize();
     },
     dispose,

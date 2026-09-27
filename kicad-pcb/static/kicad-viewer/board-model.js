@@ -206,11 +206,16 @@ export function createBoardModel(host, status, options = {}) {
   renderer.domElement.addEventListener("lostpointercapture", middlePanEnd, { capture: true });
   renderer.domElement.addEventListener("pointermove", updateControls);
   renderer.domElement.addEventListener("wheel", updateControls, { passive: true });
-  const fit = (direction = new THREE.Vector3(1, 1.5, 1), up) => {
-    if (up) camera.up.copy(up);
+  const fit = (direction = new THREE.Vector3(1, 1.5, 1), up = new THREE.Vector3(0, 1, 0)) => {
+    camera.up.copy(up);
     fitOrthographicCamera(camera, radius, aspect, direction);
     controls.target.set(0, 0, 0);
-    controls.update();
+    camera.lookAt(controls.target);
+    controls.target0.copy(controls.target);
+    controls.position0.copy(camera.position);
+    controls.up0.copy(camera.up);
+    controls.zoom0 = camera.zoom;
+    controls.reset();
     invalidate();
   };
   const resize = () => {
@@ -232,8 +237,8 @@ export function createBoardModel(host, status, options = {}) {
   actions.className = "canvas-actions";
   for (const [label, action] of [
     ["Fit model", () => fit()],
-    ["Top", () => fit(new THREE.Vector3(0, 1, 0.001), new THREE.Vector3(0, 0, 1))],
-    ["Bottom", () => fit(new THREE.Vector3(0, -1, 0.001), new THREE.Vector3(0, 0, -1))],
+    ["Top", () => fit(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1))],
+    ["Bottom", () => fit(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, -1))],
   ]) {
     const button = document.createElement("button");
     button.textContent = label;

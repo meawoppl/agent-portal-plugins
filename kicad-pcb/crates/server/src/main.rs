@@ -2,6 +2,7 @@ mod artifacts;
 mod audits;
 mod bom;
 mod jobs;
+mod library;
 mod profile;
 mod quality;
 mod revision;
@@ -406,6 +407,7 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/file", get(file))
                 .route("/api/kicad/bom", get(bom::endpoint))
                 .route("/api/kicad/libraries", get(libraries_endpoint))
+                .merge(library::routes())
                 .route("/kicad-viewer/*path", get(viewer_asset))
                 .merge(jobs::routes())
                 .layer(TraceLayer::new_for_http())

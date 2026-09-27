@@ -2485,7 +2485,17 @@ const fetchGerberSources = async () => {{
     : "<li class='muted'>No Gerber or drill files yet.</li>";
   return `${{payload.origin}}-${{payload.stage || ""}}-${{payload.revision || ""}}`;
 }};
-const gerberSourcePayload = revision => gerberSources.map(item => ({{name:item.path.split("/").pop(), url:`${{item.url}}&rev=${{encodeURIComponent(revision || "current")}}`}}));
+const gerberSourcePayload = async revision => Promise.all(gerberSources.map(async item => {{
+  const url = `${{item.url}}&rev=${{encodeURIComponent(revision || "current")}}`;
+  const response = await fetch(url, {{cache:"no-store"}});
+  const contentType = response.headers.get("content-type") || "";
+  const bytes = await response.arrayBuffer();
+  const head = new TextDecoder("utf-8").decode(bytes.slice(0, Math.min(80, bytes.byteLength))).trimStart().toLowerCase();
+  if (!response.ok || head.startsWith("<!doctype") || head.startsWith("<html")) {{
+    throw new Error(`${{item.path}} returned ${{response.status}} ${{contentType || "unknown content"}} from ${{url}}`);
+  }}
+  return {{name:item.path.split("/").pop(), content:bytes}};
+}}));
 const loadGerbers = async () => {{
   if (gerberViewer) return gerberViewer;
   if (gerberLoadPromise) return gerberLoadPromise;
@@ -2502,7 +2512,7 @@ const loadGerbers = async () => {{
     const viewer = new module.GerberViewer({{controls:true, background:"#11131d", padding:18}});
     viewer.mount(document.getElementById("gerberViewer"));
     viewer.onChange(renderGerberProject);
-    const project = await viewer.setSources(gerberSourcePayload(sourceKey));
+    const project = await viewer.setSources(await gerberSourcePayload(sourceKey));
     gerberRevisionKey = sourceKey;
     renderGerberProject(project);
     viewer.fit();
@@ -2520,7 +2530,7 @@ const refreshGerbers = async () => {{
   const nextRevision = await fetchGerberSources();
   if (gerberRevisionKey === nextRevision || !gerberSources.length) return;
   gerberRevisionKey = nextRevision;
-  const project = await gerberViewer.setSources(gerberSourcePayload(nextRevision));
+  const project = await gerberViewer.setSources(await gerberSourcePayload(nextRevision));
   renderGerberProject(project);
   gerberViewer.resize();
 }};

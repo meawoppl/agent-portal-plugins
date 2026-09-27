@@ -23,7 +23,7 @@ use sha2::{Digest, Sha256};
 use tokio::{process::Command, sync::Notify};
 
 /// Bump when render inputs/outputs change shape so stale thumbnails are ignored.
-pub const RENDERER_VERSION: &str = "library-thumbs-v1";
+pub const RENDERER_VERSION: &str = "library-thumbs-v2";
 const RENDER_TIMEOUT: Duration = Duration::from_secs(120);
 const DEFAULT_WORKERS: usize = 2;
 const DEFAULT_CACHE_MB: u64 = 256;
@@ -66,7 +66,7 @@ impl RenderKind {
                 "--rotate",
                 "-50,0,35",
                 "--zoom",
-                "0.85",
+                "0.45",
                 "--background",
                 "transparent",
                 "--quality",
@@ -678,7 +678,7 @@ mod tests {
         // RENDERER_VERSION (and this value) when the format intentionally changes.
         assert_eq!(
             cache_key(RenderKind::Symbol, "R", "(symbol \"R\")", &[], "10.0.6"),
-            "8538322e9a86dff6a906b86cc6eec4a2"
+            "15d0e53b0bcbe6c57aa1ececc325fa32"
         );
         let other_model = vec![("/m/a.step".to_string(), Some("abd".to_string()))];
         let missing_model = vec![("/m/a.step".to_string(), None)];

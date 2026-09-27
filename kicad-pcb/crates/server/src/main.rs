@@ -2315,9 +2315,9 @@ fn workbench_html(
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KiCad PCB · Agent Portal</title>
 <style>
-body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}header{{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}a{{color:#7dcfff}}select{{border:1px solid #3b4261;border-radius:6px;background:#24283b;color:#c0caf5;padding:7px 10px}}.muted{{color:#9aa5ce}}.ok{{color:#9ece6a}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}code{{color:#7dcfff}}.check-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}}.check-summary{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}}.pill{{border:1px solid #3b4261;border-radius:999px;padding:4px 8px;background:#24283b;font-size:12px}}.pill.error{{border-color:#f7768e;color:#f7768e}}.pill.warning{{border-color:#e0af68;color:#e0af68}}.pill.ok{{border-color:#9ece6a;color:#9ece6a}}.issue-list{{display:grid;gap:8px}}.issue{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px}}.issue-head{{display:flex;gap:8px;align-items:center;justify-content:space-between}}.severity{{text-transform:uppercase;font-size:11px;letter-spacing:.04em;border-radius:4px;padding:2px 6px}}.severity.error{{background:#f7768e22;color:#f7768e}}.severity.warning{{background:#e0af6822;color:#e0af68}}.severity.info{{background:#7dcfff22;color:#7dcfff}}.quality-card{{grid-column:1/-1}}details.quality-rule{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:8px 10px;margin:6px 0}}details.quality-rule summary{{cursor:pointer;display:flex;gap:8px;align-items:center;flex-wrap:wrap}}details.quality-rule .issue-list{{margin-top:8px}}.items{{margin:8px 0 0;padding-left:18px}}details.raw{{margin-top:12px}}details.raw summary{{cursor:pointer;color:#7dcfff}}.gerber-layout{{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}}#gerberViewer{{height:70vh;min-height:420px;border:1px solid #3b4261;border-radius:8px;overflow:hidden;background:#11131d}}.side-panel{{border:1px solid #3b4261;border-radius:8px;background:#16161e;padding:10px;overflow:auto;max-height:70vh}}.side-panel h3{{font-size:13px;margin:0 0 8px;color:#e6e9f5}}.side-panel ul{{margin:0 0 14px;padding-left:18px}}.warning{{color:#e0af68}}@media (max-width: 860px){{header{{align-items:flex-start;flex-direction:column}}.gerber-layout{{grid-template-columns:1fr}}.side-panel{{max-height:none}}}}
+body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}header{{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}a{{color:#7dcfff}}select{{border:1px solid #3b4261;border-radius:6px;background:#24283b;color:#c0caf5;padding:7px 10px}}.muted{{color:#9aa5ce}}.ok{{color:#9ece6a}}.header-tools{{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}}.live-pill{{display:inline-flex;align-items:center;gap:7px;border:1px solid #3b4261;border-radius:999px;background:#24283b;color:#c0caf5;padding:7px 10px;font-size:12px;white-space:nowrap}}.live-dot{{width:8px;height:8px;border-radius:50%;background:#565f89;box-shadow:0 0 0 2px #565f8933}}.live-pill.live .live-dot{{background:#9ece6a;box-shadow:0 0 0 2px #9ece6a33}}.live-pill.busy .live-dot{{background:#7dcfff;box-shadow:0 0 0 2px #7dcfff33}}.live-pill.warn .live-dot{{background:#e0af68;box-shadow:0 0 0 2px #e0af6833}}.live-pill.dead .live-dot{{background:#f7768e;box-shadow:0 0 0 2px #f7768e33}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}code{{color:#7dcfff}}.check-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}}.check-summary{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}}.pill{{border:1px solid #3b4261;border-radius:999px;padding:4px 8px;background:#24283b;font-size:12px}}.pill.error{{border-color:#f7768e;color:#f7768e}}.pill.warning{{border-color:#e0af68;color:#e0af68}}.pill.ok{{border-color:#9ece6a;color:#9ece6a}}.issue-list{{display:grid;gap:8px}}.issue{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px}}.issue-head{{display:flex;gap:8px;align-items:center;justify-content:space-between}}.severity{{text-transform:uppercase;font-size:11px;letter-spacing:.04em;border-radius:4px;padding:2px 6px}}.severity.error{{background:#f7768e22;color:#f7768e}}.severity.warning{{background:#e0af6822;color:#e0af68}}.severity.info{{background:#7dcfff22;color:#7dcfff}}.quality-card{{grid-column:1/-1}}details.quality-rule{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:8px 10px;margin:6px 0}}details.quality-rule summary{{cursor:pointer;display:flex;gap:8px;align-items:center;flex-wrap:wrap}}details.quality-rule .issue-list{{margin-top:8px}}.items{{margin:8px 0 0;padding-left:18px}}details.raw{{margin-top:12px}}details.raw summary{{cursor:pointer;color:#7dcfff}}.gerber-layout{{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}}#gerberViewer{{height:70vh;min-height:420px;border:1px solid #3b4261;border-radius:8px;overflow:hidden;background:#11131d}}.side-panel{{border:1px solid #3b4261;border-radius:8px;background:#16161e;padding:10px;overflow:auto;max-height:70vh}}.side-panel h3{{font-size:13px;margin:0 0 8px;color:#e6e9f5}}.side-panel ul{{margin:0 0 14px;padding-left:18px}}.warning{{color:#e0af68}}@media (max-width: 860px){{header{{align-items:flex-start;flex-direction:column}}.header-tools{{justify-content:flex-start}}.gerber-layout{{grid-template-columns:1fr}}.side-panel{{max-height:none}}}}
 </style></head><body>
-<header><div><h1>KiCad PCB Workbench</h1><div class="muted">Session {session} · {cwd}</div></div><label class="muted">Board <select id="projectSelect">{project_options}</select></label></header>
+<header><div><h1>KiCad PCB Workbench</h1><div class="muted">Session {session} · {cwd}</div></div><div class="header-tools"><div id="liveIndicator" class="live-pill warn" title="Starting KiCad PCB workbench"><span class="live-dot"></span><span id="liveText">starting</span></div><label class="muted">Board <select id="projectSelect">{project_options}</select></label></div></header>
 <div id="buildStrip" data-project="{project_attr}"></div>
 <nav class="tabs">{tabs}</nav><main>
 <section id="schematic"><div class="card"><h2>Schematic</h2><iframe class="native-viewer" data-kind="schematic" src="/kicad-viewer/runtime.html"></iframe></div></section>
@@ -2535,36 +2535,119 @@ const loadLibraries = async () => {{
   el.textContent="Library view script failed to load.";
 }};
 const tableStyle=document.createElement("style");tableStyle.textContent=".bom-table,.library-link-table{{border-collapse:collapse;width:100%;font-size:13px}}.bom-table th,.bom-table td,.library-link-table th,.library-link-table td{{padding:8px;text-align:left;border-bottom:1px solid #565f89;white-space:pre-wrap;vertical-align:top}}.bom-table th,.library-link-table th{{position:sticky;top:0;background:#24283b}}";document.head.append(tableStyle);
+const live = {{
+  className:"warn",
+  label:"starting",
+  detail:"Workbench is starting",
+  busy:false,
+  socket:false,
+  lastHttp:0,
+  lastEvent:0,
+  lastRender:0,
+}};
+const setLive = (className, label, detail) => {{
+  live.className = className;
+  live.label = label;
+  live.detail = detail || label;
+  renderLive();
+}};
+const since = ts => {{
+  if (!ts) return "never";
+  const seconds = Math.max(0, Math.round((Date.now() - ts) / 1000));
+  if (seconds < 60) return `${{seconds}}s ago`;
+  return `${{Math.round(seconds / 60)}}m ago`;
+}};
+const renderLive = () => {{
+  const el = document.getElementById("liveIndicator");
+  const text = document.getElementById("liveText");
+  if (!el || !text) return;
+  el.className = `live-pill ${{live.busy ? "busy" : live.className}}`;
+  text.textContent = live.busy ? "refreshing" : live.label;
+  el.title = `${{live.detail}} · server ${{since(live.lastHttp)}} · event ${{since(live.lastEvent)}} · render ${{since(live.lastRender)}}`;
+}};
+const noteHttpOk = detail => {{
+  live.lastHttp = Date.now();
+  if (!live.busy) setLive(live.socket ? "live" : "warn", live.socket ? "live" : "polling", detail || (live.socket ? "Event stream connected" : "HTTP is alive; event stream reconnecting"));
+  renderLive();
+}};
+const noteRender = detail => {{
+  live.lastRender = Date.now();
+  if (!live.busy) setLive(live.socket ? "live" : "warn", live.socket ? "live" : "polling", detail || "View updated");
+  renderLive();
+}};
+const withBusy = async (label, action) => {{
+  live.busy = true;
+  live.detail = label;
+  renderLive();
+  try {{ return await action(); }}
+  finally {{
+    live.busy = false;
+    noteRender(label);
+  }}
+}};
+const pingHealth = async () => {{
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3500);
+  try {{
+    const response = await fetch("/healthz", {{signal:controller.signal, cache:"no-store"}});
+    if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+    noteHttpOk("Server health check passed");
+  }} catch (err) {{
+    setLive("dead", "stale", `Health check failed: ${{err?.message || err}}`);
+  }} finally {{
+    clearTimeout(timer);
+  }}
+}};
+setInterval(() => {{
+  const now = Date.now();
+  if (live.lastHttp && now - live.lastHttp > 25000) setLive("dead", "stale", "No successful server health check in 25s");
+  else if (!live.socket && live.lastHttp) setLive("warn", "polling", "HTTP is alive; event stream reconnecting");
+  renderLive();
+}}, 1000);
+setInterval(() => void pingHealth(), 10000);
 const refreshPane = async () => {{
   if (refreshInFlight) return;
   refreshInFlight = true;
   try {{
+    live.busy = true;
+    live.detail = "Checking project revision";
+    renderLive();
     const status = await fetch(api("/api/kicad/revision")).then(r => r.json());
+    noteHttpOk("Revision check completed");
     if (!sourceSnapshot || status.changed || status.revision !== sourceSnapshot.revision) {{
       sourceSnapshot = undefined;
       await loadSources();
       viewerFrames().forEach(frame => void postSnapshot(frame));
       if (activeTab === "checks") await loadChecks();
     }}
-  }} finally {{ refreshInFlight = false; }}
+  }} finally {{
+    live.busy = false;
+    refreshInFlight = false;
+    renderLive();
+  }}
 }};
 const applyRevision = async event => {{
   if (!event?.revision) return;
+  live.lastEvent = Date.now();
   const sourceChanged = sourceSnapshot?.revision !== event.revision;
   if (sourceChanged) {{
-    sourceSnapshot = undefined;
-    await loadSources();
-    // The retained native viewer prepares replacement sources internally and
-    // keeps the previous canvas alive until the new parse/render is usable.
-    viewerFrames().forEach(frame => void postSnapshot(frame));
+    await withBusy("Applying changed KiCad sources", async () => {{
+      sourceSnapshot = undefined;
+      await loadSources();
+      // The retained native viewer prepares replacement sources internally and
+      // keeps the previous canvas alive until the new parse/render is usable.
+      viewerFrames().forEach(frame => void postSnapshot(frame));
+    }});
   }}
   if (activeTab === "checks") await loadChecks();
   if (activeTab === "bom") await loadBom();
   if (activeTab === "libraries") await loadLibraries();
+  if (!sourceChanged) noteRender("Revision event received");
 }};
 let buildStageKeys = {{}};
 let buildPublishKey;
 const applyBuild = async event => {{
+  live.lastEvent = Date.now();
   window.dispatchEvent(new CustomEvent("kicad-pcb-build", {{detail:event}}));
   const done = {{}};
   for (const stage of event.status?.stages || []) {{
@@ -2578,15 +2661,26 @@ const applyBuild = async event => {{
   const publishKey = JSON.stringify(event.status?.publish || {{}});
   const published = publishKey !== buildPublishKey;
   buildPublishKey = publishKey;
-  if (checks && activeTab === "checks") await loadChecks();
-  if (gerbers || published) await refreshGerbers();
-  if (model) document.querySelectorAll("iframe.model-viewer").forEach(frame => void postSnapshot(frame));
+  if (checks && activeTab === "checks") await withBusy("Refreshing checks", loadChecks);
+  if (gerbers || published) await withBusy("Refreshing Gerbers", refreshGerbers);
+  if (model) {{
+    document.querySelectorAll("iframe.model-viewer").forEach(frame => void postSnapshot(frame));
+    noteRender("3D model refreshed");
+  }}
 }};
 const connectEvents = () => {{
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
   const socket = new WebSocket(`${{proto}}//${{location.host}}/ws/events?${{projectParam()}}`);
+  setLive("warn", "connecting", "Connecting event stream");
+  socket.onopen = () => {{
+    live.socket = true;
+    live.lastEvent = Date.now();
+    setLive("live", "live", "Event stream connected");
+  }};
   socket.onmessage = event => {{
     try {{
+      live.socket = true;
+      live.lastEvent = Date.now();
       const payload = JSON.parse(event.data);
       if (payload.type === "Revision") void applyRevision(payload);
       if (payload.type === "Build") void applyBuild(payload);
@@ -2594,7 +2688,11 @@ const connectEvents = () => {{
       console.warn("KiCad PCB event decode failed", err);
     }}
   }};
-  socket.onclose = () => setTimeout(connectEvents, 1000);
+  socket.onclose = () => {{
+    live.socket = false;
+    setLive(live.lastHttp ? "warn" : "dead", live.lastHttp ? "polling" : "reconnecting", "Event stream closed; reconnecting");
+    setTimeout(connectEvents, 1000);
+  }};
   socket.onerror = () => socket.close();
 }};
 const setTab = id => {{
@@ -2615,8 +2713,16 @@ document.getElementById("projectSelect")?.addEventListener("change", event => {{
   location.href = url.toString();
 }});
 setTab(document.getElementById(location.hash.slice(1)) ? location.hash.slice(1) : "schematic");
-loadSources().then(() => viewerFrames().forEach(frame => void postSnapshot(frame))).catch(err => console.warn("KiCad PCB preload failed", err));
+withBusy("Loading initial KiCad sources", async () => {{
+  await loadSources();
+  viewerFrames().forEach(frame => void postSnapshot(frame));
+  noteHttpOk("Initial sources loaded");
+}}).catch(err => {{
+  setLive("dead", "failed", `Initial source load failed: ${{err?.message || err}}`);
+  console.warn("KiCad PCB preload failed", err);
+}});
 connectEvents();
+void pingHealth();
 document.addEventListener("visibilitychange", () => {{ if (!document.hidden) void refreshPane(); }});
 </script><script src="/kicad-pcb/build-strip.js"></script></body></html>"##,
         session = escape(session),

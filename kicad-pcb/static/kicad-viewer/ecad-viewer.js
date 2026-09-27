@@ -6145,6 +6145,8 @@ var Bt = class extends HTMLElement {
     return this.shadowRoot ?? this;
   }
   connectedCallback() {
+    if (this.__kicadPcbConnected) return;
+    this.__kicadPcbConnected = !0;
     this.#e();
   }
   disconnectedCallback() {
@@ -6175,7 +6177,7 @@ var Bt = class extends HTMLElement {
     let t = this.constructor;
     return (
       (this.updateComplete = new ar()),
-      this.constructor.useShadowRoot && this.attachShadow({ mode: "open" }),
+      this.constructor.useShadowRoot && !this.shadowRoot && this.attachShadow({ mode: "open" }),
       t.styles && Qu(this.shadowRoot ?? document, Yu(t.styles)),
       (async () => {
         let r = this.render();

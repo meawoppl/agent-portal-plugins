@@ -1597,6 +1597,30 @@ fn part_group_identity(fields: &[(String, String)]) -> String {
     values.join("|")
 }
 
+fn is_test_point_part(reference: &str, symbol: Option<&str>, fpid: Option<&str>) -> bool {
+    let has_tp_ref = reference
+        .strip_prefix("TP")
+        .is_some_and(|suffix| suffix.chars().all(|ch| ch.is_ascii_digit()));
+    let names_test_point = symbol
+        .into_iter()
+        .chain(fpid)
+        .any(|name| name.to_ascii_lowercase().contains("testpoint"));
+    has_tp_ref || names_test_point
+}
+
+fn grouped_part_identity(
+    reference: &str,
+    symbol: Option<&str>,
+    fpid: Option<&str>,
+    fields: &[(String, String)],
+) -> String {
+    if is_test_point_part(reference, symbol, fpid) {
+        String::new()
+    } else {
+        part_group_identity(fields)
+    }
+}
+
 fn physical_part_symbol_identity(
     sch: &SchData,
     instance: Option<&SchInstance>,
@@ -1882,7 +1906,8 @@ fn build_inventory(repo_root: &Path, project: &ProjectContext) -> Result<Invento
         if let Some(footprint) = footprint {
             part_fields.extend(footprint.fields.iter().cloned());
         }
-        let part_identity = part_group_identity(&part_fields);
+        let part_identity =
+            grouped_part_identity(reference, symbol.as_deref(), fpid.as_deref(), &part_fields);
         let key = (
             physical_part_symbol_identity(&ctx.sch, *instance, fpid.as_deref(), &part_fields),
             fpid.clone().unwrap_or_default(),
@@ -2548,6 +2573,33 @@ mod tests {
             ("Footprint".to_string(), "R_0603".to_string()),
         ];
         assert_ne!(part_group_identity(&resistor), part_group_identity(&other));
+    }
+
+    #[test]
+    fn test_point_values_are_net_labels_not_part_identity() {
+        let tp1 = vec![
+            ("Value".to_string(), "FPGA_CRESET_N".to_string()),
+            ("Footprint".to_string(), "Module:TestPoint_0p8".to_string()),
+        ];
+        let tp2 = vec![
+            ("Value".to_string(), "FPGA_CDONE".to_string()),
+            ("Footprint".to_string(), "Module:TestPoint_0p8".to_string()),
+        ];
+        assert_eq!(
+            grouped_part_identity(
+                "TP1",
+                Some("Module:TP1"),
+                Some("Module:TestPoint_0p8"),
+                &tp1
+            ),
+            grouped_part_identity(
+                "TP2",
+                Some("Module:TP2"),
+                Some("Module:TestPoint_0p8"),
+                &tp2
+            )
+        );
+        assert_ne!(part_group_identity(&tp1), part_group_identity(&tp2));
     }
 
     #[test]

@@ -31,6 +31,10 @@
 .lib-stats{color:#9aa5ce;font-size:12px}
 .lib-section-title{margin:18px 0 8px;font-size:14px;color:#e6e9f5;display:flex;gap:8px;align-items:baseline}
 .lib-section-title .muted{font-weight:normal;font-size:12px}
+.lib-collapsible{margin-top:18px}
+.lib-collapsible summary.lib-section-title{cursor:pointer;user-select:none}
+.lib-collapsible summary.lib-section-title::marker{color:#7dcfff}
+.lib-collapsible .lib-grid{margin-top:8px}
 .lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
 .lib-card{border:1px solid #3b4261;border-radius:8px;background:#1a1b26;overflow:hidden;display:flex;flex-direction:column}
 .lib-card.hidden{display:none}
@@ -128,6 +132,7 @@
       .toLowerCase();
 
   const hasIssue = part => (part.badges || []).some(b => b.level === "error" || b.level === "warning");
+  const isPowerPart = part => (part.badges || []).some(b => b.id === "power");
 
   const cardHtml = (part, section) => {
     const badges = (part.badges || [])
@@ -165,7 +170,7 @@
       const section = card.dataset.section;
       const matchesFilter =
         state.filter === "all" ||
-        (state.filter === "used" && section === "used") ||
+        (state.filter === "used" && (section === "used" || section === "power")) ||
         (state.filter === "unused" && section === "unused") ||
         (state.filter === "issues" && card.dataset.issue === "1");
       card.classList.toggle("hidden", !(matchesQuery && matchesFilter));
@@ -183,11 +188,15 @@
     const data = state.data;
     const warnings = (data.warnings || []).map(w => `<div class="lib-warn">${esc(w)}</div>`).join("");
     const libs = (data.libraries || []).map(lib => `<code>${esc(lib.nickname)}</code> ${esc(lib.kind)} (${lib.items})`).join(" · ");
+    const physicalParts = (data.parts || []).filter(part => !isPowerPart(part));
+    const powerParts = (data.parts || []).filter(isPowerPart);
+    const unusedParts = data.unused || [];
     state.el.innerHTML = `<div class="lib-toolbar"><input type="search" class="lib-search" placeholder="Filter by ref, value, symbol, footprint, LCSC, MPN, badge..." value="${esc(state.query)}">
 <select class="lib-filter"><option value="all">All items</option><option value="used">Used in design</option><option value="unused">Unused library items</option><option value="issues">Needs attention</option></select>
 <span class="lib-stats"></span></div>${warnings}${libs ? `<div class="lib-stats">Project libraries: ${libs}</div>` : ""}
-<div class="lib-section" data-section="used"><div class="lib-section-title">Used in design <span class="muted"><span class="lib-count"></span> parts</span></div><div class="lib-grid">${(data.parts || []).map(p => cardHtml(p, "used")).join("")}</div></div>
-<div class="lib-section" data-section="unused"><div class="lib-section-title">Unused library items <span class="muted"><span class="lib-count"></span> items</span></div><div class="lib-grid">${(data.unused || []).map(p => cardHtml(p, "unused")).join("")}</div></div>
+<div class="lib-section" data-section="used"><div class="lib-section-title">Used in design <span class="muted"><span class="lib-count"></span> parts</span></div><div class="lib-grid">${physicalParts.map(p => cardHtml(p, "used")).join("")}</div></div>
+<details class="lib-section lib-collapsible" data-section="power"><summary class="lib-section-title">Power symbols <span class="muted"><span class="lib-count"></span> symbols</span></summary><div class="lib-grid">${powerParts.map(p => cardHtml(p, "power")).join("")}</div></details>
+<details class="lib-section lib-collapsible" data-section="unused"><summary class="lib-section-title">Unused library items <span class="muted"><span class="lib-count"></span> items</span></summary><div class="lib-grid">${unusedParts.map(p => cardHtml(p, "unused")).join("")}</div></details>
 <details class="raw lib-legacy"><summary>Reference link table</summary><div class="lib-legacy-body muted">Loading...</div></details>`;
     const search = state.el.querySelector(".lib-search");
     search.addEventListener("input", () => {

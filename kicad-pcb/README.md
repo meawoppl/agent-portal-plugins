@@ -137,6 +137,26 @@ kicad-pcb/bin/kicad-pcb-rs erc --json --cwd /path/to/hardware/repo --project boa
 kicad-pcb/bin/kicad-pcb-rs export jlcpcb --cwd /path/to/hardware/repo --project board-a --out build/jlcpcb
 ```
 
+## Library View
+
+The workbench **Libraries** tab is a card grid with one card per unique
+(symbol, footprint, 3D model set) in the design, plus unused items from
+project-local libraries (`sym-lib-table`/`fp-lib-table` entries inside the repo
+and `.kicad-pcb.json` `libraries`). Each card shows a symbol | footprint | 3D
+triptych rendered with `kicad-cli`, the references using it, values, LCSC/MPN
+fields, and badges for missing 3D models, missing model files, and board or
+schematic copies that drifted from the library. Clicking a render opens the
+interactive KiCanvas/Three.js viewers.
+
+Renders are content-addressed (item s-expression, referenced model bytes,
+kicad-cli version, render parameters, renderer version) under
+`.portal/cache/<repo-hash>/library/`, rendered lazily by a bounded worker pool
+that prioritizes visible cards. `KICAD_PCB_LIBRARY_WORKERS` (default 2) and
+`KICAD_PCB_LIBRARY_CACHE_MB` (default 256, LRU GC) tune the pool and cache.
+APIs: `/api/kicad/library`, `/api/kicad/library/status`,
+`/api/kicad/library/thumb/<key>.{svg,png}`; the legacy
+`/api/kicad/libraries` link table remains available.
+
 ## Runtime
 
 The manifest launches the Rust server through `bin/kicad-pcb-rs`. The wrapper

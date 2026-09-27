@@ -10,15 +10,15 @@ agent_portal = ">=2.14.1525"
 platforms = ["linux", "macos"]
 
 [install]
-setup = "bin/kicad-pcb setup --install-kicad --install-kicad-tools"
-doctor = "bin/kicad-pcb doctor --json --cwd {cwd}"
+setup = "bin/kicad-pcb-rs setup --install-kicad --install-kicad-tools"
+doctor = "bin/kicad-pcb-rs doctor --json --cwd {cwd}"
 
 [surface]
 kind = "http"
 default_title = "KiCad PCB"
 default_width_percent = 50
 health_path = "/healthz"
-start = "bin/kicad-pcb serve --port {port} --session {session_id} --cwd {cwd}"
+start = "bin/kicad-pcb-rs serve --port {port} --session {session_id} --cwd {cwd}"
 ready_url = "http://127.0.0.1:{port}/"
 
 [surface.env]
@@ -27,37 +27,42 @@ AGENT_PORTAL_PLUGIN = "kicad-pcb"
 [[commands]]
 name = "doctor"
 description = "Report local PCB workflow dependencies and detected project files."
-run = "bin/kicad-pcb doctor --json --cwd {cwd}"
+run = "bin/kicad-pcb-rs doctor --json --cwd {cwd}"
 
 [[commands]]
 name = "drc"
 description = "Run design-rule checks for the active board when KiCad tooling is available."
-run = "bin/kicad-pcb drc --cwd {cwd} --json"
+run = "bin/kicad-pcb-rs drc --cwd {cwd} --json"
 
 [[commands]]
 name = "erc"
 description = "Run schematic electrical-rule checks when KiCad tooling is available."
-run = "bin/kicad-pcb erc --cwd {cwd} --json"
+run = "bin/kicad-pcb-rs erc --cwd {cwd} --json"
+
+[[commands]]
+name = "quality"
+description = "Run layout-quality checks (kct rules + plugin audits) against the workspace qualityProfile."
+run = "bin/kicad-pcb-rs quality --cwd {cwd} --json"
 
 [[commands]]
 name = "export-gerbers"
 description = "Export fabrication artifacts into the session artifact directory."
-run = "bin/kicad-pcb export gerbers --cwd {cwd} --out {artifact_dir}"
+run = "bin/kicad-pcb-rs export gerbers --cwd {cwd} --out {artifact_dir}"
 
 [[commands]]
 name = "export-jlcpcb"
 description = "Export a JLCPCB-oriented fabrication package into the session artifact directory."
-run = "bin/kicad-pcb export jlcpcb --cwd {cwd} --out {artifact_dir}"
+run = "bin/kicad-pcb-rs export jlcpcb --cwd {cwd} --out {artifact_dir}"
 
 [[commands]]
 name = "kct"
 description = "Run the kicad-tools automation CLI inside the active repo. Pass kct arguments after --."
-run = "bin/kicad-pcb kct --json --cwd {cwd} --"
+run = "bin/kicad-pcb-rs kct --json --cwd {cwd} --"
 
 [[commands]]
 name = "tool"
 description = "Run an allowed KiCad PCB tool inside the active repo. Usage: tool -- <kct|kicad-cli|kikit> <args...>."
-run = "bin/kicad-pcb tool --json --cwd {cwd} --"
+run = "bin/kicad-pcb-rs tool --json --cwd {cwd} --"
 
 [[skills]]
 name = "pcb-workflow"

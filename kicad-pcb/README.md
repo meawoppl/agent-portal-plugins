@@ -7,7 +7,10 @@ The plugin provides:
 
 - `agent-portal-plugin.toml` declares install, surface, commands, detection,
   skills, and prompts.
-- `bin/kicad-pcb` is a portable Python runtime with a tabbed PCB workbench.
+- `bin/kicad-pcb-rs` launches (and builds when needed) the Rust runtime in
+  `crates/`, which serves the tabbed PCB workbench. `bin/kicad-pcb` is the
+  older Python runtime, now used only for the KiCad AppImage install and as a
+  fallback (see [Runtime](#runtime)).
 - `static/kicad-viewer/` carries bundled 3D/STEP viewer runtime
   assets.
 - `skills/pcb-workflow/SKILL.md` teaches agents how to use the workbench, and
@@ -36,12 +39,12 @@ See `docs/kicad-tools-integration.md` for the full command, UI, and skill
 mapping.
 
 ```console
-kicad-pcb/bin/kicad-pcb setup --install-kicad-tools
-kicad-pcb/bin/kicad-pcb doctor --json --cwd /path/to/hardware/repo
-kicad-pcb/bin/kicad-pcb kct --cwd /path/to/hardware/repo -- symbols board.kicad_sch --format json
-kicad-pcb/bin/kicad-pcb kct --cwd /path/to/hardware/repo -- nets board.kicad_sch --net VCC
-kicad-pcb/bin/kicad-pcb kct --cwd /path/to/hardware/repo -- readiness . --format json
-kicad-pcb/bin/kicad-pcb tool --cwd /path/to/hardware/repo -- kicad-cli version
+kicad-pcb/bin/kicad-pcb-rs setup --install-kicad-tools
+kicad-pcb/bin/kicad-pcb-rs doctor --json --cwd /path/to/hardware/repo
+kicad-pcb/bin/kicad-pcb-rs kct --cwd /path/to/hardware/repo -- symbols board.kicad_sch --format json
+kicad-pcb/bin/kicad-pcb-rs kct --cwd /path/to/hardware/repo -- nets board.kicad_sch --net VCC
+kicad-pcb/bin/kicad-pcb-rs kct --cwd /path/to/hardware/repo -- readiness . --format json
+kicad-pcb/bin/kicad-pcb-rs tool --cwd /path/to/hardware/repo -- kicad-cli version
 ```
 
 The wrapper forwards arguments verbatim after `--`. Keep plugin commands thin:
@@ -114,8 +117,8 @@ KiStack revision; record the source revision in `skills/kistack/kistack.bundle.j
 ## Try Locally
 
 ```console
-kicad-pcb/bin/kicad-pcb doctor --json --cwd /path/to/hardware/repo
-kicad-pcb/bin/kicad-pcb serve --port 48888 --cwd /path/to/hardware/repo
+kicad-pcb/bin/kicad-pcb-rs doctor --json --cwd /path/to/hardware/repo
+kicad-pcb/bin/kicad-pcb-rs serve --port 48888 --cwd /path/to/hardware/repo
 ```
 
 Then open:
@@ -128,26 +131,37 @@ For production fabrication outputs, run setup once or set `KICAD_CLI` /
 `KICAD_PCB_KICAD_CLI` to a desired executable:
 
 ```console
-kicad-pcb/bin/kicad-pcb setup --install-kicad --install-kicad-tools
-kicad-pcb/bin/kicad-pcb drc --json --cwd /path/to/hardware/repo --project board-a
-kicad-pcb/bin/kicad-pcb erc --json --cwd /path/to/hardware/repo --project board-a
-kicad-pcb/bin/kicad-pcb export jlcpcb --cwd /path/to/hardware/repo --project board-a --out build/jlcpcb
+kicad-pcb/bin/kicad-pcb-rs setup --install-kicad --install-kicad-tools
+kicad-pcb/bin/kicad-pcb-rs drc --json --cwd /path/to/hardware/repo --project board-a
+kicad-pcb/bin/kicad-pcb-rs erc --json --cwd /path/to/hardware/repo --project board-a
+kicad-pcb/bin/kicad-pcb-rs export jlcpcb --cwd /path/to/hardware/repo --project board-a --out build/jlcpcb
 ```
 
-## Rust Rewrite
+## Runtime
 
-The Rust rewrite lives beside the current Python runtime while it reaches full
-parity:
+The manifest launches the Rust server through `bin/kicad-pcb-rs`. The wrapper
+execs `.runtime/kicad-pcb-rs`, rebuilding it with
+`cargo build --release -p kicad-pcb-server` first when the binary is missing or
+any file under `crates/`, `static/`, `Cargo.toml`, or `Cargo.lock` is newer
+than it. Build logs go to stderr. Set `KICAD_PCB_RS_BIN` to use a specific
+binary, or `KICAD_PCB_SKIP_BUILD=1` to never build.
 
 ```console
 cd kicad-pcb
-cargo run -p kicad-pcb-server -- doctor --json --cwd /path/to/hardware/repo
-cargo run -p kicad-pcb-server -- serve --port 48888 --cwd /path/to/hardware/repo
+bin/kicad-pcb-rs doctor --json --cwd /path/to/hardware/repo
+bin/kicad-pcb-rs serve --port 48888 --cwd /path/to/hardware/repo
+bin/kicad-pcb-rs quality --cwd /path/to/hardware/repo --project board-a
 ```
 
-The Rust server already covers the core read/check/export path and embeds the
-viewer assets into the binary. The manifest still points at `bin/kicad-pcb`
-until the Rust surface is visually verified against the Python runtime.
+The Python runtime (`bin/kicad-pcb`) is still used only where Rust lacks
+parity:
+
+- `setup --install-kicad`: downloading and unpacking the KiCad AppImage into
+  `.runtime/kicad/`. The wrapper runs it, then continues with Rust `setup`.
+  The Rust runtime finds the managed `kicad-cli` there.
+- Fallback when no Rust binary exists and cargo is unavailable. `serve`,
+  `doctor`, `drc`, `erc`, `export`, `kct`, and `tool` then run in Python.
+  The Python runtime has no build pipeline, publish, or `quality`.
 
 ## Example Repo Config
 
@@ -262,12 +276,153 @@ The Rust workbench and CLI currently honor:
 - `projects[].kicad.project`
 - `projects[].kicad.schematic`
 - `projects[].kicad.pcb`
-- `projects[].artifacts.gerbers`
-- `projects[].artifacts.jlcpcb`
-- top-level and project `libraries` for doctor warnings
+- `projects[].artifacts.fab`, `.checks`, `.gerbers`, `.jlcpcb` (publish targets;
+  must be relative paths inside the project root)
+- `projects[].artifacts.autoPublish`
+- `projects[].manufacturer.placementOffsets`
+- top-level `build`
+- top-level `qualityProfile` and `quality`, and `projects[].qualityProfile`
+  (see [Layout Quality Checks](#layout-quality-checks))
+- top-level and project `libraries` for doctor warnings and source hashing
 
-The `manufacturer` object is surfaced through `doctor --json` for agents and
-future exporter policy, but it does not alter generated files yet.
+The `manufacturer` object is surfaced through `doctor --json` for agents. The
+only key that alters generated files is `placementOffsets` (see below).
+
+## Automatic Build Pipeline
+
+The Rust server builds fabrication outputs in the background for every board
+opened in the workbench, caches them by content, and only copies them into the
+repository when you publish.
+
+**Revisions are content hashes.** A board's revision is a sha256 over the
+relative path and contents of its sources, never mtimes, so touching or
+re-saving an unchanged file does not rebuild anything. Sources split into two
+sets so stages depend only on what they read:
+
+- schematic set: `.kicad_sch`, `.kicad_sym`, `sym-lib-table`, `.kicad_pro`,
+  `.kicad_wks`
+- PCB set: `.kicad_pcb`, `.kicad_mod`, `fp-lib-table`, `.kicad_dru`,
+  `.kicad_pro`, `.kicad_wks`, and project-local 3D models referenced by the
+  board (`${KIPRJMOD}/...`)
+
+Library directories that lib tables or `.kicad-pcb.json` `libraries` point to
+outside the board root, but inside the repo, are included. KiCad's own
+libraries (`${KICAD*_DIR}`) are covered by the KiCad version, which is part of
+every stage key.
+
+**Watch scoping.** Each changed file is mapped to the board(s) whose sources
+it affects. A project whose root contains another project's root (for example
+a root `"."` board plus `boards/*`) excludes the nested boards, so editing
+one board never refreshes or rebuilds another. `/ws/events?project=<id>` and
+`/api/build/events?project=<id>` (SSE) deliver only that board's events;
+`Revision` events carry a `project` field.
+
+**Stages.** Each stage's cache key is sha256(stage, KiCad version, project
+config, and only the hashes it depends on):
+
+| Stage id | Depends on | Output |
+| --- | --- | --- |
+| `erc` | schematic | `erc.json` |
+| `drc` | schematic + PCB | `drc.json` (`--schematic-parity`) |
+| `bom` | schematic | `<sch>-bom.csv` |
+| `schematic-pdf` | schematic | `<sch>-schematic.pdf` |
+| `gerbers` | PCB | Gerbers, drill, `<board>-gerbers.zip` |
+| `jlcpcb` | schematic + PCB | Gerbers, drill, `BOM_<board>.csv`, `CPL_<board>.csv`, zip |
+| `glb` | PCB | `<board>.glb` (served to the 3D tab) |
+| `step` | PCB | `<board>.step` (lowest priority) |
+| `quality` | schematic + PCB + quality profile + kct version | `quality.json` (layout-quality report) |
+
+Outputs live under `<plugin>/.portal/cache/<root-hash>/builds/<stage>-<key>/`
+and are reused whenever the key matches. Jobs run through a bounded queue
+(default 2 concurrent `kicad-cli` processes) with per-command timeouts. A
+newer revision drops queued jobs and kills running `kicad-cli` processes whose
+outputs are no longer wanted. Outputs are discarded if the sources changed
+while the stage ran. `GET /api/kicad/drc` and `/api/kicad/erc` serve the cached
+result for the current revision, building it first if needed.
+
+**Status.** The workbench shows a build strip under the header with every
+stage's state (`queued`, `running`, `ok`, `failed`, `stale`, `cancelled`), its
+timing, and downloads for its outputs. The same data is available from
+`GET /api/build/status?project=<id>`, from `Build` events on `/ws/events`,
+and from `/api/build/events`. `POST /api/build/run?project=<id>[&force=1]`
+triggers a build (`force` discards cached results for that revision).
+
+**Publish.** Builds never write into the repository by themselves.
+`POST /api/build/publish?project=<id>` (the **Publish** button) copies the
+current, finished build into the project's artifact dirs:
+
+| Stage | Destination (defaults) |
+| --- | --- |
+| `erc`, `drc`, `quality` | `artifacts.checks` (`<fab>/checks`) |
+| `bom` | `<fab>/bom` |
+| `gerbers` | `artifacts.gerbers` (`<fab>/gerbers`) |
+| `jlcpcb` | `artifacts.jlcpcb` (`<fab>/jlcpcb`) |
+| `schematic-pdf`, `glb`, `step` | `<fab>` |
+
+`<fab>` is `artifacts.fab`, or `fab` by default. Publish writes
+`<fab>/.kicad-pcb-build.json`, which records the source hashes, per-file
+source sha256s, the KiCad version, every stage's input key, and each published
+file's sha256. It deletes files that an earlier publish wrote if the new build
+no longer produces them. It never deletes files it did not write. Set
+`artifacts.autoPublish: true` to publish automatically after each complete
+build (default `false`).
+
+**Staleness.** The strip shows a "fab outputs stale" badge when the published
+manifest's stage keys differ from the current ones, when sources changed since
+publish, or when published files were edited or removed. It lists the stages
+that differ. Boards without a plugin manifest fall back to a
+`<checks>/revision-sha256.json` (path to sha256 map) if one exists. The same
+status appears in `/api/build/status` (`publish`) and in `doctor --json`
+(`build.projects[].publish`).
+
+**Gerber tab.** The tab renders the current cached build when its `gerbers`
+(or `jlcpcb`) stage is ready. Otherwise it falls back to published files and
+labels which one it is showing.
+
+**Cache GC.** After each build the server keeps the last `keepRevisions`
+revisions per board, plus every stage the published manifest references, and
+deletes the rest. It also removes pre-pipeline `<revision>.glb` cache files.
+
+**JLCPCB placement offsets.** If `manufacturer.placementOffsets` (a
+project-relative path) is set, or `docs/jlcpcb-placement-offsets.json` exists,
+JLCPCB CPL rows are corrected per LCSC part:
+
+```json
+{ "C221660": { "rotation_offset_degrees": 0, "cpl_offset_x_mm": 0,
+  "cpl_offset_y_mm": 2.75, "verified_native_rotation_degrees": 0 } }
+```
+
+Translations need `verified_native_rotation_degrees`, and the part must still
+be top-side at that rotation. Rotation corrections are top-side only. If a
+check fails, the export fails. This applies to both the `jlcpcb` stage and
+`export jlcpcb`.
+
+`build` configuration (all keys optional):
+
+```json
+{
+  "build": {
+    "auto": true,
+    "concurrency": 2,
+    "debounceMs": 1500,
+    "keepRevisions": 5,
+    "timeoutSeconds": 300,
+    "stageTimeouts": { "step": 900 },
+    "stages": ["erc", "drc", "bom", "schematic-pdf", "gerbers", "jlcpcb", "glb", "step", "quality"]
+  }
+}
+```
+
+- `auto`: when `false`, changed boards show `stale` until you trigger a build
+  through `POST /api/build/run` or open a check.
+- `concurrency`: 1 to 16.
+- `debounceMs`: 100 to 60000. This is the quiet period after the last source
+  change before a build starts. Viewer refreshes keep their 100 ms debounce.
+- `keepRevisions`: at least 1.
+- `timeoutSeconds`: applies to every stage except `step`, which defaults to
+  900 s.
+- `stageTimeouts`: per-stage overrides, keyed by stage id.
+- `stages`: the enabled subset. Unknown keys and stage ids fail validation.
 
 The Rust workbench's **BOM / Assembly CSV** tab previews BOM and placement CSVs
 for the selected board, with artifact downloads and LCSC part links. Name files
@@ -277,3 +432,59 @@ such as carrier pinouts are not treated as BOMs. Quoted fields and multiline
 notes are supported. Previews are limited to 500 rows and 2 MB; downloads
 preserve the complete original file. The tab reloads on activation and every
 10 seconds while visible, independently of schematic/PCB revision changes.
+
+## Layout Quality Checks
+
+A clean DRC is not a finished layout. The `quality` build stage checks the
+board against a user preference profile (see `examples/pcb-profile.yaml`) and
+shows the results in the **Layout quality** card on the Checks tab. The same
+results are available from `GET /api/kicad/quality?project=<id>` and
+`bin/kicad-pcb-rs quality --cwd <repo> [--project <id>] [--json]`. The stage
+fails when any finding has `error` severity.
+
+```json
+{
+  "qualityProfile": "docs/pcb-playbook/pcb-profile.yaml",
+  "quality": {
+    "kct": true,
+    "pluginAudits": true,
+    "disabledAudits": [],
+    "includeDrcRules": false,
+    "detectMistakes": true,
+    "optimizeTraces": true,
+    "severity": { "mistake.bypass_capacitor.bypass_capacitor_too_far_from_power_pin": "off" }
+  },
+  "projects": [{ "id": "board-a", "root": "boards/a", "qualityProfile": "profile.yaml" }]
+}
+```
+
+- `qualityProfile` is relative to the repo root. `projects[].qualityProfile`
+  is relative to the project root, may point anywhere inside the repo, and
+  overrides the workspace profile. Editing the profile re-runs only the
+  `quality` stage.
+- **kct rules.** The stage runs `kct check --drc-only --format json`,
+  `kct detect-mistakes --format json`, and `kct optimize-traces --dry-run` (on
+  a scratch copy of the board). Every reported rule passes through. The one
+  exception is kct rule families that duplicate native KiCad DRC (clearance,
+  dimension, hole, edge, and similar), which are hidden unless
+  `includeDrcRules` is set. New upstream rules appear after a kct upgrade
+  without plugin changes. The kct version is part of the stage key.
+- **Severity.** Precedence is `quality.severity[rule id or profile item]`,
+  then the profile value for the rule's profile item, then the tool's
+  default. Profile values map as follows: `error`, `forbid`, and `required`
+  become error; `warn` becomes warning; `false` and `allow` turn the rule off.
+  Rule ids map to profile items by substring. For example, `via_in_pad` maps
+  to `vias.in_pad`, `silk_over*` to `silkscreen.over_vias_or_pads`, and
+  `pin1*` to `silkscreen.pin1_dots`.
+- **In-plugin audits** cover profile items kct lacks: `via_under_package`
+  (vias inside the Fab body of QFN/DFN/BGA parts, per
+  `routing.no_front_routing_under`), `off_angle_track` (non-0/45/90 segments),
+  `orphan_via` (same-net copper on fewer than 2 layers; zones count by
+  outline), `silk_reference_prefix`, `silk_text_size` (below
+  `text_height_mm`/`text_thickness_mm`, or non-uniform), `silk_explanatory_text`,
+  and `decoupling_distance` (IC pins on nets bridged to ground by a cap of at
+  least 10 nF, measured to the nearest same-side cap pad against
+  `decoupling.max_pin_distance_mm`). Each audit is retired automatically when
+  kct reports an equivalent rule id (listed in `crates/server/src/audits.rs`).
+  You can also disable audits individually (`disabledAudits`) or all at once
+  (`pluginAudits: false`).

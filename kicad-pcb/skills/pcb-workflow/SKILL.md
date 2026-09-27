@@ -5,54 +5,73 @@ other electronics design artifacts and the KiCad PCB Portal plugin is available.
 
 ## Workflow
 
-1. Inspect `.portal/plugins.toml` first. Treat an explicit KiCad PCB suggestion
-   as project intent.
-2. Run `agent-portal plugin open kicad-pcb` when visual PCB context would help.
-   The surface should appear beside chat with tabs for schematic, PCB, Gerbers,
-   3D, STEP, BOM, libraries, analysis, panelization, and checks.
-3. Run `agent-portal plugin doctor kicad-pcb` or the plugin `doctor` command
-   before promising native KiCad checks.
-4. Use script commands as the automation boundary. Prefer:
-   - `bin/kicad-pcb doctor --json --cwd <repo>`;
-   - `bin/kicad-pcb drc --json --cwd <repo>`;
-   - `bin/kicad-pcb erc --json --cwd <repo>`;
-   - `bin/kicad-pcb export jlcpcb --cwd <repo> --out <artifact-dir>`;
-   - `bin/kicad-pcb kct --json --cwd <repo> -- <kct arguments...>` for
-     routing, readiness, manufacturer rules, parts lookup, sync drift, or
-     repair workflows from `kicad-tools`.
-5. Use the KiCad PCB surface for visual claims. Prefer pointing at board,
-   schematic, layer, net, BOM, or manufacturing artifacts over relying only on
-   prose.
-6. Before saying PCB work is complete, run the available check path:
-   - DRC for board changes;
-   - ERC for schematic changes when supported;
-   - BOM/fabrication export checks for release/manufacturing changes.
-7. Put generated manufacturing artifacts in the session artifact directory or
-   the repo's configured fabrication output directory.
-8. Ask before publishing designs or manufacturing outputs to an external
-   service.
+1. Inspect `.portal/plugins.toml` and `.kicad-pcb.json` first. The manifest
+   names the boards, the active `.kicad_pcb`, artifact dirs, and the
+   `qualityProfile`. Read that profile (and any review checklist next to it)
+   before you place or route anything. It records the user's layout
+   preferences: via rules, octilinear routing, silkscreen policy, and
+   decoupling distance.
+2. Run `agent-portal plugin open kicad-pcb` when visual context would help.
+   The surface has tabs for schematic, PCB, Gerbers, 3D, STEP, BOM, libraries,
+   analysis, panelization, and checks, plus a build strip.
+3. Run the plugin `doctor` command before promising native KiCad or `kct`
+   checks.
+4. Use the plugin commands as the automation boundary:
+   - `bin/kicad-pcb-rs doctor --json --cwd <repo>`
+   - `bin/kicad-pcb-rs drc|erc --json --cwd <repo> --project <id>`
+   - `bin/kicad-pcb-rs quality --json --cwd <repo> --project <id>`
+   - `bin/kicad-pcb-rs kct --json --cwd <repo> -- <kct args...>`
+5. **Try `kct` before writing ad-hoc pcbnew/s-expr scripts.** Check
+   `kct --help` and `kct <cmd> --help` for an existing query, audit, or fix
+   (`check`, `detect-mistakes`, `optimize-traces --dry-run`, `net-status`,
+   `validate --sync`, `fix-vias`, `place-silk-refs`, and others). Write a
+   custom script only when kct cannot do the job, and say why.
+6. Use the surface for visual claims. Point at the board, schematic, layer,
+   net, or artifact instead of relying only on prose.
+
+## Done Means More Than DRC
+
+Never report "DRC clean" as done or fab-ready. DRC checks the fab's rules, not
+layout quality. Before you call layout work complete:
+
+1. ERC and DRC (with schematic parity) pass.
+2. The **quality** stage is green, or each remaining finding is explained.
+   Read it from the Checks tab **Layout quality** card, from
+   `/api/kicad/quality`, or from the `quality` command. Severities come from
+   the workspace `qualityProfile`. Fix errors. Justify any warning you keep.
+3. Walk the repo's review checklist (e.g. `docs/pcb-playbook/review-checklist.md`)
+   for items no tool checks: stubs, kinks, pad exits, pin-1 marks, and 3D
+   models. Say which items you checked by eye.
+
+## Fabrication Outputs
+
+- Use **Publish** (the build-strip button, or `POST /api/build/publish?project=<id>`)
+  to put Gerbers, BOM, CPL, and checks into the repo. Do not run ad-hoc
+  `kicad-cli` exports into fab dirs. Publish records hashes in
+  `<fab>/.kicad-pcb-build.json`.
+- Check the build strip's stale badge before you hand off outputs. "fab outputs
+  stale" means the sources changed since the last publish. Wait for the rebuild
+  and publish again.
+- After publishing, post the Gerber ZIP, BOM, and CPL as **separate**
+  `portal://file/<path>` links, one per file.
+- Ask before uploading designs or outputs to an external service.
 
 ## Completion Standard
 
 A good PCB turn ends with:
 
-- changed files summarized by board/schematic/manufacturing category;
-- checks run and their result;
-- artifacts generated or a clear reason they were not;
-- a short visual summary if the surface revealed layout-relevant state.
+- changed files by category (schematic, PCB, libraries, fab, docs);
+- ERC, DRC, and quality results, with counts and any accepted findings;
+- checklist items reviewed by eye;
+- published artifacts as links, or a clear reason there are none.
 
 ## Tooling Limits
 
-The Portal plugin surface can browse project files without KiCad, but real
-ERC/DRC, Gerber/drill export, BOM export from schematic settings, panelization,
-generated 3D board previews, and advanced `kicad-tools` automation require
-local tooling. On Linux x86_64, run
-`bin/kicad-pcb setup --install-kicad --install-kicad-tools` to install managed
-tooling into the plugin's `.runtime/` directory. If usable tooling is still
-unavailable afterward, report that as the blocker and do not claim fabrication
-outputs have been validated.
+Real ERC/DRC, exports, 3D previews, the build pipeline, and `kct` need local
+tooling. On Linux x86_64, run
+`bin/kicad-pcb-rs setup --install-kicad --install-kicad-tools` to install
+managed tooling into the plugin's `.runtime/`. If tooling is still missing,
+report that as the blocker and do not claim outputs are validated.
 
-Use the `kicad-tools-automation` skill before running `kct` mutation commands
-such as routing, placement optimization, sync-netlist, repair, zone fill, or
-stitching. Those commands are design edits and require the same review standard
-as manual schematic/PCB changes.
+Load `kicad-tools-automation` before running `kct` mutation commands (route,
+placement, sync-netlist, fix-*, zones, stitch). They are design edits.

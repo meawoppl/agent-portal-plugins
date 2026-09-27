@@ -619,14 +619,18 @@ export class RetainedNativeViewer extends EventTarget {
       const visibleLayer = zoneLayers.find((layer) => (layer.opacity ?? 1) > 0);
       this.polygonPoursOpacity = visibleLayer?.opacity ?? 0.6;
     }
+    if (!Number.isFinite(this.polygonPoursOpacity) || this.polygonPoursOpacity <= 0) {
+      this.polygonPoursOpacity = 0.6;
+    }
     const opacity = this.polygonPoursVisible ? this.polygonPoursOpacity : 0;
     if (typeof core.set_host_object_opacity === "function")
       core.set_host_object_opacity("zones", opacity);
     else if ("zone_opacity" in core) core.zone_opacity = opacity;
-    else {
-      for (const layer of zoneLayers) layer.opacity = opacity;
-      core.draw_now?.();
+    for (const layer of zoneLayers) {
+      layer.opacity = opacity;
+      if ("visible" in layer) layer.visible = this.polygonPoursVisible;
     }
+    core.draw_now?.();
     return true;
   }
 

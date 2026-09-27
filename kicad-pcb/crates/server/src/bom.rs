@@ -24,7 +24,12 @@ fn cell(value: &str, header: &str) -> String {
     }
     let text = escape(value);
     let id = value.trim();
-    if header.to_ascii_lowercase().contains("lcsc")
+    if id.starts_with("http://") || id.starts_with("https://") {
+        format!(
+            "<a href='{}' target='_blank' rel='noopener noreferrer'>{text}</a>",
+            escape_attr(id)
+        )
+    } else if header.to_ascii_lowercase().contains("lcsc")
         && id.starts_with('C')
         && id.len() > 1
         && id[1..].bytes().all(|c| c.is_ascii_digit())
@@ -266,12 +271,13 @@ mod tests {
         let p = d.path().join("bom.csv");
         std::fs::write(
             &p,
-            "Designators,LCSC,Notes\n\"R1,R2\",C123,\"<script>\ntext\"\n",
+            "Designators,LCSC,Supplier URL,Notes\n\"R1,R2\",C123,https://example.com/part?x=1&y=2,\"<script>\ntext\"\n",
         )
         .unwrap();
         let h = table(&p).unwrap();
         assert!(h.contains("R1, <wbr>R2"));
         assert!(h.contains("C123.html"));
+        assert!(h.contains("href='https://example.com/part?x=1&amp;y=2'"));
         assert!(h.contains("&lt;script&gt;"));
         assert!(!h.contains("<script>"));
     }

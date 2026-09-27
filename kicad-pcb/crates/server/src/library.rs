@@ -1253,6 +1253,119 @@ fn model_cache_identity(model_node: &Sexp) -> String {
     identity.to_string()
 }
 
+#[derive(Debug, Clone, Copy)]
+struct Bounds {
+    min_x: f64,
+    min_y: f64,
+    max_x: f64,
+    max_y: f64,
+}
+
+impl Bounds {
+    fn new() -> Self {
+        Self {
+            min_x: f64::INFINITY,
+            min_y: f64::INFINITY,
+            max_x: f64::NEG_INFINITY,
+            max_y: f64::NEG_INFINITY,
+        }
+    }
+
+    fn add(&mut self, x: f64, y: f64) {
+        self.min_x = self.min_x.min(x);
+        self.min_y = self.min_y.min(y);
+        self.max_x = self.max_x.max(x);
+        self.max_y = self.max_y.max(y);
+    }
+
+    fn is_valid(&self) -> bool {
+        self.min_x.is_finite()
+            && self.min_y.is_finite()
+            && self.max_x.is_finite()
+            && self.max_y.is_finite()
+            && self.max_x > self.min_x
+            && self.max_y > self.min_y
+    }
+
+    fn max_extent(&self) -> f64 {
+        (self.max_x - self.min_x).max(self.max_y - self.min_y)
+    }
+}
+
+fn node_num(node: &Sexp, index: usize) -> Option<f64> {
+    node.str_at(index)?.parse().ok()
+}
+
+fn add_xy_node(bounds: &mut Bounds, node: &Sexp) {
+    if node.is("xy") {
+        if let (Some(x), Some(y)) = (node_num(node, 1), node_num(node, 2)) {
+            bounds.add(x, y);
+        }
+    }
+}
+
+fn add_pts(bounds: &mut Bounds, node: &Sexp) {
+    for child in node.children("xy") {
+        add_xy_node(bounds, child);
+    }
+}
+
+fn footprint_bounds(fp: &Sexp) -> Option<Bounds> {
+    let mut bounds = Bounds::new();
+    for child in fp.items().iter().skip(2) {
+        if child.is("pad") {
+            let at = child.child("at");
+            let size = child.child("size");
+            if let (Some(x), Some(y), Some(w), Some(h)) = (
+                at.and_then(|at| node_num(at, 1)),
+                at.and_then(|at| node_num(at, 2)),
+                size.and_then(|size| node_num(size, 1)),
+                size.and_then(|size| node_num(size, 2)),
+            ) {
+                let half = w.max(h) / 2.0;
+                bounds.add(x - half, y - half);
+                bounds.add(x + half, y + half);
+            }
+        } else if matches!(
+            child.head(),
+            Some("fp_line" | "fp_arc" | "fp_rect" | "fp_curve")
+        ) {
+            for point in ["start", "mid", "end", "center"] {
+                if let Some(node) = child.child(point) {
+                    if let (Some(x), Some(y)) = (node_num(node, 1), node_num(node, 2)) {
+                        bounds.add(x, y);
+                    }
+                }
+            }
+        } else if child.is("fp_circle") {
+            if let (Some(center), Some(end)) = (child.child("center"), child.child("end")) {
+                if let (Some(cx), Some(cy), Some(ex), Some(ey)) = (
+                    node_num(center, 1),
+                    node_num(center, 2),
+                    node_num(end, 1),
+                    node_num(end, 2),
+                ) {
+                    let radius = ((ex - cx).powi(2) + (ey - cy).powi(2)).sqrt();
+                    bounds.add(cx - radius, cy - radius);
+                    bounds.add(cx + radius, cy + radius);
+                }
+            }
+        } else if child.is("fp_poly") {
+            if let Some(pts) = child.child("pts") {
+                add_pts(&mut bounds, pts);
+            }
+        }
+    }
+    bounds.is_valid().then_some(bounds)
+}
+
+fn model_render_params(fp: &Sexp) -> Vec<String> {
+    let zoom = footprint_bounds(fp)
+        .map(|bounds| (2.8 / bounds.max_extent()).clamp(0.35, 0.95))
+        .unwrap_or(0.45);
+    vec!["--zoom".to_string(), format!("{zoom:.3}")]
+}
+
 /// Rewrite model paths to resolved absolute files, dropping missing models.
 /// Returns the model refs and the files that exist.
 fn resolve_models(fp: &mut Sexp, resolver: &Resolver) -> (Vec<ModelRef>, Vec<PathBuf>) {
@@ -1388,6 +1501,11 @@ fn canonical(node: &Sexp) -> String {
 /// Drift comparison form of a symbol definition.
 fn normalize_symbol(symbol: &Sexp) -> String {
     let mut node = symbol.clone();
+    node.walk_mut(&mut |item| {
+        if item.is("symbol") {
+            rename(item, "symbol");
+        }
+    });
     strip_heads(
         &mut node,
         &["uuid", "embedded_fonts", "generator", "generator_version"],
@@ -1402,6 +1520,42 @@ fn normalize_symbol(symbol: &Sexp) -> String {
         .collect::<Vec<_>>();
     props.sort();
     format!("{}|{}", canonical_children(&node, true), props.join(";"))
+}
+
+fn symbol_group_identity(sch: &SchData, instance: Option<&SchInstance>) -> String {
+    let Some(instance) = instance else {
+        return String::new();
+    };
+    extract_embedded_symbol(sch, &instance.cache_name)
+        .map(|symbol| format!("shape:{}", normalize_symbol(&symbol)))
+        .unwrap_or_else(|| format!("lib:{}", instance.lib_id))
+}
+
+fn part_group_identity(fields: &[(String, String)]) -> String {
+    let mut values = fields
+        .iter()
+        .filter_map(|(name, value)| {
+            if !is_meaningful(value) {
+                return None;
+            }
+            if name == "Value" || matches!(field_kind(name), Some("lcsc" | "mpn" | "manufacturer"))
+            {
+                Some(format!(
+                    "{}={}",
+                    name.chars()
+                        .filter(|ch| ch.is_ascii_alphanumeric())
+                        .collect::<String>()
+                        .to_ascii_lowercase(),
+                    value.trim()
+                ))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    values.sort();
+    values.dedup();
+    values.join("|")
 }
 
 /// Serialize with numbers normalized, strings unquoted, the item name's
@@ -1648,7 +1802,7 @@ fn build_inventory(repo_root: &Path, project: &ProjectContext) -> Result<Invento
             .get_or_insert(footprint);
     }
 
-    let mut groups: BTreeMap<(String, String, String), Group> = BTreeMap::new();
+    let mut groups: BTreeMap<(String, String, String, String), Group> = BTreeMap::new();
     for (reference, (instance, footprint)) in &by_ref {
         let symbol = instance.map(|instance| instance.lib_id.clone());
         let fpid = footprint.map(|fp| fp.fpid.clone()).or_else(|| {
@@ -1669,10 +1823,18 @@ fn build_inventory(repo_root: &Path, project: &ProjectContext) -> Result<Invento
                 models
             })
             .unwrap_or_default();
+        let mut part_fields = Vec::new();
+        if let Some(instance) = instance {
+            part_fields.extend(instance.fields.iter().cloned());
+        }
+        if let Some(footprint) = footprint {
+            part_fields.extend(footprint.fields.iter().cloned());
+        }
         let key = (
-            symbol.clone().unwrap_or_default(),
+            symbol_group_identity(&ctx.sch, *instance),
             fpid.clone().unwrap_or_default(),
             models.join("|"),
+            part_group_identity(&part_fields),
         );
         let group = groups.entry(key).or_default();
         group.symbol = symbol;
@@ -1701,7 +1863,7 @@ fn build_inventory(repo_root: &Path, project: &ProjectContext) -> Result<Invento
     }
     for (lib_id, instance) in power_symbols {
         groups
-            .entry((lib_id.clone(), String::new(), String::new()))
+            .entry((lib_id.clone(), String::new(), String::new(), String::new()))
             .or_insert_with(|| Group {
                 symbol: Some(lib_id.clone()),
                 cache_name: Some(instance.cache_name.clone()),
@@ -1939,6 +2101,7 @@ fn symbol_draft(
             item: name,
             input: symbol_lib_text(&chain, lib_version),
             cache_identity: None,
+            params: Vec::new(),
             model_files: Vec::new(),
         }),
         placeholder: None,
@@ -1969,6 +2132,7 @@ fn footprint_drafts(
             item: "item".to_string(),
             input: footprint_mod_text(node, "item", version),
             cache_identity: None,
+            params: Vec::new(),
             model_files: Vec::new(),
         }),
         placeholder: None,
@@ -2021,19 +2185,21 @@ fn footprint_drafts(
         let model_node = model_only_footprint(&with_models);
         let cache_identity = model_cache_identity(&model_node);
         let model_pcb = footprint_pcb_text(
-            &model_node,
+            &with_models,
             "kicad-pcb-model",
             "",
             &ctx.pcb,
             THUMB_BOARD_THICKNESS,
         );
         let glb_pcb = footprint_pcb_text(&model_node, "kicad-pcb-model", "", &ctx.pcb, "1.6");
+        let render_params = model_render_params(&with_models);
         ThumbDraft {
             spec: Some(RenderSpec {
                 kind: RenderKind::Model,
                 item: String::new(),
                 input: model_pcb,
                 cache_identity: Some(cache_identity.clone()),
+                params: render_params,
                 model_files: files.clone(),
             }),
             placeholder: None,
@@ -2044,6 +2210,7 @@ fn footprint_drafts(
                 item: String::new(),
                 input: glb_pcb,
                 cache_identity: Some(cache_identity),
+                params: Vec::new(),
                 model_files: files,
             }),
         }
@@ -2267,6 +2434,53 @@ mod tests {
             .unwrap()
             .child("symbol")
             .is_some());
+    }
+
+    #[test]
+    fn generated_per_reference_symbols_share_a_group_identity() {
+        let d32 = sexp::parse(
+            r#"(symbol "Calibrator:D32" (pin_names (offset 0.762) hide)
+                (property "Reference" "D32" (at 0 5.08 0))
+                (property "Value" "BLUE" (at 0 2.54 0))
+                (property "LCSC" "C28310438" (at 0 0 0))
+                (symbol "D32_0_1" (polyline (pts (xy 1.27 -1.27) (xy 1.27 1.27)) (stroke (width 0.254) (type default)) (fill (type none))))
+                (symbol "D32_1_1" (pin passive line (at 5.08 0 180) (length 3.81) (name "~") (number "1"))))"#,
+        )
+        .unwrap();
+        let d33 = sexp::parse(
+            r#"(symbol "Calibrator:D33" (pin_names (offset 0.762) hide)
+                (property "Reference" "D33" (at 0 5.08 0))
+                (property "Value" "BLUE" (at 0 2.54 0))
+                (property "LCSC" "C28310438" (at 0 0 0))
+                (symbol "D33_0_1" (polyline (pts (xy 1.27 -1.27) (xy 1.27 1.27)) (stroke (width 0.254) (type default)) (fill (type none))))
+                (symbol "D33_1_1" (pin passive line (at 5.08 0 180) (length 3.81) (name "~") (number "1"))))"#,
+        )
+        .unwrap();
+        assert_eq!(normalize_symbol(&d32), normalize_symbol(&d33));
+        assert_eq!(
+            part_group_identity(&d32.properties()),
+            part_group_identity(&d33.properties())
+        );
+    }
+
+    #[test]
+    fn model_render_zoom_tracks_footprint_extent() {
+        let small = sexp::parse(
+            r#"(footprint "small" (layer "F.Cu")
+                (pad "1" smd rect (at -0.5 0) (size 0.4 0.4) (layers "F.Cu"))
+                (pad "2" smd rect (at 0.5 0) (size 0.4 0.4) (layers "F.Cu")))"#,
+        )
+        .unwrap();
+        let large = sexp::parse(
+            r#"(footprint "large" (layer "F.Cu")
+                (pad "1" smd rect (at -5 0) (size 1 1) (layers "F.Cu"))
+                (pad "2" smd rect (at 5 0) (size 1 1) (layers "F.Cu")))"#,
+        )
+        .unwrap();
+        let zoom = |node: &Sexp| model_render_params(node)[1].parse::<f64>().unwrap();
+        assert!(zoom(&small) > zoom(&large));
+        assert!(zoom(&small) <= 0.95);
+        assert!(zoom(&large) >= 0.35);
     }
 
     #[test]

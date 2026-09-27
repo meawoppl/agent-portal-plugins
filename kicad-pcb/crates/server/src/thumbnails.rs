@@ -23,7 +23,7 @@ use sha2::{Digest, Sha256};
 use tokio::{process::Command, sync::Notify};
 
 /// Bump when render inputs/outputs change shape so stale thumbnails are ignored.
-pub const RENDERER_VERSION: &str = "library-thumbs-v2";
+pub const RENDERER_VERSION: &str = "library-thumbs-v3";
 const RENDER_TIMEOUT: Duration = Duration::from_secs(120);
 const DEFAULT_WORKERS: usize = 2;
 const DEFAULT_CACHE_MB: u64 = 256;
@@ -65,8 +65,6 @@ impl RenderKind {
                 "240",
                 "--rotate",
                 "-50,0,35",
-                "--zoom",
-                "0.45",
                 "--background",
                 "transparent",
                 "--quality",
@@ -97,6 +95,8 @@ pub struct RenderSpec {
     /// renderer still receives `input`; this lets equivalent generated inputs
     /// share expensive renders while retaining real local paths for KiCad.
     pub cache_identity: Option<String>,
+    /// Additional CLI render/export arguments, typically derived from geometry.
+    pub params: Vec<String>,
     /// Model files referenced by `input`; their bytes participate in the key.
     pub model_files: Vec<PathBuf>,
 }
@@ -113,6 +113,7 @@ impl RenderSpec {
             &self.item,
             self.cache_identity.as_deref().unwrap_or(&self.input),
             &model_hashes,
+            &self.params,
             kicad_version,
         )
     }
@@ -124,6 +125,7 @@ pub fn cache_key(
     item: &str,
     input: &str,
     model_hashes: &[(String, Option<String>)],
+    extra_params: &[String],
     kicad_version: &str,
 ) -> String {
     let mut digest = Sha256::new();
@@ -138,6 +140,9 @@ pub fn cache_key(
     field("kind-name", format!("{kind:?}").as_bytes());
     for param in kind.params() {
         field("param", param.as_bytes());
+    }
+    for param in extra_params {
+        field("extra-param", param.as_bytes());
     }
     field("item", item.as_bytes());
     field("input", input.as_bytes());
@@ -523,6 +528,7 @@ pub async fn render_spec(kicad_cli: Option<&str>, spec: &RenderSpec, output: &Pa
                 png.display().to_string(),
             ];
             args.extend(spec.kind.params()[1..].iter().map(|v| v.to_string()));
+            args.extend(spec.params.iter().cloned());
             args.push(pcb.display().to_string());
             run_cli(cli, &args, work.path()).await?;
             std::fs::read(&png).context("read rendered png")?
@@ -539,6 +545,7 @@ pub async fn render_spec(kicad_cli: Option<&str>, spec: &RenderSpec, output: &Pa
                 glb.display().to_string(),
             ];
             args.extend(spec.kind.params()[1..].iter().map(|v| v.to_string()));
+            args.extend(spec.params.iter().cloned());
             args.push(pcb.display().to_string());
             run_cli(cli, &args, work.path()).await?;
             std::fs::read(&glb).context("read exported glb")?
@@ -670,41 +677,55 @@ mod tests {
     #[test]
     fn cache_key_is_stable_and_sensitive() {
         let models = vec![("/m/a.step".to_string(), Some("abc".to_string()))];
-        let a = cache_key(RenderKind::Model, "X", "(fp)", &models, "10.0.6");
-        let b = cache_key(RenderKind::Model, "X", "(fp)", &models, "10.0.6");
+        let a = cache_key(RenderKind::Model, "X", "(fp)", &models, &[], "10.0.6");
+        let b = cache_key(RenderKind::Model, "X", "(fp)", &models, &[], "10.0.6");
         assert_eq!(a, b);
         assert_eq!(a.len(), 32);
         // Pinned so accidental key-format changes are caught; bump
         // RENDERER_VERSION (and this value) when the format intentionally changes.
         assert_eq!(
-            cache_key(RenderKind::Symbol, "R", "(symbol \"R\")", &[], "10.0.6"),
-            "15d0e53b0bcbe6c57aa1ececc325fa32"
+            cache_key(
+                RenderKind::Symbol,
+                "R",
+                "(symbol \"R\")",
+                &[],
+                &[],
+                "10.0.6"
+            ),
+            "c09aba4f499ccff74ca55f6a84693914"
         );
         let other_model = vec![("/m/a.step".to_string(), Some("abd".to_string()))];
         let missing_model = vec![("/m/a.step".to_string(), None)];
         assert_ne!(
             a,
-            cache_key(RenderKind::Model, "X", "(fp)", &other_model, "10.0.6")
+            cache_key(RenderKind::Model, "X", "(fp)", &other_model, &[], "10.0.6")
         );
         assert_ne!(
             a,
-            cache_key(RenderKind::Model, "X", "(fp)", &missing_model, "10.0.6")
+            cache_key(
+                RenderKind::Model,
+                "X",
+                "(fp)",
+                &missing_model,
+                &[],
+                "10.0.6"
+            )
         );
         assert_ne!(
             a,
-            cache_key(RenderKind::Model, "X", "(fp) ", &models, "10.0.6")
+            cache_key(RenderKind::Model, "X", "(fp) ", &models, &[], "10.0.6")
         );
         assert_ne!(
             a,
-            cache_key(RenderKind::Model, "X", "(fp)", &models, "10.0.7")
+            cache_key(RenderKind::Model, "X", "(fp)", &models, &[], "10.0.7")
         );
         assert_ne!(
             a,
-            cache_key(RenderKind::Glb, "X", "(fp)", &models, "10.0.6")
+            cache_key(RenderKind::Glb, "X", "(fp)", &models, &[], "10.0.6")
         );
         assert_ne!(
-            cache_key(RenderKind::Symbol, "X", "(fp)", &[], "10.0.6"),
-            cache_key(RenderKind::Footprint, "X", "(fp)", &[], "10.0.6")
+            cache_key(RenderKind::Symbol, "X", "(fp)", &[], &[], "10.0.6"),
+            cache_key(RenderKind::Footprint, "X", "(fp)", &[], &[], "10.0.6")
         );
     }
 
@@ -718,6 +739,7 @@ mod tests {
             item: String::new(),
             input: "(kicad_pcb)".to_string(),
             cache_identity: None,
+            params: Vec::new(),
             model_files: vec![model.clone()],
         };
         let first = spec.key("10");
@@ -733,6 +755,7 @@ mod tests {
             item: String::new(),
             input: "(kicad_pcb (footprint \"A\"))".to_string(),
             cache_identity: Some("same-model".to_string()),
+            params: Vec::new(),
             model_files: Vec::new(),
         };
         let b = RenderSpec {
@@ -740,9 +763,13 @@ mod tests {
             item: String::new(),
             input: "(kicad_pcb (footprint \"B\"))".to_string(),
             cache_identity: Some("same-model".to_string()),
+            params: Vec::new(),
             model_files: Vec::new(),
         };
         assert_eq!(a.key("10"), b.key("10"));
+        let mut zoomed = b.clone();
+        zoomed.params = vec!["--zoom".into(), "0.5".into()];
+        assert_ne!(a.key("10"), zoomed.key("10"));
     }
 
     #[test]

@@ -55,6 +55,12 @@ layout quality. Before you call layout work complete:
 - After publishing, post the Gerber ZIP, BOM, and CPL as **separate**
   `portal://file/<path>` links, one per file.
 - Ask before uploading designs or outputs to an external service.
+- When the JLCPCB preview shows a part rotated or shifted against its pads,
+  record the fix on the part: hidden `JLCPCB Rotation Offset` (degrees, CCW
+  positive) and/or `JLCPCB Position Offset` (`x,y` mm in the footprint-local
+  frame, +Y down) fields on the symbol and footprint. Do not edit the CPL by
+  hand or add entries to the deprecated `docs/jlcpcb-placement-offsets.json`.
+  Check the build log's correction list before publishing.
 
 ## Completion Standard
 

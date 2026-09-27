@@ -56,6 +56,7 @@
 .lib-badge.error{border-color:#f7768e;color:#f7768e}
 .lib-badge.warning{border-color:#e0af68;color:#e0af68}
 .lib-badge.info{border-color:#565f89;color:#9aa5ce}
+.lib-badge.kind-jlc-correction.info{border-color:#7aa2f7;color:#7aa2f7}
 .lib-warn{color:#e0af68;margin:4px 0}
 .lib-modal{position:fixed;inset:0;background:#0b0c12d9;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
 .lib-dialog{width:min(1100px,100%);height:min(820px,100%);background:#1a1b26;border:1px solid #3b4261;border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
@@ -131,7 +132,7 @@
 
   const cardHtml = (part, section) => {
     const badges = (part.badges || [])
-      .map(b => `<span class="lib-badge ${esc(b.level)}"${b.detail ? ` title="${esc(b.detail)}"` : ""}>${esc(b.label)}</span>`)
+      .map(b => `<span class="lib-badge ${esc(b.level)} kind-${esc(b.kind)}"${b.detail ? ` title="${esc(b.detail)}"` : ""}>${esc(b.label)}</span>`)
       .join("");
     const sub = part.footprint && part.symbol ? part.symbol : "";
     const meta = [];

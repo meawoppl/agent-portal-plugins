@@ -299,14 +299,15 @@ The Rust workbench and CLI currently honor:
 - `projects[].artifacts.fab`, `.checks`, `.gerbers`, `.jlcpcb` (publish targets;
   must be relative paths inside the project root)
 - `projects[].artifacts.autoPublish`
-- `projects[].manufacturer.placementOffsets`
+- `projects[].manufacturer.placementOffsets` (deprecated)
 - top-level `build`
 - top-level `qualityProfile` and `quality`, and `projects[].qualityProfile`
   (see [Layout Quality Checks](#layout-quality-checks))
 - top-level and project `libraries` for doctor warnings and source hashing
 
 The `manufacturer` object is surfaced through `doctor --json` for agents. The
-only key that alters generated files is `placementOffsets` (see below).
+only key that alters generated files is the deprecated `placementOffsets` (see
+JLCPCB placement corrections below).
 
 ## Automatic Build Pipeline
 
@@ -403,19 +404,50 @@ labels which one it is showing.
 revisions per board, plus every stage the published manifest references, and
 deletes the rest. It also removes pre-pipeline `<revision>.glb` cache files.
 
-**JLCPCB placement offsets.** If `manufacturer.placementOffsets` (a
-project-relative path) is set, or `docs/jlcpcb-placement-offsets.json` exists,
-JLCPCB CPL rows are corrected per LCSC part:
+**JLCPCB placement corrections.** When JLCPCB's part model does not match
+the KiCad footprint (pin 1 a quarter turn off, origin shifted), record the
+correction on the part itself with two optional fields. Put them on the symbol
+(KiCad copies symbol fields to the footprint on *Update PCB from Schematic*)
+or directly on the footprint; keep them hidden on a Fab layer so silkscreen is
+unchanged.
 
-```json
-{ "C221660": { "rotation_offset_degrees": 0, "cpl_offset_x_mm": 0,
-  "cpl_offset_y_mm": 2.75, "verified_native_rotation_degrees": 0 } }
-```
+| Field | Value | Meaning |
+|-------|-------|---------|
+| `JLCPCB Rotation Offset` | degrees, e.g. `-90` | added to KiCad's rotation (counter-clockwise positive, KiCad convention); `-90` = a quarter turn clockwise |
+| `JLCPCB Position Offset` | `x,y` in mm, e.g. `0,-2.75` | shift in the **footprint-local** frame (KiCad +Y down, before rotation/flip) |
 
-Translations need `verified_native_rotation_degrees`, and the part must still
-be top-side at that rotation. Rotation corrections are top-side only. If a
-check fails, the export fails. This applies to both the `jlcpcb` stage and
-`export jlcpcb`.
+Both are relative to the footprint, so they stay right when the part is moved,
+rotated, or flipped: the exporter maps the local offset to the board exactly
+like a pad offset (bottom-side parts mirror local Y, then the footprint
+rotation applies; verified against pcbnew at 0/90/180/270° on both sides),
+then to CPL coordinates (+Y up). On the bottom side the rotation correction is
+mirrored (subtracted) and flagged for preview review. Formats are tolerant
+(`1.2, -0.5`, `1.2mm,-0.5mm`, `(1.2; -0.5)`, `-90°`); empty means none; an
+unparseable value fails the export naming the reference. If the footprint and
+schematic disagree the footprint wins and the build log warns.
+
+To find a local offset from a shift observed in the JLCPCB preview at native
+rotation θ: convert the CPL shift (+Y up) to KiCad board axes (negate Y), then
+undo the footprint rotation θ. For example a part at 180° that must move 1.425 mm down on the
+board has local offset `0,-1.425`; one at 0° that must move 2.75 mm up also
+has a negative local Y: `0,-2.75`.
+
+Each JLCPCB export logs every corrected reference with the applied rotation,
+local offset, CPL shift, and source, and writes the same data to
+`<board>-placement-corrections.json` beside the CPL (not included in the
+upload ZIP). The Libraries tab shows a `JLC corr.` badge on cards whose parts
+carry corrections, with the values (details on hover). This applies to both
+the `jlcpcb` stage and `export jlcpcb`.
+
+*Deprecated table.* The earlier per-board table (`manufacturer.placementOffsets`
+or `docs/jlcpcb-placement-offsets.json`, keyed by LCSC number, offsets in CPL
++Y-up coordinates, translations pinned by `verified_native_rotation_degrees`)
+is still read as a fallback for parts without the fields, with a deprecation
+warning in the build output. Part fields win over table entries. To migrate,
+for each table entry add `JLCPCB Rotation Offset` = `rotation_offset_degrees`
+to every part with that LCSC number, and convert `cpl_offset_x_mm/y_mm` at the
+verified rotation θ to a local offset (`x_local = dx·cosθ + dy·sinθ`,
+`y_local = dx·sinθ − dy·cosθ`), then delete the table.
 
 `build` configuration (all keys optional):
 

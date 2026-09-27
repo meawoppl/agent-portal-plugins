@@ -781,7 +781,14 @@ async fn file(
 ) -> Result<Response, AppError> {
     let project = selected_project(&state, query.project.as_deref())?;
     let target = safe_rel(&project.root, &query.path)?;
-    let bytes = tokio::fs::read(&target).await?;
+    let bytes = if query.download.is_none() {
+        match tokio::fs::read_to_string(&target).await {
+            Ok(content) => viewer_source_content(&target, content).into_bytes(),
+            Err(_) => tokio::fs::read(&target).await?,
+        }
+    } else {
+        tokio::fs::read(&target).await?
+    };
     let mime = mime_guess::from_path(&target)
         .first_or_octet_stream()
         .to_string();
@@ -928,11 +935,79 @@ fn kicad_sources(project: &ProjectContext) -> Result<Vec<SourceFile>> {
 }
 
 fn viewer_source_content(path: &Path, content: String) -> String {
-    if path.extension().and_then(|v| v.to_str()) == Some("kicad_pcb") {
+    let extension = path.extension().and_then(|v| v.to_str());
+    let content = if extension == Some("kicad_pcb") {
         synthesize_kicad10_reference_text(&content)
     } else {
         content
+    };
+    if matches!(
+        extension,
+        Some("kicad_pcb" | "kicad_sch" | "kicad_sym" | "kicad_mod" | "kicad_wks")
+    ) {
+        normalize_leading_decimal_atoms(&content)
+    } else {
+        content
     }
+}
+
+fn normalize_leading_decimal_atoms(content: &str) -> String {
+    let bytes = content.as_bytes();
+    let mut output = String::with_capacity(content.len());
+    let mut i = 0;
+    let mut in_string = false;
+    let mut escaped = false;
+    while i < bytes.len() {
+        let byte = bytes[i];
+        if in_string {
+            output.push(byte as char);
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                in_string = false;
+            }
+            i += 1;
+            continue;
+        }
+
+        if byte == b'"' {
+            in_string = true;
+            output.push('"');
+            i += 1;
+            continue;
+        }
+
+        if byte == b'.'
+            && is_token_start(bytes, i)
+            && bytes.get(i + 1).is_some_and(|next| next.is_ascii_digit())
+        {
+            output.push('0');
+            output.push('.');
+            i += 1;
+            continue;
+        }
+
+        if matches!(byte, b'+' | b'-')
+            && is_token_start(bytes, i)
+            && bytes.get(i + 1) == Some(&b'.')
+            && bytes.get(i + 2).is_some_and(|next| next.is_ascii_digit())
+        {
+            output.push(byte as char);
+            output.push('0');
+            i += 1;
+            continue;
+        }
+
+        output.push(byte as char);
+        i += 1;
+    }
+    output
+}
+
+fn is_token_start(bytes: &[u8], index: usize) -> bool {
+    index == 0 || matches!(bytes[index - 1], b'(' | b')' | b' ' | b'\n' | b'\r' | b'\t')
 }
 
 fn synthesize_kicad10_reference_text(content: &str) -> String {
@@ -2920,6 +2995,23 @@ mod tests {
         assert!(normalized.contains("(fp_text reference \"D2\""));
         assert!(normalized.contains("(layer \"F.SilkS\")"));
         assert!(normalized.contains("(size 0.85 0.85)"));
+    }
+
+    #[test]
+    fn viewer_sources_normalize_leading_decimal_atoms() {
+        let source = r#"(global_label "CLK"
+	(shape passive)
+	(at 1 -.85 0)
+	(effects (font (size .85 .85)))
+	(property "raw" ".85")
+)
+"#;
+
+        let normalized = viewer_source_content(Path::new("test.kicad_sch"), source.to_string());
+
+        assert!(normalized.contains("(at 1 -0.85 0)"));
+        assert!(normalized.contains("(size 0.85 0.85)"));
+        assert!(normalized.contains("(property \"raw\" \".85\")"));
     }
 
     #[test]

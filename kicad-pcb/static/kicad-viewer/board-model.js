@@ -46,8 +46,10 @@ export function createBoardModel(host, status, options = {}) {
   camera.lookAt(0, 0, 0);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.domElement.style.cssText = "display:block;touch-action:none;width:100%;height:100%";
+  renderer.domElement.style.cssText =
+    "display:block;touch-action:none;width:100%;height:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent";
   renderer.domElement.setAttribute("aria-label", "3D board model");
+  renderer.domElement.draggable = false;
   host.appendChild(renderer.domElement);
   const controls = new TrackballControls(camera, renderer.domElement);
   const pointerRotateSpeed = 1.6;

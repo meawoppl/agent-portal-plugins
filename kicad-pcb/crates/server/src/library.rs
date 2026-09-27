@@ -1531,7 +1531,46 @@ fn symbol_group_identity(sch: &SchData, instance: Option<&SchInstance>) -> Strin
         .unwrap_or_else(|| format!("lib:{}", instance.lib_id))
 }
 
+fn exact_part_identity(fields: &[(String, String)]) -> Option<String> {
+    let mut exact = Vec::new();
+    let mut manufacturer = Vec::new();
+    for (name, value) in fields {
+        if !is_meaningful(value) {
+            continue;
+        }
+        match field_kind(name) {
+            Some("lcsc" | "mpn") => exact.push(format!(
+                "{}={}",
+                name.chars()
+                    .filter(|ch| ch.is_ascii_alphanumeric())
+                    .collect::<String>()
+                    .to_ascii_lowercase(),
+                value.trim()
+            )),
+            Some("manufacturer") => manufacturer.push(format!(
+                "{}={}",
+                name.chars()
+                    .filter(|ch| ch.is_ascii_alphanumeric())
+                    .collect::<String>()
+                    .to_ascii_lowercase(),
+                value.trim()
+            )),
+            _ => {}
+        }
+    }
+    if exact.is_empty() {
+        return None;
+    }
+    exact.extend(manufacturer);
+    exact.sort();
+    exact.dedup();
+    Some(exact.join("|"))
+}
+
 fn part_group_identity(fields: &[(String, String)]) -> String {
+    if let Some(exact) = exact_part_identity(fields) {
+        return exact;
+    }
     let mut values = fields
         .iter()
         .filter_map(|(name, value)| {
@@ -1556,6 +1595,19 @@ fn part_group_identity(fields: &[(String, String)]) -> String {
     values.sort();
     values.dedup();
     values.join("|")
+}
+
+fn physical_part_symbol_identity(
+    sch: &SchData,
+    instance: Option<&SchInstance>,
+    fpid: Option<&str>,
+    fields: &[(String, String)],
+) -> String {
+    if fpid.is_some_and(is_meaningful) && exact_part_identity(fields).is_some() {
+        String::new()
+    } else {
+        symbol_group_identity(sch, instance)
+    }
 }
 
 /// Serialize with numbers normalized, strings unquoted, the item name's
@@ -1830,14 +1882,17 @@ fn build_inventory(repo_root: &Path, project: &ProjectContext) -> Result<Invento
         if let Some(footprint) = footprint {
             part_fields.extend(footprint.fields.iter().cloned());
         }
+        let part_identity = part_group_identity(&part_fields);
         let key = (
-            symbol_group_identity(&ctx.sch, *instance),
+            physical_part_symbol_identity(&ctx.sch, *instance, fpid.as_deref(), &part_fields),
             fpid.clone().unwrap_or_default(),
             models.join("|"),
-            part_group_identity(&part_fields),
+            part_identity,
         );
         let group = groups.entry(key).or_default();
-        group.symbol = symbol;
+        if let Some(symbol) = symbol {
+            group.symbol.get_or_insert(symbol);
+        }
         group.footprint = fpid;
         group.models = models;
         group.refs.insert(reference.clone());
@@ -2461,6 +2516,38 @@ mod tests {
             part_group_identity(&d32.properties()),
             part_group_identity(&d33.properties())
         );
+    }
+
+    #[test]
+    fn exact_part_identity_ignores_descriptive_values() {
+        let j5 = vec![
+            ("Value".to_string(), "GPS ANTENNA".to_string()),
+            ("LCSC".to_string(), "C3172723".to_string()),
+            ("MPN".to_string(), "132289".to_string()),
+        ];
+        let j6 = vec![
+            ("Value".to_string(), "INPUT 5V / 2.5V THRESHOLD".to_string()),
+            ("LCSC".to_string(), "C3172723".to_string()),
+            ("MPN".to_string(), "132289".to_string()),
+        ];
+        assert_eq!(part_group_identity(&j5), part_group_identity(&j6));
+        assert_eq!(
+            physical_part_symbol_identity(&SchData::default(), None, Some("Calibrator:SMA"), &j5),
+            ""
+        );
+    }
+
+    #[test]
+    fn unqualified_values_still_separate_parts() {
+        let resistor = vec![
+            ("Value".to_string(), "1k".to_string()),
+            ("Footprint".to_string(), "R_0603".to_string()),
+        ];
+        let other = vec![
+            ("Value".to_string(), "10k".to_string()),
+            ("Footprint".to_string(), "R_0603".to_string()),
+        ];
+        assert_ne!(part_group_identity(&resistor), part_group_identity(&other));
     }
 
     #[test]

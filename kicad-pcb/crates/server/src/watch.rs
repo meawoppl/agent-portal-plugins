@@ -73,6 +73,17 @@ async fn run(state: AppState) -> Result<()> {
         }
 
         for project in state.projects.clone() {
+            // The quality profile usually lives outside the board root; an
+            // edit only affects the quality stage key, so just re-plan.
+            if project
+                .quality
+                .profile
+                .as_ref()
+                .is_some_and(|profile| paths.contains(profile))
+                && state.warmed.read().await.contains_key(&project.id)
+            {
+                state.builds.request(&project);
+            }
             let mut source = false;
             let mut artifact = false;
             for path in &paths {

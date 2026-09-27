@@ -1,7 +1,11 @@
 mod artifacts;
+mod audits;
 mod bom;
 mod jobs;
+mod profile;
+mod quality;
 mod revision;
+mod sexpr;
 mod watch;
 use std::{
     collections::{HashMap, HashSet},
@@ -105,6 +109,16 @@ enum Commands {
         #[arg(long)]
         project: Option<String>,
     },
+    /// Layout-quality checks (kct rules + in-plugin audits) against the
+    /// workspace quality profile.
+    Quality {
+        #[arg(long)]
+        json: bool,
+        #[arg(long, default_value = ".")]
+        cwd: PathBuf,
+        #[arg(long)]
+        project: Option<String>,
+    },
     Export {
         #[command(subcommand)]
         command: ExportCommand,
@@ -168,6 +182,8 @@ struct ProjectContext {
     repo_root: PathBuf,
     /// Other projects' roots nested inside this one (excluded from its sources).
     excluded_roots: Vec<PathBuf>,
+    /// Resolved layout-quality profile and settings.
+    quality: quality::QualitySettings,
 }
 
 #[derive(Debug, Clone)]
@@ -191,6 +207,9 @@ struct WorkspaceConfig {
     libraries: Option<LibraryConfig>,
     projects: Option<Vec<ProjectConfig>>,
     build: Option<jobs::BuildConfig>,
+    /// Workspace-relative path to the layout-quality profile YAML.
+    quality_profile: Option<PathBuf>,
+    quality: Option<quality::QualityConfig>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -204,6 +223,8 @@ struct ProjectConfig {
     libraries: Option<LibraryConfig>,
     manufacturer: Option<serde_json::Value>,
     inherit_libraries: Option<bool>,
+    /// Project-root-relative quality profile; overrides the workspace one.
+    quality_profile: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -261,6 +282,8 @@ async fn main() -> Result<()> {
             let mut response = serde_json::json!({
                 "ok": true,
                 "runtime_dir": plugin_dir()?.join(".runtime"),
+                "kicad_cli": kicad_cli(),
+                "kicad_version": tool_version(kicad_cli()).await,
                 "kct": kct_cli(),
                 "kct_version": kct_version().await,
             });
@@ -311,7 +334,15 @@ async fn main() -> Result<()> {
                 },
                 "tool_paths": {
                     "kicad-cli": kicad_cli(),
+                    "managed_kicad-cli": managed_kicad_cli(),
                     "kct": kct_cli(),
+                    "managed_kct": managed_kct_cli().ok().flatten(),
+                },
+                "runtime": {
+                    "server": "rust",
+                    "binary": std::env::current_exe().ok(),
+                    "version": env!("CARGO_PKG_VERSION"),
+                    "runtime_dir": plugin_dir().ok().map(|dir| dir.join(".runtime")),
                 },
                 "versions": {
                     "kicad": tool_version(kicad_cli()).await,
@@ -324,6 +355,7 @@ async fn main() -> Result<()> {
                 "build": artifacts::doctor_report(
                     &projects,
                     tool_version(kicad_cli()).await.as_deref(),
+                    kct_version().await.as_deref(),
                     workspace_config(&cwd)?.build.as_ref(),
                 ),
             });
@@ -344,6 +376,7 @@ async fn main() -> Result<()> {
                 jobs::BuildSettings::from_config(workspace_config(&cwd)?.build.as_ref()),
                 projects.clone(),
                 tool_version(kicad_cli()).await,
+                kct_version().await,
                 events.clone(),
             );
             builds.request(&default_project);
@@ -367,6 +400,7 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/model.glb", get(model_glb))
                 .route("/api/kicad/drc", get(drc))
                 .route("/api/kicad/erc", get(erc))
+                .route("/api/kicad/quality", get(quality_endpoint))
                 .route("/api/kicad/file", get(file))
                 .route("/api/kicad/bom", get(bom::endpoint))
                 .route("/api/kicad/libraries", get(libraries_endpoint))
@@ -393,6 +427,33 @@ async fn main() -> Result<()> {
             let project = cli_project_context(&cwd, project.as_deref())?;
             let result = run_check(&project, "erc").await?;
             print_json_or_debug(json, &result)?;
+            if !result.ok {
+                std::process::exit(1);
+            }
+        }
+        Commands::Quality { json, cwd, project } => {
+            let cwd = cwd.canonicalize()?;
+            let project = cli_project_context(&cwd, project.as_deref())?;
+            let result = quality::run_check(&project).await?;
+            if json {
+                print_json_or_debug(true, &result)?;
+            } else {
+                println!("{}", result.stdout);
+                let report: serde_json::Value =
+                    serde_json::from_str(&result.report).unwrap_or_default();
+                if let Some(rules) = report
+                    .pointer("/summary/by_rule")
+                    .and_then(|v| v.as_object())
+                {
+                    for (rule, info) in rules {
+                        println!(
+                            "  {:>5}  {:<8} {rule}",
+                            info["count"],
+                            info["severity"].as_str().unwrap_or_default()
+                        );
+                    }
+                }
+            }
             if !result.ok {
                 std::process::exit(1);
             }
@@ -661,6 +722,16 @@ async fn erc(
 ) -> Result<Json<CheckResponse>, AppError> {
     let project = selected_project(&state, query.project.as_deref())?;
     Ok(Json(state.builds.check(&project, jobs::Stage::Erc).await?))
+}
+
+async fn quality_endpoint(
+    State(state): State<AppState>,
+    Query(query): Query<ProjectQuery>,
+) -> Result<Json<CheckResponse>, AppError> {
+    let project = selected_project(&state, query.project.as_deref())?;
+    Ok(Json(
+        state.builds.check(&project, jobs::Stage::Quality).await?,
+    ))
 }
 
 async fn model_glb(
@@ -1045,6 +1116,23 @@ fn project_contexts(cwd: &Path) -> Result<Vec<ProjectContext>> {
     let config = workspace_config(cwd)?;
     validate_workspace_config(cwd, &config)?;
     let shared_libraries = config.libraries.clone().unwrap_or_default();
+    let quality_config = config.quality.clone().unwrap_or_default();
+    let workspace_profile = config
+        .quality_profile
+        .as_ref()
+        .map(|path| repo_path(cwd, cwd, path))
+        .transpose()?;
+    let quality_for =
+        |root: &Path, project: Option<&ProjectConfig>| -> Result<quality::QualitySettings> {
+            let profile = match project.and_then(|project| project.quality_profile.as_ref()) {
+                Some(path) => Some(repo_path(cwd, root, path)?),
+                None => workspace_profile.clone(),
+            };
+            Ok(quality::QualitySettings {
+                profile,
+                config: quality_config.clone(),
+            })
+        };
     let Some(projects) = config.projects else {
         return Ok(vec![ProjectContext {
             id: "default".to_string(),
@@ -1059,6 +1147,7 @@ fn project_contexts(cwd: &Path) -> Result<Vec<ProjectContext>> {
             shared_libraries,
             repo_root: cwd.to_path_buf(),
             excluded_roots: Vec::new(),
+            quality: quality_for(cwd, None)?,
         }]);
     };
 
@@ -1067,6 +1156,7 @@ fn project_contexts(cwd: &Path) -> Result<Vec<ProjectContext>> {
         .map(|project| {
             let root = safe_rel(cwd, &project.root.to_string_lossy())?;
             let name = project.name.clone().unwrap_or_else(|| project.id.clone());
+            let quality = quality_for(&root, Some(&project))?;
             Ok(ProjectContext {
                 id: project.id.clone(),
                 name,
@@ -1075,6 +1165,7 @@ fn project_contexts(cwd: &Path) -> Result<Vec<ProjectContext>> {
                 shared_libraries: shared_libraries.clone(),
                 repo_root: cwd.to_path_buf(),
                 excluded_roots: Vec::new(),
+                quality,
             })
         })
         .collect::<Result<Vec<_>>>()?;
@@ -1092,6 +1183,7 @@ fn project_contexts(cwd: &Path) -> Result<Vec<ProjectContext>> {
             shared_libraries,
             repo_root: cwd.to_path_buf(),
             excluded_roots: Vec::new(),
+            quality: quality_for(cwd, None)?,
         });
     }
     // A project whose root contains another project's root (e.g. a root "."
@@ -1125,6 +1217,12 @@ fn validate_workspace_config(cwd: &Path, config: &WorkspaceConfig) -> Result<()>
         }
     }
     jobs::validate_build_config(&config.build)?;
+    if let Some(quality) = &config.quality {
+        quality::validate_config(quality)?;
+    }
+    if let Some(path) = &config.quality_profile {
+        validate_profile_path(cwd, cwd, path, "qualityProfile")?;
+    }
     let Some(projects) = &config.projects else {
         return Ok(());
     };
@@ -1146,6 +1244,14 @@ fn validate_workspace_config(cwd: &Path, config: &WorkspaceConfig) -> Result<()>
                 project.root.display()
             ));
         }
+        if let Some(path) = &project.quality_profile {
+            validate_profile_path(
+                cwd,
+                &root,
+                path,
+                &format!("project {:?} qualityProfile", project.id),
+            )?;
+        }
         if let Some(kicad) = &project.kicad {
             validate_optional_file(&root, &kicad.project, "kicad.project", "kicad_pro")?;
             validate_optional_file(&root, &kicad.schematic, "kicad.schematic", "kicad_sch")?;
@@ -1159,6 +1265,28 @@ fn validate_workspace_config(cwd: &Path, config: &WorkspaceConfig) -> Result<()>
                 default_project
             ));
         }
+    }
+    Ok(())
+}
+
+/// Resolves `path` relative to `base`, requiring the result to stay inside
+/// the workspace (so a project may point at a shared profile in the repo).
+fn repo_path(repo: &Path, base: &Path, path: &Path) -> Result<PathBuf> {
+    let candidate = base
+        .join(path)
+        .canonicalize()
+        .with_context(|| format!("resolve {}", path.display()))?;
+    if !candidate.starts_with(repo) {
+        return Err(anyhow!("{} escapes the workspace", path.display()));
+    }
+    Ok(candidate)
+}
+
+fn validate_profile_path(repo: &Path, base: &Path, path: &Path, label: &str) -> Result<()> {
+    let resolved =
+        repo_path(repo, base, path).with_context(|| format!("{label} path is invalid"))?;
+    if !resolved.is_file() {
+        return Err(anyhow!("{label} {} is not a file", path.display()));
     }
     Ok(())
 }
@@ -1193,6 +1321,8 @@ fn workspace_config(cwd: &Path) -> Result<WorkspaceConfig> {
             libraries: None,
             projects: None,
             build: None,
+            quality_profile: None,
+            quality: None,
         });
     }
     let content =
@@ -1235,6 +1365,7 @@ fn project_summary(project: &ProjectContext) -> serde_json::Value {
             "project": project.config.libraries,
         },
         "manufacturer": project.config.manufacturer,
+        "quality_profile": project.quality.profile,
     })
 }
 
@@ -1940,7 +2071,26 @@ fn kicad_cli() -> Option<String> {
     std::env::var("KICAD_PCB_KICAD_CLI")
         .ok()
         .or_else(|| std::env::var("KICAD_CLI").ok())
+        .or_else(managed_kicad_cli)
         .or_else(|| find_on_path("kicad-cli"))
+}
+
+/// KiCad AppImage runtime installed by `setup --install-kicad` (Python
+/// installer) under `.runtime/kicad/current`.
+fn managed_kicad_cli() -> Option<String> {
+    let current = plugin_dir()
+        .ok()?
+        .join(".runtime")
+        .join("kicad")
+        .join("current");
+    [
+        current.join("squashfs-root/usr/bin/kicad-cli"),
+        current.join("usr/bin/kicad-cli"),
+        current.join("kicad-cli"),
+    ]
+    .into_iter()
+    .find(|candidate| candidate.is_file())
+    .map(|candidate| candidate.display().to_string())
 }
 
 fn kct_cli() -> Option<String> {
@@ -2161,7 +2311,7 @@ fn workbench_html(
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KiCad PCB · Agent Portal</title>
 <style>
-body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}header{{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}a{{color:#7dcfff}}select{{border:1px solid #3b4261;border-radius:6px;background:#24283b;color:#c0caf5;padding:7px 10px}}.muted{{color:#9aa5ce}}.ok{{color:#9ece6a}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}code{{color:#7dcfff}}.check-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}}.check-summary{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}}.pill{{border:1px solid #3b4261;border-radius:999px;padding:4px 8px;background:#24283b;font-size:12px}}.pill.error{{border-color:#f7768e;color:#f7768e}}.pill.warning{{border-color:#e0af68;color:#e0af68}}.pill.ok{{border-color:#9ece6a;color:#9ece6a}}.issue-list{{display:grid;gap:8px}}.issue{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px}}.issue-head{{display:flex;gap:8px;align-items:center;justify-content:space-between}}.severity{{text-transform:uppercase;font-size:11px;letter-spacing:.04em;border-radius:4px;padding:2px 6px}}.severity.error{{background:#f7768e22;color:#f7768e}}.severity.warning{{background:#e0af6822;color:#e0af68}}.items{{margin:8px 0 0;padding-left:18px}}details.raw{{margin-top:12px}}details.raw summary{{cursor:pointer;color:#7dcfff}}.gerber-layout{{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}}#gerberViewer{{height:70vh;min-height:420px;border:1px solid #3b4261;border-radius:8px;overflow:hidden;background:#11131d}}.side-panel{{border:1px solid #3b4261;border-radius:8px;background:#16161e;padding:10px;overflow:auto;max-height:70vh}}.side-panel h3{{font-size:13px;margin:0 0 8px;color:#e6e9f5}}.side-panel ul{{margin:0 0 14px;padding-left:18px}}.warning{{color:#e0af68}}@media (max-width: 860px){{header{{align-items:flex-start;flex-direction:column}}.gerber-layout{{grid-template-columns:1fr}}.side-panel{{max-height:none}}}}
+body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}header{{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #3b4261;background:#1a1b26}}h1{{margin:0;font-size:18px;color:#e6e9f5}}a{{color:#7dcfff}}select{{border:1px solid #3b4261;border-radius:6px;background:#24283b;color:#c0caf5;padding:7px 10px}}.muted{{color:#9aa5ce}}.ok{{color:#9ece6a}}.tabs{{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:#1f2335;position:sticky;top:0;z-index:2}}.tabs button{{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:7px 10px;border-radius:6px;cursor:pointer}}.tabs button.active{{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}}main{{padding:14px}}section{{display:none;min-height:55vh}}section.active{{display:block}}.card{{border:1px solid #3b4261;border-radius:8px;background:#1f2335;padding:12px}}iframe{{width:100%;height:70vh;border:1px solid #3b4261;border-radius:8px;background:#11131d}}pre{{white-space:pre-wrap;overflow:auto;background:#11131d;padding:12px;border-radius:6px}}code{{color:#7dcfff}}.check-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}}.check-summary{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}}.pill{{border:1px solid #3b4261;border-radius:999px;padding:4px 8px;background:#24283b;font-size:12px}}.pill.error{{border-color:#f7768e;color:#f7768e}}.pill.warning{{border-color:#e0af68;color:#e0af68}}.pill.ok{{border-color:#9ece6a;color:#9ece6a}}.issue-list{{display:grid;gap:8px}}.issue{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:10px}}.issue-head{{display:flex;gap:8px;align-items:center;justify-content:space-between}}.severity{{text-transform:uppercase;font-size:11px;letter-spacing:.04em;border-radius:4px;padding:2px 6px}}.severity.error{{background:#f7768e22;color:#f7768e}}.severity.warning{{background:#e0af6822;color:#e0af68}}.severity.info{{background:#7dcfff22;color:#7dcfff}}.quality-card{{grid-column:1/-1}}details.quality-rule{{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:8px 10px;margin:6px 0}}details.quality-rule summary{{cursor:pointer;display:flex;gap:8px;align-items:center;flex-wrap:wrap}}details.quality-rule .issue-list{{margin-top:8px}}.items{{margin:8px 0 0;padding-left:18px}}details.raw{{margin-top:12px}}details.raw summary{{cursor:pointer;color:#7dcfff}}.gerber-layout{{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}}#gerberViewer{{height:70vh;min-height:420px;border:1px solid #3b4261;border-radius:8px;overflow:hidden;background:#11131d}}.side-panel{{border:1px solid #3b4261;border-radius:8px;background:#16161e;padding:10px;overflow:auto;max-height:70vh}}.side-panel h3{{font-size:13px;margin:0 0 8px;color:#e6e9f5}}.side-panel ul{{margin:0 0 14px;padding-left:18px}}.warning{{color:#e0af68}}@media (max-width: 860px){{header{{align-items:flex-start;flex-direction:column}}.gerber-layout{{grid-template-columns:1fr}}.side-panel{{max-height:none}}}}
 </style></head><body>
 <header><div><h1>KiCad PCB Workbench</h1><div class="muted">Session {session} · {cwd}</div></div><label class="muted">Board <select id="projectSelect">{project_options}</select></label></header>
 <div id="buildStrip" data-project="{project_attr}"></div>
@@ -2169,7 +2319,7 @@ body{{margin:0;background:#16161e;color:#c0caf5;font-family:Inter,ui-sans-serif,
 <section id="schematic"><div class="card"><h2>Schematic</h2><iframe class="native-viewer" data-kind="schematic" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="pcb"><div class="card"><h2>PCB</h2><iframe class="native-viewer" data-kind="pcb" src="/kicad-viewer/runtime.html"></iframe></div></section>
 <section id="3d"><div class="card"><h2>3D Board</h2><iframe class="model-viewer" data-kind="model" src="/kicad-viewer/runtime.html"></iframe></div></section>
-<section id="checks"><div class="check-grid"><div class="card"><h2>DRC</h2><div id="drcOut">Open checks...</div></div><div class="card"><h2>ERC</h2><div id="ercOut">Open checks...</div></div></div></section>
+<section id="checks"><div class="check-grid"><div class="card"><h2>DRC</h2><div id="drcOut">Open checks...</div></div><div class="card"><h2>ERC</h2><div id="ercOut">Open checks...</div></div><div class="card quality-card"><h2>Layout quality</h2><div id="qualityOut">Open checks...</div></div></div></section>
 <section id="gerbers"><div class="card"><h2>Gerbers</h2><div class="gerber-layout"><div id="gerberViewer"></div><aside class="side-panel"><h3>Layers</h3><div id="gerberStatus" class="muted">Loading Gerber viewer...</div><ul id="gerberLayers"></ul><h3>Files</h3><div id="gerberOrigin" class="muted"></div><ul id="gerberFiles"></ul><div id="gerberWarnings"></div><div id="gerberSkipped" class="muted"></div></aside></div></div></section>
 <section id="step"><div class="card"><h2>STEP</h2><ul>{files}</ul></div></section>
 <section id="bom"><div class="card"><h2>BOM / Assembly CSV</h2><div id="bomContent">Select this tab to load BOM/assembly artifacts.</div></div></section>
@@ -2256,10 +2406,39 @@ const renderCheck = (target, check, kind) => {{
   const summary = (check.stdout || check.message || "").split("\\n").filter(Boolean).slice(0, 3).join(" · ");
   target.innerHTML = `<div class="check-summary"><span class="pill ${{status}}">${{check.ok ? "clean" : "needs attention"}}</span><span class="pill">${{esc(report.kicad_version || check.source || "KiCad")}}</span><span class="pill">${{issues.length}} issue${{issues.length === 1 ? "" : "s"}}</span><span class="pill error">${{counts.error || 0}} errors</span><span class="pill warning">${{counts.warning || 0}} warnings</span></div><p class="muted">${{esc(summary)}}</p>${{issues.length ? `<div class="issue-list">${{issues.map(issueCard).join("")}}</div>` : "<p class='ok'>No issues reported.</p>"}}<details class="raw"><summary>Raw report</summary><pre>${{esc(JSON.stringify(check, null, 2))}}</pre></details>`;
 }};
+const renderQuality = (target, check) => {{
+  const report = parseReport(check);
+  const issues = report.violations || [];
+  const summary = report.summary || {{}};
+  const groups = new Map();
+  for (const issue of issues) {{
+    if (!groups.has(issue.type)) groups.set(issue.type, []);
+    groups.get(issue.type).push(issue);
+  }}
+  const status = summary.errors ? "error" : (summary.warnings ? "warning" : "ok");
+  const profile = report.profile?.path ? `profile ${{report.profile.name || report.profile.path}}` : "no qualityProfile";
+  const kct = report.kct?.version || "kct missing";
+  const superseded = Object.entries(report.audits?.superseded_by_kct || {{}}).map(([id, rule]) => `${{id}} -> kct ${{rule}}`);
+  const notes = [...(report.notes || []), ...(superseded.length ? [`Retired audits (kct covers them): ${{superseded.join(", ")}}`] : [])];
+  const excluded = Object.values(report.kct?.excluded_drc_duplicates || {{}}).reduce((a, b) => a + b, 0);
+  const sevRank = {{error:0, warning:1, info:2}};
+  const rows = [...groups.entries()].sort((a, b) => (sevRank[a[1][0].severity] ?? 3) - (sevRank[b[1][0].severity] ?? 3) || b[1].length - a[1].length).map(([rule, list]) => {{
+    const first = list[0];
+    const meta = [first.source, first.profile_item ? `profile ${{first.profile_item}}` : ""].filter(Boolean).join(" · ");
+    const shown = list.slice(0, 50).map(issueCard).join("");
+    const more = list.length > 50 ? `<p class="muted">${{list.length - 50}} more in the raw report</p>` : "";
+    return `<details class="quality-rule"><summary><span class="severity ${{esc(first.severity)}}">${{esc(first.severity)}}</span> <strong>${{esc(rule)}}</strong> <span class="pill">${{list.length}}</span> <span class="muted">${{esc(meta)}}</span></summary><div class="issue-list">${{shown}}${{more}}</div></details>`;
+  }}).join("");
+  const message = check.message ? `<p class="warning">${{esc(check.message)}}</p>` : "";
+  target.innerHTML = `<div class="check-summary"><span class="pill ${{status}}">${{status === "ok" ? "clean" : "needs attention"}}</span><span class="pill">${{esc(profile)}}</span><span class="pill">${{esc(kct)}}</span><span class="pill error">${{summary.errors || 0}} errors</span><span class="pill warning">${{summary.warnings || 0}} warnings</span><span class="pill">${{summary.infos || 0}} info</span></div>${{message}}${{notes.map(note => `<p class="muted">${{esc(note)}}</p>`).join("")}}${{excluded ? `<p class="muted">${{excluded}} kct findings duplicating native DRC hidden (quality.includeDrcRules).</p>` : ""}}${{rows || (check.report ? "<p class='ok'>No layout-quality findings.</p>" : "")}}<details class="raw"><summary>Raw report</summary><pre>${{esc(JSON.stringify(report.summary ? report : check, null, 2))}}</pre></details>`;
+}};
 const loadChecks = async () => {{
+  const json = r => r.json().catch(() => ({{ok:false, message:`HTTP ${{r.status}}`}}));
+  const quality = fetch(api("/api/kicad/quality")).then(json).then(check => renderQuality(document.getElementById("qualityOut"), check), err => {{ document.getElementById("qualityOut").textContent = String(err); }});
   const [drc, erc] = await Promise.all([fetch(api("/api/kicad/drc")).then(r=>r.json()), fetch(api("/api/kicad/erc")).then(r=>r.json())]);
   renderCheck(document.getElementById("drcOut"), drc, "drc");
   renderCheck(document.getElementById("ercOut"), erc, "erc");
+  await quality;
 }};
 const renderGerberProject = project => {{
   const layers = document.getElementById("gerberLayers");
@@ -2388,7 +2567,7 @@ const applyBuild = async event => {{
     if (stage.state === "ok" || stage.state === "failed") done[stage.stage] = stage.input_key;
   }}
   const changed = id => done[id] && buildStageKeys[id] !== done[id];
-  const checks = changed("drc") || changed("erc");
+  const checks = changed("drc") || changed("erc") || changed("quality");
   const gerbers = changed("gerbers") || changed("jlcpcb");
   const model = changed("glb");
   buildStageKeys = {{...buildStageKeys, ...done}};

@@ -13,6 +13,7 @@ let probeId;
 let netHighlightId;
 let model;
 let nativeActive = false;
+let viewOptions = { polygonPours: true };
 const send = (message) =>
   parent.postMessage(message, location.origin === "null" ? "*" : location.origin);
 const editableTarget = (target) =>
@@ -39,13 +40,15 @@ window.addEventListener("keydown", (event) => {
     send({ type: "kicad-pcb-native-key", key: event.key });
 });
 window.addEventListener("message", (event) => {
-  if (
-    event.source !== parent ||
-    event.origin !== location.origin ||
-    event.data?.type !== "kicad-pcb-snapshot"
-  )
+  if (event.source !== parent || event.origin !== location.origin) return;
+  if (event.data?.type === "kicad-pcb-view-options") {
+    viewOptions = { ...viewOptions, polygonPours: event.data.polygonPours !== false };
+    viewer?.setPolygonPoursVisible?.(viewOptions.polygonPours);
     return;
+  }
+  if (event.data?.type !== "kicad-pcb-snapshot") return;
   const snapshot = event.data;
+  viewOptions = { ...viewOptions, polygonPours: snapshot.polygonPours !== false };
   if (snapshot.kind === "model" || snapshot.kind === "step") {
     nativeActive = false;
     void (async () => {
@@ -109,6 +112,7 @@ window.addEventListener("message", (event) => {
             viewer.setLayerVisibility(name, Boolean(visible));
         }
         viewer.activateContext?.(snapshot.context);
+        viewer.setPolygonPoursVisible?.(viewOptions.polygonPours);
         viewer.setActive(snapshot.active !== false);
         if (snapshot.active !== false) {
           viewer.resize();
@@ -119,6 +123,7 @@ window.addEventListener("message", (event) => {
             viewer.restoreView?.();
             viewer.reseedLayerCache();
             viewer.enhanceGeometrySelection();
+            viewer.setPolygonPoursVisible?.(viewOptions.polygonPours);
             viewer.publishLayers();
             host.style.visibility = "visible";
             installSchematicSizing(native);

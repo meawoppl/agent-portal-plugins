@@ -526,6 +526,8 @@ export class RetainedNativeViewer extends EventTarget {
     this.generation = 0;
     this.programmaticProbeDepth = 0;
     this.pendingView = undefined;
+    this.polygonPoursVisible = true;
+    this.polygonPoursOpacity = undefined;
   }
 
   core() {
@@ -606,6 +608,26 @@ export class RetainedNativeViewer extends EventTarget {
       this.cache.setSignatures(this.index.signatures, cacheContext(core, this.index), {
         active: true,
       });
+  }
+
+  applyPolygonPourVisibility() {
+    const core = this.core();
+    if (!core?.board) return false;
+    const zoneLayers =
+      typeof core.layers?.zone_layers === "function" ? Array.from(core.layers.zone_layers()) : [];
+    if (this.polygonPoursOpacity === undefined) {
+      const visibleLayer = zoneLayers.find((layer) => (layer.opacity ?? 1) > 0);
+      this.polygonPoursOpacity = visibleLayer?.opacity ?? 0.6;
+    }
+    const opacity = this.polygonPoursVisible ? this.polygonPoursOpacity : 0;
+    if (typeof core.set_host_object_opacity === "function")
+      core.set_host_object_opacity("zones", opacity);
+    else if ("zone_opacity" in core) core.zone_opacity = opacity;
+    else {
+      for (const layer of zoneLayers) layer.opacity = opacity;
+      core.draw_now?.();
+    }
+    return true;
   }
 
   enhanceGeometrySelection() {
@@ -863,6 +885,7 @@ export class RetainedNativeViewer extends EventTarget {
         this.restoreView(view);
         this.enhanceGeometrySelection();
         this.applyVisibility();
+        this.applyPolygonPourVisibility();
         current.setActive(this.active);
         current.resize();
         if (this.selection) {
@@ -915,6 +938,7 @@ export class RetainedNativeViewer extends EventTarget {
         ?.querySelectorAll("tab-button")
         ?.forEach((button) => button.textContent?.trim().toUpperCase() === tab && button.click());
     this.current?.resize();
+    this.applyPolygonPourVisibility();
     this.core()?.draw_now?.();
   }
   resize() {
@@ -986,6 +1010,10 @@ export class RetainedNativeViewer extends EventTarget {
   }
   setLayerHighlight(id) {
     return Boolean(this.current?.setPcbLayerHighlight?.(id));
+  }
+  setPolygonPoursVisible(visible) {
+    this.polygonPoursVisible = visible !== false;
+    return this.applyPolygonPourVisibility();
   }
   fit() {
     this.core()?.zoom_fit_top_item();

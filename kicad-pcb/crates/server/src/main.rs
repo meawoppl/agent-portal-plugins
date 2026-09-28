@@ -42,12 +42,17 @@ use kicad_pcb_shared::{
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
-use tokio::sync::{broadcast, RwLock};
+use tokio::{
+    sync::{broadcast, RwLock},
+    time::{sleep, Duration},
+};
 use tower_http::trace::TraceLayer;
 use walkdir::WalkDir;
 use zip::{write::SimpleFileOptions, ZipWriter};
 
 static VIEWER_ASSETS: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../../static/kicad-viewer");
+const VIEWER_SOURCE_READ_ATTEMPTS: usize = 5;
+const VIEWER_SOURCE_READ_DELAY: Duration = Duration::from_millis(40);
 
 const TABS: &[&str] = &[
     "schematic",
@@ -782,8 +787,9 @@ async fn file(
     let project = selected_project(&state, query.project.as_deref())?;
     let target = safe_rel(&project.root, &query.path)?;
     let bytes = if query.download.is_none() {
-        match tokio::fs::read_to_string(&target).await {
-            Ok(content) => viewer_source_content(&target, content).into_bytes(),
+        match read_stable_viewer_source(&target).await {
+            Ok(content) => content.into_bytes(),
+            Err(err) if is_viewer_source_path(&target) => return Err(err.into()),
             Err(_) => tokio::fs::read(&target).await?,
         }
     } else {
@@ -850,7 +856,7 @@ async fn refresh_project_viewer_state(
 
 async fn warm_viewer_state(project: &ProjectContext) -> Result<ViewerState> {
     let cwd = &project.root;
-    let sources = kicad_sources(project)?;
+    let sources = kicad_sources(project).await?;
     let source_revision = current_source_revision(project)?;
     let mut manifest = manifest_for(cwd).await?;
     manifest.revision = now_ms().to_string();
@@ -905,7 +911,7 @@ fn detect_files(cwd: &Path) -> Result<Vec<FileEntry>> {
     Ok(files)
 }
 
-fn kicad_sources(project: &ProjectContext) -> Result<Vec<SourceFile>> {
+async fn kicad_sources(project: &ProjectContext) -> Result<Vec<SourceFile>> {
     let cwd = &project.root;
     let mut sources = Vec::new();
     for path in revision::walk_scope(project) {
@@ -923,15 +929,70 @@ fn kicad_sources(project: &ProjectContext) -> Result<Vec<SourceFile>> {
             "kicad_pro" | "kicad_pcb" | "kicad_sch" | "kicad_sym" | "kicad_mod" | "kicad_wks"
         ) || matches!(name, "fp-lib-table" | "sym-lib-table");
         if wanted {
-            let content = std::fs::read_to_string(path).unwrap_or_else(|_| String::new());
+            let content = read_stable_viewer_source(path).await?;
             sources.push(SourceFile {
                 filename: rel(cwd, path)?,
-                content: viewer_source_content(path, content),
+                content,
             });
         }
     }
     sources.sort_by(|a, b| a.filename.cmp(&b.filename));
     Ok(sources)
+}
+
+async fn read_stable_viewer_source(path: &Path) -> Result<String> {
+    let mut last_error = None;
+    for attempt in 0..VIEWER_SOURCE_READ_ATTEMPTS {
+        match tokio::fs::read_to_string(path).await {
+            Ok(content) => {
+                if viewer_source_is_complete(path, &content) {
+                    return Ok(viewer_source_content(path, content));
+                }
+                last_error = Some(anyhow!(
+                    "{} is not a complete KiCad source yet",
+                    path.display()
+                ));
+            }
+            Err(err) => last_error = Some(anyhow!(err).context(format!("read {}", path.display()))),
+        }
+        if attempt + 1 < VIEWER_SOURCE_READ_ATTEMPTS {
+            sleep(VIEWER_SOURCE_READ_DELAY).await;
+        }
+    }
+    Err(last_error.unwrap_or_else(|| anyhow!("failed to read {}", path.display())))
+}
+
+fn viewer_source_is_complete(path: &Path, content: &str) -> bool {
+    let trimmed = content.trim_start();
+    if trimmed.is_empty() {
+        return false;
+    }
+    let name = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or_default();
+    match path.extension().and_then(|value| value.to_str()) {
+        Some("kicad_pcb") => trimmed.starts_with("(kicad_pcb"),
+        Some("kicad_sch") => trimmed.starts_with("(kicad_sch"),
+        Some("kicad_sym") => trimmed.starts_with("(kicad_symbol_lib"),
+        Some("kicad_mod") => trimmed.starts_with("(footprint"),
+        Some("kicad_wks") => trimmed.starts_with("(page_layout"),
+        Some("kicad_pro") => trimmed.starts_with('{'),
+        _ if name == "fp-lib-table" => trimmed.starts_with("(fp_lib_table"),
+        _ if name == "sym-lib-table" => trimmed.starts_with("(sym_lib_table"),
+        _ => true,
+    }
+}
+
+fn is_viewer_source_path(path: &Path) -> bool {
+    let name = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or_default();
+    matches!(
+        path.extension().and_then(|value| value.to_str()),
+        Some("kicad_pro" | "kicad_pcb" | "kicad_sch" | "kicad_sym" | "kicad_mod" | "kicad_wks")
+    ) || matches!(name, "fp-lib-table" | "sym-lib-table")
 }
 
 fn viewer_source_content(path: &Path, content: String) -> String {
@@ -3012,6 +3073,27 @@ mod tests {
         assert!(normalized.contains("(at 1 -0.85 0)"));
         assert!(normalized.contains("(size 0.85 0.85)"));
         assert!(normalized.contains("(property \"raw\" \".85\")"));
+    }
+
+    #[test]
+    fn viewer_sources_reject_empty_or_partial_kicad_roots() {
+        assert!(!viewer_source_is_complete(Path::new("board.kicad_pcb"), ""));
+        assert!(!viewer_source_is_complete(
+            Path::new("board.kicad_pcb"),
+            "(kicad_sch"
+        ));
+        assert!(viewer_source_is_complete(
+            Path::new("board.kicad_pcb"),
+            "(kicad_pcb"
+        ));
+        assert!(viewer_source_is_complete(
+            Path::new("sym-lib-table"),
+            "(sym_lib_table"
+        ));
+        assert!(!viewer_source_is_complete(
+            Path::new("sym-lib-table"),
+            "(fp_lib_table"
+        ));
     }
 
     #[test]

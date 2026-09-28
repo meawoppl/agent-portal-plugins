@@ -40,6 +40,7 @@ function disposeModel(root, retained) {
 /** One camera and GPU context survive saves. Only complete, prepared models become visible. */
 export function createBoardModel(host, status, options = {}) {
   const kind = options.kind ?? "model";
+  const subject = options.subject ?? "board";
   const scene = new THREE.Scene();
   scene.background = new THREE.Color("#101214");
   const ambientLight = new THREE.AmbientLight("#ffffff", 0.38);
@@ -80,7 +81,7 @@ export function createBoardModel(host, status, options = {}) {
   let frame = 0;
   let transition;
   let transitionStart = 0;
-  let center;
+  let center = new THREE.Vector3(0, 0, 0);
   let aspect = 1;
   let controlsDirty = false;
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -206,10 +207,12 @@ export function createBoardModel(host, status, options = {}) {
   renderer.domElement.addEventListener("lostpointercapture", middlePanEnd, { capture: true });
   renderer.domElement.addEventListener("pointermove", updateControls);
   renderer.domElement.addEventListener("wheel", updateControls, { passive: true });
-  const fit = (direction = new THREE.Vector3(1, 1.5, 1), up = new THREE.Vector3(0, 1, 0)) => {
+  const defaultDirection =
+    subject === "part" ? new THREE.Vector3(0.85, 1.35, 0.75) : new THREE.Vector3(1, 1.5, 1);
+  const fit = (direction = defaultDirection, up = new THREE.Vector3(0, 1, 0)) => {
     camera.up.copy(up);
-    fitOrthographicCamera(camera, radius, aspect, direction);
-    controls.target.set(0, 0, 0);
+    fitOrthographicCamera(camera, radius, aspect, direction, center);
+    controls.target.copy(center);
     camera.lookAt(controls.target);
     controls.target0.copy(controls.target);
     controls.position0.copy(camera.position);
@@ -322,8 +325,7 @@ export function createBoardModel(host, status, options = {}) {
       const nextRadius = bounds.getSize(new THREE.Vector3()).length() / 2;
       if (!Number.isFinite(nextRadius) || nextRadius <= 0)
         throw new Error("The model has no viewable geometry.");
-      center ??= bounds.getCenter(new THREE.Vector3());
-      next.position.sub(center);
+      center.copy(bounds.getCenter(new THREE.Vector3()));
       collectLayers(next);
       next = flattenModel(next);
       const staging = new THREE.Scene();
@@ -353,7 +355,7 @@ export function createBoardModel(host, status, options = {}) {
       camera.updateProjectionMatrix();
       controls.maxDistance = radius * 30;
       scene.add(content);
-      if (!previous) fit();
+      if (!previous || subject === "part") fit();
       showLayers(collectLayers(content));
       status.textContent = "";
       host.dataset.modelRevision = String(ticket);

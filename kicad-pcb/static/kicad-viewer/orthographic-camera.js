@@ -11,7 +11,7 @@ export function resizeOrthographicCamera(camera, aspect) {
 }
 
 /** Fit a bounding sphere without changing the camera's perspective (there is none). */
-export function fitOrthographicCamera(camera, radius, aspect, direction) {
+export function fitOrthographicCamera(camera, radius, aspect, direction, target) {
   const safeRadius = Math.max(radius, Number.EPSILON);
   const safeAspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 1;
   const margin = safeRadius * FIT_MARGIN;
@@ -19,7 +19,8 @@ export function fitOrthographicCamera(camera, radius, aspect, direction) {
   // narrow viewport cannot clip the model at its initial fit.
   camera.zoom = Math.min(1 / margin, safeAspect / margin);
   const distance = Math.max(safeRadius * 4, 1);
-  camera.position.copy(direction.clone().normalize().multiplyScalar(distance));
+  const offset = direction.clone().normalize().multiplyScalar(distance);
+  camera.position.copy(target ?? { x: 0, y: 0, z: 0 }).add(offset);
   camera.near = 0.001;
   camera.far = Math.max(distance + safeRadius * 2, safeRadius * 20, 1);
   camera.updateProjectionMatrix();

@@ -560,6 +560,7 @@ export class RetainedNativeViewer extends EventTarget {
       if (!detail?.itemType) {
         if (this.replacing) return;
         this.selection = undefined;
+        this.clearNetHighlight();
         this.dispatchEvent(new CustomEvent("selection", { detail: null }));
         return;
       } else {
@@ -1004,7 +1005,12 @@ export class RetainedNativeViewer extends EventTarget {
   clearNetHighlight() {
     const core = this.core();
     if (!core) return;
-    if (core.board) core.clear_selection?.();
+    if (core.board) {
+      core.highlight_net?.(null, false);
+      core.set_host_layer_highlight?.(null);
+      core.set_host_track_highlight?.(false);
+      core.clear_selection?.();
+    }
     else if (core.schematic) {
       core.layers.selection_bg.clear();
       core.layers.selection_fg.clear();

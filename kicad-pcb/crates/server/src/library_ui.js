@@ -377,7 +377,7 @@
     const frame = stage.querySelector("iframe");
     const post = async () => {
       if (view === "model") {
-        frame.contentWindow?.postMessage({ type: "kicad-pcb-snapshot", kind: "model", url: thumb.viewer, active: true }, location.origin);
+        frame.contentWindow?.postMessage({ type: "kicad-pcb-snapshot", kind: "model", subject: "part", url: thumb.viewer, active: true }, location.origin);
         return;
       }
       const content = await fetch(thumb.viewer).then(r => {

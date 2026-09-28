@@ -12,6 +12,7 @@ let revision;
 let probeId;
 let netHighlightId;
 let model;
+let latestSelection;
 let nativeActive = false;
 let viewOptions = { polygonPours: true };
 const send = (message) =>
@@ -40,8 +41,13 @@ window.addEventListener("keydown", (event) => {
     event.key === "h" ||
     event.key === "H" ||
     event.key === "Escape"
-  )
+  ) {
+    if (event.key === "Escape" || event.key === "x" || event.key === "X")
+      viewer?.clearNetHighlight?.();
+    else if (event.key === "h" || event.key === "H")
+      viewer?.requestNetHighlight?.(latestSelection);
     send({ type: "kicad-pcb-native-key", key: event.key });
+  }
 });
 window.addEventListener("message", (event) => {
   if (event.source !== parent || event.origin !== location.origin) return;
@@ -59,7 +65,7 @@ window.addEventListener("message", (event) => {
     void (async () => {
       if (!model) {
         model = import("./board-model.js").then(({ createBoardModel }) =>
-          createBoardModel(host, error, { kind: snapshot.kind }),
+          createBoardModel(host, error, { kind: snapshot.kind, subject: snapshot.subject }),
         );
       }
       const renderer = await model;
@@ -80,13 +86,14 @@ window.addEventListener("message", (event) => {
           await import("./ecad-viewer.js");
           const { RetainedNativeViewer } = await import("./retained-native-viewer.js");
           viewer = new RetainedNativeViewer(host);
-          viewer.addEventListener("selection", (event) =>
+          viewer.addEventListener("selection", (event) => {
+            latestSelection = event.detail;
             send({
               type: "kicad-pcb-selection",
               selection: event.detail,
               userInitiated: event.detail?.userInitiated === true,
-            }),
-          );
+            });
+          });
           viewer.addEventListener("crossprobe", (event) =>
             send({
               type: "kicad-pcb-crossprobe",

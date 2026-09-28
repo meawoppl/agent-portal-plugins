@@ -19,9 +19,10 @@ use crate::{
     AppState,
 };
 
-/// Quiet period before refreshing viewer state. Builds have their own,
-/// longer debounce (`build.debounceMs`).
-const QUIET_PERIOD: Duration = Duration::from_millis(100);
+/// Quiet period before refreshing viewer state, counted from the most recent
+/// file event in a burst. Builds have their own longer debounce
+/// (`build.debounceMs`).
+const QUIET_PERIOD: Duration = Duration::from_millis(200);
 /// Upper bound on batching during a continuous stream of events.
 const MAX_BATCH: Duration = Duration::from_secs(2);
 

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { prepareBoardModel } from "./model-appearance.js";
+import { prepareBoardModel, removeGeneratedBoardSurfaces } from "./model-appearance.js";
 import { createCelOutlinePass } from "./cel-renderer.js";
 import { flattenModel, reconcileModel } from "./model-update.js";
 import { fitOrthographicCamera, resizeOrthographicCamera } from "./orthographic-camera.js";
@@ -320,6 +320,7 @@ export function createBoardModel(host, status, options = {}) {
       }
       if (!next) throw new Error("The model has no viewable scene.");
       if (disposed || ticket !== generation) return;
+      if (subject === "part") removeGeneratedBoardSurfaces(next);
       prepareBoardModel(next);
       const bounds = new THREE.Box3().setFromObject(next);
       const nextRadius = bounds.getSize(new THREE.Vector3()).length() / 2;

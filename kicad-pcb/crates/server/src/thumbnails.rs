@@ -23,7 +23,7 @@ use sha2::{Digest, Sha256};
 use tokio::{process::Command, sync::Notify};
 
 /// Bump when render inputs/outputs change shape so stale thumbnails are ignored.
-pub const RENDERER_VERSION: &str = "library-thumbs-v3";
+pub const RENDERER_VERSION: &str = "library-thumbs-v4";
 const RENDER_TIMEOUT: Duration = Duration::from_secs(120);
 const DEFAULT_WORKERS: usize = 2;
 const DEFAULT_CACHE_MB: u64 = 256;
@@ -70,13 +70,7 @@ impl RenderKind {
                 "--quality",
                 "basic",
             ],
-            RenderKind::Glb => &[
-                "pcb-export-glb",
-                "--subst-models",
-                "--include-pads",
-                "--include-silkscreen",
-                "--include-soldermask",
-            ],
+            RenderKind::Glb => &["pcb-export-glb", "--subst-models"],
         }
     }
 }
@@ -692,7 +686,7 @@ mod tests {
                 &[],
                 "10.0.6"
             ),
-            "c09aba4f499ccff74ca55f6a84693914"
+            "55f740afac2576c666e6a96d7e71db96"
         );
         let other_model = vec![("/m/a.step".to_string(), Some("abd".to_string()))];
         let missing_model = vec![("/m/a.step".to_string(), None)];

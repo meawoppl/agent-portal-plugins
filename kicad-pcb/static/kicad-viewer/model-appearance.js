@@ -46,6 +46,19 @@ function stabilizeSilkscreen(mesh) {
   }
 }
 
+function isGeneratedBoardSurface(object) {
+  const name = object.name || "";
+  return /_(?:copper|pad|via|silkscreen|soldermask|mask|PCB)(?:_|$)/i.test(name);
+}
+
+export function removeGeneratedBoardSurfaces(content) {
+  const removed = [];
+  content.traverse((object) => {
+    if (object.parent && isGeneratedBoardSurface(object)) removed.push(object);
+  });
+  for (const object of removed) object.parent.remove(object);
+}
+
 // KiCad emits one primitive per copper face. Batch only static board surfaces;
 // component models and their hierarchy are left intact.
 function batchBoardSurfaces(content) {

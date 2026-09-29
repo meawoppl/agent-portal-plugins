@@ -34,8 +34,9 @@ commands and bundled skill instructions, with no additional integration setup.
 When the KiCad workbench is open inside Agent Portal, the `Annotate` control
 lets a user drag over a schematic, PCB, Gerber, 3D, or library region, attach a
 typed note or browser speech-recognition transcript, and add that item to a
-local stack. `Send Stack to Agent` posts the stack back to Portal with the
-standard `agent-portal:queue-prompts` surface bridge.
+local stack. `Submit` immediately posts the stack back to Portal with the
+standard `agent-portal:queue-prompts` surface bridge; a retry control appears
+only when the workbench cannot reach its Portal frame or opener.
 
 Portal validates that the message came from the active forwarded workbench
 origin, turns each annotation into a normal user prompt, and sends only one

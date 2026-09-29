@@ -7,6 +7,7 @@
     selection: undefined,
     recognition: undefined,
     recognizing: false,
+    sendFailed: false,
   };
 
   const style = document.createElement("style");
@@ -60,9 +61,9 @@
   </div>
 </div>
 <div class="annotation-stack"></div>
-<div class="annotation-actions">
-  <button class="annotation-action" data-action="clear">Clear</button>
-  <button class="annotation-action" data-action="send">Send Stack to Agent</button>
+<div class="annotation-actions annotation-retry-actions" hidden>
+  <button class="annotation-action" data-action="clear">Clear Pending</button>
+  <button class="annotation-action" data-action="retry">Retry Send</button>
 </div>`;
   document.body.append(drawer);
 
@@ -73,7 +74,8 @@
   const statusEl = drawer.querySelector(".annotation-status");
   const recordButton = drawer.querySelector('[data-action="record"]');
   const addButton = drawer.querySelector('[data-action="add"]');
-  const sendButton = drawer.querySelector('[data-action="send"]');
+  const retryActions = drawer.querySelector(".annotation-retry-actions");
+  const retryButton = drawer.querySelector('[data-action="retry"]');
 
   const button = document.createElement("button");
   button.type = "button";
@@ -455,8 +457,14 @@
       });
       stackEl.append(card);
     });
-    sendButton.disabled = state.stack.length === 0;
-    setStatus(state.stack.length ? `${state.stack.length} queued annotation${state.stack.length === 1 ? "" : "s"}.` : "No queued annotations.");
+    const pending = state.stack.length > 0;
+    retryActions.hidden = !(pending && state.sendFailed);
+    retryButton.disabled = !pending;
+    if (state.sendFailed && pending) {
+      setStatus(`${state.stack.length} pending annotation${state.stack.length === 1 ? "" : "s"}.`);
+    } else {
+      setStatus(pending ? `${state.stack.length} queued annotation${state.stack.length === 1 ? "" : "s"}.` : "No queued annotations.");
+    }
   };
 
   const addCurrentSelection = () => {
@@ -467,6 +475,7 @@
       setStatus("Add a note, record a voice note, or select an area before submitting.");
       return;
     }
+    state.sendFailed = false;
     const tab = selection?.tab || activeTab();
     const title = titleInput.value.trim() || (selection ? `${tab} annotation` : `${tab} note`);
     const context = {
@@ -518,13 +527,16 @@
     if (window.parent && window.parent !== window) targets.push(window.parent);
     if (window.opener && !window.opener.closed) targets.push(window.opener);
     if (!targets.length) {
+      state.sendFailed = true;
+      renderStack();
       setStatus("Open this workbench inside Agent Portal before sending annotations.");
       return;
     }
     for (const target of targets) target.postMessage(payload, targetOrigin);
+    state.sendFailed = false;
     state.stack = [];
     renderStack();
-    setStatus("Sent annotation stack to Agent Portal.");
+    setStatus("Sent annotation to Agent Portal.");
   };
 
   const toggleSpeech = () => {
@@ -567,9 +579,10 @@
     if (action === "close") drawer.classList.add("hidden");
     if (action === "select") startSelection();
     if (action === "add") addCurrentSelection();
-    if (action === "send") sendStack();
+    if (action === "retry") sendStack();
     if (action === "clear") {
       state.stack = [];
+      state.sendFailed = false;
       renderStack();
     }
     if (action === "record") toggleSpeech();

@@ -828,6 +828,16 @@ export class RetainedNativeViewer extends EventTarget {
       : undefined;
   }
 
+  captureImage() {
+    this.finishTransition();
+    const core = this.core();
+    if (!core?.canvas || !this.active) return null;
+    core.draw_now?.();
+    const { canvas } = core;
+    if (!canvas.width || !canvas.height) return null;
+    return { image: canvas.toDataURL("image/png"), width: canvas.width, height: canvas.height };
+  }
+
   restoreView(view = this.pendingView) {
     const camera = this.core()?.viewport?.camera;
     if (!view || !camera) return false;

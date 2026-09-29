@@ -51,7 +51,7 @@ export function createBoardModel(host, status, options = {}) {
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.001, 1000);
   camera.position.set(4, 6, 4);
   camera.lookAt(0, 0, 0);
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.domElement.style.cssText =
     "display:block;touch-action:none;width:100%;height:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent";
@@ -417,6 +417,22 @@ export function createBoardModel(host, status, options = {}) {
       controls.enabled = value && !twoTouch;
       if (!active) touchTracker.clear();
       if (active) resize();
+    },
+    capture() {
+      finishTransition();
+      if (!content || disposed || !host.clientWidth || !host.clientHeight) return null;
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+      if (controlsDirty) {
+        controlsDirty = false;
+        controls.update();
+      }
+      celPass.render(scene, camera);
+      const canvas = renderer.domElement;
+      if (!canvas.width || !canvas.height) return null;
+      return { image: canvas.toDataURL("image/png"), width: canvas.width, height: canvas.height };
     },
     dispose,
   };

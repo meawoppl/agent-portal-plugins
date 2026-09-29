@@ -51,6 +51,7 @@ use walkdir::WalkDir;
 use zip::{write::SimpleFileOptions, ZipWriter};
 
 static VIEWER_ASSETS: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../../static/kicad-viewer");
+const ANNOTATION_UI_JS: &str = include_str!("annotation_ui.js");
 const VIEWER_SOURCE_READ_ATTEMPTS: usize = 5;
 const VIEWER_SOURCE_READ_DELAY: Duration = Duration::from_millis(40);
 
@@ -414,6 +415,7 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/libraries", get(libraries_endpoint))
                 .merge(library::routes())
                 .route("/kicad-viewer/*path", get(viewer_asset))
+                .route("/kicad-pcb/annotations.js", get(annotation_ui_js))
                 .merge(jobs::routes())
                 .layer(TraceLayer::new_for_http())
                 .with_state(state);
@@ -830,6 +832,17 @@ async fn viewer_asset(axum::extract::Path(path): axum::extract::Path<String>) ->
     (
         [(header::CONTENT_TYPE, mime)],
         Body::from(file.contents().to_vec()),
+    )
+        .into_response()
+}
+
+async fn annotation_ui_js() -> Response {
+    (
+        [
+            (header::CONTENT_TYPE, "text/javascript; charset=utf-8"),
+            (header::CACHE_CONTROL, "no-cache"),
+        ],
+        ANNOTATION_UI_JS,
     )
         .into_response()
 }
@@ -2431,6 +2444,7 @@ fn workbench_html(
         })
         .collect::<String>();
     let project_id = serde_json::to_string(&project.id).unwrap_or_else(|_| "\"\"".to_string());
+    let session_json = serde_json::to_string(session).unwrap_or_else(|_| "\"\"".to_string());
     let project_options = projects
         .iter()
         .map(|item| {
@@ -2478,6 +2492,11 @@ let gerberSources = [];
 let gerberSourceKey;
 let pcbPoursVisible = localStorage.getItem("kicad-pcb-polygon-pours") !== "0";
 const projectId = {project_id};
+window.KicadWorkbenchState = {{
+  projectId,
+  session: {session_json},
+  sourceRevision: () => sourceSnapshot?.revision,
+}};
 const projectParam = () => `project=${{encodeURIComponent(projectId)}}`;
 const api = path => `${{path}}${{path.includes("?") ? "&" : "?"}}${{projectParam()}}`;
 const loadSources = async () => {{
@@ -2885,12 +2904,13 @@ withBusy("Loading initial KiCad sources", async () => {{
 connectEvents();
 void pingHealth();
 document.addEventListener("visibilitychange", () => {{ if (!document.hidden) void refreshPane(); }});
-</script><script src="/kicad-pcb/build-strip.js"></script></body></html>"##,
+</script><script src="/kicad-pcb/annotations.js"></script><script src="/kicad-pcb/build-strip.js"></script></body></html>"##,
         session = escape(session),
         cwd = escape(&cwd.display().to_string()),
         tabs = tabs,
         files = files,
         project_id = project_id,
+        session_json = session_json,
         project_attr = escape_attr(&project.id),
         project_options = project_options,
     )

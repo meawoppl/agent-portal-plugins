@@ -29,6 +29,25 @@ manufacturing output.
 The plugin is intentionally script-first. Agents should use the documented CLI
 commands and bundled skill instructions, with no additional integration setup.
 
+## Annotation Stack
+
+When the KiCad workbench is open inside Agent Portal, the `Annotate` control
+lets a user drag over a schematic, PCB, Gerber, 3D, or library region, attach a
+typed note or browser speech-recognition transcript, and add that item to a
+local stack. `Send Stack to Agent` posts the stack back to Portal with the
+standard `agent-portal:queue-prompts` surface bridge.
+
+Portal validates that the message came from the active forwarded workbench
+origin, turns each annotation into a normal user prompt, and sends only one
+annotation at a time. The next annotation waits for the current agent turn to
+finish. This makes visual review workflows feel like a markup queue: users can
+capture several changes quickly while the agent works through them in order.
+
+Each queued item carries the active project, tab, source revision, normalized
+selection rectangle, optional viewport crop, and the user's note. Canvas crops
+are best-effort; if a view cannot be captured, the region metadata and note are
+still sent.
+
 ## kicad-tools Automation
 
 The plugin also integrates `rjwalters/kicad-tools` as the heavy automation

@@ -33,38 +33,37 @@ commands and bundled skill instructions, with no additional integration setup.
 
 When the KiCad workbench is open inside Agent Portal, the `Annotate` control
 lets a user drag over a schematic, PCB, Gerber, 3D, or library region, attach a
-typed note or browser speech-recognition transcript, and add that item to a
-local stack. `Submit` immediately posts the stack back to Portal with the
-standard `agent-portal:queue-prompts` surface bridge; a retry control appears
-only when the workbench cannot reach its Portal frame or opener.
+typed note or browser speech-recognition transcript, and submit that annotation
+directly to Portal. Submit uses the forward-origin `POST /__portal/edit-stack`
+endpoint, so it works from the in-frame workbench and from a workbench opened in
+a separate tab.
 
-Portal validates that the message came from the active forwarded workbench
-origin, turns each annotation into a normal user prompt, and sends only one
-annotation at a time. The next annotation waits for the current agent turn to
-finish. This makes visual review workflows feel like a markup queue: users can
-capture several changes quickly while the agent works through them in order.
+Portal stores each annotation in the session's durable work queue, turns it into
+a normal user prompt, and sends the submitted item through the normal input
+queue. This makes visual review workflows feel like a markup queue: users can
+capture changes quickly while the agent works through them in order.
 
 Each queued item carries the active project, tab, source revision, normalized
 selection rectangle, optional viewport crop, and the user's note. Canvas crops
 are best-effort; if a view cannot be captured, the region metadata and note are
 still sent.
 
-## Agent Portal Work Submission Bridge
+## Agent Portal Work Submission
 
-The annotation stack uses Agent Portal's plugin work-submission bridge, added
-in Agent Portal `2.14.1600` by
-[`agent-portal` PR #2093](https://github.com/meawoppl/agent-portal/pull/2093).
+The annotation stack uses Agent Portal's plugin work-submission endpoint.
 Other plugin surfaces can use the same protocol for screenshot markup, waveform
 notes, slide comments, log snippets, or any queued work item that should become
 agent input.
 
-From the plugin surface, send a `postMessage` to the Portal frame or opener:
+From the plugin surface, post JSON to the Portal-reserved path on the forward
+origin:
 
 ```js
-window.parent.postMessage(
-  {
-    type: "agent-portal:queue-prompts",
-    version: 1,
+await fetch("/__portal/edit-stack", {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  credentials: "same-origin",
+  body: JSON.stringify({
     source: {
       plugin: "kicad-pcb",
       project: "board-a",
@@ -86,19 +85,16 @@ window.parent.postMessage(
         }
       }
     ]
-  },
-  portalOrigin
-);
+  }),
+});
 ```
 
 `image` is optional; voice/text-only notes should omit it. `context` is
 plugin-defined JSON and should carry the coordinates, view name, slide number,
 waveform cursor, source revision, or other local state needed to act on the
-note. Portal validates that the message came from the active forwarded plugin
-origin, persists accepted items in the session edit stack, and drains them
-through the normal user-input queue one item at a time. That means work
-submissions survive pane refreshes and use the same ordering, agent wake-up, and
-turn-completion behavior as typed prompts.
+note. Portal persists accepted items in the session edit stack and sends them
+through the normal user-input queue. That means work submissions use the same
+agent wake-up and reconnect behavior as typed prompts.
 
 ## kicad-tools Automation
 

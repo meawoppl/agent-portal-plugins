@@ -12,6 +12,7 @@ let revision;
 let probeId;
 let netHighlightId;
 let model;
+let modelRenderer;
 let latestSelection;
 let nativeActive = false;
 let viewOptions = { polygonPours: true };
@@ -69,6 +70,7 @@ window.addEventListener("message", (event) => {
         );
       }
       const renderer = await model;
+      modelRenderer = renderer;
       renderer.setActive(snapshot.active !== false);
       if (snapshot.active !== false) await renderer.update(snapshot.url);
     })().catch((cause) => {
@@ -166,6 +168,15 @@ window.addEventListener("message", (event) => {
       error.textContent = cause.message || String(cause);
     });
 });
+window.KicadViewerCapture = async () => {
+  if (model) {
+    const renderer = modelRenderer ?? (await model);
+    const image = renderer?.capture?.();
+    if (image) return image;
+  }
+  await chain.catch(() => {});
+  return viewer?.captureImage?.() ?? null;
+};
 parent.postMessage(
   { type: "kicad-pcb-runtime-ready" },
   location.origin === "null" ? "*" : location.origin,

@@ -1,13 +1,13 @@
 // KiCad PCB annotation stack. Served from /kicad-pcb/annotations.js.
 (() => {
-  const PROMPT_TYPE = "agent-portal:queue-prompts";
+  const EDIT_STACK_ENDPOINT = "/__portal/edit-stack";
   const state = {
     armed: false,
     stack: [],
     selection: undefined,
     recognition: undefined,
     recognizing: false,
-    sendFailed: false,
+    sending: false,
   };
 
   const style = document.createElement("style");
@@ -61,9 +61,8 @@
   </div>
 </div>
 <div class="annotation-stack"></div>
-<div class="annotation-actions annotation-retry-actions" hidden>
-  <button class="annotation-action" data-action="clear">Clear Pending</button>
-  <button class="annotation-action" data-action="retry">Retry Send</button>
+<div class="annotation-actions">
+  <button class="annotation-action" data-action="clear">Clear</button>
 </div>`;
   document.body.append(drawer);
 
@@ -74,8 +73,6 @@
   const statusEl = drawer.querySelector(".annotation-status");
   const recordButton = drawer.querySelector('[data-action="record"]');
   const addButton = drawer.querySelector('[data-action="add"]');
-  const retryActions = drawer.querySelector(".annotation-retry-actions");
-  const retryButton = drawer.querySelector('[data-action="retry"]');
 
   const button = document.createElement("button");
   button.type = "button";
@@ -457,13 +454,9 @@
       });
       stackEl.append(card);
     });
-    const pending = state.stack.length > 0;
-    retryActions.hidden = !(pending && state.sendFailed);
-    retryButton.disabled = !pending;
-    if (state.sendFailed && pending) {
-      setStatus(`${state.stack.length} pending annotation${state.stack.length === 1 ? "" : "s"}.`);
-    } else {
-      setStatus(pending ? `${state.stack.length} queued annotation${state.stack.length === 1 ? "" : "s"}.` : "No queued annotations.");
+    addButton.disabled = state.sending;
+    if (!state.sending) {
+      setStatus(state.stack.length ? `${state.stack.length} queued annotation${state.stack.length === 1 ? "" : "s"}.` : "No queued annotations.");
     }
   };
 
@@ -475,7 +468,6 @@
       setStatus("Add a note, record a voice note, or select an area before submitting.");
       return;
     }
-    state.sendFailed = false;
     const tab = selection?.tab || activeTab();
     const title = titleInput.value.trim() || (selection ? `${tab} annotation` : `${tab} note`);
     const context = {
@@ -502,14 +494,12 @@
     titleInput.value = "";
     noteInput.value = "";
     renderStack();
-    sendStack();
+    void sendStack();
   };
 
-  const sendStack = () => {
-    if (!state.stack.length) return;
+  const sendStack = async () => {
+    if (!state.stack.length || state.sending) return;
     const payload = {
-      type: PROMPT_TYPE,
-      version: 1,
       source: {
         plugin: "kicad-pcb",
         project: window.KicadWorkbenchState?.projectId,
@@ -519,24 +509,29 @@
       },
       items: state.stack,
     };
-    let targetOrigin = "*";
-    try {
-      if (document.referrer) targetOrigin = new URL(document.referrer).origin;
-    } catch (_) {}
-    const targets = [];
-    if (window.parent && window.parent !== window) targets.push(window.parent);
-    if (window.opener && !window.opener.closed) targets.push(window.opener);
-    if (!targets.length) {
-      state.sendFailed = true;
-      renderStack();
-      setStatus("Open this workbench inside Agent Portal before sending annotations.");
-      return;
-    }
-    for (const target of targets) target.postMessage(payload, targetOrigin);
-    state.sendFailed = false;
-    state.stack = [];
+    state.sending = true;
     renderStack();
-    setStatus("Sent annotation to Agent Portal.");
+    setStatus("Sending annotation to Agent Portal...");
+    try {
+      const response = await fetch(EDIT_STACK_ENDPOINT, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const message = await response.text().catch(() => "");
+        throw new Error(message || `HTTP ${response.status}`);
+      }
+      state.stack = [];
+      renderStack();
+      setStatus("Sent annotation to Agent Portal.");
+    } catch (err) {
+      setStatus(`Could not send annotation: ${err?.message || err}`);
+    } finally {
+      state.sending = false;
+      addButton.disabled = false;
+    }
   };
 
   const toggleSpeech = () => {
@@ -579,10 +574,8 @@
     if (action === "close") drawer.classList.add("hidden");
     if (action === "select") startSelection();
     if (action === "add") addCurrentSelection();
-    if (action === "retry") sendStack();
     if (action === "clear") {
       state.stack = [];
-      state.sendFailed = false;
       renderStack();
     }
     if (action === "record") toggleSpeech();

@@ -48,6 +48,57 @@ selection rectangle, optional viewport crop, and the user's note. Canvas crops
 are best-effort; if a view cannot be captured, the region metadata and note are
 still sent.
 
+## Agent Portal Work Submission Bridge
+
+The annotation stack uses Agent Portal's plugin work-submission bridge, added
+in Agent Portal `2.14.1600` by
+[`agent-portal` PR #2093](https://github.com/meawoppl/agent-portal/pull/2093).
+Other plugin surfaces can use the same protocol for screenshot markup, waveform
+notes, slide comments, log snippets, or any queued work item that should become
+agent input.
+
+From the plugin surface, send a `postMessage` to the Portal frame or opener:
+
+```js
+window.parent.postMessage(
+  {
+    type: "agent-portal:queue-prompts",
+    version: 1,
+    source: {
+      plugin: "kicad-pcb",
+      project: "board-a",
+      session: "optional-session-id",
+      revision: "optional-source-revision",
+      page: location.href
+    },
+    items: [
+      {
+        title: "PCB annotation",
+        body: "Move this decoupler closer to U2.",
+        context: {
+          tab: "pcb",
+          rect: { x: 0.38, y: 0.22, w: 0.14, h: 0.08 },
+          viewportRect: { left: 410, top: 180, width: 150, height: 90 }
+        },
+        image: {
+          dataUrl: "data:image/png;base64,..."
+        }
+      }
+    ]
+  },
+  portalOrigin
+);
+```
+
+`image` is optional; voice/text-only notes should omit it. `context` is
+plugin-defined JSON and should carry the coordinates, view name, slide number,
+waveform cursor, source revision, or other local state needed to act on the
+note. Portal validates that the message came from the active forwarded plugin
+origin, persists accepted items in the session edit stack, and drains them
+through the normal user-input queue one item at a time. That means work
+submissions survive pane refreshes and use the same ordering, agent wake-up, and
+turn-completion behavior as typed prompts.
+
 ## kicad-tools Automation
 
 The plugin also integrates `rjwalters/kicad-tools` as the heavy automation

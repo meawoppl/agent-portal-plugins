@@ -31,6 +31,8 @@ kicadmium export jlcpcb  --cwd . --out build/jlcpcb
 kicadmium setup --install-kicad-tools    # managed rjwalters/kicad-tools venv
 kicadmium kct  --cwd . -- readiness . --format json
 kicadmium tool --cwd . -- kicad-cli version
+# integrated read-only heuristic review (also exposed as a library)
+pcb-lint lint board.kicad_pcb --board-id board-a --output lint.json
 ```
 
 Environment: `KICADMIUM_KICAD_CLI`/`KICAD_CLI` pick kicad-cli,
@@ -39,8 +41,13 @@ Environment: `KICADMIUM_KICAD_CLI`/`KICAD_CLI` pick kicad-cli,
 
 ## Layout
 
-See [AGENTS.md](AGENTS.md). Rust workspace: `backend/` (axum + CLI),
-`frontend/` (Yew), `shared/` (types).
+See [AGENTS.md](AGENTS.md). Rust workspace: `backend/` (Axum + CLI),
+`frontend/` (Yew and embedded viewers), `shared/` (typed protocols), and
+`pcb-lint/` (101 read-only, evidence-aware review rules). The linter is a
+heuristic reviewer, not native ERC/DRC and not permission to edit your board.
+
+The design rules we stole on purpose—and the places where we refuse to fake
+certainty—are in [docs/design-principles.md](docs/design-principles.md).
 
 ## Lineage
 

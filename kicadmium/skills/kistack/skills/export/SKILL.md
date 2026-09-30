@@ -3,11 +3,16 @@ name: kicad-export
 description: Generate deterministic KiCad ERC, DRC, fabrication, assembly, documentation, and 3D export outputs with kicad-cli.
 ---
 
-Using kicad-cli, parse this documentation and use the necessary items to generate ERC/DRC reports, then proceed to create GERBERs, drill files, position files, and BOM files depending on the user's manufacturer. To make this deterministic, store your order of commands in a Python or bash script and modify it per-project.
+Use Kicadmium's Rust commands to generate ERC/DRC reports, then create Gerbers,
+drill files, position files, and BOM files for the selected manufacturer. Keep
+the workflow in `.kicad-pcb.json` and the recorded build manifest rather than
+creating an ad-hoc Python or shell pipeline.
 
 JLCPCB and NextPCB require a specific format for their position files:
 A .csv file with 5 columns: Designator, Mid X, Mid Y, Layer (T or B) and rotation
-KiCad does not permit this, so please use the Python script under scripts/convert_position.py to do this. If the user does not have Python installed please inform them before making changes to their computer, unless they have already specified to use a virtual environment or you see one at the root of the project where this skill is being called.
+Use `kicadmium export jlcpcb --cwd <repo> --project <id> --out <dir>` for this
+conversion. Its Rust exporter produces the assembly format without requiring
+Python.
 
 JLCPCB BOMs also require an LCSC part number. Ensure that the JLCPCB BOM preset is available and if not inform the user that this needs to be added. 
 

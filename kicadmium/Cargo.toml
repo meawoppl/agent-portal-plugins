@@ -2,6 +2,7 @@
 members = [
     "backend",
     "frontend",
+    "pcb-lint",
     "shared",
 ]
 resolver = "2"

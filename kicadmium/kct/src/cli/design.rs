@@ -473,7 +473,17 @@ enum SchCmd {
     SuggestFootprint(Tail),
     SyncHierarchy(Tail),
     SetLabelDirection(Tail),
-    AddNoConnect(Tail),
+    AddNoConnect {
+        schematic: PathBuf,
+        #[arg(long = "ref")]
+        reference: String,
+        #[arg(long)]
+        pin: String,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        backup: bool,
+    },
     AddComponent(Tail),
     AddBypassCap(Tail),
     AddPullResistor(Tail),
@@ -708,7 +718,13 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         SchCmd::SuggestFootprint(x) => return extended("suggest-footprint", x),
         SchCmd::SyncHierarchy(x) => return extended("sync-hierarchy", x),
         SchCmd::SetLabelDirection(x) => return extended("set-label-direction", x),
-        SchCmd::AddNoConnect(x) => return extended("add-no-connect", x),
+        SchCmd::AddNoConnect {
+            schematic,
+            reference,
+            pin,
+            dry_run,
+            backup,
+        } => add_no_connect(&schematic, &reference, &pin, dry_run, backup)?,
         SchCmd::AddComponent(x) => return extended("add-component", x),
         SchCmd::AddBypassCap(x) => return extended("add-bypass-cap", x),
         SchCmd::AddPullResistor(x) => return extended("add-pull-resistor", x),
@@ -801,6 +817,74 @@ fn ensure_len(v: &[f64], n: usize, message: &str) -> Result<()> {
         bail!("{message}")
     }
     Ok(())
+}
+fn add_no_connect(
+    path: &Path,
+    reference: &str,
+    pin: &str,
+    dry_run: bool,
+    backup: bool,
+) -> Result<()> {
+    let mut d = crate::Document::load(path)?;
+    let sym = d
+        .root
+        .children_named("symbol")
+        .find(|s| s.property("Reference") == Some(reference))
+        .with_context(|| format!("symbol {reference} not found"))?;
+    let (sx, sy, rot) = sym.at().context("symbol has no position")?;
+    let id = sym
+        .child_str("lib_id")
+        .unwrap_or("")
+        .split(':')
+        .next_back()
+        .unwrap_or("");
+    let lib = d
+        .root
+        .get("lib_symbols")
+        .and_then(|ls| {
+            ls.children_named("symbol").find(|s| {
+                s.string_at(0)
+                    .is_some_and(|n| n == id || n.ends_with(&format!(":{id}")))
+            })
+        })
+        .context("embedded library symbol not found")?;
+    let p = lib
+        .find_all("pin")
+        .find(|p| p.get("number").and_then(|n| n.string_at(0)) == Some(pin))
+        .with_context(|| format!("pin {pin} not found"))?;
+    let (px, py, _) = p.at().context("pin has no position")?;
+    let a = rot.to_radians();
+    let x = sx + px * a.cos() + py * a.sin();
+    let y = sy - px * a.sin() + py * a.cos();
+    if d.root
+        .children_named("no_connect")
+        .any(|n| n.at().is_some_and(|q| near((q.0, q.1), (x, y))))
+    {
+        bail!("no-connect already exists at pin")
+    };
+    d.root.push(SExp::list(
+        "no_connect",
+        [
+            SExp::list("at", [SExp::atom(x), SExp::atom(y)]),
+            SExp::pair("uuid", fresh_uuid()),
+        ],
+    ));
+    save_edit(&d, path, dry_run, backup)
+}
+fn fresh_uuid() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let n = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    format!(
+        "{:08x}-{:04x}-4{:03x}-a{:03x}-{:012x}",
+        (n >> 96) as u32,
+        (n >> 80) as u16,
+        (n >> 68) as u16,
+        (n >> 56) as u16,
+        n & 0xffffffffffff
+    )
 }
 
 fn sch_extended(raw: Vec<OsString>) -> Result<i32> {

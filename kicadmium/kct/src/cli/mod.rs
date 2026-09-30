@@ -12,6 +12,8 @@ use anyhow::Result;
 
 use crate::units::{self, UnitFormatter};
 
+pub mod mfr;
+
 /// Global flags accepted before the command name.
 #[derive(Debug, Clone, Default)]
 pub struct Globals {
@@ -45,7 +47,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "pcb", about: "PCB query tools", wave: "C", run: None },
     CommandSpec { name: "lib", about: "Symbol and footprint library tools", wave: "B", run: None },
     CommandSpec { name: "footprint", about: "Footprint generation and tools", wave: "G", run: None },
-    CommandSpec { name: "mfr", about: "Manufacturer tools", wave: "G", run: None },
+    CommandSpec { name: "mfr", about: "Manufacturer tools", wave: "G", run: Some(mfr::run) },
     CommandSpec { name: "zones", about: "Add copper pour zones to PCB", wave: "E", run: None },
     CommandSpec { name: "stitch", about: "Auto-add stitching vias for plane connections", wave: "E", run: None },
     CommandSpec { name: "route", about: "Autoroute a PCB", wave: "F", run: None },

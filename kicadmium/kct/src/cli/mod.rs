@@ -15,6 +15,7 @@ use crate::units::{self, UnitFormatter};
 pub mod design;
 pub mod footprint;
 pub mod mfr;
+pub mod utility;
 
 /// Global flags accepted before the command name.
 #[derive(Debug, Clone, Default)]
@@ -69,7 +70,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "decisions", about: "Query design decisions (placement and routing rationale)", wave: "E", run: None },
     CommandSpec { name: "placement", about: "Detect and fix placement conflicts", wave: "E", run: None },
     CommandSpec { name: "optimize-placement", about: "Run CMA-ES placement optimization on a KiCad PCB", wave: "E", run: None },
-    CommandSpec { name: "config", about: "View and manage configuration", wave: "G", run: None },
+    CommandSpec { name: "config", about: "View and manage configuration", wave: "G", run: Some(utility::config) },
     CommandSpec { name: "interactive", about: "Launch interactive REPL mode", wave: "H", run: None },
     CommandSpec { name: "validate", about: "Validation tools", wave: "B", run: Some(design::validate) },
     CommandSpec { name: "analyze", about: "PCB analysis tools", wave: "C", run: None },
@@ -82,7 +83,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "render", about: "Render per-board 2D SVGs + 3D PNGs into output/renders/", wave: "C", run: None },
     CommandSpec { name: "board-metrics", about: "Emit a normalized board.json per board from existing artifacts", wave: "C", run: None },
     CommandSpec { name: "readiness", about: "Run the manufacturing-readiness gates and write output/readiness.json", wave: "C", run: None },
-    CommandSpec { name: "clean", about: "Clean up old/orphaned files from KiCad projects", wave: "G", run: None },
+    CommandSpec { name: "clean", about: "Clean up old/orphaned files from KiCad projects", wave: "G", run: Some(utility::clean) },
     CommandSpec { name: "impedance", about: "Transmission line impedance calculations", wave: "E", run: None },
     CommandSpec { name: "mcp", about: "MCP (Model Context Protocol) server for AI agents", wave: "H", run: None },
     CommandSpec { name: "ipc", about: "Interact with a running KiCad instance via IPC API (KiCad 9.0+)", wave: "H", run: None },
@@ -92,7 +93,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "create-pcb", about: "Create a PCB from a KiCad schematic", wave: "G", run: None },
     CommandSpec { name: "build", about: "Build from spec to manufacturable design", wave: "G", run: None },
     CommandSpec { name: "build-native", about: "Build C++ router backend for 10-100x faster routing", wave: "F", run: None },
-    CommandSpec { name: "doctor", about: "Diagnose kicad-tools installation health (version-record drift + environment preflight)", wave: "G", run: None },
+    CommandSpec { name: "doctor", about: "Diagnose kicad-tools installation health (version-record drift + environment preflight)", wave: "G", run: Some(utility::doctor) },
     CommandSpec { name: "spec", about: "Project specification (.kct) management", wave: "G", run: None },
     CommandSpec { name: "benchmark", about: "Run routing benchmarks and regression tests", wave: "F", run: None },
     CommandSpec { name: "bench", about: "Run external DeepPCB-comparable board benchmarks", wave: "F", run: None },

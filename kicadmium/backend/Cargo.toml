@@ -37,6 +37,7 @@ memory-serve = "0.6"
 alloc-stdlib = "=0.2.2"
 
 shared = { path = "../shared" }
+pcb-lint = { path = "../pcb-lint" }
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }

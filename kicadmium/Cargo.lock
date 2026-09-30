@@ -212,6 +212,7 @@ dependencies = [
  "memory-serve",
  "mime_guess",
  "notify",
+ "pcb-lint",
  "serde",
  "serde_json",
  "serde_yaml",

@@ -123,7 +123,7 @@ pub fn panelization_tab(props: &TabProps) -> Html {
             <h2>{"Panelization"}</h2>
             <p>{"Panels are generated with KiKit through the tool passthrough, never by editing the source board:"}</p>
             <pre>{format!(
-                "kicadmium tool --cwd . -- kikit panelize \\\n  --layout 'grid; rows: 2; cols: 2; space: 2mm' \\\n  --tabs 'fixed; width: 3mm' --cuts 'mousebites' \\\n  --framing 'railstb; width: 5mm' \\\n  {example} build/panel/panel.kicad_pcb"
+                "kicadmium kct --cwd . -- panel {example} \\\n  --rows 2 --cols 2 --spacing 2 -o build/panel/panel.kicad_pcb"
             )}</pre>
             <p class="muted">{"See the kicad-panelize skill for manufacturer-specific presets. Boards in this project: "}
                 {if boards.is_empty() { "none detected".to_string() } else { boards.join(", ") }}</p>

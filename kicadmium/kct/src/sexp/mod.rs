@@ -324,15 +324,18 @@ impl SExp {
     pub fn flag(&self, name: &str) -> bool {
         self.children.iter().any(|c| {
             (c.is_atom() && c.value.as_ref().and_then(Value::as_str) == Some(name))
-                || (c.has_tag(name)
-                    && c.string_at(0).is_none_or(|v| v == "yes" || v == "true"))
+                || (c.has_tag(name) && c.string_at(0).is_none_or(|v| v == "yes" || v == "true"))
         })
     }
 
     /// `(at x y [rot])` of this node.
     pub fn at(&self) -> Option<(f64, f64, f64)> {
         let at = self.get("at")?;
-        Some((at.float_at(0)?, at.float_at(1)?, at.float_at(2).unwrap_or(0.0)))
+        Some((
+            at.float_at(0)?,
+            at.float_at(1)?,
+            at.float_at(2).unwrap_or(0.0),
+        ))
     }
 
     /// `(xy x y)` points under `(pts ...)`.
@@ -473,8 +476,8 @@ pub struct Document {
 impl Document {
     pub fn load(path: impl AsRef<Path>) -> crate::Result<Self> {
         let path = path.as_ref();
-        let text = std::fs::read_to_string(path)
-            .with_context(|| format!("reading {}", path.display()))?;
+        let text =
+            std::fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
         let root = parse(&text).with_context(|| format!("parsing {}", path.display()))?;
         Ok(Document {
             root,

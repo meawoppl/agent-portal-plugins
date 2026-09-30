@@ -4,7 +4,9 @@ use super::*;
 fn parses_and_queries() {
     let doc = parse(r#"(kicad_sch (version 20231120) (symbol (lib_id "Device:R") (property "Reference" "R1") (at 1.5 -2 90)))"#).unwrap();
     assert!(doc.has_tag("kicad_sch"));
-    let sym = doc.find_where("symbol", &[("lib_id", "Device:R".into())]).unwrap();
+    let sym = doc
+        .find_where("symbol", &[("lib_id", "Device:R".into())])
+        .unwrap();
     assert_eq!(sym.property("Reference"), Some("R1"));
     assert_eq!(sym.at(), Some((1.5, -2.0, 90.0)));
     assert_eq!(doc.get("version").unwrap().int_at(0), Some(20231120));
@@ -18,7 +20,9 @@ fn numbers_round_trip_exactly() {
 
 #[test]
 fn quoting_is_preserved() {
-    let doc = parse(r#"(x (generator_version "9.0") (pad "1" smd roundrect) (tracks not_allowed))"#).unwrap();
+    let doc =
+        parse(r#"(x (generator_version "9.0") (pad "1" smd roundrect) (tracks not_allowed))"#)
+            .unwrap();
     assert_eq!(
         doc.to_compact_string(),
         r#"(x (generator_version "9.0") (pad "1" smd roundrect) (tracks not_allowed))"#
@@ -27,7 +31,10 @@ fn quoting_is_preserved() {
 
 #[test]
 fn constructed_atoms_follow_kicad_quoting() {
-    let node = SExp::list("pad", [SExp::atom("1"), SExp::atom("smd"), SExp::atom("R1 x")]);
+    let node = SExp::list(
+        "pad",
+        [SExp::atom("1"), SExp::atom("smd"), SExp::atom("R1 x")],
+    );
     assert_eq!(node.to_compact_string(), r#"(pad 1 smd "R1 x")"#);
     let node = SExp::list("layer", [SExp::atom("F.Cu")]);
     assert_eq!(node.to_compact_string(), r#"(layer "F.Cu")"#);
@@ -43,7 +50,11 @@ fn escapes() {
 #[test]
 fn numeric_list_heads() {
     let doc = parse(r#"(layers (0 "F.Cu" signal) (31 "B.Cu" signal))"#).unwrap();
-    let names: Vec<_> = doc.children.iter().map(|c| c.name.clone().unwrap()).collect();
+    let names: Vec<_> = doc
+        .children
+        .iter()
+        .map(|c| c.name.clone().unwrap())
+        .collect();
     assert_eq!(names, ["0", "31"]);
 }
 
@@ -63,7 +74,10 @@ fn edits() {
     let mut doc = parse(r#"(footprint "R" (property "Value" "1k") (layer "F.Cu"))"#).unwrap();
     assert!(doc.set_property("Value", "10k"));
     doc.set_child_value("layer", "B.Cu");
-    assert_eq!(doc.to_compact_string(), r#"(footprint "R" (property "Value" "10k") (layer "B.Cu"))"#);
+    assert_eq!(
+        doc.to_compact_string(),
+        r#"(footprint "R" (property "Value" "10k") (layer "B.Cu"))"#
+    );
     assert!(doc.remove_child("layer"));
     assert!(doc.get("layer").is_none());
 }

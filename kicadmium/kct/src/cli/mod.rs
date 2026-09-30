@@ -113,7 +113,11 @@ fn usage() -> String {
         crate::UPSTREAM_VERSION
     );
     for c in COMMANDS {
-        let mark = if c.run.is_some() { "" } else { "  [not yet ported]" };
+        let mark = if c.run.is_some() {
+            ""
+        } else {
+            "  [not yet ported]"
+        };
         out.push_str(&format!("  {:<22} {}{mark}\n", c.name, c.about));
     }
     out

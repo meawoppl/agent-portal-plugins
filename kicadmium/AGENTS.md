@@ -24,8 +24,8 @@ https://github.com/meawoppl/single-binary-rust-website:
   do not hand-edit them except to refresh from upstream.
 - kicadmium never downloads or bundles KiCad. It discovers `kicad-cli`
   (`KICADMIUM_KICAD_CLI`, `KICAD_CLI`, `PATH`, stock install paths).
-- kicad-tools (`kct`, rjwalters/kicad-tools) is installed into a managed venv
-  under `KICADMIUM_HOME` by `kicadmium setup --install-kicad-tools`.
+- `kct/` is a native Rust port of rjwalters/kicad-tools, run as
+  `kicadmium kct -- <command>`. No Python anywhere; see `kct/PORTING.md`.
 - Mutating `kct` commands are design edits: clean tree or explicit branch only.
 - Before pushing: `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`,
   `cargo test --workspace`.

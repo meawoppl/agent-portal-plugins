@@ -459,10 +459,16 @@ struct KctRun {
 }
 
 async fn run_kct(kct: &str, args: Vec<OsString>, cwd: &Path) -> KctRun {
-    let command = std::iter::once(kct.to_string())
+    let command = std::iter::once("kct".to_string())
         .chain(args.iter().map(|arg| arg.to_string_lossy().into_owned()))
         .collect();
-    match crate::jobs::run_command(kct, &args, cwd).await {
+    // `kct` is this binary's own subcommand; run it out of process so stdout
+    // (the JSON report) is captured per invocation.
+    let argv: Vec<OsString> = ["kct".into(), "--".into()]
+        .into_iter()
+        .chain(args)
+        .collect();
+    match crate::jobs::run_command(kct, &argv, cwd).await {
         Ok(output) => KctRun {
             command,
             code: output.status,
@@ -528,13 +534,12 @@ pub(crate) async fn run_check(project: &ProjectContext) -> Result<CheckResponse>
     let mut routing_quality = None;
     let mut logs = Vec::new();
     let kct = crate::kct_cli();
-    let kct_version = crate::kct_version().await;
+    let kct_version = crate::kct_version();
     if config.kct.unwrap_or(true) {
         match &kct {
-            None => notes.push(
-                "kicad-tools (kct) not found; only in-plugin audits ran. Install with `setup --install-kicad-tools`."
-                    .to_string(),
-            ),
+            None => {
+                notes.push("kct entry point unavailable; only in-house audits ran.".to_string())
+            }
             Some(kct) => {
                 let mut check_args: Vec<OsString> = vec![
                     "check".into(),

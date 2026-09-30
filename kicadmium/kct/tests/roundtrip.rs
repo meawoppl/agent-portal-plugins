@@ -28,10 +28,9 @@ fn fixtures_round_trip() {
         }
     }
     for path in files {
-        if path
-            .extension()
-            .is_some_and(|e| e == "kicad_pcb" || e == "kicad_sch" || e == "kicad_sym" || e == "kicad_mod")
-        {
+        if path.extension().is_some_and(|e| {
+            e == "kicad_pcb" || e == "kicad_sch" || e == "kicad_sym" || e == "kicad_mod"
+        }) {
             check(&path);
             n += 1;
         }

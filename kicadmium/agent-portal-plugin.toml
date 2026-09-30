@@ -10,7 +10,7 @@ agent_portal = ">=2.14.1525"
 platforms = ["linux", "macos"]
 
 [install]
-setup = "cargo run --release -p backend -- setup --install-kicad-tools"
+setup = "cargo run --release -p backend -- setup"
 doctor = "target/release/kicadmium doctor --json --cwd {cwd}"
 
 [surface]
@@ -71,7 +71,7 @@ run = "target/release/kicadmium kct --json --cwd {cwd} --"
 
 [[commands]]
 name = "tool"
-description = "Run an allowed KiCad PCB tool inside the active repo. Usage: tool -- <kct|kicad-cli|kikit> <args...>."
+description = "Run an allowed KiCad PCB tool inside the active repo. Usage: tool -- kicad-cli <args...>."
 run = "target/release/kicadmium tool --json --cwd {cwd} --"
 
 [[skills]]

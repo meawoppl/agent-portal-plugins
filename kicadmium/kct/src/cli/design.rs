@@ -762,6 +762,12 @@ struct LibArgs {
 }
 #[derive(Subcommand)]
 enum LibCmd {
+    List {
+        #[arg(long, default_value = "all")]
+        kind: String,
+        #[arg(long, default_value = "table")]
+        format: String,
+    },
     Symbols {
         library: PathBuf,
         #[arg(long, default_value = "table")]
@@ -770,10 +776,66 @@ enum LibCmd {
     Validate {
         library: PathBuf,
     },
+    Footprints {
+        library: PathBuf,
+        #[arg(long, default_value = "table")]
+        format: String,
+    },
+    SymbolInfo {
+        library: PathBuf,
+        symbol: String,
+        #[arg(long, default_value = "text")]
+        format: String,
+    },
+    FootprintInfo {
+        footprint: PathBuf,
+        #[arg(long, default_value = "text")]
+        format: String,
+    },
+    CreateSymbolLib {
+        path: PathBuf,
+    },
+    CreateFootprintLib {
+        path: PathBuf,
+    },
+    Export {
+        source: PathBuf,
+        output: PathBuf,
+    },
+    Purge {
+        path: PathBuf,
+        #[arg(long)]
+        dry_run: bool,
+    },
 }
 pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: LibArgs = super::parse_args("lib", args);
     match a.cmd {
+        LibCmd::List { kind, format } => {
+            let mut paths = vec![];
+            for key in [
+                "KICAD9_SYMBOL_DIR",
+                "KICAD9_FOOTPRINT_DIR",
+                "KICAD8_SYMBOL_DIR",
+                "KICAD8_FOOTPRINT_DIR",
+            ] {
+                if (kind == "all"
+                    || key
+                        .to_lowercase()
+                        .contains(&kind.trim_end_matches('s').to_lowercase()))
+                    && std::env::var_os(key).is_some()
+                {
+                    paths.push((key, std::env::var(key)?));
+                }
+            }
+            if format == "json" {
+                json(&paths)?
+            } else {
+                for (k, p) in paths {
+                    println!("{k}\t{p}")
+                }
+            }
+        }
         LibCmd::Symbols { library, format } => {
             let d = load(&library)?;
             let names: Vec<_> = d
@@ -794,6 +856,103 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 bail!("not a KiCad symbol library")
             }
             println!("valid: {} symbols", d.children_named("symbol").count())
+        }
+        LibCmd::Footprints { library, format } => {
+            let mut names = vec![];
+            for e in std::fs::read_dir(&library)
+                .with_context(|| format!("read {}", library.display()))?
+            {
+                let p = e?.path();
+                if p.extension().and_then(|x| x.to_str()) == Some("kicad_mod") {
+                    names.push(
+                        p.file_stem()
+                            .unwrap_or_default()
+                            .to_string_lossy()
+                            .to_string(),
+                    )
+                }
+            }
+            names.sort();
+            if format == "json" {
+                json(&names)?
+            } else {
+                for n in names {
+                    println!("{n}")
+                }
+            }
+        }
+        LibCmd::SymbolInfo {
+            library,
+            symbol,
+            format,
+        } => {
+            let d = load(&library)?;
+            let s = d
+                .children_named("symbol")
+                .find(|s| s.string_at(0) == Some(&symbol))
+                .with_context(|| format!("symbol {symbol} not found"))?;
+            if format == "json" {
+                json(
+                    &serde_json::json!({"name":symbol,"extends":s.child_str("extends"),"pins":s.find_all("pin").count()}),
+                )?
+            } else {
+                println!("{symbol}: {} pins", s.find_all("pin").count())
+            }
+        }
+        LibCmd::FootprintInfo { footprint, format } => {
+            let d = load(&footprint)?;
+            let v = serde_json::json!({"name":d.string_at(0),"pads":d.children_named("pad").count(),"models":d.children_named("model").count()});
+            if format == "json" {
+                json(&v)?
+            } else {
+                println!("{}", serde_json::to_string_pretty(&v)?)
+            }
+        }
+        LibCmd::CreateSymbolLib { path } => {
+            if path.exists() {
+                bail!("{} already exists", path.display())
+            }
+            crate::fsutil::atomic_write(
+                &path,
+                b"(kicad_symbol_lib (version 20231120) (generator kicadmium))\n",
+            )?;
+        }
+        LibCmd::CreateFootprintLib { path } => {
+            if path.exists() {
+                bail!("{} already exists", path.display())
+            }
+            std::fs::create_dir_all(if path.extension().is_some() {
+                path
+            } else {
+                path.with_extension("pretty")
+            })?;
+        }
+        LibCmd::Export { source, output } => {
+            if source.is_dir() {
+                copy_dir(&source, &output)?
+            } else {
+                std::fs::copy(source, output)?;
+            }
+        }
+        LibCmd::Purge { path, dry_run } => {
+            let mut removed = 0;
+            for e in std::fs::read_dir(path)? {
+                let p = e?.path();
+                if matches!(
+                    p.extension().and_then(|x| x.to_str()),
+                    Some("bak" | "tmp" | "cache")
+                ) {
+                    if !dry_run {
+                        std::fs::remove_file(&p)?
+                    }
+                    removed += 1
+                }
+            }
+            println!(
+                "{} {} files",
+                if dry_run { "would purge" } else { "purged" },
+                removed
+            );
         }
     }
     Ok(0)
@@ -863,6 +1022,19 @@ pub fn validate(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         }
     }
     Ok(0)
+}
+fn copy_dir(src: &Path, dst: &Path) -> Result<()> {
+    std::fs::create_dir_all(dst)?;
+    for e in std::fs::read_dir(src)? {
+        let e = e?;
+        let to = dst.join(e.file_name());
+        if e.file_type()?.is_dir() {
+            copy_dir(&e.path(), &to)?
+        } else {
+            std::fs::copy(e.path(), to)?;
+        }
+    }
+    Ok(())
 }
 
 #[derive(Parser)]

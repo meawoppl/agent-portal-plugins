@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+PLUGIN_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+UV_BIN=$(command -v uv || true)
+if [ -z "$UV_BIN" ]; then UV_BIN="$HOME/.local/bin/uv"; fi
+exec "$UV_BIN" run --locked --no-dev --project "$PLUGIN_DIR" python "$PLUGIN_DIR/server.py" "$@"

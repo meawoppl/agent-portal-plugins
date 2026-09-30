@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Verilog Workbench</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="/lucide.js" defer></script>
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <button id="sidebar" title="Toggle signal hierarchy">
+        <i data-lucide="panel-left"></i></button
+      ><strong>Verilog</strong
+      ><select id="test" aria-label="Testbench"></select
+      ><button id="run" title="Run testbench">
+        <i data-lucide="play"></i><span>Run</span></button
+      ><button id="stop" title="Cancel simulation" disabled>
+        <i data-lucide="square"></i></button
+      ><span id="live" role="status">Connecting</span>
+    </header>
+    <div id="error" role="alert" hidden></div>
+    <main>
+      <aside>
+        <nav>
+          <h2>Runs</h2>
+          <select id="runs" aria-label="Simulation run"></select
+          ><select id="files" aria-label="Waveform file"></select
+          ><a id="download" hidden>Download VCD</a>
+        </nav>
+        <h2>Signals</h2>
+        <input
+          id="search"
+          type="search"
+          placeholder="Filter signals"
+          aria-label="Filter signals"
+        />
+        <div id="hierarchy"></div>
+      </aside>
+      <section class="workspace">
+        <div class="toolbar">
+          <button id="zoom-in" title="Zoom in">
+            <i data-lucide="zoom-in"></i></button
+          ><button id="zoom-out" title="Zoom out">
+            <i data-lucide="zoom-out"></i></button
+          ><button id="fit" title="Fit time range">
+            <i data-lucide="maximize"></i></button
+          ><button id="previous" title="Previous transition on selected signal">
+            <i data-lucide="step-back"></i></button
+          ><button id="next" title="Next transition on selected signal">
+            <i data-lucide="step-forward"></i></button
+          ><label
+            >Radix
+            <select id="radix">
+              <option value="hex">Hex</option>
+              <option value="bin">Binary</option>
+              <option value="unsigned">Unsigned</option>
+              <option value="signed">Signed</option>
+            </select></label
+          ><select id="mode" aria-label="Pointer mode">
+            <option value="cursor">Cursor A</option>
+            <option value="baseline">Cursor B</option>
+            <option value="pan">Pan</option></select
+          ><button
+            id="annotate"
+            title="Annotate selected signals and time interval"
+          >
+            <i data-lucide="message-square-plus"></i><span>Annotate</span>
+          </button>
+        </div>
+        <div class="measure">
+          <span id="range">No waveform</span><span id="markers"></span>
+        </div>
+        <div class="waves" id="waves">
+          <canvas id="canvas" aria-label="Digital waveforms"></canvas>
+          <p id="empty">Select a testbench and run it.</p>
+        </div>
+        <details id="logs">
+          <summary>Run log <span id="result"></span></summary>
+          <pre id="log"></pre>
+        </details>
+      </section>
+    </main>
+    <dialog id="note">
+      <form method="dialog">
+        <h2>Waveform annotation</h2>
+        <p id="note-context"></p>
+        <img id="capture" alt="Selected waveform interval" /><textarea
+          id="body"
+          rows="5"
+          aria-label="Review note"
+          placeholder="Describe the change or question"
+        ></textarea>
+        <div class="actions">
+          <button type="button" id="record" title="Record voice note">
+            <i data-lucide="mic"></i></button
+          ><button value="cancel">Cancel</button
+          ><button type="button" id="send">
+            <i data-lucide="send"></i>Queue for agent
+          </button>
+        </div>
+        <p id="note-status" role="status"></p>
+      </form>
+    </dialog>
+  </body>
+</html>

@@ -18,5 +18,7 @@ The installed checkout still materializes as one plugin directory:
 
 ## Plugins
 
+- [`verilog`](verilog/) - Icarus testbench runs, GTKWave-inspired waveform
+  inspection, retained artifacts, and queued annotation feedback.
 - [`kicad-pcb`](kicad-pcb/) - KiCad PCB/electronics workflow plugin for the
   Portal plugin architecture.

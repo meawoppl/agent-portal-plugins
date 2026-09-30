@@ -1,7 +1,7 @@
 pcb-lint
 ========
 
-Read-only Rust KiCad PCB lint, with 99 implemented checks and persistent,
+Read-only Rust KiCad PCB lint, with 101 registered checks and persistent,
 evidence-bound review decisions. Uses petgraph for copper connectivity and
 bounded route search, geo for geometry, and explicit design contracts for facts
 that cannot be determined from copper. No board or schematic edits are made.
@@ -25,7 +25,7 @@ and search-budget statuses explain what was actually checked.
 
 Rule catalog
 ------------
-catalog.json contains the full 99-rule catalog: stable ID, family, stage,
+catalog.json contains the full 101-rule catalog: stable ID, family, stage,
 severity, confidence, detector, suggested action and caveat. The original 29
 cover elementary traces, vias, path shape and basic contracts. The next 70
 add copper topology; route alternatives and tuning; placement and repeated

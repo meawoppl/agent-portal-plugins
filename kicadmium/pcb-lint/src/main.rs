@@ -18,32 +18,42 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Command {
+    /// Run read-only heuristic checks and emit a versioned JSON report.
     Lint {
+        /// Canonical .kicad_pcb input. This command never modifies it.
         board: PathBuf,
+        /// Stable project/board identity included in evidence keys.
         #[arg(long)]
         board_id: String,
+        /// JSON Config. Omitted fields use the values printed by init-config.
         #[arg(long)]
         config: Option<PathBuf>,
+        /// Evidence-bound review ledger; stale evidence is not reused.
         #[arg(long)]
         reviews: Option<PathBuf>,
         #[arg(short, long)]
         output: Option<PathBuf>,
+        /// Exit 2 when an open finding meets this severity threshold.
         #[arg(long, value_enum, default_value = "never")]
         fail_on: FailOn,
         /// Write a self-contained HTML contact sheet with highlighted vector crops.
         #[arg(long, value_name = "HTML")]
         contact_sheet: Option<PathBuf>,
     },
+    /// Parse a board and emit the normalized geometry model as JSON.
     Inspect {
         board: PathBuf,
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+    /// Emit the complete rule catalog as JSON.
     Rules,
+    /// Emit the complete default JSON configuration, including numeric defaults.
     InitConfig {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+    /// Add, flag, clear, or expire an evidence-bound review decision.
     Review {
         #[arg(long)]
         report: PathBuf,
@@ -60,6 +70,7 @@ enum Command {
         #[arg(long)]
         expires_at: Option<u64>,
     },
+    /// Run a deny-unknown-fields JSON corpus manifest and check expectations.
     Corpus {
         manifest: PathBuf,
         #[arg(short, long)]
@@ -204,8 +215,20 @@ fn run() -> Result<i32> {
                 review::apply(&mut r, &review::load(&path)?, review::now());
             }
             let open = r.findings.iter().filter(|f| f.state != "ignored").count();
+            let coverage_states =
+                r.coverage
+                    .iter()
+                    .fold(BTreeMap::new(), |mut counts, coverage| {
+                        *counts.entry(coverage.status.as_str()).or_insert(0usize) += 1;
+                        counts
+                    });
+            let coverage_summary = coverage_states
+                .iter()
+                .map(|(state, count)| format!("{state}={count}"))
+                .collect::<Vec<_>>()
+                .join(", ");
             eprintln!(
-                "{} findings: {} actionable, {} ignored; {} coverage entries. Heuristics are not DRC.",
+                "{} findings: {} actionable, {} ignored; {} coverage entries ({coverage_summary}). Heuristics are not DRC.",
                 r.findings.len(),
                 open,
                 r.findings.len() - open,

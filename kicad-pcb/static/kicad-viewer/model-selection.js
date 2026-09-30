@@ -144,7 +144,14 @@ function flattenTree(node) {
 }
 
 /** Add STEP picking, synchronized tree controls, and retained opacity state. */
-export function createStepSelectionController({ host, renderer, camera, invalidate }) {
+export function createStepSelectionController({
+  host,
+  renderer,
+  camera,
+  invalidate,
+  initialUiState,
+  onUiStateChange = () => {},
+}) {
   const opacityByKey = new Map();
   const overrides = new Map();
   const raycaster = new THREE.Raycaster();
@@ -166,6 +173,13 @@ export function createStepSelectionController({ host, renderer, camera, invalida
   let pointerId;
   let pointerMoved = false;
   const expandedKeys = new Set();
+  const captureUiState = () => ({
+    collapsed: panel.classList.contains("is-collapsed"),
+    selectedKey,
+    expandedKeys: [...expandedKeys],
+    opacityByKey: Object.fromEntries(opacityByKey),
+  });
+  const emitUiState = () => onUiStateChange(captureUiState());
 
   const meshes = () => {
     const result = [];
@@ -180,6 +194,32 @@ export function createStepSelectionController({ host, renderer, camera, invalida
   const displayOpacity = (meshKeys) => {
     const values = meshKeys.map((key) => opacityByKey.get(key) ?? 1);
     return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 1;
+  };
+  const restoreUiState = (state = {}) => {
+    if (!state || typeof state !== "object") return false;
+    if (typeof state.collapsed === "boolean") {
+      panel.classList.toggle("is-collapsed", state.collapsed);
+      toggle.setAttribute("aria-expanded", String(!state.collapsed));
+    }
+    expandedKeys.clear();
+    if (Array.isArray(state.expandedKeys))
+      for (const key of state.expandedKeys.filter((item) => typeof item === "string"))
+        expandedKeys.add(key);
+    opacityByKey.clear();
+    if (state.opacityByKey && typeof state.opacityByKey === "object") {
+      for (const [key, value] of Object.entries(state.opacityByKey)) {
+        const ratio = clampOpacity(Number(value));
+        if (ratio < 1) opacityByKey.set(key, ratio);
+      }
+    }
+    selectedKey = typeof state.selectedKey === "string" ? state.selectedKey : undefined;
+    selectedNode = selectedKey ? findNode(selectedKey) : undefined;
+    renderTree();
+    updateTreeSelection();
+    renderControls();
+    apply(content);
+    invalidate();
+    return true;
   };
   const renderControls = () => {
     controlsBody.replaceChildren();
@@ -211,6 +251,7 @@ export function createStepSelectionController({ host, renderer, camera, invalida
       output.textContent = `${Math.round(ratio * 100)}%`;
       apply(content);
       invalidate();
+      emitUiState();
     };
     const actions = document.createElement("div");
     actions.className = "step-selection-actions";
@@ -223,6 +264,7 @@ export function createStepSelectionController({ host, renderer, camera, invalida
       output.textContent = "100%";
       apply(content);
       invalidate();
+      emitUiState();
     };
     const clearButton = document.createElement("button");
     clearButton.type = "button";
@@ -258,6 +300,7 @@ export function createStepSelectionController({ host, renderer, camera, invalida
     renderControls();
     apply(content);
     invalidate();
+    emitUiState();
   };
   const renderTreeNode = (node, depth = 0) => {
     const children = [...node.children.values()];
@@ -277,6 +320,7 @@ export function createStepSelectionController({ host, renderer, camera, invalida
     details.ontoggle = () => {
       if (details.open) expandedKeys.add(node.key);
       else expandedKeys.delete(node.key);
+      emitUiState();
     };
     const summary = document.createElement("summary");
     summary.dataset.selectionKey = node.key;
@@ -380,6 +424,7 @@ export function createStepSelectionController({ host, renderer, camera, invalida
     renderControls();
     apply(content);
     invalidate();
+    emitUiState();
   };
   const treeClick = (event) => {
     const target = event.target.closest?.("[data-selection-key]");
@@ -388,11 +433,13 @@ export function createStepSelectionController({ host, renderer, camera, invalida
   toggle.onclick = () => {
     const collapsed = panel.classList.toggle("is-collapsed");
     toggle.setAttribute("aria-expanded", String(!collapsed));
+    emitUiState();
   };
   if (matchMedia("(max-width: 640px)").matches) {
     panel.classList.add("is-collapsed");
     toggle.setAttribute("aria-expanded", "false");
   }
+  restoreUiState(initialUiState);
   renderer.domElement.addEventListener("pointerdown", pointerDown);
   renderer.domElement.addEventListener("pointermove", pointerMove);
   renderer.domElement.addEventListener("pointerup", pointerUp);
@@ -416,6 +463,8 @@ export function createStepSelectionController({ host, renderer, camera, invalida
       renderControls();
       apply(content);
     },
+    captureUiState,
+    restoreUiState,
     restore,
     reapply() {
       apply(content);

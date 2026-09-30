@@ -534,6 +534,7 @@ export class RetainedNativeViewer extends EventTarget {
     this.pendingView = undefined;
     this.polygonPoursVisible = true;
     this.polygonPoursOpacity = undefined;
+    this.polygonPoursTimer = undefined;
   }
 
   core() {
@@ -592,6 +593,7 @@ export class RetainedNativeViewer extends EventTarget {
   }
 
   publishLayers() {
+    this.applyPolygonPourVisibility();
     const layers = this.current?.getPcbViewState?.()?.layers ?? [];
     this.dispatchEvent(
       new CustomEvent("layers", {
@@ -639,6 +641,12 @@ export class RetainedNativeViewer extends EventTarget {
     }
     core.draw_now?.();
     return true;
+  }
+
+  schedulePolygonPourVisibility() {
+    clearTimeout(this.polygonPoursTimer);
+    requestAnimationFrame(() => this.applyPolygonPourVisibility());
+    this.polygonPoursTimer = setTimeout(() => this.applyPolygonPourVisibility(), 220);
   }
 
   enhanceGeometrySelection() {
@@ -841,8 +849,14 @@ export class RetainedNativeViewer extends EventTarget {
   restoreView(view = this.pendingView) {
     const camera = this.core()?.viewport?.camera;
     if (!view || !camera) return false;
-    camera.center.set(view.x, view.y);
-    camera.zoom = view.zoom;
+    const x = Number(view.x);
+    const y = Number(view.y);
+    const zoom = Number(view.zoom);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(zoom) || zoom <= 0)
+      return false;
+    camera.center.set(x, y);
+    camera.zoom = zoom;
+    camera.updateProjectionMatrix?.();
     this.core()?.draw_now?.();
     this.pendingView = undefined;
     return true;
@@ -907,6 +921,7 @@ export class RetainedNativeViewer extends EventTarget {
         this.enhanceGeometrySelection();
         this.applyVisibility();
         this.applyPolygonPourVisibility();
+        this.schedulePolygonPourVisibility();
         current.setActive(this.active);
         current.resize();
         if (this.selection) {
@@ -960,6 +975,7 @@ export class RetainedNativeViewer extends EventTarget {
         ?.forEach((button) => button.textContent?.trim().toUpperCase() === tab && button.click());
     this.current?.resize();
     this.applyPolygonPourVisibility();
+    this.schedulePolygonPourVisibility();
     this.core()?.draw_now?.();
   }
   resize() {
@@ -1039,7 +1055,9 @@ export class RetainedNativeViewer extends EventTarget {
   }
   setPolygonPoursVisible(visible) {
     this.polygonPoursVisible = visible !== false;
-    return this.applyPolygonPourVisibility();
+    const applied = this.applyPolygonPourVisibility();
+    this.schedulePolygonPourVisibility();
+    return applied;
   }
   fit() {
     this.core()?.zoom_fit_top_item();
@@ -1049,6 +1067,7 @@ export class RetainedNativeViewer extends EventTarget {
     this.generation++;
     this.replacing = false;
     this.finishTransition();
+    clearTimeout(this.polygonPoursTimer);
     this.pendingSnapshot = undefined;
     this.current?.setActive(false);
     this.current?.remove();

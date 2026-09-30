@@ -1,0 +1,6 @@
+{
+  "board": "esp32-fpga-module",
+  "samples": 7700,
+  "mismatches": 0,
+  "reference": "KiCad ZONE.HitTestFilledArea; saved fills, no refill"
+}

@@ -36,4 +36,5 @@ jobs:
       - name: Build frontend (required for backend embed)
         run: cd frontend && trunk build
       - run: cargo clippy --workspace --all-targets --locked
+      - run: cargo clippy -p frontend --target wasm32-unknown-unknown --locked
       - run: cargo test --workspace --locked

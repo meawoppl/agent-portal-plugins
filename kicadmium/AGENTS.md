@@ -5,11 +5,12 @@ https://github.com/meawoppl/single-binary-rust-website:
 
 - `shared/` — serde API/event types used by both sides.
 - `backend/` — axum server + CLI, binary `kicadmium`. Embeds `frontend/dist`
-  with `memory-serve` (read from disk in debug builds, embedded in release).
+  with `memory-serve`; the asset list is fixed at compile time, so restart the
+  server after a frontend rebuild.
 - `frontend/` — Yew (trunk) workbench. `frontend/static/kicad-viewer/` holds the
-  vendored third-party viewer runtimes (ecad-viewer, three.js, occt); Gerbers use
-  the pastebom `gerber-view` crate directly from Rust
-  and is copied to `dist/kicad-viewer/` by trunk.
+  vendored third-party viewer runtimes (ecad-viewer, three.js, occt), copied to
+  `dist/kicad-viewer/` by trunk. Gerbers use pastebom's `gerber-view` crate
+  directly from Rust.
 
 `backend/build.rs` runs `trunk build` (own target dir, `target/frontend`) whenever
 `frontend/dist` is missing or older than frontend/shared sources, so

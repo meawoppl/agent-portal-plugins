@@ -61,21 +61,13 @@ fn remote_panel(props: &RemoteProps) -> Html {
 #[function_component(App)]
 fn app() -> Html {
     let active = use_state(|| "pcb".to_owned());
-    let project = use_state(String::new);
     let manifest = use_state(|| None::<Value>);
     {
         let manifest = manifest.clone();
-        let project = project.clone();
         use_effect_with((), move |_| {
             spawn_local(async move {
                 if let Ok(r) = Request::get("/api/kicad/manifest").send().await {
                     if let Ok(v) = r.json::<Value>().await {
-                        project.set(
-                            v.get("project")
-                                .and_then(Value::as_str)
-                                .unwrap_or("")
-                                .to_owned(),
-                        );
                         manifest.set(Some(v));
                     }
                 }
@@ -84,11 +76,8 @@ fn app() -> Html {
         });
     }
     {
-        let project = project.clone();
-        use_effect_with((*project).clone(), move |p| {
-            if !p.is_empty() {
-                boot_workbench(p)
-            }
+        use_effect_with((), move |_| {
+            boot_workbench("");
             || ()
         });
     }

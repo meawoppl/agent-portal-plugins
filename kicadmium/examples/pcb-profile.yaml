@@ -1,5 +1,5 @@
 # Machine-readable form of the PCB playbook. Consumed by layout-quality checks
-# (kicad-tools rules and the kicad-pcb plugin). Prose rationale lives in the
+# (native kct rules and Kicadmium audits). Prose rationale lives in the
 # neighboring .md files; keep the two in sync.
 version: 1
 name: meawoppl-default

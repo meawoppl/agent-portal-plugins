@@ -11,21 +11,22 @@ other electronics design artifacts and the KiCad PCB Portal plugin is available.
    before you place or route anything. It records the user's layout
    preferences: via rules, octilinear routing, silkscreen policy, and
    decoupling distance.
-2. Run `agent-portal plugin open kicad-pcb` when visual context would help.
+2. Open the `kicadmium` Agent Portal surface when visual context would help.
    The surface has tabs for schematic, PCB, Gerbers, 3D, STEP, BOM, libraries,
    analysis, panelization, and checks, plus a build strip.
 3. Run the plugin `doctor` command before promising native KiCad or `kct`
    checks.
 4. Use the plugin commands as the automation boundary:
-   - `bin/kicad-pcb-rs doctor --json --cwd <repo>`
-   - `bin/kicad-pcb-rs drc|erc --json --cwd <repo> --project <id>`
-   - `bin/kicad-pcb-rs quality --json --cwd <repo> --project <id>`
-   - `bin/kicad-pcb-rs kct --json --cwd <repo> -- <kct args...>`
-5. **Try `kct` before writing ad-hoc pcbnew/s-expr scripts.** Check
-   `kct --help` and `kct <cmd> --help` for an existing query, audit, or fix
+   - `kicadmium doctor --json --cwd <repo>`
+   - `kicadmium drc|erc --json --cwd <repo> --project <id>`
+   - `kicadmium quality --json --cwd <repo> --project <id>`
+   - `kicadmium kct --json --cwd <repo> -- <kct args...>`
+5. **Use native `kct` rather than ad-hoc automation.** Check
+   `kicadmium kct --help` and its subcommand help for an existing query, audit, or fix
    (`check`, `detect-mistakes`, `optimize-traces --dry-run`, `net-status`,
    `validate --sync`, `fix-vias`, `place-silk-refs`, and others). Write a
-   custom script only when kct cannot do the job, and say why.
+   If native kct cannot do the job, report the capability gap rather than
+   introducing a Python or shell runtime.
 6. Use the surface for visual claims. Point at the board, schematic, layer,
    net, or artifact instead of relying only on prose.
 
@@ -73,11 +74,9 @@ A good PCB turn ends with:
 
 ## Tooling Limits
 
-Real ERC/DRC, exports, 3D previews, the build pipeline, and `kct` need local
-tooling. On Linux x86_64, run
-`bin/kicad-pcb-rs setup --install-kicad --install-kicad-tools` to install
-managed tooling into the plugin's `.runtime/`. If tooling is still missing,
-report that as the blocker and do not claim outputs are validated.
+Real ERC/DRC, exports, and 3D previews require a locally installed KiCad and
+discoverable `kicad-cli`. `kct` is built into Kicadmium. If KiCad tooling is
+missing, report that as the blocker and do not claim outputs are validated.
 
 Load `kicad-tools-automation` before running `kct` mutation commands (route,
 placement, sync-netlist, fix-*, zones, stitch). They are design edits.

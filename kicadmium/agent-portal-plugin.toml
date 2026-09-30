@@ -66,7 +66,7 @@ run = "target/release/kicadmium export jlcpcb --cwd {cwd} --out {artifact_dir}"
 
 [[commands]]
 name = "kct"
-description = "Run the kicad-tools automation CLI inside the active repo. Pass kct arguments after --."
+description = "Run kicadmium's native Rust kct automation CLI inside the active repo. Pass arguments after --."
 run = "target/release/kicadmium kct --json --cwd {cwd} --"
 
 [[commands]]

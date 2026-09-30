@@ -31,8 +31,8 @@ Bend runtime.
 - Prefer structured JSON and stable identifiers over terminal prose.
 - Separate read-only inspection from mutation. Mutations require an explicit
   target and are followed by native ERC/DRC, sync, quality, and visual review.
-- Keep the wrapper thin: forward current upstream `kct` arguments rather than
-  growing a second, stale command language.
+- Preserve useful upstream command shapes where practical while implementing
+  them as typed, tested Rust APIs.
 - Make manufacturer rules, source revisions, assumptions, and unresolved
   evidence part of the result.
 - Keep part lookup tiered and optional. Credentials are user-supplied and are
@@ -40,9 +40,9 @@ Bend runtime.
 - Treat routing, placement, repair, and optimization output as proposals until
   validated against canonical files and native tools.
 
-`kct` is an optional external companion discovered from configuration or
-`PATH`; Kicadmium does not pretend its Python implementation became Rust.
-Kicadmium's own server, UI, parsers, review engine, and `pcb-lint` are Rust.
+`kct` is a native workspace crate dispatched inside the Kicadmium binary.
+Kicadmium's server, UI, parsers, review engine, and `pcb-lint` are Rust; only
+KiCad's own `kicad-cli` remains an external runtime dependency.
 
 ## Heuristic lint contract
 

@@ -14,7 +14,7 @@
     },
     {
       "name": "kicad-footprint",
-      "description": "Generate compliant KiCad footprints from official KiCad Library Tools",
+      "description": "Generate and validate compliant KiCad footprints with native Kicadmium tooling",
       "path": "skills/footprint/SKILL.md"
     },
     {
@@ -29,7 +29,7 @@
     },
     {
       "name": "kicad-panelize",
-      "description": "Use KiKit to panelize a given PCB",
+      "description": "Panelize a PCB with native Kicadmium automation",
       "path": "skills/panelize/SKILL.md"
     },
     {
@@ -57,7 +57,6 @@
     "LICENSE",
     "skills/bom/SKILL.md",
     "skills/export/SKILL.md",
-    "skills/export/scripts/convert_position.py",
     "skills/footprint/SKILL.md",
     "skills/gerbers/SKILL.md",
     "skills/layout/SKILL.md",

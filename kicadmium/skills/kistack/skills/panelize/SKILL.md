@@ -1,14 +1,13 @@
 ---
 name: kicad-panelize
-description: Use KiKit to panelize a given PCB
+description: Panelize a PCB with native Kicadmium automation
 ---
 
 # Skill for PCB panelization 
 
 ## Setup
-Ensure KiKit is installed with kikit --version
-
-Check this installations resources/panelizePresets/default.json and panelize_ui_sections.py before adding parameters, these are the way, the truth, and the light.
+Use the native `kicadmium kct` panelization command and its current `--help`.
+Do not invoke a separate panelizer or its historical helper files directly.
 
 ## Usage
 
@@ -37,7 +36,7 @@ Check this installations resources/panelizePresets/default.json and panelize_ui_
 - Fiducials: three, 1mm copper with 1mm openings
 - Fiducial paste apertures: disabled
 
-## KiKit behavior
+## Panel behavior
 
 - source.type: "auto" is appropriate for an ordinary single-board file.
 - tabs.type: "spacing" places tabs symmetrically and cannot exclude a particular side.
@@ -63,12 +62,13 @@ rule.
 
 ## Useful commands
 
-python3 -m json.tool panelize.json
-kikit panelize -p panelize.json input.kicad_pcb output-panel.kicad_pcb
+```console
+kicadmium kct --cwd <repo> -- panel --help
+```
 
-Dump the fully merged KiKit configuration with:
+Inspect the fully merged panel configuration before accepting output.
 
-kikit panelize -p panelize.json -d resolved.json input.kicad_pcb output-panel.kicad_pcb
+Use the command's resolved-configuration output when reviewing merged values.
 
 Render and open it with:
 

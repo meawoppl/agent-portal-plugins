@@ -1,158 +1,55 @@
-# kicad-tools Automation
+# Native kct Automation
 
-Use this skill when a KiCad task needs analysis or edits beyond native
-`kicad-cli`: routing, placement, manufacturer rules, sync drift, BOM
-enrichment, part lookup, readiness reports, repair commands, or structured
-query output for an agent.
+Use this skill when a KiCad task needs structured analysis or edits beyond
+native `kicad-cli`: routing, placement, manufacturer rules, sync drift, BOM
+enrichment, part lookup, readiness reports, repair commands, or agent-oriented
+JSON output.
 
-## Tool Boundary
+The native Rust implementation is inspired by
+[rjwalters/kicad-tools](https://github.com/rjwalters/kicad-tools). That project
+is not installed or executed at runtime.
 
-Prefer the plugin wrapper instead of calling `kct` directly:
+## Tool boundary
 
-```console
-bin/kicad-pcb-rs kct --json --cwd <repo> -- <kct arguments...>
-```
-
-The wrapper resolves the plugin-managed `kct` from `.runtime/kicad-tools` or
-`KICAD_PCB_KCT`, records the command, and keeps execution rooted in the active
-repo.
-
-For other PCB tools, use the generic passthrough:
+Use the single Kicadmium binary:
 
 ```console
-bin/kicad-pcb-rs tool --json --cwd <repo> -- <kct|kicad-cli|kikit> <arguments...>
+kicadmium doctor --json --cwd <repo>
+kicadmium kct --json --cwd <repo> -- <kct arguments...>
+kicadmium tool --json --cwd <repo> -- kicad-cli <arguments...>
 ```
 
-Everything after `--` is forwarded verbatim. Treat the examples below as
-starting points; when upstream `kct`, `kicad-cli`, or `kikit` syntax changes,
-check the tool's current `--help` and pass the current arguments through the
-wrapper instead of adding or relying on plugin-specific aliases.
+Consult `kicadmium kct --help` and subcommand help before acting. Never write a
+Python or shell helper, create a virtual environment, or fall back to an
+external `kct`. If a native command is absent, report that precise capability
+gap.
 
-Before using `kct`, run:
+## Read before write
+
+Start with read-only board/schematic summaries, symbols, nets, net status,
+checks, readiness, and dry-run optimization when exposed by the current CLI.
+Build a factual picture before moving parts or routing.
+
+Treat routing, placement, sync, fixes, zones, stitching, and repair as code
+edits:
+
+1. inspect `git status --short`;
+2. resolve the project and authoritative board from `.kicad-pcb.json`;
+3. establish a clean branch or explicit snapshot;
+4. run the narrowest `kicadmium kct` command;
+5. inspect the changed file and relevant workbench views;
+6. rerun verification.
+
+Verification baseline:
 
 ```console
-bin/kicad-pcb-rs doctor --json --cwd <repo>
+kicadmium erc --json --cwd <repo> --project <project-id>
+kicadmium drc --json --cwd <repo> --project <project-id>
+kicadmium quality --json --cwd <repo> --project <project-id>
+kicadmium lint --json --cwd <repo> --project <project-id>
 ```
 
-If `tools.kct` is false, run:
-
-```console
-bin/kicad-pcb-rs setup --install-kicad-tools
-```
-
-## kct First, Scripts Last
-
-Before you write a pcbnew or s-expression script, look for a kct command that
-already does the job: `kct --help`, then `kct <command> --help`. Useful
-read-only audits:
-
-```console
-bin/kicad-pcb-rs kct --json --cwd <repo> -- check <board>.kicad_pcb --format json --drc-only
-bin/kicad-pcb-rs kct --json --cwd <repo> -- -q detect-mistakes <board>.kicad_pcb --format json
-bin/kicad-pcb-rs kct --json --cwd <repo> -- optimize-traces <copy>.kicad_pcb --dry-run --format json
-bin/kicad-pcb-rs kct --json --cwd <repo> -- net-status <board>.kicad_pcb
-```
-
-A custom script is justified only for a check kct lacks. Keep it read-only,
-note the gap in your summary, and prefer an upstream kct rule.
-
-## Layout Quality Stage
-
-The plugin's `quality` stage already runs the audits above plus in-plugin
-audits (via under QFN/DFN/BGA bodies, off-angle tracks, orphan vias,
-silkscreen policy, and decoupler distance). Severities come from the
-workspace `qualityProfile` in `.kicad-pcb.json`. Read the results from:
-
-```console
-bin/kicad-pcb-rs quality --json --cwd <repo> --project <project-id>
-```
-
-The Checks tab **Layout quality** card shows the same results. After any kct
-mutation, re-run this stage along with ERC and DRC. A clean DRC alone does not
-complete the job.
-
-## Read-Only Analysis
-
-These commands are safe first moves because they should not alter board files:
-
-```console
-bin/kicad-pcb-rs kct --json --cwd <repo> -- symbols <board>.kicad_sch --format json
-bin/kicad-pcb-rs kct --json --cwd <repo> -- nets <board>.kicad_sch --format json
-bin/kicad-pcb-rs kct --json --cwd <repo> -- sch summary <board>.kicad_sch --format json
-bin/kicad-pcb-rs kct --json --cwd <repo> -- pcb summary <board>.kicad_pcb --format json
-bin/kicad-pcb-rs kct --json --cwd <repo> -- validate --sync <board>.kicad_pcb --format json
-bin/kicad-pcb-rs kct --json --cwd <repo> -- readiness . --format json
-```
-
-Use these to build a factual picture before moving parts or routing.
-
-## Routing And Repair
-
-Treat routing, placement, sync, fix, zone, stitch, and repair commands as code
-edits. Do not run them casually on a dirty tree.
-
-1. Inspect `git status --short`.
-2. Identify the active board from `.kicad-pcb.json` or the workbench selector.
-3. Create or confirm an explicit branch/snapshot.
-4. Run the narrowest command that matches the request, for example:
-
-```console
-bin/kicad-pcb-rs kct --json --cwd <repo> -- route <board>.kicad_pcb --strategy negotiated
-bin/kicad-pcb-rs kct --json --cwd <repo> -- route-auto <board>.kicad_pcb
-bin/kicad-pcb-rs kct --json --cwd <repo> -- pcb sync-netlist <board>.kicad_pcb
-bin/kicad-pcb-rs kct --json --cwd <repo> -- zones <subcommand> <board>.kicad_pcb
-bin/kicad-pcb-rs kct --json --cwd <repo> -- stitch <board>.kicad_pcb
-bin/kicad-pcb-rs kct --json --cwd <repo> -- fix-drc <board>.kicad_pcb
-bin/kicad-pcb-rs kct --json --cwd <repo> -- fix-erc <board>.kicad_sch
-```
-
-After any mutation, verify:
-
-```console
-bin/kicad-pcb-rs erc --json --cwd <repo> --project <project-id>
-bin/kicad-pcb-rs drc --json --cwd <repo> --project <project-id>
-bin/kicad-pcb-rs kct --json --cwd <repo> -- validate --sync <board>.kicad_pcb --format json
-bin/kicad-pcb-rs quality --json --cwd <repo> --project <project-id>
-```
-
-For fab outputs, use the workbench **Publish** button, not ad-hoc exports.
-Confirm the build strip shows no stale badge. Then review the workbench Schematic, PCB, Gerbers, 3D, BOM, Libraries, and
-Checks tabs before claiming the design is ready.
-
-## Manufacturer Readiness
-
-Use `kct` manufacturer/readiness workflows when preparing real fabrication:
-
-```console
-bin/kicad-pcb-rs kct --json --cwd <repo> -- mfr compare
-bin/kicad-pcb-rs kct --json --cwd <repo> -- init <project>.kicad_pro --mfr jlcpcb
-bin/kicad-pcb-rs kct --json --cwd <repo> -- audit <project>.kicad_pro --mfr jlcpcb --format json
-bin/kicad-pcb-rs kct --json --cwd <repo> -- readiness . --format json
-```
-
-If generated `.kicad_dru` files or fab outputs change, include them in the
-review summary and say which manufacturer profile drove the change.
-
-## BOM, Parts, And 3D Models
-
-Use `kct parts` and model tooling to enrich the plugin's BOM/Libraries tabs:
-
-```console
-bin/kicad-pcb-rs kct --json --cwd <repo> -- parts lookup C123456
-bin/kicad-pcb-rs kct --json --cwd <repo> -- parts search "100nF 0402" --in-stock
-bin/kicad-pcb-rs kct --json --cwd <repo> -- parts availability <board>.kicad_sch --quantity 100
-```
-
-When changing 3D models or model transforms, record provenance: board, refdes,
-date, command, screenshot/render reviewed, and why the transform is correct.
-
-## Completion Standard
-
-A kicad-tools-backed PCB turn is complete only when the final response names:
-
-- the `kct` command(s) used;
-- files changed by category: schematic, PCB, libraries, fab artifacts, docs;
-- ERC/DRC/sync/readiness results and the quality stage counts;
-- workbench tabs visually reviewed;
-- remaining manufacturing caveats, especially unverified parts, footprints,
-  rotations, or 3D models.
+For fabrication, use Kicadmium's publish/export flow, confirm that outputs are
+not stale, and visually review Schematic, PCB, Gerbers, 3D, BOM, Libraries, and
+Checks. Record manufacturer profiles, part/model provenance, accepted findings,
+and remaining uncertainty in the handoff.

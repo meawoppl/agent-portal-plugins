@@ -29,15 +29,17 @@ kicadmium lint --json --cwd .            # 101 evidence-aware heuristic checks
 kicadmium export gerbers --cwd . --out build/gerbers
 kicadmium export jlcpcb  --cwd . --out build/jlcpcb
 kicadmium setup                          # report the KiCad install he found
+kicadmium kct --help                     # native Rust PCB automation
 kicadmium kct  --cwd . -- readiness . --format json
 kicadmium tool --cwd . -- kicad-cli version
 # integrated read-only heuristic review (also exposed as a library)
 pcb-lint lint board.kicad_pcb --board-id board-a --output lint.json
 ```
 
-Environment: `KICADMIUM_KICAD_CLI`/`KICAD_CLI` pick kicad-cli,
-`KICADMIUM_HOME` holds managed runtimes,
-`KICADMIUM_LIBRARY_WORKERS` / `KICADMIUM_LIBRARY_CACHE_MB` tune library renders.
+Environment: `KICADMIUM_KICAD_CLI`/`KICAD_CLI` pick `kicad-cli`;
+`KICADMIUM_LIBRARY_WORKERS` and `KICADMIUM_LIBRARY_CACHE_MB` tune library
+renders. Native `kct` is part of the Kicadmium binary and needs no runtime
+installation.
 
 ## JLCPCB placement corrections
 

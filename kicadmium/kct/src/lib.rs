@@ -7,6 +7,7 @@
 //! module per CLI command family under `cli`.
 
 pub mod cli;
+pub mod footprints;
 pub mod fsutil;
 pub mod manufacturers;
 pub mod sexp;

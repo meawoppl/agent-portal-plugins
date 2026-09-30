@@ -1062,21 +1062,64 @@ pub fn sync(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     }
     let (s, p) = resolve_pair(a.project.as_deref(), a.schematic, a.pcb)?;
     let sd = load(&s)?;
-    let pd = load(&p)?;
-    let sr: BTreeSet<_> = symbols_of(&sd).into_iter().map(|s| s.reference).collect();
+    let mut pd = crate::Document::load(&p)?;
+    let schematic_symbols = symbols_of(&sd);
+    let sr: BTreeSet<_> = schematic_symbols
+        .iter()
+        .map(|s| s.reference.clone())
+        .collect();
     let pr: BTreeSet<_> = pd
+        .root
         .children_named("footprint")
         .filter_map(|f| f.property("Reference").map(str::to_owned))
         .collect();
-    let result = serde_json::json!({"schematic":s,"pcb":p,"missing_on_pcb":sr.difference(&pr).collect::<Vec<_>>(),"orphaned_on_pcb":pr.difference(&sr).collect::<Vec<_>>(),"applied":false});
+    let missing: Vec<_> = sr.difference(&pr).cloned().collect();
+    let orphaned: Vec<_> = pr.difference(&sr).cloned().collect();
+    let mut mapping = vec![];
+    for wanted in &missing {
+        let Some(ss) = schematic_symbols.iter().find(|x| &x.reference == wanted) else {
+            continue;
+        };
+        let candidates: Vec<_> = pd
+            .root
+            .children_named("footprint")
+            .filter(|f| {
+                orphaned
+                    .iter()
+                    .any(|r| Some(r.as_str()) == f.property("Reference"))
+                    && f.property("Value") == Some(&ss.value)
+                    && (ss.footprint.is_empty()
+                        || f.string_at(0)
+                            .is_some_and(|id| id == ss.footprint || id.ends_with(&ss.footprint)))
+            })
+            .filter_map(|f| f.property("Reference").map(str::to_owned))
+            .collect();
+        if candidates.len() == 1 {
+            mapping.push((candidates[0].clone(), wanted.clone()));
+        }
+    }
+    let should_write = a.apply && a.confirm && !a.dry_run;
+    if a.apply {
+        for (old, new) in &mapping {
+            if let Some(f) = pd
+                .root
+                .children
+                .iter_mut()
+                .find(|f| f.has_tag("footprint") && f.property("Reference") == Some(old))
+            {
+                set_property(f, "Reference", new)
+            }
+        }
+        if should_write {
+            pd.save(None)?;
+        }
+    }
+    let result = serde_json::json!({"schematic":s,"pcb":p,"missing_on_pcb":missing,"orphaned_on_pcb":orphaned,"reference_mapping":mapping,"applied":should_write});
     if a.format == "json" {
         json(&result)?
     } else {
         println!("{}", serde_json::to_string_pretty(&result)?)
     }
-    if a.apply && a.confirm {
-        bail!("native sync mutation is intentionally unavailable until mapping is unambiguous; use --analyze")
-    };
     Ok(0)
 }
 
@@ -1195,5 +1238,27 @@ mod tests {
             .file_name()
             .to_string_lossy()
             .contains("kct-tmp")));
+    }
+
+    #[test]
+    fn sync_applies_only_unique_value_and_footprint_matches() {
+        let dir = tempfile::tempdir().unwrap();
+        let sch = dir.path().join("x.kicad_sch");
+        let pcb = dir.path().join("x.kicad_pcb");
+        std::fs::write(&sch,"(kicad_sch (symbol (lib_id \"Device:R\") (property \"Reference\" \"R1\") (property \"Value\" \"10k\") (property \"Footprint\" \"R_0603\")))").unwrap();
+        std::fs::write(&pcb,"(kicad_pcb (footprint \"R_0603\" (property \"Reference\" \"R9\") (property \"Value\" \"10k\")))").unwrap();
+        sync(
+            vec![
+                "--apply".into(),
+                "--confirm".into(),
+                "--schematic".into(),
+                sch.clone().into_os_string(),
+                "--pcb".into(),
+                pcb.clone().into_os_string(),
+            ],
+            &Globals::default(),
+        )
+        .unwrap();
+        assert!(std::fs::read_to_string(pcb).unwrap().contains("\"R1\""));
     }
 }

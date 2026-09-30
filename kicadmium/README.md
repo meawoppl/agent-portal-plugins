@@ -79,5 +79,6 @@ It steals ideas shamelessly from:
 - [i2cjak/Backplane](https://github.com/i2cjak/Backplane), for truthful multi-view hardware inspection, revision-aware UI state, and its broader agent-driven electronics conventions.
 - [i2cjak/Backplane_KiCad](https://github.com/i2cjak/Backplane_KiCad), Backplane's focused KiCad IPC fork.
 - [rjwalters/kicad-tools](https://github.com/rjwalters/kicad-tools), for machine-readable inspection, validation, manufacturing, and mutation contracts.
+- Thea Flowers' [KiCanvas](https://github.com/theacodes/kicanvas) and [Gingerbread](https://github.com/wntrblm/Gingerbread), for making KiCad designs genuinely useful in the browser and treating PCB output as a creative, inspectable medium.
 - [American-Embedded/kistack](https://github.com/American-Embedded/kistack), for the practical KiCad agent workflows vendored here.
 - [pastebom.com](https://github.com/meawoppl/pastebom.com), for reusable Rust PCB extraction and Gerber-viewing machinery.

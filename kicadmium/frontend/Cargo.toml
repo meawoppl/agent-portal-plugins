@@ -8,9 +8,11 @@ version.workspace = true
 yew = { version = "0.21", features = ["csr"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ["Location", "Window"] }
+web-sys = { version = "0.3", features = ["CustomEvent", "CustomEventInit", "EventTarget", "HtmlIFrameElement", "HtmlInputElement", "Location", "MessageEvent", "Storage", "Window"] }
 gloo-net = "0.6"
+futures.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+serde-wasm-bindgen = "0.6"
 shared = { path = "../shared" }
 gerber-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "a46380304c5ec2b116ffd08c24dd34294a8ec7ca" }

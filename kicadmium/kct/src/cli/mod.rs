@@ -12,6 +12,7 @@ use anyhow::Result;
 
 use crate::units::{self, UnitFormatter};
 
+pub mod design;
 pub mod mfr;
 
 /// Global flags accepted before the command name.
@@ -34,18 +35,18 @@ pub struct CommandSpec {
 }
 
 pub static COMMANDS: &[CommandSpec] = &[
-    CommandSpec { name: "symbols", about: "List symbols in a schematic", wave: "B", run: None },
-    CommandSpec { name: "nets", about: "Trace nets in a schematic", wave: "B", run: None },
-    CommandSpec { name: "netlist", about: "Netlist analysis and comparison tools", wave: "B", run: None },
+    CommandSpec { name: "symbols", about: "List symbols in a schematic", wave: "B", run: Some(design::symbols) },
+    CommandSpec { name: "nets", about: "Trace nets in a schematic", wave: "B", run: Some(design::nets) },
+    CommandSpec { name: "netlist", about: "Netlist analysis and comparison tools", wave: "B", run: Some(design::netlist) },
     CommandSpec { name: "erc", about: "ERC validation and analysis", wave: "A", run: None },
     CommandSpec { name: "drc", about: "Parse DRC report", wave: "A", run: None },
-    CommandSpec { name: "bom", about: "Generate bill of materials", wave: "B", run: None },
+    CommandSpec { name: "bom", about: "Generate bill of materials", wave: "B", run: Some(design::bom) },
     CommandSpec { name: "check", about: "Pure Python DRC (no kicad-cli)", wave: "A", run: None },
     CommandSpec { name: "creepage", about: "HV creepage/clearance census (surface-path distance)", wave: "E", run: None },
     CommandSpec { name: "creepage-export-rules", about: "Export voltage-domain netclasses + pairwise HV clearance (rule) clauses so kicad-cli DRC enforces creepage (Issue #4508)", wave: "E", run: None },
-    CommandSpec { name: "sch", about: "Schematic analysis tools", wave: "B", run: None },
+    CommandSpec { name: "sch", about: "Schematic analysis tools", wave: "B", run: Some(design::sch) },
     CommandSpec { name: "pcb", about: "PCB query tools", wave: "C", run: None },
-    CommandSpec { name: "lib", about: "Symbol and footprint library tools", wave: "B", run: None },
+    CommandSpec { name: "lib", about: "Symbol and footprint library tools", wave: "B", run: Some(design::lib) },
     CommandSpec { name: "footprint", about: "Footprint generation and tools", wave: "G", run: None },
     CommandSpec { name: "mfr", about: "Manufacturer tools", wave: "G", run: Some(mfr::run) },
     CommandSpec { name: "zones", about: "Add copper pour zones to PCB", wave: "E", run: None },
@@ -69,7 +70,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "optimize-placement", about: "Run CMA-ES placement optimization on a KiCad PCB", wave: "E", run: None },
     CommandSpec { name: "config", about: "View and manage configuration", wave: "G", run: None },
     CommandSpec { name: "interactive", about: "Launch interactive REPL mode", wave: "H", run: None },
-    CommandSpec { name: "validate", about: "Validation tools", wave: "B", run: None },
+    CommandSpec { name: "validate", about: "Validation tools", wave: "B", run: Some(design::validate) },
     CommandSpec { name: "analyze", about: "PCB analysis tools", wave: "C", run: None },
     CommandSpec { name: "constraints", about: "Constraint conflict detection and management", wave: "E", run: None },
     CommandSpec { name: "estimate", about: "Manufacturing cost estimation", wave: "C", run: None },
@@ -94,7 +95,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "spec", about: "Project specification (.kct) management", wave: "G", run: None },
     CommandSpec { name: "benchmark", about: "Run routing benchmarks and regression tests", wave: "F", run: None },
     CommandSpec { name: "bench", about: "Run external DeepPCB-comparable board benchmarks", wave: "F", run: None },
-    CommandSpec { name: "sync", about: "Reconcile schematic and PCB references", wave: "B", run: None },
+    CommandSpec { name: "sync", about: "Reconcile schematic and PCB references", wave: "B", run: Some(design::sync) },
     CommandSpec { name: "run", about: "Run a Python script using the kicad-tools interpreter", wave: "H", run: None },
     CommandSpec { name: "explain", about: "Explain design rules and DRC violations", wave: "A", run: None },
     CommandSpec { name: "detect-mistakes", about: "Detect common PCB design mistakes with educational explanations", wave: "A", run: None },

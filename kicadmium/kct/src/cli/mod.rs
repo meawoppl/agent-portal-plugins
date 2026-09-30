@@ -15,6 +15,7 @@ use crate::units::{self, UnitFormatter};
 pub mod design;
 pub mod footprint;
 pub mod mfr;
+pub mod project;
 pub mod utility;
 
 /// Global flags accepted before the command name.
@@ -87,14 +88,14 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "impedance", about: "Transmission line impedance calculations", wave: "E", run: None },
     CommandSpec { name: "mcp", about: "MCP (Model Context Protocol) server for AI agents", wave: "H", run: None },
     CommandSpec { name: "ipc", about: "Interact with a running KiCad instance via IPC API (KiCad 9.0+)", wave: "H", run: None },
-    CommandSpec { name: "init", about: "Initialize a KiCad project with manufacturer design rules", wave: "G", run: None },
+    CommandSpec { name: "init", about: "Initialize a KiCad project with manufacturer design rules", wave: "G", run: Some(project::init) },
     CommandSpec { name: "panel", about: "Create manufacturing panels from board PCBs", wave: "G", run: None },
     CommandSpec { name: "pipeline", about: "End-to-end repair pipeline for existing PCBs", wave: "G", run: None },
     CommandSpec { name: "create-pcb", about: "Create a PCB from a KiCad schematic", wave: "G", run: None },
     CommandSpec { name: "build", about: "Build from spec to manufacturable design", wave: "G", run: None },
     CommandSpec { name: "build-native", about: "Build C++ router backend for 10-100x faster routing", wave: "F", run: None },
     CommandSpec { name: "doctor", about: "Diagnose kicad-tools installation health (version-record drift + environment preflight)", wave: "G", run: Some(utility::doctor) },
-    CommandSpec { name: "spec", about: "Project specification (.kct) management", wave: "G", run: None },
+    CommandSpec { name: "spec", about: "Project specification (.kct) management", wave: "G", run: Some(project::spec) },
     CommandSpec { name: "benchmark", about: "Run routing benchmarks and regression tests", wave: "F", run: None },
     CommandSpec { name: "bench", about: "Run external DeepPCB-comparable board benchmarks", wave: "F", run: None },
     CommandSpec { name: "sync", about: "Reconcile schematic and PCB references", wave: "B", run: Some(design::sync) },

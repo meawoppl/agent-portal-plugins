@@ -36,7 +36,44 @@ pub fn annotator(props: &Props) -> Html {
             if note.trim().is_empty() {
                 return;
             }
-            let payload = json!({"kind":"kicadmium-annotation","project":project,"tab":tab,"revision":revision,"selection":{"x":0,"y":0,"width":1,"height":1},"note":*note,"authorizedRepair":false});
+            let body = note.trim().to_string();
+            let title = body
+                .lines()
+                .find(|line| !line.trim().is_empty())
+                .unwrap_or("KiCad annotation");
+            let title = if title.chars().count() > 60 {
+                format!("{}…", title.chars().take(57).collect::<String>())
+            } else {
+                title.to_string()
+            };
+            let page = web_sys::window()
+                .and_then(|window| window.location().href().ok())
+                .unwrap_or_default();
+            // Agent Portal's edit stack accepts batches with source metadata and
+            // title/body/context/image items. Keep repair authorization explicit:
+            // an annotation is evidence and a request for review, never permission
+            // to mutate the board automatically.
+            let payload = json!({
+                "source": {
+                    "plugin": "kicadmium",
+                    "project": project,
+                    "revision": revision,
+                    "page": page,
+                },
+                "items": [{
+                    "title": title,
+                    "body": body,
+                    "context": {
+                        "plugin": "kicadmium",
+                        "project": project,
+                        "tab": tab,
+                        "revision": revision,
+                        "page": page,
+                        "selection": {"x": 0, "y": 0, "width": 1, "height": 1},
+                        "authorizedRepair": false,
+                    }
+                }]
+            });
             let status = status.clone();
             spawn_local(async move {
                 match Request::post("/__portal/edit-stack")

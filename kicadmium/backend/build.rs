@@ -65,6 +65,9 @@ fn main() {
         .args(profile_flag)
         .current_dir(&frontend)
         .env("CARGO_TARGET_DIR", root.join("target/frontend"))
+        // Trunk 0.21 interprets NO_COLOR's conventional `1` as its boolean
+        // --no-color option and rejects it. Do not leak that outer UI setting.
+        .env_remove("NO_COLOR")
         .env_remove("RUSTFLAGS")
         .env_remove("CARGO_ENCODED_RUSTFLAGS")
         .status()

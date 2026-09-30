@@ -469,8 +469,31 @@ enum SchCmd {
         #[arg(long)]
         backup: bool,
     },
+    AssignFootprints(Tail),
+    SuggestFootprint(Tail),
+    SyncHierarchy(Tail),
+    SetLabelDirection(Tail),
+    AddNoConnect(Tail),
+    AddComponent(Tail),
+    AddBypassCap(Tail),
+    AddPullResistor(Tail),
+    CleanupWires(Tail),
+    RemoveWire(Tail),
+    InsertInline(Tail),
+    Disconnect(Tail),
+    FixWireStubs(Tail),
+    ReconnectPin(Tail),
+    MoveComponent(Tail),
+    Tidy(Tail),
+    RepairInstances(Tail),
     #[command(external_subcommand)]
     Other(Vec<OsString>),
+}
+
+#[derive(Args)]
+struct Tail {
+    #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+    args: Vec<OsString>,
 }
 
 #[derive(Args)]
@@ -681,8 +704,30 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             save_edit(&d, &schematic, dry_run, backup)?;
         }
         SchCmd::Other(raw) => return sch_extended(raw),
+        SchCmd::AssignFootprints(x) => return extended("assign-footprints", x),
+        SchCmd::SuggestFootprint(x) => return extended("suggest-footprint", x),
+        SchCmd::SyncHierarchy(x) => return extended("sync-hierarchy", x),
+        SchCmd::SetLabelDirection(x) => return extended("set-label-direction", x),
+        SchCmd::AddNoConnect(x) => return extended("add-no-connect", x),
+        SchCmd::AddComponent(x) => return extended("add-component", x),
+        SchCmd::AddBypassCap(x) => return extended("add-bypass-cap", x),
+        SchCmd::AddPullResistor(x) => return extended("add-pull-resistor", x),
+        SchCmd::CleanupWires(x) => return extended("cleanup-wires", x),
+        SchCmd::RemoveWire(x) => return extended("remove-wire", x),
+        SchCmd::InsertInline(x) => return extended("insert-inline", x),
+        SchCmd::Disconnect(x) => return extended("disconnect", x),
+        SchCmd::FixWireStubs(x) => return extended("fix-wire-stubs", x),
+        SchCmd::ReconnectPin(x) => return extended("reconnect-pin", x),
+        SchCmd::MoveComponent(x) => return extended("move-component", x),
+        SchCmd::Tidy(x) => return extended("tidy", x),
+        SchCmd::RepairInstances(x) => return extended("repair-instances", x),
     }
     Ok(0)
+}
+fn extended(name: &str, x: Tail) -> Result<i32> {
+    let mut v = vec![OsString::from(name)];
+    v.extend(x.args);
+    sch_extended(v)
 }
 
 fn edit_property(e: PropertyEdit, key: &str) -> Result<()> {
@@ -879,12 +924,108 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
                 words.iter().any(|x| x == "--backup"),
             )?;
         }
+        "set-label-direction" => {
+            let name = opt(&words, "--name")?;
+            let direction = opt(&words, "--direction")?;
+            let mut d = crate::Document::load(&path)?;
+            let mut count = 0;
+            for n in &mut d.root.children {
+                if matches!(n.tag(), Some("global_label" | "hierarchical_label"))
+                    && n.string_at(0) == Some(name)
+                {
+                    n.set_child_value("shape", direction.to_owned());
+                    count += 1
+                }
+            }
+            if count == 0 {
+                bail!("label {name} not found")
+            }
+            save_edit(&d, &path, has(&words, "--dry-run"), has(&words, "--backup"))?;
+        }
+        "move-component" => {
+            let reference = opt(&words, "--ref")?;
+            let x: f64 = opt(&words, "--x")?.parse()?;
+            let y: f64 = opt(&words, "--y")?.parse()?;
+            let mut d = crate::Document::load(&path)?;
+            let s = d
+                .root
+                .children
+                .iter_mut()
+                .find(|n| n.has_tag("symbol") && n.property("Reference") == Some(reference))
+                .with_context(|| format!("symbol {reference} not found"))?;
+            let rot = s.at().map(|v| v.2).unwrap_or(0.0);
+            if let Some(at) = s.get_mut("at") {
+                at.set_value(0, x);
+                at.set_value(1, y);
+                at.set_value(2, rot)
+            } else {
+                s.push(SExp::list(
+                    "at",
+                    [SExp::atom(x), SExp::atom(y), SExp::atom(rot)],
+                ));
+            }
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                has(&words, "--backup"),
+            )?;
+        }
+        "remove-wire" => {
+            let from = multi_f64(&words, "--from", 2)?;
+            let to = multi_f64(&words, "--to", 2)?;
+            let mut d = crate::Document::load(&path)?;
+            let before = d.root.children.len();
+            d.root.children.retain(|node| {
+                if !node.has_tag("wire") {
+                    return true;
+                }
+                let p = node.points();
+                !(p.len() >= 2
+                    && near(p[0], (from[0], from[1]))
+                    && near(p[p.len() - 1], (to[0], to[1])))
+            });
+            if before == d.root.children.len() {
+                bail!("wire not found")
+            }
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                has(&words, "--backup"),
+            )?;
+        }
         _ => bail!("unsupported sch subcommand {cmd}"),
     }
     Ok(0)
 }
 fn flag(words: &[String], name: &str, value: &str) -> bool {
     words.windows(2).any(|w| w[0] == name && w[1] == value)
+}
+fn has(words: &[String], name: &str) -> bool {
+    words.iter().any(|x| x == name)
+}
+fn opt<'a>(words: &'a [String], name: &str) -> Result<&'a str> {
+    words
+        .windows(2)
+        .find(|w| w[0] == name)
+        .map(|w| w[1].as_str())
+        .with_context(|| format!("{name} is required"))
+}
+fn multi_f64(words: &[String], name: &str, n: usize) -> Result<Vec<f64>> {
+    let i = words
+        .iter()
+        .position(|x| x == name)
+        .with_context(|| format!("{name} is required"))?;
+    words
+        .iter()
+        .skip(i + 1)
+        .take(n)
+        .map(|x| x.parse().map_err(Into::into))
+        .collect()
+}
+fn near(a: (f64, f64), b: (f64, f64)) -> bool {
+    (a.0 - b.0).abs() < 1e-6 && (a.1 - b.1).abs() < 1e-6
 }
 fn duplicate_strings<'a>(it: impl Iterator<Item = &'a str>) -> Vec<String> {
     let mut seen = BTreeSet::new();

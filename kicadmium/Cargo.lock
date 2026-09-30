@@ -1503,6 +1503,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "kct"
+version = "0.22.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
+]
+
+[[package]]
 name = "kqueue"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -29,6 +29,10 @@ struct ViewerProps {
 }
 #[function_component(Viewer)]
 fn viewer(props: &ViewerProps) -> Html {
+    use_effect_with(props.kind.clone(), |_| {
+        boot_workbench("");
+        || ()
+    });
     html! { <div class="viewer-card"><iframe class="native-viewer" data-kind={props.kind.clone()} title={format!("{} viewer",props.kind)} src="/kicad-viewer/runtime.html" /></div> }
 }
 

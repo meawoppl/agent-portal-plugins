@@ -19,7 +19,11 @@ use crate::api;
 use crate::runtime_frame::RuntimeFrame;
 
 const POLL_MS: u32 = 900;
-const KINDS: [(&str, &str); 3] = [("symbol", "Symbol"), ("footprint", "Footprint"), ("model", "3D")];
+const KINDS: [(&str, &str); 3] = [
+    ("symbol", "Symbol"),
+    ("footprint", "Footprint"),
+    ("model", "3D"),
+];
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Filter {
@@ -193,14 +197,27 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
             let sections = data
                 .parts
                 .iter()
-                .map(|p| (p, if is_power(p) { Section::Power } else { Section::Used }))
+                .map(|p| {
+                    (
+                        p,
+                        if is_power(p) {
+                            Section::Power
+                        } else {
+                            Section::Used
+                        },
+                    )
+                })
                 .chain(data.unused.iter().map(|p| (p, Section::Unused)));
             sections
                 .flat_map(|(part, section)| {
                     let shown = matches(part, section, &terms, *filter);
                     KINDS.iter().filter_map(move |(kind, _)| {
                         let t = effective(thumb(part, kind), state_map);
-                        if is_pending(&t.state) { Some((t.key.clone()?, shown)) } else { None }
+                        if is_pending(&t.state) {
+                            Some((t.key.clone()?, shown))
+                        } else {
+                            None
+                        }
                     })
                 })
                 .collect()
@@ -274,7 +291,9 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
         let cells = KINDS.iter().map(|(kind, label)| {
             let t = effective(thumb(part, kind), state_map);
             let inner = match (&t.url, t.state.as_str()) {
-                (Some(url), "ready") => html! { <img loading="lazy" alt={*label} src={url.clone()} /> },
+                (Some(url), "ready") => {
+                    html! { <img loading="lazy" alt={*label} src={url.clone()} /> }
+                }
                 _ => html! { <span class="ph">{placeholder(&t)}</span> },
             };
             html! {
@@ -304,8 +323,14 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
                 .join(" ");
             link_items.push(html! { <span>{label}</span> });
         }
-        if let Some(sheet) = part.datasheet.as_ref().filter(|d| d.starts_with("http://") || d.starts_with("https://")) {
-            link_items.push(html! { <a href={sheet.clone()} target="_blank" rel="noopener">{"datasheet"}</a> });
+        if let Some(sheet) = part
+            .datasheet
+            .as_ref()
+            .filter(|d| d.starts_with("http://") || d.starts_with("https://"))
+        {
+            link_items.push(
+                html! { <a href={sheet.clone()} target="_blank" rel="noopener">{"datasheet"}</a> },
+            );
         }
         let badges = part.badges.iter().map(|b| {
             html! { <span class={classes!("lib-badge", b.level.clone())} title={b.detail.clone()}>{&b.label}</span> }
@@ -329,15 +354,33 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
         })
     };
 
-    let physical: Vec<Html> = data.parts.iter().filter(|p| !is_power(p)).filter_map(|p| card(p, Section::Used)).collect();
-    let power: Vec<Html> = data.parts.iter().filter(|p| is_power(p)).filter_map(|p| card(p, Section::Power)).collect();
-    let unused: Vec<Html> = data.unused.iter().filter_map(|p| card(p, Section::Unused)).collect();
+    let physical: Vec<Html> = data
+        .parts
+        .iter()
+        .filter(|p| !is_power(p))
+        .filter_map(|p| card(p, Section::Used))
+        .collect();
+    let power: Vec<Html> = data
+        .parts
+        .iter()
+        .filter(|p| is_power(p))
+        .filter_map(|p| card(p, Section::Power))
+        .collect();
+    let unused: Vec<Html> = data
+        .unused
+        .iter()
+        .filter_map(|p| card(p, Section::Unused))
+        .collect();
 
     let ready = data
         .parts
         .iter()
         .chain(&data.unused)
-        .flat_map(|p| KINDS.iter().map(move |(k, _)| effective(thumb(p, k), state_map)))
+        .flat_map(|p| {
+            KINDS
+                .iter()
+                .map(move |(k, _)| effective(thumb(p, k), state_map))
+        })
         .filter(|t| t.state == "ready")
         .count();
     let rendering = pending.len();
@@ -346,7 +389,11 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
         data.stats.parts,
         data.stats.unused,
         data.stats.thumbs,
-        if rendering > 0 { format!(" · {rendering} rendering") } else { String::new() },
+        if rendering > 0 {
+            format!(" · {rendering} rendering")
+        } else {
+            String::new()
+        },
         data.kicad_version.as_deref().unwrap_or("?")
     );
     let libs = data
@@ -528,7 +575,9 @@ fn library_modal(props: &ModalProps) -> Html {
         html! { <div style={columns}>{for imgs.into_iter().map(|src| html! { <div style="position:relative"><img {src} /></div> })}</div> }
     } else {
         match &t {
-            Some(t) if t.key.is_none() => html! { <div class="lib-stage-msg">{t.message.clone().unwrap_or_else(|| "Nothing to show".into())}</div> },
+            Some(t) if t.key.is_none() => {
+                html! { <div class="lib-stage-msg">{t.message.clone().unwrap_or_else(|| "Nothing to show".into())}</div> }
+            }
             Some(t) if t.viewer.is_none() => match (&t.url, t.state.as_str()) {
                 (Some(url), "ready") => html! { <img src={url.clone()} /> },
                 _ => html! { <div class="lib-stage-msg">{placeholder(t)}</div> },
@@ -547,7 +596,11 @@ fn library_modal(props: &ModalProps) -> Html {
     if let Some(source) = t.as_ref().and_then(|t| t.source.as_ref()) {
         footer.push(format!("rendered from {source} copy"));
     }
-    let footer = footer.into_iter().filter(|s| !s.is_empty()).collect::<Vec<_>>().join(" · ");
+    let footer = footer
+        .into_iter()
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join(" · ");
 
     let onclose = props.onclose.clone();
     let backdrop = {

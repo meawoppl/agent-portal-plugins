@@ -1,13 +1,12 @@
 //! Typed fetch helpers for the backend's `/api/*` routes. Every project-scoped
 //! call takes the active project id ("" selects the server default).
-#![allow(dead_code)] // TODO(kc-claude): drop once every tab consumes its helpers.
 
 use gloo_net::http::{Request, Response};
 use serde::de::DeserializeOwned;
 use shared::library::{LibraryResponse, LibraryStatusResponse};
 use shared::{
     BuildStatus, CheckResponse, GerberSourcesResponse, HealthResponse, ManifestResponse,
-    RevisionResponse, SourcesResponse, WorkspaceResponse,
+    WorkspaceResponse,
 };
 
 /// Percent-encode a query component (RFC 3986 unreserved characters pass).
@@ -92,21 +91,6 @@ pub async fn workspace() -> Result<WorkspaceResponse, String> {
     get_json("/api/projects", "").await
 }
 
-pub async fn revision(project: &str) -> Result<RevisionResponse, String> {
-    get_json("/api/kicad/revision", project).await
-}
-
-pub async fn sources(project: &str) -> Result<SourcesResponse, String> {
-    get_json("/api/kicad/sources", project).await
-}
-
-pub fn model_glb_url(project: &str, revision: &str) -> String {
-    url(
-        &format!("/api/kicad/model.glb?rev={}", encode(revision)),
-        project,
-    )
-}
-
 /// `kind` is `drc`, `erc`, or `quality`.
 pub async fn check(kind: &str, project: &str) -> Result<CheckResponse, String> {
     get_json(&format!("/api/kicad/{kind}"), project).await
@@ -114,10 +98,6 @@ pub async fn check(kind: &str, project: &str) -> Result<CheckResponse, String> {
 
 pub async fn lint(project: &str) -> Result<serde_json::Value, String> {
     get_json("/api/kicad/lint", project).await
-}
-
-pub fn lint_contact_sheet_url(project: &str) -> String {
-    url("/api/kicad/lint/contact-sheet", project)
 }
 
 /// Server-rendered BOM/CPL tables (HTML fragment).

@@ -1,9 +1,12 @@
 //! Build pipeline strip: one pill per stage with a details popover, the
 //! publish staleness badge, and Rebuild/Publish actions.
 
+use gloo_events::EventListener;
 use gloo_timers::callback::Interval;
 use shared::{BuildStatus, StageStatus};
+use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
+use web_sys::CustomEvent;
 use yew::prelude::*;
 
 use crate::api;
@@ -11,9 +14,6 @@ use crate::api;
 #[derive(Properties, PartialEq)]
 pub struct BuildStripProps {
     pub project: AttrValue,
-    /// Latest status pushed over `/ws/events` (`ServerEvent::Build`).
-    #[prop_or_default]
-    pub live: Option<BuildStatus>,
 }
 
 fn seconds(ms: u64) -> String {
@@ -64,12 +64,24 @@ pub fn build_strip(props: &BuildStripProps) -> Html {
             });
         });
     }
+    // live.rs re-dispatches `ServerEvent::Build` as a `kicadmium-build`
+    // window event carrying the BuildStatus.
     {
         let status = status.clone();
-        use_effect_with(props.live.clone(), move |live| {
-            if let Some(live) = live {
-                status.set(Some(live.clone()));
-            }
+        use_effect_with(props.project.clone(), move |project| {
+            let project = project.to_string();
+            let listener =
+                EventListener::new(&gloo_utils::window(), "kicadmium-build", move |event| {
+                    let Some(next) = event.dyn_ref::<CustomEvent>().and_then(|e| {
+                        serde_wasm_bindgen::from_value::<BuildStatus>(e.detail()).ok()
+                    }) else {
+                        return;
+                    };
+                    if project.is_empty() || next.project == project {
+                        status.set(Some(next));
+                    }
+                });
+            move || drop(listener)
         });
     }
     // Re-render running timers once a second while the pipeline is busy.

@@ -141,7 +141,10 @@ pub fn gerber_tab(props: &GerberTabProps) -> Html {
         html! { <div class="warning">{w.as_str().unwrap_or_default().to_string()}</div> }
     });
     let skipped = list("skipped");
-    let files = sources.as_ref().map(|s| s.files.clone()).unwrap_or_default();
+    let files = sources
+        .as_ref()
+        .map(|s| s.files.clone())
+        .unwrap_or_default();
 
     html! {
         <div class="card">
@@ -189,15 +192,21 @@ async fn load(
         let element = host
             .cast::<HtmlElement>()
             .ok_or("Gerber viewer host is not mounted")?;
-        let options = js_sys::JSON::parse(r##"{"controls":true,"background":"#11131d","padding":18}"##)
-            .map_err(|err| format!("{err:?}"))?;
+        let options =
+            js_sys::JSON::parse(r##"{"controls":true,"background":"#11131d","padding":18}"##)
+                .map_err(|err| format!("{err:?}"))?;
         let viewer = GerberViewer::new(options).map_err(|err| format!("{err:?}"))?;
         viewer.mount(element).map_err(|err| format!("{err:?}"))?;
         let summary = summary.clone();
         let on_change = Closure::<dyn FnMut(JsValue)>::new(move |project: JsValue| {
             summary.set(to_json(&project));
         });
-        viewer.on_change(Some(on_change.as_ref().unchecked_ref::<js_sys::Function>().clone()));
+        viewer.on_change(Some(
+            on_change
+                .as_ref()
+                .unchecked_ref::<js_sys::Function>()
+                .clone(),
+        ));
         let mut state = state.borrow_mut();
         state.viewer = Some(viewer);
         state.on_change = Some(on_change);

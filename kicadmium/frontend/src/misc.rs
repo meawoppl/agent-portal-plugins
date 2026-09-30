@@ -14,7 +14,10 @@ pub struct TabProps {
 }
 
 #[hook]
-fn use_manifest(project: AttrValue, revision: AttrValue) -> Option<Result<ManifestResponse, String>> {
+fn use_manifest(
+    project: AttrValue,
+    revision: AttrValue,
+) -> Option<Result<ManifestResponse, String>> {
     let manifest = use_state(|| None);
     {
         let manifest = manifest.clone();
@@ -29,7 +32,9 @@ fn use_manifest(project: AttrValue, revision: AttrValue) -> Option<Result<Manife
 fn loading_or_error(state: &Option<Result<ManifestResponse, String>>) -> Option<Html> {
     match state {
         None => Some(html! { <p class="muted">{"Loading project manifest..."}</p> }),
-        Some(Err(err)) => Some(html! { <p class="warning">{format!("Unable to load manifest: {err}")}</p> }),
+        Some(Err(err)) => {
+            Some(html! { <p class="warning">{format!("Unable to load manifest: {err}")}</p> })
+        }
         Some(Ok(_)) => None,
     }
 }
@@ -95,7 +100,10 @@ pub fn panelization_tab(props: &TabProps) -> Html {
                 .collect::<Vec<_>>()
         })
         .unwrap_or_default();
-    let example = boards.first().cloned().unwrap_or_else(|| "board.kicad_pcb".into());
+    let example = boards
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "board.kicad_pcb".into());
     html! {
         <div class="card">
             <h2>{"Panelization"}</h2>

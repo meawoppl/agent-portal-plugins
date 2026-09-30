@@ -1,15 +1,21 @@
+mod annotate;
 mod api;
-use gloo_net::http::Request;
-use serde_json::Value;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::spawn_local;
-use yew::prelude::*;
+mod bom;
+mod build_strip;
+mod checks;
+mod gerbers;
+mod library;
+mod live;
+mod misc;
+mod runtime_frame;
+mod viewer;
 
-#[wasm_bindgen(module = "/src/workbench.js")]
-extern "C" {
-    #[wasm_bindgen(js_name = bootWorkbench)]
-    fn boot_workbench(project: &str);
-}
+use annotate::Annotator;
+use checks::Checks;
+use live::LiveStatus;
+use wasm_bindgen_futures::spawn_local;
+use web_sys::HtmlInputElement;
+use yew::prelude::*;
 
 const TABS: &[(&str, &str)] = &[
     ("schematic", "Schematic"),
@@ -23,77 +29,61 @@ const TABS: &[(&str, &str)] = &[
     ("panelization", "Panelization"),
     ("checks", "Checks"),
 ];
-
-#[derive(Properties, PartialEq)]
-struct ViewerProps {
-    kind: AttrValue,
+fn saved_tab() -> String {
+    web_sys::window()
+        .and_then(|w| w.local_storage().ok().flatten())
+        .and_then(|s| s.get_item("kicadmium:tab").ok().flatten())
+        .filter(|t| TABS.iter().any(|(id, _)| id == t))
+        .unwrap_or_else(|| "pcb".into())
 }
-#[function_component(Viewer)]
-fn viewer(props: &ViewerProps) -> Html {
-    use_effect_with(props.kind.clone(), |_| {
-        boot_workbench("");
-        || ()
-    });
-    html! { <div class="viewer-card"><iframe class="native-viewer" data-kind={props.kind.clone()} title={format!("{} viewer",props.kind)} src="/kicad-viewer/runtime.html" /></div> }
+fn query_project() -> String {
+    web_sys::window()
+        .and_then(|w| w.location().search().ok())
+        .and_then(|q| {
+            q.trim_start_matches('?')
+                .split('&')
+                .find_map(|p| p.strip_prefix("project=").map(str::to_owned))
+        })
+        .unwrap_or_default()
 }
-
-#[derive(Properties, PartialEq)]
-struct RemoteProps {
-    endpoint: AttrValue,
-    title: AttrValue,
-}
-#[function_component(RemotePanel)]
-fn remote_panel(props: &RemoteProps) -> Html {
-    let body = use_state(|| "Loading…".to_owned());
-    let endpoint = props.endpoint.clone();
-    {
-        let body = body.clone();
-        use_effect_with(endpoint.clone(), move |endpoint| {
-            let endpoint = endpoint.to_string();
-            spawn_local(async move {
-                let text = match Request::get(&endpoint).send().await {
-                    Ok(r) => r.text().await.unwrap_or_else(|e| e.to_string()),
-                    Err(e) => e.to_string(),
-                };
-                body.set(text)
-            });
-            || ()
-        });
-    }
-    html! {<article class="card"><h2>{&props.title}</h2><pre>{(*body).clone()}</pre></article>}
-}
-
 #[function_component(App)]
 fn app() -> Html {
-    let active = use_state(|| "pcb".to_owned());
-    let manifest = use_state(|| None::<Value>);
+    let active = use_state(saved_tab);
+    let project = use_state(query_project);
+    let manifest = use_state(|| None::<shared::ManifestResponse>);
+    let workspace = use_state(|| None::<shared::WorkspaceResponse>);
     {
-        let manifest = manifest.clone();
+        let workspace = workspace.clone();
         use_effect_with((), move |_| {
-            spawn_local(async move {
-                if let Ok(r) = Request::get("/api/kicad/manifest").send().await {
-                    if let Ok(v) = r.json::<Value>().await {
-                        manifest.set(Some(v));
-                    }
-                }
-            });
+            spawn_local(async move { workspace.set(api::workspace().await.ok()) });
             || ()
         });
     }
     {
-        use_effect_with((), move |_| {
-            boot_workbench("");
+        let manifest = manifest.clone();
+        let p = (*project).clone();
+        use_effect_with(p.clone(), move |_| {
+            spawn_local(async move {
+                manifest.set(api::manifest(&p).await.ok());
+            });
             || ()
         });
     }
     let revision = manifest
         .as_ref()
-        .and_then(|m| m.get("revision"))
-        .and_then(Value::as_str)
-        .unwrap_or("loading");
-    html! {<div class="app-shell"><header><div><h1>{"kicadmium"}</h1><span class="tagline">{"KiCad's toxic uncle everyone warned you about"}</span></div><div class="status"><span class="live-dot"/>{format!("revision {revision}")}</div></header>
-    <nav class="tabs" aria-label="Workbench views">{for TABS.iter().map(|(id,label)|{let owned=(*id).to_owned();let selected=*active==*id;let active=active.clone();html!{<button class={classes!(selected.then_some("active"))} aria-selected={selected.to_string()} onclick={Callback::from(move |_|active.set(owned.clone()))}>{*label}</button>}})}</nav>
-    <main>{match active.as_str(){"schematic"=>html!{<Viewer kind="schematic"/>},"pcb"=>html!{<Viewer kind="pcb"/>},"3d"|"step"=>html!{<Viewer kind="model"/>},"bom"=>html!{<RemotePanel title="Bill of materials" endpoint="/api/kicad/bom"/>},"libraries"=>html!{<RemotePanel title="Libraries" endpoint="/api/kicad/library"/>},"checks"=>html!{<div class="grid"><RemotePanel title="Layout quality" endpoint="/api/kicad/quality"/><RemotePanel title="DRC" endpoint="/api/kicad/drc"/><RemotePanel title="ERC" endpoint="/api/kicad/erc"/><RemotePanel title="Heuristic lint" endpoint="/api/kicad/lint"/></div>},"analysis"=>html!{<RemotePanel title="Project manifest" endpoint="/api/kicad/manifest"/>},"gerbers"=>html!{<RemotePanel title="Gerber artifacts" endpoint="/api/kicad/build/status"/>},_=>html!{<RemotePanel title="Panelization" endpoint="/api/kicad/build/status"/>}}}</main></div>}
+        .map(|m| m.revision.as_str())
+        .unwrap_or("loading")
+        .to_owned();
+    let change_project = {
+        let project = project.clone();
+        Callback::from(move |e: InputEvent| {
+            project.set(e.target_unchecked_into::<HtmlInputElement>().value())
+        })
+    };
+    html! {<div class="app-shell"><header><div><h1>{"kicadmium"}</h1><span class="tagline">{"KiCad's toxic uncle everyone warned you about"}</span></div><div class="header-tools"><input class="project-input" list="projects" aria-label="Project id" placeholder="default project" value={(*project).clone()} oninput={change_project}/><datalist id="projects">{for workspace.as_ref().map(|w|w.projects.iter().map(|p|html!{<option value={p.id.clone()}>{p.name.clone()}</option>}).collect::<Vec<_>>()).unwrap_or_default()}</datalist><LiveStatus project={(*project).clone()}/><Annotator project={(*project).clone()} tab={(*active).clone()} revision={revision.clone()}/></div></header>
+    <build_strip::BuildStrip project={(*project).clone()}/>
+    <nav class="tabs" aria-label="Workbench views">{for TABS.iter().map(|(id,label)|{let id=(*id).to_owned();let selected=*active==id;let active=active.clone();html!{<button class={classes!(selected.then_some("active"))} aria-selected={selected.to_string()} onclick={Callback::from(move |_|{if let Some(s)=web_sys::window().and_then(|w|w.local_storage().ok().flatten()){let _=s.set_item("kicadmium:tab",&id);}active.set(id.clone())})}>{*label}</button>}})}</nav>
+    <main>{match active.as_str(){"schematic"=>html!{<viewer::Viewer project={(*project).clone()} kind="schematic"/>},"pcb"=>html!{<viewer::Viewer project={(*project).clone()} kind="pcb"/>},"3d"=>html!{<viewer::Viewer project={(*project).clone()} kind="model"/>},"step"=>html!{<misc::StepTab project={(*project).clone()} revision={revision.clone()}/>},"checks"=>html!{<Checks project={(*project).clone()}/>},"bom"=>html!{<bom::BomTab project={(*project).clone()} revision={revision.clone()}/>},"libraries"=>html!{<library::LibraryTab project={(*project).clone()}/>},"gerbers"=>html!{<gerbers::GerberTab project={(*project).clone()} revision={revision.clone()}/>},"analysis"=>html!{<misc::AnalysisTab project={(*project).clone()} revision={revision.clone()}/>},_=>html!{<misc::PanelizationTab project={(*project).clone()} revision={revision.clone()}/>}}}</main></div>}
 }
 fn main() {
     yew::Renderer::<App>::new().render();

@@ -141,6 +141,45 @@ pub struct BuildStatus {
     pub updated_ms: u64,
 }
 
+/// One board/project in the workspace.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ProjectSummary {
+    pub id: String,
+    pub name: String,
+    /// Project root relative to the workspace root ("" for the root itself).
+    pub root: String,
+}
+
+/// `/api/projects`: the workspace the server was started on.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct WorkspaceResponse {
+    pub cwd: String,
+    /// Agent Portal session id, when launched as a Portal surface.
+    pub session: String,
+    pub default_project: String,
+    pub projects: Vec<ProjectSummary>,
+}
+
+/// One Gerber/drill file the Gerber tab should load.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct GerberSource {
+    pub path: String,
+    pub url: String,
+}
+
+/// `/api/kicad/gerbers`: the current build's Gerbers when ready, else the
+/// published files.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct GerberSourcesResponse {
+    /// `build`, `published`, or `none`.
+    pub origin: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage: Option<String>,
+    pub revision: Option<String>,
+    pub label: String,
+    pub files: Vec<GerberSource>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

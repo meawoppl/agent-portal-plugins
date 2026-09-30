@@ -13,7 +13,7 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
-use shared::{PublishStatus, SourceHashes};
+use shared::{GerberSource, GerberSourcesResponse, PublishStatus, SourceHashes};
 
 use crate::{
     jobs::{self, Outcome, Stage},
@@ -892,16 +892,10 @@ pub(crate) fn doctor_report(
 // ---------------------------------------------------------------------------
 // Gerber sources for the Gerber tab
 
-#[derive(Debug, Serialize)]
-struct GerberSource {
-    path: String,
-    url: String,
-}
-
 pub(crate) async fn gerbers_endpoint(
     State(state): State<AppState>,
     Query(query): Query<ProjectQuery>,
-) -> Result<Json<serde_json::Value>, AppError> {
+) -> Result<Json<GerberSourcesResponse>, AppError> {
     let project = crate::selected_project(&state, query.project.as_deref())?;
     let status = state.builds.current_status(&project).await?;
     let encoded = crate::percent_encode(&project.id);
@@ -925,13 +919,16 @@ pub(crate) async fn gerbers_endpoint(
         if files.is_empty() {
             continue;
         }
-        return Ok(Json(serde_json::json!({
-            "origin": "build",
-            "stage": stage.id(),
-            "revision": status.hashes.revision,
-            "label": format!("Current build · rev {}", &status.hashes.revision[..8.min(status.hashes.revision.len())]),
-            "files": files,
-        })));
+        return Ok(Json(GerberSourcesResponse {
+            origin: "build".into(),
+            stage: Some(stage.id().into()),
+            label: format!(
+                "Current build · rev {}",
+                &status.hashes.revision[..8.min(status.hashes.revision.len())]
+            ),
+            revision: Some(status.hashes.revision),
+            files,
+        }));
     }
     let root = project.root.clone();
     let files = tokio::task::spawn_blocking(move || crate::detect_files(&root)).await??;
@@ -946,18 +943,24 @@ pub(crate) async fn gerbers_endpoint(
         })
         .collect();
     let stale = status.publish.stale;
-    Ok(Json(serde_json::json!({
-        "origin": if files.is_empty() { "none" } else { "published" },
-        "revision": status.publish.published_revision,
-        "label": if files.is_empty() {
+    Ok(Json(GerberSourcesResponse {
+        origin: if files.is_empty() {
+            "none"
+        } else {
+            "published"
+        }
+        .into(),
+        stage: None,
+        revision: status.publish.published_revision,
+        label: if files.is_empty() {
             "No Gerbers yet: the build has not produced them".to_string()
         } else if stale {
             "Published files (stale vs sources) · build not ready".to_string()
         } else {
             "Published files · build not ready".to_string()
         },
-        "files": files,
-    })))
+        files,
+    }))
 }
 
 #[cfg(test)]

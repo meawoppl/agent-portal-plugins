@@ -39,8 +39,8 @@ use memory_serve::{load_assets, CacheControl, MemoryServe};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use shared::{
-    CheckResponse, FileEntry, HealthResponse, ManifestResponse, RevisionResponse, ServerEvent,
-    SourceFile, SourcesResponse,
+    CheckResponse, FileEntry, HealthResponse, ManifestResponse, ProjectSummary, RevisionResponse,
+    ServerEvent, SourceFile, SourcesResponse, WorkspaceResponse,
 };
 use tempfile::TempDir;
 use tokio::{
@@ -205,6 +205,7 @@ enum ExportCommand {
 #[derive(Debug, Clone)]
 struct AppState {
     cwd: PathBuf,
+    session: String,
     projects: Vec<ProjectContext>,
     warmed: Arc<RwLock<HashMap<String, ViewerState>>>,
     events: broadcast::Sender<ServerEvent>,
@@ -401,11 +402,7 @@ async fn main() -> Result<()> {
             });
             print_json_or_debug(json, &response)?;
         }
-        Commands::Serve {
-            port,
-            cwd,
-            session: _,
-        } => {
+        Commands::Serve { port, cwd, session } => {
             let cwd = cwd.canonicalize().context("canonicalize cwd")?;
             let projects = project_contexts(&cwd)?;
             let default_project = projects
@@ -426,6 +423,7 @@ async fn main() -> Result<()> {
             builds.request(&default_project);
             let state = AppState {
                 cwd,
+                session,
                 projects,
                 warmed: Arc::new(RwLock::new(warmed)),
                 events,
@@ -435,7 +433,7 @@ async fn main() -> Result<()> {
             let app = Router::new()
                 .route("/ws/events", get(events_ws))
                 .route("/healthz", get(healthz))
-                .route("/api/project", get(manifest))
+                .route("/api/projects", get(projects_endpoint))
                 .route("/api/kicad/manifest", get(manifest))
                 .route("/api/kicad/revision", get(revision))
                 .route("/api/kicad/sources", get(sources))
@@ -731,16 +729,37 @@ async fn healthz(State(state): State<AppState>) -> Json<HealthResponse> {
     })
 }
 
-async fn manifest(State(state): State<AppState>) -> Json<ManifestResponse> {
-    let project = state
-        .projects
-        .first()
-        .expect("serve initializes at least one project");
-    let warmed = match refresh_project_viewer_state(&state, project).await {
-        Ok(warmed) => warmed,
-        Err(_) => state.warmed.read().await[&project.id].clone(),
-    };
-    Json(warmed.manifest)
+async fn manifest(
+    State(state): State<AppState>,
+    Query(query): Query<ProjectQuery>,
+) -> Result<Json<ManifestResponse>, AppError> {
+    let project = selected_project(&state, query.project.as_deref())?;
+    Ok(Json(
+        refresh_project_viewer_state(&state, &project)
+            .await?
+            .manifest,
+    ))
+}
+
+async fn projects_endpoint(State(state): State<AppState>) -> Json<WorkspaceResponse> {
+    Json(WorkspaceResponse {
+        cwd: state.cwd.display().to_string(),
+        session: state.session.clone(),
+        default_project: state
+            .projects
+            .first()
+            .map(|project| project.id.clone())
+            .unwrap_or_default(),
+        projects: state
+            .projects
+            .iter()
+            .map(|project| ProjectSummary {
+                id: project.id.clone(),
+                name: project.name.clone(),
+                root: rel(&state.cwd, &project.root).unwrap_or_default(),
+            })
+            .collect(),
+    })
 }
 
 async fn revision(

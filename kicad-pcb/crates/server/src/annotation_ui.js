@@ -1,6 +1,9 @@
 // KiCad PCB annotation stack. Served from /kicad-pcb/annotations.js.
 (() => {
   const EDIT_STACK_ENDPOINT = "/__portal/edit-stack";
+  const STACK_STORAGE_PREFIX = "kicad-pcb.annotation-stack.";
+  const RETRY_INITIAL_MS = 2000;
+  const RETRY_MAX_MS = 30000;
   const state = {
     armed: false,
     stack: [],
@@ -9,6 +12,8 @@
     recognizing: false,
     sending: false,
   };
+  let sendTimer = undefined;
+  let retryDelayMs = RETRY_INITIAL_MS;
 
   const style = document.createElement("style");
   style.textContent = `
@@ -31,14 +36,21 @@
 .annotation-preview.has-capture{border-style:solid}
 .annotation-preview img{max-width:100%;max-height:108px;display:block}
 .annotation-footer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.annotation-status-wrap{min-width:0;display:flex;align-items:center;gap:8px;overflow:hidden}
 .annotation-status{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.annotation-send-indicator{display:none;align-items:center;gap:4px;color:#7dcfff;font-size:12px;white-space:nowrap}
+.annotation-send-indicator.active{display:inline-flex}
+.annotation-spinner{width:12px;height:12px;border:2px solid #3b4261;border-top-color:#7dcfff;border-radius:50%;animation:annotation-spin .8s linear infinite}
+@keyframes annotation-spin{to{transform:rotate(360deg)}}
 .annotation-icon-action{width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:15px}
 .annotation-icon-action.recording{border-color:#f7768e;color:#f7768e;background:#2a1f2a}
 .annotation-stack{display:grid;gap:6px;overflow:auto;max-height:150px}
 .annotation-card{border:1px solid #3b4261;border-radius:6px;background:#181b29;padding:8px;display:grid;gap:4px}
 .annotation-card-title{font-size:12px;color:#e6e9f5;display:flex;justify-content:space-between;gap:8px}
+.annotation-card-state{margin-left:auto;color:#7dcfff;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
 .annotation-card-body{font-size:12px;color:#9aa5ce;white-space:pre-wrap;max-height:56px;overflow:hidden}
 .annotation-remove{border:0;background:transparent;color:#f7768e;cursor:pointer;font:inherit}
+.annotation-remove:disabled{opacity:.45;cursor:not-allowed}
 `;
   document.head.append(style);
 
@@ -56,7 +68,10 @@
 <div class="annotation-preview" title="Capture an area"><span class="muted">Area optional · click to capture</span></div>
 <textarea class="annotation-note" placeholder="Describe the change, or use the mic."></textarea>
 <div class="annotation-footer">
-  <span class="muted annotation-status">No queued annotations.</span>
+  <span class="annotation-status-wrap">
+    <span class="muted annotation-status">No queued annotations.</span>
+    <span class="annotation-send-indicator" aria-live="polite"><span class="annotation-spinner"></span><span>Sending</span></span>
+  </span>
   <div class="annotation-actions">
     <button class="annotation-icon-action" data-action="record" title="Start voice note" aria-label="Start voice note">🎤</button>
     <button class="annotation-action" data-action="add">Submit</button>
@@ -72,6 +87,7 @@
   const preview = drawer.querySelector(".annotation-preview");
   const stackEl = drawer.querySelector(".annotation-stack");
   const statusEl = drawer.querySelector(".annotation-status");
+  const sendIndicator = drawer.querySelector(".annotation-send-indicator");
   const recordButton = drawer.querySelector('[data-action="record"]');
   const addButton = drawer.querySelector('[data-action="add"]');
   const clearButton = drawer.querySelector('[data-action="clear"]');
@@ -96,6 +112,54 @@
 
   const setStatus = (text) => {
     statusEl.textContent = text;
+  };
+
+  const storageKey = () => {
+    const portalState = window.KicadWorkbenchState || {};
+    const session = portalState.session || "no-session";
+    const project = portalState.projectId || location.pathname || "project";
+    return `${STACK_STORAGE_PREFIX}${session}.${project}`;
+  };
+
+  const createItemId = () =>
+    window.crypto?.randomUUID?.() || `annotation-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  const normalizeStackItem = (item) => {
+    if (!item || typeof item !== "object") return undefined;
+    return {
+      id: item.id || createItemId(),
+      status: item.status === "sending" ? "queued" : item.status || "queued",
+      error: item.error,
+      title: item.title || "Annotation",
+      body: item.body || "",
+      context: item.context || {},
+      image: item.image,
+      createdAt: item.createdAt || item.context?.createdAt || new Date().toISOString(),
+    };
+  };
+
+  const loadPersistedStack = () => {
+    try {
+      const raw = window.localStorage?.getItem(storageKey());
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return;
+      state.stack = parsed.map(normalizeStackItem).filter(Boolean);
+    } catch (err) {
+      console.warn("[KiCad annotations] Could not restore local annotation stack.", err);
+    }
+  };
+
+  const persistStack = () => {
+    try {
+      if (!state.stack.length) window.localStorage?.removeItem(storageKey());
+      else window.localStorage?.setItem(storageKey(), JSON.stringify(state.stack));
+      return true;
+    } catch (err) {
+      console.warn("[KiCad annotations] Could not persist annotation stack.", err);
+      setStatus("Annotation is queued in memory, but local storage is full or unavailable.");
+      return false;
+    }
   };
 
   const drawerOpen = () => !drawer.classList.contains("hidden");
@@ -458,21 +522,35 @@
     stackEl.innerHTML = "";
     stackEl.hidden = !state.stack.length;
     clearButton.hidden = !state.stack.length;
+    clearButton.disabled = state.sending;
+    sendIndicator?.classList.toggle("active", state.sending);
     state.stack.forEach((item, index) => {
       const card = document.createElement("article");
       card.className = "annotation-card";
-      card.innerHTML = `<div class="annotation-card-title"><strong></strong><button class="annotation-remove" type="button">Remove</button></div><div class="annotation-card-body"></div>`;
+      card.innerHTML = `<div class="annotation-card-title"><strong></strong><span class="annotation-card-state"></span><button class="annotation-remove" type="button">Remove</button></div><div class="annotation-card-body"></div>`;
       card.querySelector("strong").textContent = `${index + 1}. ${item.title}`;
+      card.querySelector(".annotation-card-state").textContent =
+        item.status === "sending" ? "sending" : item.status === "error" ? "retrying" : "queued";
       card.querySelector(".annotation-card-body").textContent = item.body || "(capture only)";
-      card.querySelector(".annotation-remove").addEventListener("click", () => {
+      const removeButton = card.querySelector(".annotation-remove");
+      removeButton.disabled = item.status === "sending";
+      removeButton.addEventListener("click", () => {
         state.stack.splice(index, 1);
+        persistStack();
         renderStack();
       });
       stackEl.append(card);
     });
-    addButton.disabled = state.sending;
     if (!state.sending) {
-      setStatus(state.stack.length ? `${state.stack.length} queued annotation${state.stack.length === 1 ? "" : "s"}.` : "No queued annotations.");
+      const hasRetry = state.stack.some((item) => item.status === "error");
+      const noun = state.stack.length === 1 ? "annotation" : "annotations";
+      setStatus(
+        state.stack.length
+          ? hasRetry
+            ? `${state.stack.length} saved ${noun}. Will retry automatically.`
+            : `${state.stack.length} queued ${noun}.`
+          : "No queued annotations.",
+      );
     }
   };
 
@@ -506,21 +584,48 @@
       context.captureNote = selection.capture?.note;
     }
     state.stack.push({
+      id: createItemId(),
+      status: "queued",
       title,
       body,
       context,
       image,
+      createdAt: context.createdAt,
     });
+    persistStack();
     state.selection = undefined;
     preview.innerHTML = `<span class="muted">${emptyPreviewText}</span>`;
     preview.classList.remove("has-capture");
     noteInput.value = "";
     renderStack();
-    void sendStack();
+    scheduleSend(0);
   };
+
+  const scheduleSend = (delayMs = 0) => {
+    if (!state.stack.length) return;
+    window.clearTimeout(sendTimer);
+    sendTimer = window.setTimeout(() => {
+      sendTimer = undefined;
+      void sendStack();
+    }, delayMs);
+  };
+
+  const portalStackItem = (item) => ({
+    title: item.title,
+    body: item.body,
+    context: item.context,
+    image: item.image,
+  });
 
   const sendStack = async () => {
     if (!state.stack.length || state.sending) return;
+    const batch = state.stack.filter((item) => item.status !== "sending");
+    if (!batch.length) return;
+    const batchIds = new Set(batch.map((item) => item.id));
+    state.stack = state.stack.map((item) =>
+      batchIds.has(item.id) ? { ...item, status: "sending", error: undefined } : item,
+    );
+    persistStack();
     const payload = {
       source: {
         plugin: "kicad-pcb",
@@ -529,11 +634,12 @@
         revision: sourceRevision(),
         page: location.href,
       },
-      items: state.stack,
+      items: batch.map(portalStackItem),
     };
     state.sending = true;
     renderStack();
-    setStatus("Sending annotation to Agent Portal...");
+    setStatus(`Sending ${batch.length} annotation${batch.length === 1 ? "" : "s"} to Agent Portal...`);
+    let completionStatus = undefined;
     try {
       const response = await fetch(EDIT_STACK_ENDPOINT, {
         method: "POST",
@@ -545,14 +651,27 @@
         const message = await response.text().catch(() => "");
         throw new Error(message || `HTTP ${response.status}`);
       }
-      state.stack = [];
-      renderStack();
-      setStatus("Sent annotation to Agent Portal.");
+      state.stack = state.stack.filter((item) => !batchIds.has(item.id));
+      retryDelayMs = RETRY_INITIAL_MS;
+      persistStack();
+      completionStatus = state.stack.length
+        ? "Sent annotation. More queued work remains."
+        : "Sent annotation to Agent Portal.";
     } catch (err) {
-      setStatus(`Could not send annotation: ${err?.message || err}`);
+      const message = err?.message || String(err);
+      state.stack = state.stack.map((item) =>
+        batchIds.has(item.id) ? { ...item, status: "error", error: message } : item,
+      );
+      persistStack();
+      const retryInSeconds = Math.max(1, Math.round(retryDelayMs / 1000));
+      completionStatus = `Saved locally. Could not send yet; retrying in ${retryInSeconds}s.`;
+      scheduleSend(retryDelayMs);
+      retryDelayMs = Math.min(RETRY_MAX_MS, retryDelayMs * 2);
     } finally {
       state.sending = false;
-      addButton.disabled = false;
+      renderStack();
+      if (completionStatus) setStatus(completionStatus);
+      if (state.stack.length && !sendTimer) scheduleSend(0);
     }
   };
 
@@ -602,11 +721,22 @@
     if (action === "close") setDrawerOpen(false);
     if (action === "add") addCurrentSelection();
     if (action === "clear") {
+      if (state.sending) {
+        setStatus("Wait for the current send to finish before clearing.");
+        return;
+      }
       state.stack = [];
+      persistStack();
       renderStack();
     }
     if (action === "record") toggleSpeech();
   });
 
+  window.addEventListener("online", () => scheduleSend(0));
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) scheduleSend(0);
+  });
+  loadPersistedStack();
   renderStack();
+  scheduleSend(700);
 })();

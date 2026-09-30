@@ -534,6 +534,7 @@ export class RetainedNativeViewer extends EventTarget {
     this.pendingView = undefined;
     this.polygonPoursVisible = true;
     this.polygonPoursOpacity = undefined;
+    this.polygonPoursTimer = undefined;
   }
 
   core() {
@@ -544,11 +545,49 @@ export class RetainedNativeViewer extends EventTarget {
     return (visible ?? apps[0])?.viewer;
   }
 
+  appForTab(tab) {
+    const selector = tab === "PCB" ? "kc-board-app" : tab === "SCH" ? "kc-schematic-app" : "";
+    return selector ? this.current?.shadowRoot?.querySelector(selector) : undefined;
+  }
+
+  activeTab() {
+    const active = this.current?.shadowRoot?.querySelector(".tab-content.active");
+    switch (active?.localName) {
+      case "kc-board-app":
+        return "PCB";
+      case "kc-schematic-app":
+        return "SCH";
+      default:
+        return undefined;
+    }
+  }
+
+  boardMenuTab() {
+    const menu = this.appForTab("PCB")?.shadowRoot?.querySelector("tab-view");
+    const tab = menu?.shadowRoot?.querySelector(".tab.active");
+    return tab?.textContent?.trim() || undefined;
+  }
+
+  setBoardMenuTab(label) {
+    if (typeof label !== "string" || !label) return false;
+    const tabs = this.appForTab("PCB")?.shadowRoot?.querySelector("tab-view")?.shadowRoot;
+    const tab = [...(tabs?.querySelectorAll(".tab") ?? [])].find(
+      (item) => item.textContent?.trim() === label,
+    );
+    tab?.click();
+    return Boolean(tab);
+  }
+
   createElement() {
     const viewer = document.createElement("ecad-viewer");
     viewer.setAttribute("source-mode", "host");
     viewer.setAttribute("show-header", "false");
     viewer.style.cssText = "display:block;width:100%;height:100%";
+    const reportState = () => this.dispatchEvent(new CustomEvent("viewstatechange"));
+    viewer.addEventListener("ecad-viewer:view-state-change", reportState);
+    viewer.addEventListener("kicanvas:tab:activate", reportState);
+    viewer.addEventListener("kicanvas:tab:menu:visible", reportState);
+    viewer.addEventListener("file:tab:menu:change", reportState);
     viewer.addEventListener("ecad-viewer:selection", (event) => {
       const pendingNet =
         this.core()?.__kicadPcbPendingFootprintNet && event.detail?.itemType === "footprint"
@@ -592,6 +631,7 @@ export class RetainedNativeViewer extends EventTarget {
   }
 
   publishLayers() {
+    this.applyPolygonPourVisibility();
     const layers = this.current?.getPcbViewState?.()?.layers ?? [];
     this.dispatchEvent(
       new CustomEvent("layers", {
@@ -639,6 +679,12 @@ export class RetainedNativeViewer extends EventTarget {
     }
     core.draw_now?.();
     return true;
+  }
+
+  schedulePolygonPourVisibility() {
+    clearTimeout(this.polygonPoursTimer);
+    requestAnimationFrame(() => this.applyPolygonPourVisibility());
+    this.polygonPoursTimer = setTimeout(() => this.applyPolygonPourVisibility(), 220);
   }
 
   enhanceGeometrySelection() {
@@ -828,6 +874,26 @@ export class RetainedNativeViewer extends EventTarget {
       : undefined;
   }
 
+  captureUiState() {
+    const activeTab = this.activeTab();
+    const boardApp = this.appForTab("PCB");
+    const schematicApp = this.appForTab("SCH");
+    const project = this.current?.project;
+    return {
+      activeTab,
+      schematicPage:
+        typeof project?.active_sch_name === "string" ? project.active_sch_name : undefined,
+      tabMenuHidden: {
+        PCB: typeof boardApp?.tabMenuHidden === "boolean" ? boardApp.tabMenuHidden : undefined,
+        SCH:
+          typeof schematicApp?.tabMenuHidden === "boolean"
+            ? schematicApp.tabMenuHidden
+            : undefined,
+      },
+      boardMenuTab: this.boardMenuTab(),
+    };
+  }
+
   captureImage() {
     this.finishTransition();
     const core = this.core();
@@ -841,11 +907,41 @@ export class RetainedNativeViewer extends EventTarget {
   restoreView(view = this.pendingView) {
     const camera = this.core()?.viewport?.camera;
     if (!view || !camera) return false;
-    camera.center.set(view.x, view.y);
-    camera.zoom = view.zoom;
+    const x = Number(view.x);
+    const y = Number(view.y);
+    const zoom = Number(view.zoom);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(zoom) || zoom <= 0)
+      return false;
+    camera.center.set(x, y);
+    camera.zoom = zoom;
+    camera.updateProjectionMatrix?.();
     this.core()?.draw_now?.();
     this.pendingView = undefined;
     return true;
+  }
+
+  restoreUiState(ui = {}) {
+    if (!ui || typeof ui !== "object") return false;
+    let restored = false;
+    if (typeof ui.schematicPage === "string")
+      restored = Boolean(this.current?.project?.activate_sch?.(ui.schematicPage)) || restored;
+    const activeTab = ui.activeTab === "PCB" || ui.activeTab === "SCH" ? ui.activeTab : undefined;
+    if (activeTab) {
+      this.activateContext(activeTab);
+      restored = true;
+    }
+    for (const tab of ["PCB", "SCH"]) {
+      const hidden = ui.tabMenuHidden?.[tab];
+      const app = this.appForTab(tab);
+      if (typeof hidden === "boolean" && app) {
+        app.tabMenuHidden = hidden;
+        restored = true;
+      }
+    }
+    if (this.setBoardMenuTab(ui.boardMenuTab)) restored = true;
+    this.current?.resize();
+    this.core()?.draw_now?.();
+    return restored;
   }
 
   async replaceSources({ revisionKey, sources, layerVisibility = {} }) {
@@ -907,6 +1003,7 @@ export class RetainedNativeViewer extends EventTarget {
         this.enhanceGeometrySelection();
         this.applyVisibility();
         this.applyPolygonPourVisibility();
+        this.schedulePolygonPourVisibility();
         current.setActive(this.active);
         current.resize();
         if (this.selection) {
@@ -960,6 +1057,7 @@ export class RetainedNativeViewer extends EventTarget {
         ?.forEach((button) => button.textContent?.trim().toUpperCase() === tab && button.click());
     this.current?.resize();
     this.applyPolygonPourVisibility();
+    this.schedulePolygonPourVisibility();
     this.core()?.draw_now?.();
   }
   resize() {
@@ -1039,7 +1137,9 @@ export class RetainedNativeViewer extends EventTarget {
   }
   setPolygonPoursVisible(visible) {
     this.polygonPoursVisible = visible !== false;
-    return this.applyPolygonPourVisibility();
+    const applied = this.applyPolygonPourVisibility();
+    this.schedulePolygonPourVisibility();
+    return applied;
   }
   fit() {
     this.core()?.zoom_fit_top_item();
@@ -1049,6 +1149,7 @@ export class RetainedNativeViewer extends EventTarget {
     this.generation++;
     this.replacing = false;
     this.finishTransition();
+    clearTimeout(this.polygonPoursTimer);
     this.pendingSnapshot = undefined;
     this.current?.setActive(false);
     this.current?.remove();

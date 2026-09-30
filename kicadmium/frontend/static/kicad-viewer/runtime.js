@@ -16,12 +16,42 @@ let modelRenderer;
 let latestSelection;
 let nativeActive = false;
 let viewOptions = { polygonPours: true };
+let nativeContext = "unknown";
+let modelContext = "model";
+let nativeViewTimer;
 const send = (message) =>
   parent.postMessage(message, location.origin === "null" ? "*" : location.origin);
 const applyViewOptions = () => {
   viewer?.setPolygonPoursVisible?.(viewOptions.polygonPours);
 };
-const applyViewOptionsSoon = () => requestAnimationFrame(() => applyViewOptions());
+const applyViewOptionsSoon = () => {
+  requestAnimationFrame(() => applyViewOptions());
+  setTimeout(applyViewOptions, 80);
+  setTimeout(applyViewOptions, 250);
+};
+const sendViewerState = (context, view, ui) => {
+  if (!view && !ui) return;
+  send({ type: "kicad-pcb-view-state", context, view, ui });
+};
+const reportNativeViewerState = () => {
+  sendViewerState(nativeContext, viewer?.captureView?.(), viewer?.captureUiState?.());
+};
+const scheduleNativeViewerState = (delay = 140) => {
+  clearTimeout(nativeViewTimer);
+  nativeViewTimer = setTimeout(reportNativeViewerState, delay);
+};
+const reportModelViewerState = () => {
+  sendViewerState(modelContext, modelRenderer?.captureView?.(), modelRenderer?.captureUiState?.());
+};
+const installNativeStateListeners = () => {
+  if (host.__kicadPcbNativeStateListeners) return;
+  host.__kicadPcbNativeStateListeners = true;
+  for (const type of ["pointerup", "pointercancel", "wheel", "keyup", "touchend"])
+    host.addEventListener(type, () => scheduleNativeViewerState(), {
+      capture: true,
+      passive: true,
+    });
+};
 const editableTarget = (target) =>
   target instanceof Element &&
   (target.isContentEditable || /^(?:INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
@@ -62,22 +92,35 @@ window.addEventListener("message", (event) => {
   const snapshot = event.data;
   viewOptions = { ...viewOptions, polygonPours: snapshot.polygonPours !== false };
   if (snapshot.kind === "model" || snapshot.kind === "step") {
+    modelContext = snapshot.context || snapshot.kind || "model";
     nativeActive = false;
     void (async () => {
       if (!model) {
         model = import("./board-model.js").then(({ createBoardModel }) =>
-          createBoardModel(host, error, { kind: snapshot.kind, subject: snapshot.subject }),
+          createBoardModel(host, error, {
+            kind: snapshot.kind,
+            subject: snapshot.subject,
+            onViewChange: reportModelViewerState,
+            onUiStateChange: reportModelViewerState,
+          }),
         );
       }
       const renderer = await model;
       modelRenderer = renderer;
       renderer.setActive(snapshot.active !== false);
-      if (snapshot.active !== false) await renderer.update(snapshot.url);
+      if (snapshot.active !== false) {
+        renderer.restoreUiState?.(snapshot.uiState);
+        await renderer.update(snapshot.url);
+        renderer.restoreUiState?.(snapshot.uiState);
+        renderer.restoreView?.(snapshot.viewState);
+        reportModelViewerState();
+      }
     })().catch((cause) => {
       error.textContent = cause.message || String(cause);
     });
     return;
   }
+  nativeContext = snapshot.context || "unknown";
   nativeActive = snapshot.active !== false;
   chain = chain
     .then(async () => {
@@ -106,6 +149,8 @@ window.addEventListener("message", (event) => {
           viewer.addEventListener("layers", (event) =>
             send({ type: "kicad-pcb-layers", layers: event.detail }),
           );
+          viewer.addEventListener("viewstatechange", () => scheduleNativeViewerState(20));
+          installNativeStateListeners();
         }
         if (revision !== snapshot.revision) {
           netHighlightId = undefined;
@@ -134,7 +179,8 @@ window.addEventListener("message", (event) => {
           if (native) {
             viewer.activateContext?.(snapshot.context);
             await installCanvasPresentation(native);
-            viewer.restoreView?.();
+            viewer.restoreUiState?.(snapshot.uiState);
+            viewer.restoreView?.(snapshot.viewState);
             viewer.reseedLayerCache();
             viewer.enhanceGeometrySelection();
             applyViewOptions();
@@ -144,6 +190,7 @@ window.addEventListener("message", (event) => {
             installSchematicSizing(native);
             installNativeTouch(native);
             installMobileProperties(native);
+            scheduleNativeViewerState(60);
           }
           if (snapshot.probe && probeId !== snapshot.probe.id) {
             probeId = snapshot.probe.id;

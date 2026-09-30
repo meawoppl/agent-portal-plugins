@@ -161,9 +161,7 @@ fn table(path: &Path) -> Result<String> {
     if headers.is_empty() {
         return Ok("<p>Empty CSV.</p>".into());
     }
-    let mut html = String::from(
-        "<div style='overflow:auto;max-height:65vh'><table class='bom-table'><thead><tr>",
-    );
+    let mut html = String::from("<div class='bom-table-wrap'><table class='bom-table'><thead><tr>");
     for h in &headers {
         html.push_str(&format!("<th>{}</th>", escape(h)));
     }

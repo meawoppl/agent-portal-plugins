@@ -80,7 +80,16 @@ fn app() -> Html {
             project.set(e.target_unchecked_into::<HtmlInputElement>().value())
         })
     };
-    html! {<div class="app-shell"><header><div><h1>{"kicadmium"}</h1><span class="tagline">{"KiCad's toxic uncle everyone warned you about"}</span></div><div class="header-tools"><input class="project-input" list="projects" aria-label="Project id" placeholder="default project" value={(*project).clone()} oninput={change_project}/><datalist id="projects">{for workspace.as_ref().map(|w|w.projects.iter().map(|p|html!{<option value={p.id.clone()}>{p.name.clone()}</option>}).collect::<Vec<_>>()).unwrap_or_default()}</datalist><LiveStatus project={(*project).clone()}/><Annotator project={(*project).clone()} tab={(*active).clone()} revision={revision.clone()}/></div></header>
+    let on_revision = {
+        let manifest = manifest.clone();
+        Callback::from(move |revision: String| {
+            if let Some(mut next) = (*manifest).clone() {
+                next.revision = revision;
+                manifest.set(Some(next));
+            }
+        })
+    };
+    html! {<div class="app-shell"><header><div><h1>{"kicadmium"}</h1><span class="tagline">{"KiCad's toxic uncle everyone warned you about"}</span></div><div class="header-tools"><input class="project-input" list="projects" aria-label="Project id" placeholder="default project" value={(*project).clone()} oninput={change_project}/><datalist id="projects">{for workspace.as_ref().map(|w|w.projects.iter().map(|p|html!{<option value={p.id.clone()}>{p.name.clone()}</option>}).collect::<Vec<_>>()).unwrap_or_default()}</datalist><LiveStatus project={(*project).clone()} {on_revision}/><Annotator project={(*project).clone()} tab={(*active).clone()} revision={revision.clone()}/></div></header>
     <build_strip::BuildStrip project={(*project).clone()}/>
     <nav class="tabs" aria-label="Workbench views">{for TABS.iter().map(|(id,label)|{let id=(*id).to_owned();let selected=*active==id;let active=active.clone();html!{<button class={classes!(selected.then_some("active"))} aria-selected={selected.to_string()} onclick={Callback::from(move |_|{if let Some(s)=web_sys::window().and_then(|w|w.local_storage().ok().flatten()){let _=s.set_item("kicadmium:tab",&id);}active.set(id.clone())})}>{*label}</button>}})}</nav>
     <main>{match active.as_str(){"schematic"=>html!{<viewer::Viewer project={(*project).clone()} kind="schematic"/>},"pcb"=>html!{<viewer::Viewer project={(*project).clone()} kind="pcb"/>},"3d"=>html!{<viewer::Viewer project={(*project).clone()} kind="model"/>},"step"=>html!{<misc::StepTab project={(*project).clone()} revision={revision.clone()}/>},"checks"=>html!{<Checks project={(*project).clone()}/>},"bom"=>html!{<bom::BomTab project={(*project).clone()} revision={revision.clone()}/>},"libraries"=>html!{<library::LibraryTab project={(*project).clone()}/>},"gerbers"=>html!{<gerbers::GerberTab project={(*project).clone()} revision={revision.clone()}/>},"analysis"=>html!{<misc::AnalysisTab project={(*project).clone()} revision={revision.clone()}/>},_=>html!{<misc::PanelizationTab project={(*project).clone()} revision={revision.clone()}/>}}}</main></div>}

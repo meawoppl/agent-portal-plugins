@@ -8,6 +8,7 @@ use yew::prelude::*;
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub project: AttrValue,
+    pub on_revision: Callback<String>,
 }
 
 #[function_component(LiveStatus)]
@@ -18,6 +19,7 @@ pub fn live_status(props: &Props) -> Html {
         let label = label.clone();
         let class = class.clone();
         let project = props.project.to_string();
+        let on_revision = props.on_revision.clone();
         use_effect_with(project.clone(), move |_| {
             let label = label.clone();
             let class = class.clone();
@@ -38,9 +40,12 @@ pub fn live_status(props: &Props) -> Html {
                     while let Some(Ok(Message::Text(text))) = socket.next().await {
                         if let Ok(event) = serde_json::from_str::<ServerEvent>(&text) {
                             match event {
-                                ServerEvent::Revision { reason, .. } => {
+                                ServerEvent::Revision {
+                                    reason, revision, ..
+                                } => {
                                     label.set(format!("updated · {reason}"));
                                     class.set("live".into());
+                                    on_revision.emit(revision);
                                 }
                                 ServerEvent::Build { status, .. } => {
                                     label.set(if status.busy {

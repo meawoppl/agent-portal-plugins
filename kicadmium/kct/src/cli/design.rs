@@ -387,6 +387,101 @@ enum SchCmd {
         #[arg(long, default_value = "text")]
         format: String,
     },
+    SetValue(PropertyEdit),
+    SetFootprint(PropertyEdit),
+    SetReference {
+        schematic: PathBuf,
+        #[arg(long = "ref")]
+        reference: String,
+        #[arg(long = "new-ref")]
+        new_reference: String,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        backup: bool,
+    },
+    SetSymbolProperty {
+        schematic: PathBuf,
+        #[arg(long = "ref")]
+        reference: String,
+        #[arg(long)]
+        property: String,
+        #[arg(long)]
+        value: String,
+        #[arg(long)]
+        dry_run: bool,
+    },
+    Replace {
+        schematic: PathBuf,
+        reference: String,
+        new_lib_id: String,
+        #[arg(long)]
+        value: Option<String>,
+        #[arg(long)]
+        footprint: Option<String>,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        backup: bool,
+    },
+    RenameSignal {
+        schematic: PathBuf,
+        #[arg(long = "from")]
+        old_name: String,
+        #[arg(long = "to")]
+        new_name: String,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        backup: bool,
+    },
+    AddWire {
+        schematic: PathBuf,
+        #[arg(long, num_args = 4)]
+        points: Vec<f64>,
+        #[arg(long)]
+        dry_run: bool,
+    },
+    AddJunction {
+        schematic: PathBuf,
+        #[arg(long, num_args = 2)]
+        at: Vec<f64>,
+        #[arg(long)]
+        dry_run: bool,
+    },
+    AddLabel {
+        schematic: PathBuf,
+        #[arg(long)]
+        name: String,
+        #[arg(long, num_args = 2)]
+        at: Vec<f64>,
+        #[arg(long = "type", default_value = "local")]
+        kind: String,
+        #[arg(long)]
+        dry_run: bool,
+    },
+    RemoveComponent {
+        schematic: PathBuf,
+        #[arg(long = "ref")]
+        reference: String,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        backup: bool,
+    },
+}
+
+#[derive(Args)]
+struct PropertyEdit {
+    schematic: PathBuf,
+    #[arg(long = "ref")]
+    reference: String,
+    #[arg(long)]
+    value: String,
+    #[arg(long)]
+    dry_run: bool,
+    #[arg(long)]
+    backup: bool,
 }
 pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: SchArgs = super::parse_args("sch", args);
@@ -447,8 +542,217 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 )
             }
         }
+        SchCmd::SetValue(e) => edit_property(e, "Value")?,
+        SchCmd::SetFootprint(e) => edit_property(e, "Footprint")?,
+        SchCmd::SetReference {
+            schematic,
+            reference,
+            new_reference,
+            dry_run,
+            backup,
+        } => edit_symbol(&schematic, &reference, dry_run, backup, |s| {
+            set_property(s, "Reference", &new_reference)
+        })?,
+        SchCmd::SetSymbolProperty {
+            schematic,
+            reference,
+            property,
+            value,
+            dry_run,
+        } => edit_symbol(&schematic, &reference, dry_run, false, |s| {
+            set_property(s, &property, &value)
+        })?,
+        SchCmd::Replace {
+            schematic,
+            reference,
+            new_lib_id,
+            value,
+            footprint,
+            dry_run,
+            backup,
+        } => edit_symbol(&schematic, &reference, dry_run, backup, |s| {
+            s.set_child_value("lib_id", new_lib_id);
+            if let Some(v) = value {
+                set_property(s, "Value", &v)
+            }
+            if let Some(v) = footprint {
+                set_property(s, "Footprint", &v)
+            }
+        })?,
+        SchCmd::RenameSignal {
+            schematic,
+            old_name,
+            new_name,
+            dry_run,
+            backup,
+        } => {
+            let mut d = crate::Document::load(&schematic)?;
+            let mut count = 0;
+            for n in &mut d.root.children {
+                if matches!(
+                    n.tag(),
+                    Some("label" | "global_label" | "hierarchical_label")
+                ) && n.string_at(0) == Some(&old_name)
+                {
+                    n.set_value(0, new_name.clone());
+                    count += 1
+                }
+            }
+            save_edit(&d, &schematic, dry_run, backup)?;
+            println!("renamed {count} labels");
+        }
+        SchCmd::AddWire {
+            schematic,
+            points,
+            dry_run,
+        } => {
+            ensure_len(&points, 4, "--points requires x1 y1 x2 y2")?;
+            append_node(
+                &schematic,
+                SExp::list(
+                    "wire",
+                    [SExp::list(
+                        "pts",
+                        [
+                            SExp::list("xy", [SExp::atom(points[0]), SExp::atom(points[1])]),
+                            SExp::list("xy", [SExp::atom(points[2]), SExp::atom(points[3])]),
+                        ],
+                    )],
+                ),
+                dry_run,
+            )?;
+        }
+        SchCmd::AddJunction {
+            schematic,
+            at,
+            dry_run,
+        } => {
+            ensure_len(&at, 2, "--at requires x y")?;
+            append_node(
+                &schematic,
+                SExp::list(
+                    "junction",
+                    [SExp::list("at", [SExp::atom(at[0]), SExp::atom(at[1])])],
+                ),
+                dry_run,
+            )?;
+        }
+        SchCmd::AddLabel {
+            schematic,
+            name,
+            at,
+            kind,
+            dry_run,
+        } => {
+            ensure_len(&at, 2, "--at requires x y")?;
+            let tag = match kind.as_str() {
+                "global" => "global_label",
+                "hierarchical" => "hierarchical_label",
+                _ => "label",
+            };
+            append_node(
+                &schematic,
+                SExp::list(
+                    tag,
+                    [
+                        SExp::quoted(name),
+                        SExp::list("at", [SExp::atom(at[0]), SExp::atom(at[1]), SExp::atom(0)]),
+                    ],
+                ),
+                dry_run,
+            )?;
+        }
+        SchCmd::RemoveComponent {
+            schematic,
+            reference,
+            dry_run,
+            backup,
+        } => {
+            let mut d = crate::Document::load(&schematic)?;
+            let before = d.root.children.len();
+            d.root
+                .children
+                .retain(|n| !(n.has_tag("symbol") && n.property("Reference") == Some(&reference)));
+            if before == d.root.children.len() {
+                bail!("symbol {reference} not found")
+            }
+            save_edit(&d, &schematic, dry_run, backup)?;
+        }
     }
     Ok(0)
+}
+
+fn edit_property(e: PropertyEdit, key: &str) -> Result<()> {
+    let PropertyEdit {
+        schematic,
+        reference,
+        value,
+        dry_run,
+        backup,
+    } = e;
+    edit_symbol(&schematic, &reference, dry_run, backup, |s| {
+        set_property(s, key, &value)
+    })
+}
+fn edit_symbol(
+    path: &Path,
+    reference: &str,
+    dry_run: bool,
+    backup: bool,
+    edit: impl FnOnce(&mut SExp),
+) -> Result<()> {
+    let mut d = crate::Document::load(path)?;
+    let s = d
+        .root
+        .children
+        .iter_mut()
+        .find(|n| n.has_tag("symbol") && n.property("Reference") == Some(reference))
+        .with_context(|| format!("symbol {reference} not found"))?;
+    edit(s);
+    save_edit(&d, path, dry_run, backup)
+}
+fn set_property(s: &mut SExp, key: &str, value: &str) {
+    if let Some(p) = s
+        .children
+        .iter_mut()
+        .find(|n| n.has_tag("property") && n.string_at(0) == Some(key))
+    {
+        p.set_value(1, value.to_owned())
+    } else {
+        s.push(SExp::list(
+            "property",
+            [SExp::quoted(key), SExp::quoted(value)],
+        ));
+    }
+}
+fn save_edit(d: &crate::Document, path: &Path, dry_run: bool, backup: bool) -> Result<()> {
+    if dry_run {
+        println!("would update {}", path.display());
+        return Ok(());
+    }
+    if backup {
+        std::fs::copy(
+            path,
+            path.with_extension(format!(
+                "{}.bak",
+                path.extension().and_then(|x| x.to_str()).unwrap_or("bak")
+            )),
+        )?;
+    }
+    d.save(None)?;
+    println!("updated {}", path.display());
+    Ok(())
+}
+fn append_node(path: &Path, node: SExp, dry_run: bool) -> Result<()> {
+    let mut d = crate::Document::load(path)?;
+    d.root.push(node);
+    save_edit(&d, path, dry_run, false)
+}
+fn ensure_len(v: &[f64], n: usize, message: &str) -> Result<()> {
+    if v.len() != n {
+        bail!("{message}")
+    }
+    Ok(())
 }
 
 #[derive(Parser)]
@@ -702,5 +1006,22 @@ mod tests {
         .unwrap();
         let names: Vec<_> = labels_of(&root).into_iter().map(|n| n.name).collect();
         assert_eq!(names, ["LOCAL", "GND", "BUS"]);
+    }
+
+    #[test]
+    fn symbol_property_edits_are_atomic_and_dry_run_is_read_only() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("x.kicad_sch");
+        std::fs::write(&path,"(kicad_sch (symbol (lib_id \"Device:R\") (property \"Reference\" \"R1\") (property \"Value\" \"1k\")))\n").unwrap();
+        edit_symbol(&path, "R1", true, false, |s| set_property(s, "Value", "2k")).unwrap();
+        assert!(std::fs::read_to_string(&path).unwrap().contains("\"1k\""));
+        edit_symbol(&path, "R1", false, true, |s| set_property(s, "Value", "2k")).unwrap();
+        assert!(std::fs::read_to_string(&path).unwrap().contains("\"2k\""));
+        assert!(path.with_extension("kicad_sch.bak").exists());
+        assert!(!dir.path().read_dir().unwrap().any(|e| e
+            .unwrap()
+            .file_name()
+            .to_string_lossy()
+            .contains("kct-tmp")));
     }
 }

@@ -3,6 +3,7 @@ mod audits;
 mod bom;
 mod jobs;
 mod library;
+mod lint;
 mod profile;
 mod quality;
 mod revision;
@@ -138,6 +139,26 @@ enum Commands {
         #[arg(long)]
         project: Option<String>,
     },
+    /// Read-only pcb-lint heuristics for the project board (advisory, not DRC).
+    Lint {
+        #[arg(long)]
+        json: bool,
+        #[arg(long, default_value = ".")]
+        cwd: PathBuf,
+        #[arg(long)]
+        project: Option<String>,
+        /// Write a self-contained HTML contact sheet of findings.
+        #[arg(long, value_name = "HTML")]
+        contact_sheet: Option<PathBuf>,
+        /// Exit 2 when an open finding meets this severity.
+        #[arg(long, value_enum, default_value = "never")]
+        fail_on: lint::FailOn,
+    },
+    /// Run the full embedded pcb-lint CLI (`inspect`, `rules`, `review`, etc.).
+    PcbLint {
+        #[arg(last = true, trailing_var_arg = true)]
+        args: Vec<OsString>,
+    },
     Export {
         #[command(subcommand)]
         command: ExportCommand,
@@ -243,6 +264,8 @@ struct ProjectConfig {
     inherit_libraries: Option<bool>,
     /// Project-root-relative quality profile; overrides the workspace one.
     quality_profile: Option<PathBuf>,
+    /// pcb-lint config and review ledger paths.
+    lint: Option<lint::LintConfig>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -423,6 +446,7 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/bom", get(bom::endpoint))
                 .route("/api/kicad/libraries", get(libraries_endpoint))
                 .merge(library::routes())
+                .merge(lint::routes())
                 .merge(jobs::routes())
                 .layer(TraceLayer::new_for_http())
                 .with_state(state)
@@ -475,6 +499,42 @@ async fn main() -> Result<()> {
             }
             if !result.ok {
                 std::process::exit(1);
+            }
+        }
+        Commands::Lint {
+            json,
+            cwd,
+            project,
+            contact_sheet,
+            fail_on,
+        } => {
+            let cwd = cwd.canonicalize()?;
+            let project = cli_project_context(&cwd, project.as_deref())?;
+            let run = lint::run(&project)?;
+            eprintln!("{}", lint::summary(&run.report));
+            if let Some(sheet) = contact_sheet {
+                let html = pcb_lint::contact_sheet::render(&run.source, &run.report)?;
+                pcb_lint::review::atomic_write(&sheet, html.as_bytes())?;
+                eprintln!("Contact sheet: {}", sheet.display());
+            }
+            if json {
+                print_json_or_debug(true, &run.report)?;
+            } else {
+                for finding in &run.report.findings {
+                    println!(
+                        "{:<8} {:<9} {:<32} {}",
+                        finding.severity, finding.state, finding.rule, finding.message
+                    );
+                }
+            }
+            if lint::fails(&run.report, fail_on) {
+                std::process::exit(2);
+            }
+        }
+        Commands::PcbLint { args } => {
+            let code = pcb_lint::cli::run(args)?;
+            if code != 0 {
+                std::process::exit(code);
             }
         }
         Commands::Export { command } => match command {

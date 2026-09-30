@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Build-if-stale launcher used by agent-portal-plugin.toml. Builds the Yew
+# frontend (trunk) and the release binary when any source is newer than the
+# installed binary, then execs it. Build logs go to stderr so --json stdout
+# stays clean. KICADMIUM_BIN overrides the binary; KICADMIUM_SKIP_BUILD=1
+# never builds.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BIN="${KICADMIUM_BIN:-$ROOT/target/release/kicadmium}"
+export PATH="$PATH:$HOME/.cargo/bin"
+
+stale() {
+  [[ -x "$BIN" ]] || return 0
+  [[ -n "$(find "$ROOT/backend" "$ROOT/frontend/src" "$ROOT/frontend/static" "$ROOT/frontend/index.html" \
+    "$ROOT/shared" "$ROOT/Cargo.toml" "$ROOT/Cargo.lock" -newer "$BIN" -type f -print -quit 2>/dev/null)" ]]
+}
+
+if [[ -z "${KICADMIUM_BIN:-}" && "${KICADMIUM_SKIP_BUILD:-0}" != "1" ]] && stale; then
+  exec 9>"$ROOT/target/.kicadmium-build.lock" 2>/dev/null || { mkdir -p "$ROOT/target"; exec 9>"$ROOT/target/.kicadmium-build.lock"; }
+  command -v flock >/dev/null && flock 9
+  if stale; then
+    echo "kicadmium: building (release)" >&2
+    (cd "$ROOT/frontend" && trunk build --release) 1>&2
+    cargo build --release -p backend --manifest-path "$ROOT/Cargo.toml" 1>&2
+  fi
+fi
+exec "$BIN" "$@"

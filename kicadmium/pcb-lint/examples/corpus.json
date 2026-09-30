@@ -1,0 +1,363 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "name": "seventy-deliberate-faults",
+      "board": "../tests/fixtures/advanced-bad.kicad_pcb",
+      "board_id": "fault-fixture",
+      "config": "../tests/fixtures/advanced-bad.json",
+      "expected": [
+        {
+          "rule": "copper.island",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "copper.stale_stub",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "copper.duplicate_overlap",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "via.avoidable",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "via.role_missing",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "via.return_distance",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "route.legal_shortcut",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "route.backtrack",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "pad.grazing",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "route.tuning_integrity",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "placement.airwire_cost",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "placement.congestion",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "placement.rotation",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "placement.pitch",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "placement.orientation",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "channel.topology",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "channel.geometry",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "channel.polarity",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "block.flow",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "power.corridor",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "noise.partition",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "decoupling.pin_distance",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "decoupling.loop_area",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "regulator.feedback",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "regulator.hot_loop",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "schematic.collisions",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "schematic.junction",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "schematic.stem",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "schematic.reading_order",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "netlist.parity",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "connectivity.regression",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "power.width_capacity",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "neck.clearance_reason",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "width.taper",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "feature.unrequested",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "pin.swap_candidate",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "pin.swap_legality",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "net.naming",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "interface.completeness",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "connector.mating",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "testpoint.coverage",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "testpoint.access",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "testpoint.ground",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "testpoint.label",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "pair.skew",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "pair.spacing",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "reference.discontinuity",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "rf.launch",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "power.pin_roles",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "strap.truth_table",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "source.series_parallel",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "source.backfeed",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "source.polarity",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "capacitor.role",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "capacitor.rating",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "parts.package",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "mechanics.edge_clearance",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "mechanics.access",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "thermal.spokes",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "bom.completeness",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "cpl.orientation",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "silk.collisions",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "silk.content",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "export.freshness",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "release.manifest",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "checker.transform",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "checker.differential",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "checker.noise",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "review.reattach",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "rule": "annotation.stale",
+          "min": 1,
+          "max": 10000
+        }
+      ]
+    }
+  ]
+}

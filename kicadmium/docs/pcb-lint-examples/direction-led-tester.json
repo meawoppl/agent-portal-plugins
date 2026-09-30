@@ -1,0 +1,707 @@
+{
+  "schema": 1,
+  "tool_version": "0.1.0",
+  "board_id": "direction-led-tester",
+  "source_sha256": "9b9e0342108f065682a7b826e22dfb9a1afb00556ff41a5c654b357a7b29fce4",
+  "config": {
+    "intent": {
+      "roles": {},
+      "route": {
+        "clearance_mm": 0.15,
+        "grid_mm": 0.25,
+        "search_margin_mm": 3.0,
+        "max_nodes": 15000,
+        "minimum_saving_mm": 1.0,
+        "edge_clearance_mm": 0.25,
+        "outline": [],
+        "keepouts": [],
+        "tuned_nets": [],
+        "width_ratio": 1.5,
+        "grazing_margin_mm": 0.025,
+        "max_return_via_mm": 1.0
+      },
+      "placement": [],
+      "passive_alignment": {
+        "max_gap_mm": 5.0,
+        "max_offset_mm": 0.5,
+        "tolerance_mm": 0.1,
+        "angle_tolerance_deg": 2.0,
+        "min_group": 3,
+        "exclude_references": []
+      },
+      "peers": [],
+      "channels": [],
+      "flows": [],
+      "corridors": [],
+      "sensitive": [],
+      "loops": [],
+      "schematic": null,
+      "netlist": null,
+      "baseline": null,
+      "currents": [],
+      "features": null,
+      "swaps": [],
+      "naming": [],
+      "interfaces": [],
+      "mating": [],
+      "probes": [],
+      "bodies": [],
+      "pairs": [],
+      "references": [],
+      "launches": [],
+      "pin_roles": [],
+      "straps": [],
+      "modes": [],
+      "capacitors": [],
+      "packages": [],
+      "access": [],
+      "thermals": [],
+      "assembly": null,
+      "labels": [],
+      "artifacts": [],
+      "release": null,
+      "native": null,
+      "observations": [],
+      "annotations": []
+    },
+    "disabled": [],
+    "enabled_only": [],
+    "min_trace_mm": 0.15,
+    "min_drill_mm": 0.2,
+    "min_annulus_mm": 0.1,
+    "short_segment_mm": 0.2,
+    "angle_tolerance_deg": 1.0,
+    "join_tolerance_mm": 0.001,
+    "via_cluster_mm": 0.7,
+    "detour_ratio": 1.5,
+    "detour_excess_mm": 2.0,
+    "narrow_run_mm": 1.0,
+    "bend_threshold": 6,
+    "net_rules": [],
+    "pin_nets": [],
+    "proximity": [],
+    "groups": []
+  },
+  "limitations": [
+    "Heuristics, not KiCad DRC/ERC or fabrication sign-off. No edits are made.",
+    "Core trace endpoint checks ignore planes and arcs. Via attachment and layer-excursion screening use saved polygon fills and tessellated arcs; unsupported geometry withholds uncertain conclusions. Saved fills must be refreshed after layout edits. See coverage per rule.",
+    "Detour ratios use unobstructed octilinear distance as a lower bound, not a proven legal replacement route. Explicit thermal and reference-plane contracts provide screening only, not impedance or thermal proof.",
+    "Missing UUIDs use geometry fallback identities and cannot be ignored persistently. Board identity is caller-supplied; do not reuse across independent designs."
+  ],
+  "objects": {
+    "footprints": 4,
+    "pads": 10,
+    "tracks": 21,
+    "vias": 0
+  },
+  "findings": [
+    {
+      "key": "1c2ea83358e62a8abf271a6708a33d9666d62e77232436891d00be03654bc42a",
+      "evidence": "ad0e35cd15ccf019e112ed99830b24a3c8183141aada7932650944c7619d4507",
+      "rule": "trace.width_transition",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Trace width changes at a joint; confirm neck/clearance intent",
+      "suggestion": "Document required clearance neck, taper or class change",
+      "subjects": [
+        "6a150a3c-663a-48af-a152-2f6bfca33677",
+        "6c7b321d-b444-4a1f-b95b-17ee19166233"
+      ],
+      "nets": [
+        "/SIG-"
+      ],
+      "at": {
+        "x": 10.865,
+        "y": 12.5
+      },
+      "metrics": {
+        "narrow_mm": 0.4,
+        "wide_mm": 0.6
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "46d928325cd7c6aed4727ab22c28b4a5d204908e3abf09d76a70f1a758ff3809",
+      "evidence": "2c6b3f22b498edf0b6e07d2c79c8b4fad2d19c7f0f4d7f1ee72a5f4fe7876340",
+      "rule": "route.legal_shortcut",
+      "severity": "info",
+      "confidence": "medium",
+      "message": "Replace 3 consecutive segments on F.Cu via (12.500, 14.135) → (15.365, 17.000) → (25.000, 17.000) mm: saves 1.092 mm; contacts preserved and clearance-screened, native DRC required",
+      "suggestion": "Review replacement coordinates and saved length, then validate with native DRC",
+      "subjects": [
+        "1d9b54cc-4cf4-4e7f-a2dd-4f54da1fa746",
+        "3895521a-2a63-4f2d-92c7-0ce4f0c1d532",
+        "d75e74ba-a87d-47ed-aafe-b9df9017015b"
+      ],
+      "nets": [
+        "/SIG-"
+      ],
+      "at": {
+        "x": 12.5,
+        "y": 14.135
+      },
+      "metrics": {
+        "candidate_mm": 13.686721856198918,
+        "original_mm": 14.779213562373094,
+        "saved_mm": 1.092491706174176,
+        "segments": 3.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "4720c4b15e809b8b60124ec3a45ae12a70be25c86cd403a49ea1ae6542fe57e8",
+      "evidence": "dea91d00ea0facaaf60918e65327aed0af681322d1bc2e09b759306eefa432ef",
+      "rule": "trace.acute_junction",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Acute same-net junction or backtracking",
+      "suggestion": "Inspect overlap, backtracking or acute junction",
+      "subjects": [
+        "3147788e-e5f1-44e5-9472-3d9ef7671c14",
+        "f0c0ceb5-756a-44f5-9dab-ce49a6b0bdfe"
+      ],
+      "nets": [
+        "/SIG-"
+      ],
+      "at": {
+        "x": 5.815,
+        "y": 15.05
+      },
+      "metrics": {
+        "interior_deg": 44.43272213323037
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "5c8ff88e46c878cbb8cb68b6fa1a2a2d7e571906f398733d36d4175691f8fae1",
+      "evidence": "64babf7d848ed72e84105284d55e149bcd0f2d8bf537fda15a2345193ea1a464",
+      "rule": "trace.mergeable",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Collinear same-width segments share an endpoint",
+      "suggestion": "Consider merging to simplify topology",
+      "subjects": [
+        "73bc49f4-d664-4f97-b5e9-6006db38fc7d",
+        "bf0e6c47-c35d-40fe-b2af-23cd5f934a03"
+      ],
+      "nets": [
+        "/LED_DRV"
+      ],
+      "at": {
+        "x": 19.0,
+        "y": 10.0
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "a1a69fb4ae7f90379c07733bcd4f8901cd8274e0f47fd4783831ab4a006a12cd",
+      "evidence": "9a8e463ef5cfc3f71416501029f2148650676ab36377c6c2c3cb1fde81117c31",
+      "rule": "trace.mergeable",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Collinear same-width segments share an endpoint",
+      "suggestion": "Consider merging to simplify topology",
+      "subjects": [
+        "3009c030-0454-43dd-8e2d-5d9f970a6839",
+        "75f16deb-dab0-48be-88fe-81aa56c34910"
+      ],
+      "nets": [
+        "/SIG-"
+      ],
+      "at": {
+        "x": 26.0,
+        "y": 14.0
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "aeb58e3f75f66ae95695de5a6ed22ee1919a10511367fc1635077cf188f1d31c",
+      "evidence": "775fe18dc1d8d8af176e8b4247568c25981d71da7699613a68a69beaa0464a05",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from D1.2",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "51128725-9f1b-40e2-88e2-1bcb49df8042",
+        "ef566a89-8f61-4287-93f6-67f271dca46d"
+      ],
+      "nets": [
+        "/LED_DRV"
+      ],
+      "at": {
+        "x": 21.0,
+        "y": 6.0
+      },
+      "metrics": {
+        "deviation_deg": 44.999999999999986
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "e8257cb3a7f4d0ae7e7de5d88c8e72bbf773b78fd922b917d15e0259d62a7f76",
+      "evidence": "48bf3b938018e53650062eccc53d12a1f315b1d18d6cf1581d0f46687848c6bc",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from D1.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "36095c77-99a0-4102-ad26-55a6a5ff7059",
+        "e6721814-59a8-4ee9-93fc-e19a7d59f024"
+      ],
+      "nets": [
+        "/SIG-"
+      ],
+      "at": {
+        "x": 25.0,
+        "y": 6.0
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999997
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "fbdd3eb4828941c3d365550301575a0a27f97a65f6b28e43545b2924e29a3012",
+      "evidence": "797df2f1678889f149d7f083ce9df5688fe793f4e7ae95c9be0a6eb4ff472b53",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from D2.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "bbdf1ce3-0015-41d8-954a-116e30b8a365",
+        "df7aad74-f8d5-4e50-bf79-e8ee30e181a8"
+      ],
+      "nets": [
+        "/LED_DRV"
+      ],
+      "at": {
+        "x": 21.0,
+        "y": 14.0
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    }
+  ],
+  "review_audit": [],
+  "coverage": [
+    {
+      "rule": "trace.zero_length",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.short_segment",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.off_angle",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.minimum_width",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.no_net",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.open_end",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.duplicate",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.mergeable",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.acute_junction",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.width_transition",
+      "status": "evaluated"
+    },
+    {
+      "rule": "pad.oblique_exit",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.annulus",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.drill",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.no_net",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.low_attachment",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.pad_overlap",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.cluster",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.detour",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.bend_count",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.width_island",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.layer_excursion",
+      "status": "evaluated"
+    },
+    {
+      "rule": "contract.missing_net",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.net_width",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.net_layer",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.via_budget",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.pin_net",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.proximity",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.side",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.alignment",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "copper.island",
+      "status": "evaluated"
+    },
+    {
+      "rule": "copper.stale_stub",
+      "status": "evaluated"
+    },
+    {
+      "rule": "copper.duplicate_overlap",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.avoidable",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.role_missing",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.return_distance",
+      "status": "needs_input"
+    },
+    {
+      "rule": "route.legal_shortcut",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.backtrack",
+      "status": "evaluated"
+    },
+    {
+      "rule": "pad.grazing",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.tuning_integrity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "placement.airwire_cost",
+      "status": "needs_input"
+    },
+    {
+      "rule": "placement.congestion",
+      "status": "needs_input"
+    },
+    {
+      "rule": "placement.rotation",
+      "status": "needs_input"
+    },
+    {
+      "rule": "placement.pitch",
+      "status": "needs_input"
+    },
+    {
+      "rule": "placement.orientation",
+      "status": "needs_input"
+    },
+    {
+      "rule": "channel.topology",
+      "status": "needs_input"
+    },
+    {
+      "rule": "channel.geometry",
+      "status": "needs_input"
+    },
+    {
+      "rule": "channel.polarity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "block.flow",
+      "status": "needs_input"
+    },
+    {
+      "rule": "power.corridor",
+      "status": "needs_input"
+    },
+    {
+      "rule": "noise.partition",
+      "status": "needs_input"
+    },
+    {
+      "rule": "decoupling.pin_distance",
+      "status": "needs_input"
+    },
+    {
+      "rule": "decoupling.loop_area",
+      "status": "needs_input"
+    },
+    {
+      "rule": "regulator.feedback",
+      "status": "needs_input"
+    },
+    {
+      "rule": "regulator.hot_loop",
+      "status": "needs_input"
+    },
+    {
+      "rule": "schematic.collisions",
+      "status": "needs_input"
+    },
+    {
+      "rule": "schematic.junction",
+      "status": "needs_input"
+    },
+    {
+      "rule": "schematic.stem",
+      "status": "needs_input"
+    },
+    {
+      "rule": "schematic.reading_order",
+      "status": "needs_input"
+    },
+    {
+      "rule": "netlist.parity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "connectivity.regression",
+      "status": "needs_input"
+    },
+    {
+      "rule": "power.width_capacity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "neck.clearance_reason",
+      "status": "evaluated"
+    },
+    {
+      "rule": "width.taper",
+      "status": "evaluated"
+    },
+    {
+      "rule": "feature.unrequested",
+      "status": "needs_input"
+    },
+    {
+      "rule": "pin.swap_candidate",
+      "status": "needs_input"
+    },
+    {
+      "rule": "pin.swap_legality",
+      "status": "needs_input"
+    },
+    {
+      "rule": "net.naming",
+      "status": "needs_input"
+    },
+    {
+      "rule": "interface.completeness",
+      "status": "needs_input"
+    },
+    {
+      "rule": "connector.mating",
+      "status": "needs_input"
+    },
+    {
+      "rule": "testpoint.coverage",
+      "status": "needs_input"
+    },
+    {
+      "rule": "testpoint.access",
+      "status": "needs_input"
+    },
+    {
+      "rule": "testpoint.ground",
+      "status": "needs_input"
+    },
+    {
+      "rule": "testpoint.label",
+      "status": "needs_input"
+    },
+    {
+      "rule": "pair.skew",
+      "status": "needs_input"
+    },
+    {
+      "rule": "pair.spacing",
+      "status": "needs_input"
+    },
+    {
+      "rule": "reference.discontinuity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "rf.launch",
+      "status": "needs_input"
+    },
+    {
+      "rule": "power.pin_roles",
+      "status": "needs_input"
+    },
+    {
+      "rule": "strap.truth_table",
+      "status": "needs_input"
+    },
+    {
+      "rule": "source.series_parallel",
+      "status": "needs_input"
+    },
+    {
+      "rule": "source.backfeed",
+      "status": "needs_input"
+    },
+    {
+      "rule": "source.polarity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "capacitor.role",
+      "status": "needs_input"
+    },
+    {
+      "rule": "capacitor.rating",
+      "status": "needs_input"
+    },
+    {
+      "rule": "parts.package",
+      "status": "needs_input"
+    },
+    {
+      "rule": "mechanics.edge_clearance",
+      "status": "evaluated"
+    },
+    {
+      "rule": "mechanics.access",
+      "status": "needs_input"
+    },
+    {
+      "rule": "thermal.spokes",
+      "status": "needs_input"
+    },
+    {
+      "rule": "bom.completeness",
+      "status": "needs_input"
+    },
+    {
+      "rule": "cpl.orientation",
+      "status": "needs_input"
+    },
+    {
+      "rule": "silk.collisions",
+      "status": "evaluated"
+    },
+    {
+      "rule": "silk.content",
+      "status": "needs_input"
+    },
+    {
+      "rule": "export.freshness",
+      "status": "needs_input"
+    },
+    {
+      "rule": "release.manifest",
+      "status": "needs_input"
+    },
+    {
+      "rule": "checker.transform",
+      "status": "needs_input"
+    },
+    {
+      "rule": "checker.differential",
+      "status": "needs_input"
+    },
+    {
+      "rule": "checker.noise",
+      "status": "needs_input"
+    },
+    {
+      "rule": "review.reattach",
+      "status": "needs_input"
+    },
+    {
+      "rule": "annotation.stale",
+      "status": "needs_input"
+    },
+    {
+      "rule": "via.overshoot",
+      "status": "evaluated"
+    },
+    {
+      "rule": "placement.passive_alignment",
+      "status": "evaluated"
+    }
+  ]
+}

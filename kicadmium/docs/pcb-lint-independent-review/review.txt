@@ -1,0 +1,78 @@
+Independent pcb-lint usability review
+=====================================
+
+Scope and provenance
+--------------------
+Ran the supplied prebuilt binary from /home/meawoppl/repos/bp-test/.worktrees/bp-test-reflection/tools/pcb-lint/target/release/pcb-lint against the SIX primary boards in /home/meawoppl/repos/bp-test, including the imported mainboard-reference. Used defaults, no intent contracts, and initially no review ledger. Board IDs were bp-test/<project-name>. All output is in this temporary directory. No repository files were edited. Hashes of 39 top-level/per-board KiCad files, including boards, schematics and projects, are identical before and after all checks. I did not apply suggestions, refill zones, or rerun native DRC.
+
+Binary SHA-256: 5606de55179013f3caff6420f594556488b690dd1b71b19a05112ad58594089f
+Reported tool_version: 0.1.0
+
+Commands chosen and discovery path
+----------------------------------
+1. pcb-lint --help
+2. pcb-lint lint --help
+3. pcb-lint inspect --help
+4. pcb-lint rules
+5. Read tools/pcb-lint/README.txt from the supplied worktree.
+6. For each board:
+   pcb-lint lint <board.kicad_pcb> --board-id bp-test/<name> -o /tmp/pcb-lint-trial-o9k07is5/<name>.json --contact-sheet /tmp/pcb-lint-trial-o9k07is5/<name>.html
+7. pcb-lint inspect <board.kicad_pcb> -o /tmp/pcb-lint-trial-o9k07is5/<name>-objects.json
+8. pcb-lint review --help
+9. Repeat LED tester lint with the same board ID; compare the complete parsed report.
+10. pcb-lint review --report <LED report> --ledger /tmp/pcb-lint-trial-o9k07is5/test-reviews.json --key 0b77caeefc1c9af31a3d6e8a3ceb24549f7e2b0fba1f9a828fa07df0207a2e01 ignore --reason 'Temporary CLI lifecycle test only; not an engineering disposition' --reviewer session-independent-review
+11. Rerun LED lint with --reviews pointing to that temporary ledger.
+12. Run module lint with --fail-on warning.
+
+runs.json records all initial paths, timings, exit codes and output. cli-smoke.json records exact follow-up arguments and results. Timings include JSON and HTML generation, with up to three board processes running concurrently; they are not isolated benchmarks.
+
+Results
+-------
+esp32-fpga-module: 662 findings (450 warning, 212 info, 0 error); 1.76 s; exit 0
+gps-time-calibrator: 613 findings (1 warning, 612 info, 0 error); 4.88 s; exit 0
+mainboard-reference: 1153 findings (294 warning, 859 info, 0 error); 1.92 s; exit 0
+programming-carrier: 713 findings (52 warning, 661 info, 0 error); 5.79 s; exit 0
+tesla-coil-controller: 537 findings (0 warning, 537 info, 0 error); 29.95 s; exit 0
+direction-led-tester: 8 findings (0 warning, 8 info, 0 error); 0.25 s; exit 0
+
+Concrete findings and interpretation
+------------------------------------
+* GPS duplicate is real: USB_PD_SDA, In1.Cu, width 0.2 mm, endpoints (190.000,23.800) and (186.4125,27.3875). UUIDs d7b8e1df-0119-47f3-8b93-689739b6dd2d and d98c40c1-6bb1-410e-b18d-466cc4ef4b13 have identical geometry. Confirmed independently with KiCad pcbnew, not only the linter parser. This is a useful cleanup finding.
+* Programming carrier: all 52 warnings are 45 trace.zero_length and 7 trace.duplicate. Example zero-length warning 65de023c-7980-4cea-9d50-4a26ba7cdd21 on BUF_FPGA_RGB2 is actually 0.0005 mm; the message supplies the small nonzero length, consistent with the configured 0.001 mm tolerance. Those are useful near-degenerate cleanup candidates, not proof of electrical faults.
+* Module: every one of the 450 warnings is trace.minimum_width. Its actual .kicad_pro min_track_width is 0.1 mm; the linter defaults to 0.15 mm. There are 447 tracks at 0.1 mm and three at 0.125 mm. These warnings indicate a default-profile mismatch, not violations of this project's configured floor. The CLI does not automatically load project rules. Exposing the selected profile prominently would prevent this large distracting warning count.
+* Reference import: 289 via.annulus warnings plus five near-zero tracks. Parsed annuli are 278 x 0.0762 mm and 11 x 0.0024 mm, below the default 0.1 mm. The 11 especially small annuli warrant checking the imported geometry/manufacturing intent; no board repair attempted.
+* Tesla: 537 info findings, no warnings/errors. Largest groups: 198 via.role_missing, 91 trace.mergeable, 80 trace.width_transition, 70 pad.oblique_exit, 41 width.taper. With no intent file, missing via roles are unsurprising and represent review bookkeeping rather than discovered bad vias. The summary calls every open info finding "actionable"; "open/unreviewed" would communicate this more accurately.
+* Tesla passive alignment correctly identifies R25 at y=28.8 versus R26/R27 at y=29.3 and proposes +0.5 mm on R25. These are 5.1k, 100k and 150k resistors; the suggestion is geometric, not evidence that they are functional peers or should move. The low-confidence label and caution are appropriate.
+* Local shortcut output is concrete and useful: LED tester /SIG- proposes saving 1.092 mm; carrier ESP_GPIO8 saves 2.535 mm and VIN_5V saves 1.444 mm. Coordinates and affected segment UUIDs are present. I did not alter copies or run DRC on replacements, so these remain candidates, not independently validated legal routes.
+* No via.overshoot, via.low_attachment or route.layer_excursion findings on these six default runs. This is a result of this sample/configuration, not evidence of detector recall.
+
+Independent verification and successful behavior
+------------------------------------------------
+* Compared ALL 3,465 parsed pad centers with KiCad 10.0.6 pcbnew across the six boards. No mismatches above 0.000003 mm; counts matched on each board. See native-pad-comparison.json. This validates positions on this sample, not all pad shapes, rotations, polygons or connectivity.
+* Repeating LED lint produced an identical parsed JSON report, including keys/evidence.
+* Temporary ignore ledger replay worked: 8 findings became 7 actionable + 1 ignored, with review_audit status applied. No persistent engineering review decision was created in the repo.
+* --fail-on warning returned exit 2 on the module and still wrote the report, as documented. Default runs returned 0 despite findings, also as documented.
+* All six self-contained HTML files generated. Their embedded JSON parsed and executable JavaScript compiled with Node. Browser interaction and visual rendering were not exercised. See html-validation.json.
+* Unsupported geometry is surfaced: reference board has three unsupported_geometry entries and two partial_unsupported_geometry entries instead of blanket passes.
+
+CLI/documentation gaps and source inspection
+--------------------------------------------
+1. Definite catalog inconsistency: 69 rules say status=implemented but confidence=not_evaluated and caveat begins "Not implemented...". For example copper.stale_stub and mechanics.edge_clearance nevertheless emit findings on real boards. Suggested action also says "Implement with labelled positive/negative examples before enabling". That contradictory text is exposed through the public rules command and needs to be updated. README says 99 implemented checks; binary emits 101 catalog/coverage entries, reflecting the two added checks.
+2. --help lists subcommands without descriptive summaries. lint --help gives no explanation for board identity persistence, output format/default destination, config lookup/loading, or what the reviews file means. README provides the essential board-ID/ledger semantics; those deserve short CLI descriptions too. The first rules invocation dumped ~1,100 lines and was truncated in the agent interface; saving it to a file was the practical workaround. A compact list/one-rule selector would help.
+3. Numeric defaults such as min_trace_mm=0.15, min_annulus_mm=0.1, route.clearance_mm=0.15 and join_tolerance_mm=0.001 were easiest to discover in the report's effective config. CLI help does not show them. The README does explain init-config, but a quick-start example making profile selection and the lack of .kicad_pro import explicit would avoid the module mismatch.
+4. Most checks are not evaluated without contracts: ordinary runs have 58 needs_input + 8 needs_contract; 34-35 evaluated. The terminal summary only reports "101 coverage entries", hiding this distinction. A one-line evaluated/needs-input/unsupported/budget summary would help. needs_contract is present in reports but omitted from the README's initial coverage-status explanation.
+5. route.legal_shortcut is budget_exhausted on module, GPS, carrier and Tesla. The README documents 4096 windows/32 graph searches, but the report has only one status string. I inspected src/advanced.rs local_shortcuts to distinguish window cap, router-call cap and individual search exhaustion and to learn whether later cheap candidates continue (they do after the call cap; the window cap returns). Report counts/reason/coverage extent and make board-wide budgets configurable; current status alone cannot explain whether most of the board was screened. Tesla needed ~30 s despite no shortcut findings.
+6. I inspected src/lib.rs Finding/Report/Coverage definitions to understand the JSON schema, lifecycle fields and coverage representation. There is no discoverable schema/help output explaining them. A schema/example report would make programmatic consumption easier.
+7. I read README for contact-sheet controls and approximation limits. CLI only describes the output as a self-contained HTML sheet; no issues generating it, but UI quality was not tested here.
+
+Failed commands and limitations of the trial
+--------------------------------------------
+No unexpected pcb-lint failures. The module's exit 2 with --fail-on warning was intentional. The first rules command's output was too large for the tool display; saved rules.json retains it all.
+
+One auxiliary validation script of mine failed: it initially passed application/json script elements to Node's JavaScript compiler and received Unexpected token ':'. I corrected the harness to JSON.parse those elements and compile only executable scripts; all six then passed. This was a harness mistake, not a generated-HTML defect. KiCad's Python import/load printed property-enum assertions and repeated image-handler debug messages; all native reads completed, so these are separate KiCad runtime noise, not pcb-lint stderr.
+
+No browser executable was available through the probed chromium/chromium-browser/google-chrome commands. No browser was installed for this trial. No native DRC, design-contract calibration, shortcut replacement validation or formal false-positive/false-negative corpus was attempted.
+
+Recommended priorities
+----------------------
+Fix stale catalog metadata; expose effective fabrication profile and coverage counts in terminal output; make shortcut budget reason/counts visible; document report schema and flesh out CLI help. The demonstrated duplicate/near-zero detection, stable identities, contact-sheet generation and ledger replay are already useful for advisory review.

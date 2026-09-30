@@ -15,6 +15,7 @@ use crate::units::{self, UnitFormatter};
 pub mod design;
 pub mod footprint;
 pub mod mfr;
+pub mod parts;
 pub mod project;
 pub mod utility;
 
@@ -66,7 +67,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "repair-clearance", about: "Repair clearance violations by nudging traces", wave: "D", run: None },
     CommandSpec { name: "fix-drc", about: "Automated DRC violation repair (clearance + drill)", wave: "D", run: None },
     CommandSpec { name: "fix-erc", about: "Automated ERC violation repair (PWR_FLAG + no-connect)", wave: "D", run: None },
-    CommandSpec { name: "parts", about: "LCSC parts lookup and search", wave: "G", run: None },
+    CommandSpec { name: "parts", about: "LCSC parts lookup and search", wave: "G", run: Some(parts::run) },
     CommandSpec { name: "datasheet", about: "Datasheet search, download, and PDF parsing", wave: "G", run: None },
     CommandSpec { name: "decisions", about: "Query design decisions (placement and routing rationale)", wave: "E", run: None },
     CommandSpec { name: "placement", about: "Detect and fix placement conflicts", wave: "E", run: None },

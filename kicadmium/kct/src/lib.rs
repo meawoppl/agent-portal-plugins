@@ -10,6 +10,7 @@ pub mod cli;
 pub mod footprints;
 pub mod fsutil;
 pub mod manufacturers;
+pub mod parts;
 pub mod sexp;
 pub mod units;
 

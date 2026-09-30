@@ -43,7 +43,16 @@ fn loading_or_error(state: &Option<Result<ManifestResponse, String>>) -> Option<
 pub fn step_tab(props: &TabProps) -> Html {
     let manifest = use_manifest(props.project.clone(), props.revision.clone());
     let body = loading_or_error(&manifest).unwrap_or_else(|| {
-        let files = manifest.and_then(Result::ok).map(|m| m.files).unwrap_or_default();
+        let files: Vec<_> = manifest
+            .and_then(Result::ok)
+            .map(|m| m.files)
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|f| f.kind == "model")
+            .collect();
+        if files.is_empty() {
+            return html! { <p class="muted">{"No STEP/GLB models in this project."}</p> };
+        }
         html! {
             <ul>
                 {for files.iter().map(|f| html! { <li><code>{&f.path}</code>{" "}<span class="muted">{&f.kind}</span></li> })}
@@ -96,6 +105,11 @@ pub fn panelization_tab(props: &TabProps) -> Html {
             m.files
                 .into_iter()
                 .filter(|f| f.path.ends_with(".kicad_pcb"))
+                .filter(|f| {
+                    !f.path
+                        .split('/')
+                        .any(|c| matches!(c, "tmp" | "backup" | "backups" | "releases"))
+                })
                 .map(|f| f.path)
                 .collect::<Vec<_>>()
         })

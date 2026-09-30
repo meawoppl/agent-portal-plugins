@@ -921,6 +921,14 @@ async fn warm_viewer_state(project: &ProjectContext) -> Result<ViewerState> {
     let source_revision = current_source_revision(project)?;
     let mut manifest = manifest_for(cwd).await?;
     manifest.revision = now_ms().to_string();
+    // Nested boards are their own projects; keep their files out of this one.
+    manifest.files.retain(|file| {
+        let path = cwd.join(&file.path);
+        !project
+            .excluded_roots
+            .iter()
+            .any(|root| path.starts_with(root))
+    });
     // The GLB is produced by the build pipeline (jobs::Stage::Glb).
     Ok(ViewerState {
         manifest,

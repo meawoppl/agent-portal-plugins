@@ -7,7 +7,8 @@ https://github.com/meawoppl/single-binary-rust-website:
 - `backend/` — axum server + CLI, binary `kicadmium`. Embeds `frontend/dist`
   with `memory-serve` (read from disk in debug builds, embedded in release).
 - `frontend/` — Yew (trunk) workbench. `frontend/static/kicad-viewer/` holds the
-  vendored third-party viewer runtimes (ecad-viewer, three.js, occt, gerber-view)
+  vendored third-party viewer runtimes (ecad-viewer, three.js, occt); Gerbers use
+  the pastebom `gerber-view` crate directly from Rust
   and is copied to `dist/kicad-viewer/` by trunk.
 
 `backend/build.rs` runs `trunk build` (own target dir, `target/frontend`) whenever

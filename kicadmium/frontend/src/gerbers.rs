@@ -97,17 +97,7 @@ pub fn gerber_tab(props: &GerberTabProps) -> Html {
                         status.set(format!("Gerber viewer failed: {err}"));
                         return;
                     }
-                    let count = summary
-                        .get("layers")
-                        .and_then(Value::as_array)
-                        .map_or(0, Vec::len);
-                    status.set(match (&*sources, count) {
-                        (Some(s), _) if s.files.is_empty() => {
-                            "No generated Gerber or drill files found.".into()
-                        }
-                        (_, 1) => "1 layer loaded".into(),
-                        (_, n) => format!("{n} layers loaded"),
-                    });
+                    status.set(String::new());
                 });
             },
         );
@@ -153,7 +143,7 @@ pub fn gerber_tab(props: &GerberTabProps) -> Html {
                 <div class="gerber-viewer" ref={host} />
                 <aside class="side-panel">
                     <h3>{"Layers"}</h3>
-                    <div class="muted">{(*status).clone()}</div>
+                    <div class="muted">{status_line(&status, &sources, &summary)}</div>
                     <ul>{for layers}</ul>
                     <h3>{"Files"}</h3>
                     <div class="muted">{sources.as_ref().map(|s| s.label.clone()).unwrap_or_default()}</div>
@@ -171,6 +161,23 @@ pub fn gerber_tab(props: &GerberTabProps) -> Html {
                 </aside>
             </div>
         </div>
+    }
+}
+
+fn status_line(status: &str, sources: &Option<GerberSourcesResponse>, summary: &Value) -> String {
+    if !status.is_empty() {
+        return status.to_string();
+    }
+    if sources.as_ref().is_some_and(|s| s.files.is_empty()) {
+        return "No generated Gerber or drill files found.".into();
+    }
+    match summary
+        .get("layers")
+        .and_then(Value::as_array)
+        .map_or(0, Vec::len)
+    {
+        1 => "1 layer loaded".into(),
+        n => format!("{n} layers loaded"),
     }
 }
 

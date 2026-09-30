@@ -14,14 +14,6 @@ pub struct Props {
     pub active: bool,
 }
 
-fn endpoint(path: &str, project: &str) -> String {
-    if project.is_empty() {
-        path.into()
-    } else {
-        format!("{path}?project={project}")
-    }
-}
-
 fn stored(kind: &str) -> Value {
     web_sys::window()
         .and_then(|w| w.local_storage().ok().flatten())
@@ -41,7 +33,7 @@ async fn send_snapshot(
     active: bool,
     pours: bool,
 ) {
-    let Ok(response) = Request::get(&endpoint("/api/kicad/sources", &project))
+    let Ok(response) = Request::get(&crate::api::url("/api/kicad/sources", &project))
         .send()
         .await
     else {
@@ -53,7 +45,7 @@ async fn send_snapshot(
     let state = stored(&kind);
     let payload = if kind == "model" {
         json!({"type":"kicad-pcb-snapshot","kind":"model","context":kind,"active":active,
-            "url":endpoint(&format!("/api/kicad/model.glb?rev={}",snapshot.revision),&project),
+            "url":crate::api::url(&format!("/api/kicad/model.glb?rev={}",crate::api::encode(&snapshot.revision)),&project),
             "viewState":state.get("view"),"uiState":state.get("ui")})
     } else {
         json!({"type":"kicad-pcb-snapshot","kind":"native","context":kind,"active":active,
@@ -62,7 +54,8 @@ async fn send_snapshot(
     };
     if let Some(window) = frame.content_window() {
         let _ = window.post_message(
-            &serde_wasm_bindgen::to_value(&payload).unwrap_or_default(),
+            // Plain JS objects: serde_wasm_bindgen would turn JSON maps into `Map`s.
+            &js_sys::JSON::parse(&payload.to_string()).unwrap_or_default(),
             "*",
         );
     }
@@ -136,5 +129,5 @@ pub fn viewer(props: &Props) -> Html {
         let pours = pours.clone();
         Callback::from(move |_| pours.set(!*pours))
     };
-    html! {<div class="viewer-card">{if props.kind.as_str()=="pcb"{html!{<label class="viewer-option"><input type="checkbox" checked={*pours} onchange={toggle}/>{" Polygon pours"}</label>}}else{Html::default()}}<iframe ref={node} class="native-viewer" data-kind={props.kind.clone()} title={format!("{} viewer",props.kind)} src="/kicad-viewer/runtime.html" /></div>}
+    html! {<div class="viewer-card">{if props.kind.as_str()=="pcb"{html!{<label class="viewer-option"><input type="checkbox" checked={*pours} onchange={toggle}/>{" Polygon pours"}</label>}}else{Html::default()}}<iframe key={props.kind.to_string()} ref={node} class="native-viewer" data-kind={props.kind.clone()} title={format!("{} viewer",props.kind)} src="/kicad-viewer/runtime.html" /></div>}
 }

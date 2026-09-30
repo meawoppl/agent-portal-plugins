@@ -34,6 +34,8 @@ fn main() {
     let dist_index = frontend.join("dist/index.html");
 
     println!("cargo:rerun-if-env-changed=KICADMIUM_SKIP_FRONTEND_BUILD");
+    // Deleting dist must trigger a rebuild too.
+    println!("cargo:rerun-if-changed={}", dist_index.display());
     for input in INPUTS.iter().chain(&["../shared/src"]) {
         println!("cargo:rerun-if-changed={}", frontend.join(input).display());
     }

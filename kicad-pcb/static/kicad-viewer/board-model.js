@@ -41,6 +41,9 @@ function disposeModel(root, retained) {
 export function createBoardModel(host, status, options = {}) {
   const kind = options.kind ?? "model";
   const subject = options.subject ?? "board";
+  const onViewChange = typeof options.onViewChange === "function" ? options.onViewChange : () => {};
+  const onUiStateChange =
+    typeof options.onUiStateChange === "function" ? options.onUiStateChange : () => {};
   const scene = new THREE.Scene();
   scene.background = new THREE.Color("#101214");
   const ambientLight = new THREE.AmbientLight("#ffffff", 0.38);
@@ -87,6 +90,8 @@ export function createBoardModel(host, status, options = {}) {
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   const visibility = new Map();
   let stepSelection;
+  let viewNotifyTimer;
+  let uiNotifyTimer;
 
   const draw = () => {
     frame = 0;
@@ -108,6 +113,42 @@ export function createBoardModel(host, status, options = {}) {
   const invalidate = () => {
     if (!frame && !disposed && active) frame = requestAnimationFrame(draw);
   };
+  const finiteVector = (value) =>
+    Array.isArray(value) &&
+    value.length === 3 &&
+    value.every((item) => Number.isFinite(Number(item)))
+      ? new THREE.Vector3(Number(value[0]), Number(value[1]), Number(value[2]))
+      : undefined;
+  const captureView = () => ({
+    position: camera.position.toArray(),
+    target: controls.target.toArray(),
+    up: camera.up.toArray(),
+    zoom: camera.zoom,
+  });
+  const restoreView = (view) => {
+    const position = finiteVector(view?.position);
+    const target = finiteVector(view?.target);
+    const up = finiteVector(view?.up);
+    const zoom = Number(view?.zoom);
+    if (!position || !target || !up || !Number.isFinite(zoom) || zoom <= 0) return false;
+    camera.position.copy(position);
+    camera.up.copy(up);
+    camera.zoom = Math.max(controls.minZoom, Math.min(controls.maxZoom, zoom));
+    controls.target.copy(target);
+    camera.lookAt(controls.target);
+    camera.updateProjectionMatrix();
+    controls.update();
+    invalidate();
+    return true;
+  };
+  const scheduleViewChange = () => {
+    clearTimeout(viewNotifyTimer);
+    viewNotifyTimer = setTimeout(() => onViewChange(captureView()), 150);
+  };
+  const scheduleUiStateChange = () => {
+    clearTimeout(uiNotifyTimer);
+    uiNotifyTimer = setTimeout(() => onUiStateChange(captureUiState()), 100);
+  };
   const finishTransition = () => {
     if (!transition) return;
     stepSelection?.restore();
@@ -122,10 +163,12 @@ export function createBoardModel(host, status, options = {}) {
       renderer,
       camera,
       invalidate,
+      onUiStateChange: scheduleUiStateChange,
     });
   const updateControls = () => {
     if (disposed || !active) return;
     controlsDirty = true;
+    scheduleViewChange();
     invalidate();
   };
   let middlePan;
@@ -219,6 +262,7 @@ export function createBoardModel(host, status, options = {}) {
     controls.up0.copy(camera.up);
     controls.zoom0 = camera.zoom;
     controls.reset();
+    scheduleViewChange();
     invalidate();
   };
   const resize = () => {
@@ -253,6 +297,7 @@ export function createBoardModel(host, status, options = {}) {
   layers.className = "model-layers";
   layers.innerHTML = "<summary>Model layers</summary><div></div>";
   host.appendChild(layers);
+  layers.addEventListener("toggle", scheduleUiStateChange);
   const layerBody = layers.querySelector("div");
   const category = (name) => {
     if (/_soldermask(?:_|$)/i.test(name)) return "Soldermask";
@@ -288,11 +333,28 @@ export function createBoardModel(host, status, options = {}) {
       input.onchange = () => {
         visibility.set(name, input.checked);
         for (const mesh of meshes) mesh.visible = input.checked;
+        scheduleUiStateChange();
         invalidate();
       };
       label.append(input, document.createTextNode(name));
       layerBody.appendChild(label);
     }
+  };
+  const captureUiState = () => ({
+    modelLayersOpen: layers.open === true,
+    layerVisibility: Object.fromEntries(visibility),
+    stepSelection: stepSelection?.captureUiState?.(),
+  });
+  const restoreUiState = (ui = {}) => {
+    if (!ui || typeof ui !== "object") return false;
+    if (typeof ui.modelLayersOpen === "boolean") layers.open = ui.modelLayersOpen;
+    if (ui.layerVisibility && typeof ui.layerVisibility === "object") {
+      for (const [name, visible] of Object.entries(ui.layerVisibility))
+        visibility.set(name, visible !== false);
+    }
+    stepSelection?.restoreUiState?.(ui.stepSelection);
+    if (content) showLayers(collectLayers(content));
+    return true;
   };
 
   const update = async (url) => {
@@ -387,7 +449,10 @@ export function createBoardModel(host, status, options = {}) {
     generation++;
     pending?.abort();
     cancelAnimationFrame(frame);
+    clearTimeout(viewNotifyTimer);
+    clearTimeout(uiNotifyTimer);
     observer.disconnect();
+    layers.removeEventListener("toggle", scheduleUiStateChange);
     controls.dispose();
     controls.removeEventListener("start", updateControls);
     touchTracker.dispose();
@@ -418,6 +483,10 @@ export function createBoardModel(host, status, options = {}) {
       if (!active) touchTracker.clear();
       if (active) resize();
     },
+    captureView,
+    restoreView,
+    captureUiState,
+    restoreUiState,
     capture() {
       finishTransition();
       if (!content || disposed || !host.clientWidth || !host.clientHeight) return null;

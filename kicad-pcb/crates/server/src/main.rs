@@ -2483,19 +2483,44 @@ html{{height:100%}}body{{margin:0;height:100%;min-height:0;display:flex;flex-dir
 </main><script src="/api/kicad/library/ui.js"></script><script>
 let sourceSnapshot;
 let sourceSnapshotPromise;
-let activeTab = "schematic";
+const projectId = {project_id};
+const storageKey = name => `kicad-pcb-workbench:${{projectId}}:${{name}}`;
+const readJsonState = (name, fallback) => {{
+  try {{
+    const value = JSON.parse(localStorage.getItem(storageKey(name)) || "null");
+    return value ?? fallback;
+  }} catch {{
+    return fallback;
+  }}
+}};
+const writeJsonState = (name, value) => {{
+  try {{ localStorage.setItem(storageKey(name), JSON.stringify(value)); }}
+  catch (err) {{ console.warn("Unable to persist KiCad workbench state", name, err); }}
+}};
+const savedTab = localStorage.getItem(storageKey("active-tab"));
+let activeTab = document.getElementById(savedTab) ? savedTab : "schematic";
 let refreshInFlight = false;
 let gerberViewer;
 let gerberLoadPromise;
 let gerberRevisionKey;
 let gerberSources = [];
 let gerberSourceKey;
-let pcbPoursVisible = localStorage.getItem("kicad-pcb-polygon-pours") !== "0";
-const projectId = {project_id};
+let pcbPoursVisible = (localStorage.getItem(storageKey("polygon-pours")) ?? localStorage.getItem("kicad-pcb-polygon-pours")) !== "0";
+let viewerState = readJsonState("viewer-state", {{}});
 window.KicadWorkbenchState = {{
   projectId,
   session: {session_json},
   sourceRevision: () => sourceSnapshot?.revision,
+}};
+const viewerContext = frame => frame.dataset.kind || "unknown";
+const storedViewerState = context => viewerState[context] || {{}};
+const updateStoredViewerState = (context, patch) => {{
+  if (!context) return;
+  viewerState = {{
+    ...viewerState,
+    [context]: {{ ...(viewerState[context] || {{}}), ...patch }},
+  }};
+  writeJsonState("viewer-state", viewerState);
 }};
 const projectParam = () => `project=${{encodeURIComponent(projectId)}}`;
 const api = path => `${{path}}${{path.includes("?") ? "&" : "?"}}${{projectParam()}}`;
@@ -2520,13 +2545,15 @@ const postPcbViewOptions = frame => {{
   frame.contentWindow?.postMessage({{type:"kicad-pcb-view-options", polygonPours:pcbPoursVisible}}, location.origin);
 }};
 const postSnapshot = async frame => {{
+  const context = viewerContext(frame);
+  const saved = storedViewerState(context);
   if (frame.dataset.kind === "model") {{
     const payload = await loadSources();
-    frame.contentWindow?.postMessage({{type:"kicad-pcb-snapshot", kind:"model", url:modelUrl(payload.revision), active:true}}, location.origin);
+    frame.contentWindow?.postMessage({{type:"kicad-pcb-snapshot", kind:"model", context, url:modelUrl(payload.revision), active:true, viewState:saved.view, uiState:saved.ui}}, location.origin);
     return;
   }}
   const payload = await loadSources();
-  frame.contentWindow?.postMessage({{type:"kicad-pcb-snapshot", kind:"native", context:frame.dataset.kind, revision:payload.revision, sources:payload.sources, active:true, polygonPours:pcbPoursVisible}}, location.origin);
+  frame.contentWindow?.postMessage({{type:"kicad-pcb-snapshot", kind:"native", context, revision:payload.revision, sources:payload.sources, active:true, polygonPours:pcbPoursVisible, viewState:saved.view, uiState:saved.ui}}, location.origin);
   postPcbViewOptions(frame);
 }};
 const pcbPoursToggle = document.getElementById("pcbPoursToggle");
@@ -2534,12 +2561,20 @@ if (pcbPoursToggle) {{
   pcbPoursToggle.checked = pcbPoursVisible;
   pcbPoursToggle.addEventListener("change", event => {{
     pcbPoursVisible = event.target.checked;
+    localStorage.setItem(storageKey("polygon-pours"), pcbPoursVisible ? "1" : "0");
     localStorage.setItem("kicad-pcb-polygon-pours", pcbPoursVisible ? "1" : "0");
     document.querySelectorAll("iframe.native-viewer[data-kind='pcb']").forEach(postPcbViewOptions);
   }});
 }}
 window.addEventListener("message", event => {{
   if (event.origin !== location.origin) return;
+  if (event.data?.type === "kicad-pcb-view-state") {{
+    const patch = {{}};
+    if (event.data.view) patch.view = event.data.view;
+    if (event.data.ui) patch.ui = event.data.ui;
+    updateStoredViewerState(event.data.context, patch);
+    return;
+  }}
   if (event.data?.type === "kicad-pcb-runtime-ready") {{
     const frame = [...viewerFrames()].find(item => item.contentWindow === event.source);
     if (frame) void postSnapshot(frame);
@@ -2877,6 +2912,7 @@ const connectEvents = () => {{
 }};
 const setTab = id => {{
   activeTab = id;
+  localStorage.setItem(storageKey("active-tab"), id);
   document.querySelectorAll("section").forEach(el => el.classList.toggle("active", el.id === id));
   document.querySelectorAll(".tabs button").forEach(el => el.classList.toggle("active", el.dataset.tab === id));
   document.querySelectorAll(`#${{CSS.escape(id)}} iframe.native-viewer, #${{CSS.escape(id)}} iframe.model-viewer`).forEach(frame => void postSnapshot(frame));
@@ -2892,7 +2928,7 @@ document.getElementById("projectSelect")?.addEventListener("change", event => {{
   url.searchParams.set("project", next);
   location.href = url.toString();
 }});
-setTab(document.getElementById(location.hash.slice(1)) ? location.hash.slice(1) : "schematic");
+setTab(document.getElementById(location.hash.slice(1)) ? location.hash.slice(1) : activeTab);
 withBusy("Loading initial KiCad sources", async () => {{
   await loadSources();
   viewerFrames().forEach(frame => void postSnapshot(frame));

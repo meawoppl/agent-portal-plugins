@@ -10,7 +10,11 @@ https://github.com/meawoppl/single-binary-rust-website:
   vendored third-party viewer runtimes (ecad-viewer, three.js, occt, gerber-view)
   and is copied to `dist/kicad-viewer/` by trunk.
 
-Build order matters: `cd frontend && trunk build` before `cargo build -p backend`.
+`backend/build.rs` runs `trunk build` (own target dir, `target/frontend`) whenever
+`frontend/dist` is missing or older than frontend/shared sources, so
+`cargo build -p backend` is the whole build. Needs `trunk` on PATH;
+`KICADMIUM_SKIP_FRONTEND_BUILD=1` embeds whatever dist exists. For UI work,
+`cd frontend && trunk watch` alongside `cargo run -p backend -- serve`.
 
 ## Rules
 

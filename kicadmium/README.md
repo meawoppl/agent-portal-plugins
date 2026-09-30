@@ -14,7 +14,6 @@ agent skills. It does not ship KiCad. Bring your own; he'll judge it.
 rustup target add wasm32-unknown-unknown
 cargo install trunk --locked
 
-(cd frontend && trunk build)
 cargo run -p backend -- serve --port 48888 --cwd /path/to/hardware/repo
 # -> http://127.0.0.1:48888/
 ```

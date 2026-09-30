@@ -10,7 +10,7 @@ agent_portal = ">=2.14.1525"
 platforms = ["linux", "macos"]
 
 [install]
-setup = "target/release/kicadmium setup --install-kicad-tools"
+setup = "cargo run --release -p backend -- setup --install-kicad-tools"
 doctor = "target/release/kicadmium doctor --json --cwd {cwd}"
 
 [surface]

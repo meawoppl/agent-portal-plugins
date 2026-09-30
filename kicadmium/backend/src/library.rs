@@ -28,6 +28,7 @@ use shared::library::{
 };
 
 use crate::{
+    jlc_corrections as jlc,
     sexp::{self, Sexp},
     thumbnails::{file_digest, JobState, RenderKind, RenderSpec, Renderer},
     AppError, AppState, LibraryConfig, ProjectContext, ProjectQuery,
@@ -864,22 +865,22 @@ impl<T> LibraryLookup<T> {
 // Schematic / PCB parsing
 
 #[derive(Debug, Clone, Default)]
-struct SchInstance {
-    references: Vec<String>,
+pub(crate) struct SchInstance {
+    pub(crate) references: Vec<String>,
     lib_id: String,
     cache_name: String,
-    fields: Vec<(String, String)>,
+    pub(crate) fields: Vec<(String, String)>,
     power: bool,
 }
 
 #[derive(Debug, Default)]
-struct SchData {
+pub(crate) struct SchData {
     version: Option<String>,
     lib_symbols: HashMap<String, Sexp>,
-    instances: Vec<SchInstance>,
+    pub(crate) instances: Vec<SchInstance>,
 }
 
-fn load_schematic(root_file: &Path) -> Result<SchData> {
+pub(crate) fn load_schematic(root_file: &Path) -> Result<SchData> {
     let mut data = SchData::default();
     let mut seen = HashSet::new();
     let mut stack = vec![root_file.to_path_buf()];
@@ -964,22 +965,22 @@ fn collect_references(node: &Sexp, out: &mut BTreeSet<String>) {
 }
 
 #[derive(Debug, Clone)]
-struct PcbFootprint {
-    reference: String,
+pub(crate) struct PcbFootprint {
+    pub(crate) reference: String,
     fpid: String,
-    node: Sexp,
-    fields: Vec<(String, String)>,
+    pub(crate) node: Sexp,
+    pub(crate) fields: Vec<(String, String)>,
     bottom: bool,
 }
 
 #[derive(Debug, Default)]
-struct PcbData {
+pub(crate) struct PcbData {
     version: Option<String>,
     layers: Option<Sexp>,
-    footprints: Vec<PcbFootprint>,
+    pub(crate) footprints: Vec<PcbFootprint>,
 }
 
-fn load_pcb(path: &Path) -> Result<PcbData> {
+pub(crate) fn load_pcb(path: &Path) -> Result<PcbData> {
     let text =
         std::fs::read_to_string(path).with_context(|| format!("read PCB {}", path.display()))?;
     let root = sexp::parse(&text).with_context(|| format!("parse {}", path.display()))?;
@@ -1747,6 +1748,7 @@ struct Group {
     fields: Vec<(String, String)>,
     board: Option<PcbFootprint>,
     power: bool,
+    corrections: Vec<(String, Result<jlc::PartCorrection, String>)>,
 }
 
 fn field_kind(name: &str) -> Option<&'static str> {
@@ -1755,6 +1757,9 @@ fn field_kind(name: &str) -> Option<&'static str> {
         .filter(|ch| ch.is_ascii_alphanumeric())
         .collect::<String>()
         .to_ascii_lowercase();
+    if jlc::correction_field(name).is_some() {
+        return Some("jlc-correction");
+    }
     if key.starts_with("lcsc") || key.starts_with("jlc") {
         return Some("lcsc");
     }
@@ -1796,6 +1801,56 @@ fn badge(kind: &str, level: &str, label: &str, detail: Option<String>) -> Librar
         label: label.to_string(),
         detail,
     }
+}
+
+fn correction_badge(
+    corrections: &[(String, Result<jlc::PartCorrection, String>)],
+) -> Option<LibraryBadge> {
+    if corrections.is_empty() {
+        return None;
+    }
+    let errors = corrections
+        .iter()
+        .filter_map(|(_, value)| value.as_ref().err().cloned())
+        .collect::<Vec<_>>();
+    if !errors.is_empty() {
+        return Some(badge(
+            "jlc-correction",
+            "error",
+            "JLC corr. invalid",
+            Some(errors.join("; ")),
+        ));
+    }
+    let mut by_value: BTreeMap<String, Vec<&str>> = BTreeMap::new();
+    for (reference, value) in corrections {
+        if let Ok(value) = value {
+            by_value
+                .entry(value.summary())
+                .or_default()
+                .push(reference.as_str());
+        }
+    }
+    let label = match by_value.keys().collect::<Vec<_>>().as_slice() {
+        [only] => format!("JLC corr. {only}"),
+        _ => "JLC corr. (mixed)".to_string(),
+    };
+    let detail = by_value
+        .iter()
+        .map(|(summary, refs)| {
+            let mut refs = refs.clone();
+            refs.sort_by_key(|reference| crate::natural_ref_key(reference));
+            format!("{}: {summary}", refs.join(","))
+        })
+        .collect::<Vec<_>>()
+        .join("; ");
+    Some(badge(
+        "jlc-correction",
+        "info",
+        &label,
+        Some(format!(
+            "JLCPCB CPL correction, footprint-local frame (rotation CCW+, offset x,y mm +Y down) - {detail}"
+        )),
+    ))
 }
 
 fn short_hash(parts: &[&str]) -> String {
@@ -1907,6 +1962,21 @@ fn build_inventory(repo_root: &Path, project: &ProjectContext) -> Result<Invento
         group.footprint = fpid;
         group.models = models;
         group.refs.insert(reference.clone());
+        let mut ignored = Vec::new();
+        match jlc::resolve(
+            reference,
+            instance.map(|instance| instance.fields.as_slice()),
+            footprint.map(|fp| fp.fields.as_slice()),
+            &mut ignored,
+        ) {
+            Ok(Some((correction, _))) => {
+                group.corrections.push((reference.clone(), Ok(correction)))
+            }
+            Ok(None) => {}
+            Err(err) => group
+                .corrections
+                .push((reference.clone(), Err(format!("{err:#}")))),
+        }
         if let Some(instance) = instance {
             group.cache_name.get_or_insert(instance.cache_name.clone());
             if let Some((_, value)) = instance.fields.iter().find(|(name, _)| name == "Value") {
@@ -2106,6 +2176,9 @@ fn part_from_group(ctx: &InvCtx, group: Group) -> PartDraft {
     };
     if group.power {
         badges.push(badge("power", "info", "power symbol", None));
+    }
+    if let Some(item) = correction_badge(&group.corrections) {
+        badges.push(item);
     }
 
     let fields = &group.fields;

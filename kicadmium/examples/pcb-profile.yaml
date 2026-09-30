@@ -60,7 +60,7 @@ manufacturing:
   rules: boards/esp32-fpga-module/module.kicad_dru
   stackup_4l: JLC04101H-7628
   rf_cpwg_50ohm: {trace_mm: 0.26, gap_mm: 0.15}
-  cpl_offsets: per_board            # docs/jlcpcb-placement-offsets.json, LCSC-keyed
+  cpl_offsets: part_fields          # JLCPCB Rotation Offset / JLCPCB Position Offset (footprint-local)
   release:
     tag: true
     snapshot_dir: releases/{tag}

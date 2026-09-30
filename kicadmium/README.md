@@ -39,6 +39,26 @@ Environment: `KICADMIUM_KICAD_CLI`/`KICAD_CLI` pick kicad-cli,
 `KICADMIUM_KCT` picks kct, `KICADMIUM_HOME` holds managed runtimes,
 `KICADMIUM_LIBRARY_WORKERS` / `KICADMIUM_LIBRARY_CACHE_MB` tune library renders.
 
+## JLCPCB placement corrections
+
+When JLCPCB's part model does not match the KiCad footprint, record the
+correction on the part with optional `JLCPCB Rotation Offset` and
+`JLCPCB Position Offset` fields. Put them on the symbol (KiCad propagates them
+to the footprint on *Update PCB from Schematic*) or directly on the footprint;
+hide them on a Fab layer so silkscreen stays clean.
+
+| Field | Value | Meaning |
+|-------|-------|---------|
+| `JLCPCB Rotation Offset` | degrees, e.g. `-90` | added to KiCad's rotation; `-90` is a quarter turn clockwise |
+| `JLCPCB Position Offset` | `x,y` in mm, e.g. `0,-2.75` | footprint-local offset, KiCad +Y down, before rotation/flip |
+
+Corrections stay attached to the footprint as the part moves, rotates, or
+flips. `export jlcpcb` logs every corrected reference and writes
+`<board>-placement-corrections.json` beside the CPL; the Libraries tab shows a
+`JLC corr.` badge for corrected parts. The old `manufacturer.placementOffsets`
+or `docs/jlcpcb-placement-offsets.json` table is still read as a deprecated
+fallback for parts without fields, and part fields win over table entries.
+
 ## Layout
 
 See [AGENTS.md](AGENTS.md). Rust workspace: `backend/` (Axum + CLI),

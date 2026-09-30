@@ -2347,6 +2347,9 @@ async fn install_kicad_tools_runtime(force: bool, extra: &str) -> Result<serde_j
         }));
     };
     let runtime = plugin_dir()?.join(".runtime").join("kicad-tools");
+    // KICADMIUM_HOME may not exist on first setup; commands run from it.
+    std::fs::create_dir_all(runtime.parent().expect("runtime has a parent"))
+        .context("create kicadmium runtime dir")?;
     if force && runtime.exists() {
         let backup = runtime.with_file_name(format!("kicad-tools.old-{}", now_ms()));
         std::fs::rename(&runtime, backup)?;

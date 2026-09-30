@@ -1,0 +1,110 @@
+//! STEP, Analysis, and Panelization tabs: manifest-driven inventory views.
+
+use shared::ManifestResponse;
+use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
+
+use crate::api;
+
+#[derive(Properties, PartialEq)]
+pub struct TabProps {
+    pub project: AttrValue,
+    #[prop_or_default]
+    pub revision: AttrValue,
+}
+
+#[hook]
+fn use_manifest(project: AttrValue, revision: AttrValue) -> Option<Result<ManifestResponse, String>> {
+    let manifest = use_state(|| None);
+    {
+        let manifest = manifest.clone();
+        use_effect_with((project, revision), move |(project, _)| {
+            let project = project.to_string();
+            spawn_local(async move { manifest.set(Some(api::manifest(&project).await)) });
+        });
+    }
+    (*manifest).clone()
+}
+
+fn loading_or_error(state: &Option<Result<ManifestResponse, String>>) -> Option<Html> {
+    match state {
+        None => Some(html! { <p class="muted">{"Loading project manifest..."}</p> }),
+        Some(Err(err)) => Some(html! { <p class="warning">{format!("Unable to load manifest: {err}")}</p> }),
+        Some(Ok(_)) => None,
+    }
+}
+
+#[function_component(StepTab)]
+pub fn step_tab(props: &TabProps) -> Html {
+    let manifest = use_manifest(props.project.clone(), props.revision.clone());
+    let body = loading_or_error(&manifest).unwrap_or_else(|| {
+        let files = manifest.and_then(Result::ok).map(|m| m.files).unwrap_or_default();
+        html! {
+            <ul>
+                {for files.iter().map(|f| html! { <li><code>{&f.path}</code>{" "}<span class="muted">{&f.kind}</span></li> })}
+            </ul>
+        }
+    });
+    html! { <div class="card"><h2>{"STEP"}</h2>{body}</div> }
+}
+
+#[function_component(AnalysisTab)]
+pub fn analysis_tab(props: &TabProps) -> Html {
+    let manifest = use_manifest(props.project.clone(), props.revision.clone());
+    let body = loading_or_error(&manifest).unwrap_or_else(|| {
+        let m = manifest.and_then(Result::ok).expect("manifest loaded");
+        let mut kinds = std::collections::BTreeMap::<&str, usize>::new();
+        for file in &m.files {
+            *kinds.entry(file.kind.as_str()).or_default() += 1;
+        }
+        html! {
+            <>
+                <p>
+                    {format!("Root {} · revision {} · ", m.root, m.revision)}
+                    {match (&m.kicad_cli, &m.kicad_version) {
+                        (Some(cli), Some(version)) => format!("KiCad {version} ({cli})"),
+                        (Some(cli), None) => format!("kicad-cli {cli}"),
+                        _ => "kicad-cli not found: checks and exports are unavailable".into(),
+                    }}
+                </p>
+                {for m.warnings.iter().map(|w| html! { <div class="warning">{w}</div> })}
+                <table class="bom-table">
+                    <thead><tr><th>{"Kind"}</th><th>{"Files"}</th></tr></thead>
+                    <tbody>{for kinds.iter().map(|(kind, n)| html! { <tr><td>{*kind}</td><td>{*n}</td></tr> })}</tbody>
+                </table>
+                <p class="muted">
+                    {"Layout-quality audits, DRC/ERC, and pcb-lint heuristics live on the Checks tab; "}
+                    {"deeper analysis runs through "}<code>{"kicadmium kct -- <command>"}</code>{" (rjwalters/kicad-tools)."}
+                </p>
+            </>
+        }
+    });
+    html! { <div class="card"><h2>{"Analysis"}</h2>{body}</div> }
+}
+
+#[function_component(PanelizationTab)]
+pub fn panelization_tab(props: &TabProps) -> Html {
+    let manifest = use_manifest(props.project.clone(), props.revision.clone());
+    let boards = manifest
+        .and_then(Result::ok)
+        .map(|m| {
+            m.files
+                .into_iter()
+                .filter(|f| f.path.ends_with(".kicad_pcb"))
+                .map(|f| f.path)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let example = boards.first().cloned().unwrap_or_else(|| "board.kicad_pcb".into());
+    html! {
+        <div class="card">
+            <h2>{"Panelization"}</h2>
+            <p>{"Panels are generated with KiKit through the tool passthrough, never by editing the source board:"}</p>
+            <pre>{format!(
+                "kicadmium tool --cwd . -- kikit panelize \\\n  --layout 'grid; rows: 2; cols: 2; space: 2mm' \\\n  --tabs 'fixed; width: 3mm' --cuts 'mousebites' \\\n  --framing 'railstb; width: 5mm' \\\n  {example} build/panel/panel.kicad_pcb"
+            )}</pre>
+            <p class="muted">{"See the kicad-panelize skill for manufacturer-specific presets. Boards in this project: "}
+                {if boards.is_empty() { "none detected".to_string() } else { boards.join(", ") }}</p>
+        </div>
+    }
+}

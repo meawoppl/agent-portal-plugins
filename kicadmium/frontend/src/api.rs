@@ -129,8 +129,23 @@ pub async fn library(project: &str) -> Result<LibraryResponse, String> {
     get_json("/api/kicad/library", project).await
 }
 
-pub async fn library_status(project: &str) -> Result<LibraryStatusResponse, String> {
-    get_json("/api/kicad/library/status", project).await
+/// Render states for `keys`; `visible` keys are rendered first.
+pub async fn library_status(
+    project: &str,
+    keys: &[String],
+    visible: &[String],
+) -> Result<LibraryStatusResponse, String> {
+    let path = format!(
+        "/api/kicad/library/status?keys={}&visible={}",
+        encode(&keys.join(",")),
+        encode(&visible.join(","))
+    );
+    get_json(&path, project).await
+}
+
+/// Legacy symbol/footprint link table (HTML fragment).
+pub async fn library_links_html(project: &str) -> Result<String, String> {
+    get_text("/api/kicad/libraries", project).await
 }
 
 pub async fn gerbers(project: &str) -> Result<GerberSourcesResponse, String> {

@@ -1,0 +1,20 @@
+schema_version = 1
+name = "engineering-presentations"
+display_name = "Engineering Presentations"
+description = "Repository-backed engineering presentations, reproducible figures, and annotation-driven review."
+license = "MIT"
+
+[[skills]]
+name = "presentation-authoring"
+path = "skills/presentation-authoring/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "reproducible-figures"
+path = "skills/reproducible-figures/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "presentation-feedback"
+path = "skills/presentation-feedback/SKILL.md"
+agents = ["claude", "codex"]

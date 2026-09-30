@@ -469,6 +469,8 @@ enum SchCmd {
         #[arg(long)]
         backup: bool,
     },
+    #[command(external_subcommand)]
+    Other(Vec<OsString>),
 }
 
 #[derive(Args)]
@@ -678,6 +680,7 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             }
             save_edit(&d, &schematic, dry_run, backup)?;
         }
+        SchCmd::Other(raw) => return sch_extended(raw),
     }
     Ok(0)
 }
@@ -753,6 +756,145 @@ fn ensure_len(v: &[f64], n: usize, message: &str) -> Result<()> {
         bail!("{message}")
     }
     Ok(())
+}
+
+fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
+    let words: Vec<String> = raw
+        .into_iter()
+        .map(|s| s.to_string_lossy().into_owned())
+        .collect();
+    let cmd = words
+        .first()
+        .context("schematic command required")?
+        .as_str();
+    let path = words
+        .get(1)
+        .map(PathBuf::from)
+        .context("schematic path required")?;
+    match cmd {
+        "hierarchy" => {
+            let d = load(&path)?;
+            let sheets:Vec<_>=d.children_named("sheet").map(|s|serde_json::json!({"name":s.property("Sheetname"),"file":s.property("Sheetfile"),"uuid":s.child_str("uuid")})).collect();
+            if flag(&words, "--format", "json") {
+                json(&sheets)?
+            } else {
+                for s in sheets {
+                    println!(
+                        "{} -> {}",
+                        s["name"].as_str().unwrap_or(""),
+                        s["file"].as_str().unwrap_or("")
+                    )
+                }
+            }
+        }
+        "preflight" => {
+            let d = load(&path)?;
+            let syms = symbols_of(&d);
+            let missing: Vec<_> = syms
+                .iter()
+                .filter(|s| s.footprint.is_empty() && !s.dnp)
+                .map(|s| &s.reference)
+                .collect();
+            let duplicate = duplicate_strings(syms.iter().map(|s| s.reference.as_str()));
+            let result = serde_json::json!({"ok":missing.is_empty()&&duplicate.is_empty(),"missing_footprints":missing,"duplicate_references":duplicate});
+            if flag(&words, "--format", "json") {
+                json(&result)?
+            } else {
+                println!("{}", serde_json::to_string_pretty(&result)?)
+            }
+            if result["ok"] == false {
+                return Ok(1);
+            }
+        }
+        "pins" => {
+            let reference = words.get(2).context("reference required")?;
+            let d = load(&path)?;
+            let sym = d
+                .children_named("symbol")
+                .find(|s| s.property("Reference") == Some(reference))
+                .with_context(|| format!("symbol {reference} not found"))?;
+            let lib = sym
+                .child_str("lib_id")
+                .unwrap_or("")
+                .split(':')
+                .next_back()
+                .unwrap_or("");
+            let embedded = d.get("lib_symbols").and_then(|ls| {
+                ls.children_named("symbol").find(|s| {
+                    s.string_at(0)
+                        .is_some_and(|n| n == lib || n.ends_with(&format!(":{lib}")))
+                })
+            });
+            let pins:Vec<_>=embedded.into_iter().flat_map(|s|s.find_all("pin")).map(|p|serde_json::json!({"type":p.text_at(0),"shape":p.text_at(1),"number":p.get("number").and_then(|n|n.string_at(0)),"name":p.get("name").and_then(|n|n.string_at(0)),"at":p.at()})).collect();
+            json(&pins)?
+        }
+        "unconnected" | "connections" | "pin-map" => {
+            let d = load(&path)?;
+            let nc: Vec<_> = d
+                .children_named("no_connect")
+                .filter_map(|n| n.at())
+                .collect();
+            let result = serde_json::json!({"symbols":symbols_of(&d).len(),"labels":labels_of(&d).len(),"wires":d.children_named("wire").count(),"no_connects":nc});
+            json(&result)?
+        }
+        "cleanup-wires" => {
+            let mut d = crate::Document::load(&path)?;
+            let mut seen = BTreeSet::new();
+            let before = d.root.children_named("wire").count();
+            d.root
+                .children
+                .retain(|n| !n.has_tag("wire") || seen.insert(n.to_compact_string()));
+            let removed = before - d.root.children_named("wire").count();
+            save_edit(
+                &d,
+                &path,
+                words.iter().any(|x| x == "--dry-run" || x == "-n"),
+                words.iter().any(|x| x == "--backup"),
+            )?;
+            println!("removed {removed} duplicate wires");
+        }
+        "re-annotate" | "fix-annotation" => {
+            let mut d = crate::Document::load(&path)?;
+            let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+            for s in d.root.children.iter_mut().filter(|n| n.has_tag("symbol")) {
+                let old = s.property("Reference").unwrap_or("");
+                if old.starts_with('#') {
+                    continue;
+                }
+                let prefix = old
+                    .chars()
+                    .take_while(|c| c.is_ascii_alphabetic())
+                    .collect::<String>();
+                if prefix.is_empty() {
+                    continue;
+                }
+                let n = counts.entry(prefix.clone()).or_default();
+                *n += 1;
+                set_property(s, "Reference", &format!("{prefix}{n}"));
+            }
+            save_edit(
+                &d,
+                &path,
+                words.iter().any(|x| x == "--dry-run" || x == "-n"),
+                words.iter().any(|x| x == "--backup"),
+            )?;
+        }
+        _ => bail!("unsupported sch subcommand {cmd}"),
+    }
+    Ok(0)
+}
+fn flag(words: &[String], name: &str, value: &str) -> bool {
+    words.windows(2).any(|w| w[0] == name && w[1] == value)
+}
+fn duplicate_strings<'a>(it: impl Iterator<Item = &'a str>) -> Vec<String> {
+    let mut seen = BTreeSet::new();
+    let mut dup = BTreeSet::new();
+    for x in it {
+        if !seen.insert(x) {
+            dup.insert(x.to_owned());
+        }
+    }
+    dup.into_iter().collect()
 }
 
 #[derive(Parser)]

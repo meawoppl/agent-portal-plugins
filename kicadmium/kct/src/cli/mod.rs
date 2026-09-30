@@ -18,6 +18,7 @@ pub mod footprint;
 pub mod mfr;
 pub mod parts;
 pub mod project;
+pub mod suggest;
 pub mod utility;
 
 /// Global flags accepted before the command name.
@@ -80,7 +81,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "constraints", about: "Constraint conflict detection and management", wave: "E", run: None },
     CommandSpec { name: "estimate", about: "Manufacturing cost estimation", wave: "C", run: None },
     CommandSpec { name: "audit", about: "Manufacturing readiness audit (ERC, DRC, connectivity, compatibility)", wave: "C", run: None },
-    CommandSpec { name: "suggest", about: "Part suggestions and recommendations", wave: "G", run: None },
+    CommandSpec { name: "suggest", about: "Part suggestions and recommendations", wave: "G", run: Some(suggest::run) },
     CommandSpec { name: "net-status", about: "Report net connectivity status for a PCB", wave: "C", run: None },
     CommandSpec { name: "fleet", about: "Fleet-wide PCB status and operations", wave: "C", run: None },
     CommandSpec { name: "render", about: "Render per-board 2D SVGs + 3D PNGs into output/renders/", wave: "C", run: None },

@@ -12,6 +12,7 @@ use anyhow::Result;
 
 use crate::units::{self, UnitFormatter};
 
+pub mod datasheet;
 pub mod design;
 pub mod footprint;
 pub mod mfr;
@@ -68,7 +69,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "fix-drc", about: "Automated DRC violation repair (clearance + drill)", wave: "D", run: None },
     CommandSpec { name: "fix-erc", about: "Automated ERC violation repair (PWR_FLAG + no-connect)", wave: "D", run: None },
     CommandSpec { name: "parts", about: "LCSC parts lookup and search", wave: "G", run: Some(parts::run) },
-    CommandSpec { name: "datasheet", about: "Datasheet search, download, and PDF parsing", wave: "G", run: None },
+    CommandSpec { name: "datasheet", about: "Datasheet search, download, and PDF parsing", wave: "G", run: Some(datasheet::run) },
     CommandSpec { name: "decisions", about: "Query design decisions (placement and routing rationale)", wave: "E", run: None },
     CommandSpec { name: "placement", about: "Detect and fix placement conflicts", wave: "E", run: None },
     CommandSpec { name: "optimize-placement", about: "Run CMA-ES placement optimization on a KiCad PCB", wave: "E", run: None },

@@ -545,11 +545,49 @@ export class RetainedNativeViewer extends EventTarget {
     return (visible ?? apps[0])?.viewer;
   }
 
+  appForTab(tab) {
+    const selector = tab === "PCB" ? "kc-board-app" : tab === "SCH" ? "kc-schematic-app" : "";
+    return selector ? this.current?.shadowRoot?.querySelector(selector) : undefined;
+  }
+
+  activeTab() {
+    const active = this.current?.shadowRoot?.querySelector(".tab-content.active");
+    switch (active?.localName) {
+      case "kc-board-app":
+        return "PCB";
+      case "kc-schematic-app":
+        return "SCH";
+      default:
+        return undefined;
+    }
+  }
+
+  boardMenuTab() {
+    const menu = this.appForTab("PCB")?.shadowRoot?.querySelector("tab-view");
+    const tab = menu?.shadowRoot?.querySelector(".tab.active");
+    return tab?.textContent?.trim() || undefined;
+  }
+
+  setBoardMenuTab(label) {
+    if (typeof label !== "string" || !label) return false;
+    const tabs = this.appForTab("PCB")?.shadowRoot?.querySelector("tab-view")?.shadowRoot;
+    const tab = [...(tabs?.querySelectorAll(".tab") ?? [])].find(
+      (item) => item.textContent?.trim() === label,
+    );
+    tab?.click();
+    return Boolean(tab);
+  }
+
   createElement() {
     const viewer = document.createElement("ecad-viewer");
     viewer.setAttribute("source-mode", "host");
     viewer.setAttribute("show-header", "false");
     viewer.style.cssText = "display:block;width:100%;height:100%";
+    const reportState = () => this.dispatchEvent(new CustomEvent("viewstatechange"));
+    viewer.addEventListener("ecad-viewer:view-state-change", reportState);
+    viewer.addEventListener("kicanvas:tab:activate", reportState);
+    viewer.addEventListener("kicanvas:tab:menu:visible", reportState);
+    viewer.addEventListener("file:tab:menu:change", reportState);
     viewer.addEventListener("ecad-viewer:selection", (event) => {
       const pendingNet =
         this.core()?.__kicadPcbPendingFootprintNet && event.detail?.itemType === "footprint"
@@ -836,6 +874,26 @@ export class RetainedNativeViewer extends EventTarget {
       : undefined;
   }
 
+  captureUiState() {
+    const activeTab = this.activeTab();
+    const boardApp = this.appForTab("PCB");
+    const schematicApp = this.appForTab("SCH");
+    const project = this.current?.project;
+    return {
+      activeTab,
+      schematicPage:
+        typeof project?.active_sch_name === "string" ? project.active_sch_name : undefined,
+      tabMenuHidden: {
+        PCB: typeof boardApp?.tabMenuHidden === "boolean" ? boardApp.tabMenuHidden : undefined,
+        SCH:
+          typeof schematicApp?.tabMenuHidden === "boolean"
+            ? schematicApp.tabMenuHidden
+            : undefined,
+      },
+      boardMenuTab: this.boardMenuTab(),
+    };
+  }
+
   captureImage() {
     this.finishTransition();
     const core = this.core();
@@ -860,6 +918,30 @@ export class RetainedNativeViewer extends EventTarget {
     this.core()?.draw_now?.();
     this.pendingView = undefined;
     return true;
+  }
+
+  restoreUiState(ui = {}) {
+    if (!ui || typeof ui !== "object") return false;
+    let restored = false;
+    if (typeof ui.schematicPage === "string")
+      restored = Boolean(this.current?.project?.activate_sch?.(ui.schematicPage)) || restored;
+    const activeTab = ui.activeTab === "PCB" || ui.activeTab === "SCH" ? ui.activeTab : undefined;
+    if (activeTab) {
+      this.activateContext(activeTab);
+      restored = true;
+    }
+    for (const tab of ["PCB", "SCH"]) {
+      const hidden = ui.tabMenuHidden?.[tab];
+      const app = this.appForTab(tab);
+      if (typeof hidden === "boolean" && app) {
+        app.tabMenuHidden = hidden;
+        restored = true;
+      }
+    }
+    if (this.setBoardMenuTab(ui.boardMenuTab)) restored = true;
+    this.current?.resize();
+    this.core()?.draw_now?.();
+    return restored;
   }
 
   async replaceSources({ revisionKey, sources, layerVisibility = {} }) {

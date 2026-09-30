@@ -149,6 +149,7 @@ window.addEventListener("message", (event) => {
           viewer.addEventListener("layers", (event) =>
             send({ type: "kicad-pcb-layers", layers: event.detail }),
           );
+          viewer.addEventListener("viewstatechange", () => scheduleNativeViewerState(20));
           installNativeStateListeners();
         }
         if (revision !== snapshot.revision) {
@@ -178,6 +179,7 @@ window.addEventListener("message", (event) => {
           if (native) {
             viewer.activateContext?.(snapshot.context);
             await installCanvasPresentation(native);
+            viewer.restoreUiState?.(snapshot.uiState);
             viewer.restoreView?.(snapshot.viewState);
             viewer.reseedLayerCache();
             viewer.enhanceGeometrySelection();

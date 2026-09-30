@@ -69,10 +69,15 @@ heuristic reviewer, not native ERC/DRC and not permission to edit your board.
 The design rules we stole on purpose—and the places where we refuse to fake
 certainty—are in [docs/design-principles.md](docs/design-principles.md).
 
-## Lineage
+## Inspirations
 
-Ported out of the Agent Portal `kicad-pcb` plugin. Steals ideas shamelessly
-from [i2cjak/Backplane](https://github.com/i2cjak/Backplane),
-[rjwalters/kicad-tools](https://github.com/rjwalters/kicad-tools),
-[American-Embedded/kistack](https://github.com/American-Embedded/kistack), and
-[pastebom.com](https://github.com/meawoppl/pastebom.com).
+Ported out of the Agent Portal `kicad-pcb` plugin and built in the pattern of
+[single-binary-rust-website](https://github.com/meawoppl/single-binary-rust-website).
+It steals ideas shamelessly from:
+
+- [Copperhead](https://github.com/copperheadhq/copperhead), for treating electronics design as an agent-native engineering workspace.
+- [i2cjak/Backplane](https://github.com/i2cjak/Backplane), for truthful multi-view hardware inspection, revision-aware UI state, and its broader agent-driven electronics conventions.
+- [i2cjak/Backplane_KiCad](https://github.com/i2cjak/Backplane_KiCad), Backplane's focused KiCad IPC fork.
+- [rjwalters/kicad-tools](https://github.com/rjwalters/kicad-tools), for machine-readable inspection, validation, manufacturing, and mutation contracts.
+- [American-Embedded/kistack](https://github.com/American-Embedded/kistack), for the practical KiCad agent workflows vendored here.
+- [pastebom.com](https://github.com/meawoppl/pastebom.com), for reusable Rust PCB extraction and Gerber-viewing machinery.

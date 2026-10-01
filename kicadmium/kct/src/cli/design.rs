@@ -1987,11 +1987,25 @@ struct ValidateArgs {
 pub fn validate(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: ValidateArgs = super::parse_args("validate", args);
     let mut files = a.files;
-    if let Some(s) = a.schematic {
-        files.push(s)
+    let mut schematic = a.schematic;
+    let mut pcb = a.pcb;
+    for f in &files {
+        if f.extension().and_then(|x| x.to_str()) == Some("kicad_pro") {
+            let stem = f.file_stem().unwrap_or_default();
+            let dir = f.parent().unwrap_or(Path::new("."));
+            schematic.get_or_insert_with(|| dir.join(stem).with_extension("kicad_sch"));
+            pcb.get_or_insert_with(|| dir.join(stem).with_extension("kicad_pcb"));
+        }
     }
-    if let Some(p) = a.pcb {
-        files.push(p)
+    if let Some(s) = &schematic {
+        if !files.contains(s) {
+            files.push(s.clone())
+        }
+    }
+    if let Some(p) = &pcb {
+        if !files.contains(p) {
+            files.push(p.clone())
+        }
     }
     if files.is_empty() {
         bail!("provide a .kicad_sch, .kicad_pcb, or .kicad_pro file")
@@ -2018,14 +2032,50 @@ pub fn validate(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         }
         reports.push(serde_json::json!({"file":p,"valid":true}));
     }
+    let mut issues = vec![];
+    if let (true, Some(schematic), Some(pcb)) = (
+        (a.sync || a.consistency || a.placement || a.lvs),
+        schematic.as_ref(),
+        pcb.as_ref(),
+    ) {
+        let sd = load(schematic)?;
+        let pd = load(pcb)?;
+        let ss = symbols_of(&sd);
+        let sr: BTreeSet<_> = ss.iter().map(|s| s.reference.as_str()).collect();
+        let pr: BTreeSet<_> = pd
+            .children_named("footprint")
+            .filter_map(|f| f.property("Reference"))
+            .collect();
+        for r in sr.difference(&pr) {
+            issues
+                .push(serde_json::json!({"severity":"error","kind":"missing_on_pcb","reference":r}))
+        }
+        for r in pr.difference(&sr) {
+            issues
+                .push(serde_json::json!({"severity":"error","kind":"orphan_on_pcb","reference":r}))
+        }
+        for s in ss {
+            if let Some(f) = pd
+                .children_named("footprint")
+                .find(|f| f.property("Reference") == Some(&s.reference))
+            {
+                if !s.footprint.is_empty()
+                    && f.string_at(0)
+                        .is_some_and(|id| id != s.footprint && !id.ends_with(&s.footprint))
+                {
+                    issues.push(serde_json::json!({"severity":"error","kind":"footprint_mismatch","reference":s.reference,"schematic":s.footprint,"pcb":f.string_at(0)}))
+                }
+            }
+        }
+    }
     if a.format == "json" {
-        json(&reports)?
+        json(&serde_json::json!({"files":reports,"issues":issues,"valid":issues.is_empty()}))?
     } else {
         for r in reports {
             println!("OK {}", r["file"].as_str().unwrap_or(""))
         }
     }
-    Ok(0)
+    Ok(if issues.is_empty() { 0 } else { 1 })
 }
 fn copy_dir(src: &Path, dst: &Path) -> Result<()> {
     std::fs::create_dir_all(dst)?;

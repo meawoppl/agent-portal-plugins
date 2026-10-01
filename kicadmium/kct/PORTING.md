@@ -36,4 +36,9 @@ Upstream reference: https://github.com/rjwalters/kicad-tools (MIT, see
 | G | parts, datasheet, suggest, mfr (+ `manufacturers`), init, footprint, panel, export, create-pcb, build, spec, pipeline, config, doctor, clean | kc-codex |
 | H | mcp, ipc, reason, interactive, run | decide last |
 
-`kct --help` marks every command still `[not yet ported]`; they exit 3.
+`kct --help` marks commands still `[not yet ported]`; they exit 3. Wave G is
+native: manufacturer presets/DRU, parametric footprints, live LCSC parts and
+cache, datasheet acquisition/PDF analysis, suggestions, project/spec setup,
+panelization, manufacturing export, cleanup/doctor/config, and the repair/build
+orchestrators. These implementations invoke `kicad-cli` only for KiCad-native
+exports and checks; no Python interpreter or wrapper remains in their path.

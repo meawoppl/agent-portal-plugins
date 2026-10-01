@@ -144,7 +144,12 @@ impl std::error::Error for OffAngleSegmentError {}
 /// True when the by-construction guard should raise, not just warn.
 pub fn segment_45_strict_enabled() -> bool {
     std::env::var(SEGMENT_45_STRICT_ENV)
-        .map(|v| matches!(v.trim().to_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        .map(|v| {
+            matches!(
+                v.trim().to_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
         .unwrap_or(false)
 }
 
@@ -287,7 +292,10 @@ pub fn segment_angle_census_text(text: &str, tol_deg: f64) -> (usize, Vec<OffAng
                 end: (x2, y2),
                 layer: m[7].to_string(),
                 net,
-                uuid: m.get(8).or_else(|| m.get(11)).map(|u| u.as_str().to_string()),
+                uuid: m
+                    .get(8)
+                    .or_else(|| m.get(11))
+                    .map(|u| u.as_str().to_string()),
                 off_deg: off,
             });
         }
@@ -331,11 +339,21 @@ impl Dec {
         if frac_part.len() > DEC_SCALE as usize {
             return None;
         }
-        let ip: i128 = if int_part.is_empty() { 0 } else { int_part.parse().ok()? };
-        let mut fp: i128 = if frac_part.is_empty() { 0 } else { frac_part.parse().ok()? };
+        let ip: i128 = if int_part.is_empty() {
+            0
+        } else {
+            int_part.parse().ok()?
+        };
+        let mut fp: i128 = if frac_part.is_empty() {
+            0
+        } else {
+            frac_part.parse().ok()?
+        };
         fp *= 10i128.pow(DEC_SCALE - frac_part.len() as u32);
         let v = ip * 10i128.pow(DEC_SCALE) + fp;
-        Some(Dec { v: if neg { -v } else { v } })
+        Some(Dec {
+            v: if neg { -v } else { v },
+        })
     }
 
     fn abs(self) -> Dec {
@@ -457,7 +475,10 @@ pub fn quantize_pcb_text(text: &str, opts: &QuantizeOptions) -> (String, Vec<Str
             Some(n) => format!("(net {})", n.as_str()),
             None => format!("(net \"{}\")", m.get(10).map_or("", |n| n.as_str())),
         };
-        let seg_uuid = m.get(8).or_else(|| m.get(11)).map(|u| u.as_str().to_string());
+        let seg_uuid = m
+            .get(8)
+            .or_else(|| m.get(11))
+            .map(|u| u.as_str().to_string());
         let dx = (x2 - x1).to_f64();
         let dy = (y2 - y1).to_f64();
         if (dx == 0.0 && dy == 0.0) || is_45_aligned(dx, dy, tol) {
@@ -476,8 +497,7 @@ pub fn quantize_pcb_text(text: &str, opts: &QuantizeOptions) -> (String, Vec<Str
             out.push_str(original);
             continue;
         }
-        let (mx, my) =
-            decimal_dogleg_mid(x1, y1, x2, y2, opts.axis_first_uuids.contains(&key));
+        let (mx, my) = decimal_dogleg_mid(x1, y1, x2, y2, opts.axis_first_uuids.contains(&key));
         let inner = if indent == "\t" || indent == "  " {
             indent.repeat(2)
         } else {
@@ -535,9 +555,18 @@ mod tests {
 
     #[test]
     fn dogleg_variants() {
-        assert_eq!(dogleg(0.0, 0.0, 2.0, 1.0, false), vec![(0.0, 0.0), (1.0, 1.0), (2.0, 1.0)]);
-        assert_eq!(dogleg(0.0, 0.0, 2.0, 1.0, true), vec![(0.0, 0.0), (1.0, 0.0), (2.0, 1.0)]);
-        assert_eq!(dogleg(0.0, 0.0, 1.0, 2.0, false), vec![(0.0, 0.0), (1.0, 1.0), (1.0, 2.0)]);
+        assert_eq!(
+            dogleg(0.0, 0.0, 2.0, 1.0, false),
+            vec![(0.0, 0.0), (1.0, 1.0), (2.0, 1.0)]
+        );
+        assert_eq!(
+            dogleg(0.0, 0.0, 2.0, 1.0, true),
+            vec![(0.0, 0.0), (1.0, 0.0), (2.0, 1.0)]
+        );
+        assert_eq!(
+            dogleg(0.0, 0.0, 1.0, 2.0, false),
+            vec![(0.0, 0.0), (1.0, 1.0), (1.0, 2.0)]
+        );
         assert_eq!(dogleg(0.0, 0.0, 2.0, 2.0, false).len(), 2);
     }
 

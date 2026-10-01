@@ -263,9 +263,15 @@ pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
         if args.drc_aware {
             let delta = stats.drc_errors_after as i64 - stats.drc_errors_before as i64;
             let suffix = if delta > 0 {
-                format!("({delta} new errors, {} nets rolled back)", stats.nets_rolled_back)
+                format!(
+                    "({delta} new errors, {} nets rolled back)",
+                    stats.nets_rolled_back
+                )
             } else if stats.nets_rolled_back > 0 {
-                format!("(no regressions, {} nets rolled back)", stats.nets_rolled_back)
+                format!(
+                    "(no regressions, {} nets rolled back)",
+                    stats.nets_rolled_back
+                )
             } else {
                 "(no regressions)".to_string()
             };

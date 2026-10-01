@@ -1,8 +1,8 @@
 //! Port of `kicad_tools.router.optimizer.chain`: split segments into linear
 //! chains at junctions (degree >= 3 vertices), issue #2389.
 
-use std::collections::{HashMap, HashSet};
 use super::geometry::SegmentExt;
+use std::collections::{HashMap, HashSet};
 
 use crate::router::primitives::Segment;
 

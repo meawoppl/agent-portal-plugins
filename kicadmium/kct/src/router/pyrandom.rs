@@ -20,7 +20,9 @@ pub struct PyRandom {
 
 impl std::fmt::Debug for PyRandom {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("PyRandom").field("index", &self.index).finish()
+        f.debug_struct("PyRandom")
+            .field("index", &self.index)
+            .finish()
     }
 }
 

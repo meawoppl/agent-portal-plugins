@@ -4,9 +4,9 @@
 use super::config::OptimizationConfig;
 use super::geometry::SegmentExt;
 use super::geometry::{
-    is_90_degree_corner, is_connected, is_zigzag, perpendicular_direction,
-    project_point_onto_line, same_direction, segment_direction, segment_length,
-    shorten_segment_end, shorten_segment_start, translate_segment,
+    is_90_degree_corner, is_connected, is_zigzag, perpendicular_direction, project_point_onto_line,
+    same_direction, segment_direction, segment_length, shorten_segment_end, shorten_segment_start,
+    translate_segment,
 };
 use crate::router::primitives::Segment;
 use crate::router::quantize::dogleg;
@@ -213,7 +213,8 @@ pub fn convert_corners_45(
                 let shortened = shorten_segment_start(seg, chamfer, config.min_segment_length);
                 match (shortened, result.last()) {
                     (Some(shortened), Some(last)) => {
-                        let chamfer_seg = seg.with_points(last.x2, last.y2, shortened.x1, shortened.y1);
+                        let chamfer_seg =
+                            seg.with_points(last.x2, last.y2, shortened.x1, shortened.y1);
                         if clear(path_is_clear, &chamfer_seg) {
                             result.push(chamfer_seg);
                             result.push(shortened);
@@ -254,7 +255,13 @@ pub fn convert_corners_45(
             result.push(modified);
         }
     }
-    restore_terminal_endpoints(result, orig_start, orig_end, pad_positions, config.tolerance)
+    restore_terminal_endpoints(
+        result,
+        orig_start,
+        orig_end,
+        pad_positions,
+        config.tolerance,
+    )
 }
 
 fn point_near_any_pad(point: (f64, f64), pads: &[(f64, f64)], tolerance: f64) -> bool {
@@ -301,8 +308,8 @@ fn restore_terminal_endpoints(
         return segments;
     };
     if (last.x2 - orig_end.0).abs() > tolerance || (last.y2 - orig_end.1).abs() > tolerance {
-        let restore =
-            pad_positions.is_none_or(|pads| point_near_any_pad(orig_end, pads, pad_match_tolerance));
+        let restore = pad_positions
+            .is_none_or(|pads| point_near_any_pad(orig_end, pads, pad_match_tolerance));
         if restore {
             let legs = make_legs(&last, last.x1, last.y1, orig_end.0, orig_end.1);
             let n = segments.len();

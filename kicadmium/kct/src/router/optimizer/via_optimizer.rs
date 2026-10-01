@@ -5,8 +5,8 @@
 //! on segment objects; segments here carry a private identity tag so both
 //! behaviours are reproduced.
 
-use std::cell::RefCell;
 use super::geometry::make_route;
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 
@@ -20,7 +20,10 @@ fn qkey(x: f64, y: f64, layer: Layer, tolerance: f64) -> Key {
     let (qx, qy) = if tolerance <= 0.0 {
         ((x * 1e9).round_ties_even(), (y * 1e9).round_ties_even())
     } else {
-        ((x / tolerance).round_ties_even(), (y / tolerance).round_ties_even())
+        (
+            (x / tolerance).round_ties_even(),
+            (y / tolerance).round_ties_even(),
+        )
     };
     (qx as i64, qy as i64, layer.value())
 }

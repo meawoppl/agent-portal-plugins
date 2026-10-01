@@ -5,8 +5,14 @@
 use crate::pyjson::{dumps_indent, Json};
 
 /// `kicad_tools.manufacturers.get_manufacturer_ids()` (sorted canonical ids).
-pub const MANUFACTURER_IDS: &[&str] =
-    &["flashpcb", "jlcpcb", "jlcpcb-tier1", "oshpark", "pcbway", "seeed"];
+pub const MANUFACTURER_IDS: &[&str] = &[
+    "flashpcb",
+    "jlcpcb",
+    "jlcpcb-tier1",
+    "oshpark",
+    "pcbway",
+    "seeed",
+];
 
 /// `get_all_manufacturer_names()` (ids and aliases, sorted).
 pub const ALL_MANUFACTURER_NAMES: &[&str] = &[

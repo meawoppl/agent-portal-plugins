@@ -3,6 +3,5 @@
 //! implementations in [`crate::core::geometry`].
 
 pub use crate::core::geometry::{
-    point_to_segment_distance, segment_clearance, segment_to_segment_distance,
-    segments_intersect,
+    point_to_segment_distance, segment_clearance, segment_to_segment_distance, segments_intersect,
 };

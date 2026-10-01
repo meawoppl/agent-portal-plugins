@@ -145,10 +145,12 @@ impl LayerStack {
         let indices: Vec<usize> = layers.iter().map(|l| l.index).collect();
         let expected: Vec<usize> = (0..layers.len()).collect();
         if indices != expected {
-            return Err(KiCadToolsError::routing("Invalid layer stack configuration")
-                .with_context("indices", serde_json::json!(indices))
-                .with_context("expected", serde_json::json!(expected))
-                .with_suggestion("Layer indices must be sequential starting from 0"));
+            return Err(
+                KiCadToolsError::routing("Invalid layer stack configuration")
+                    .with_context("indices", serde_json::json!(indices))
+                    .with_context("expected", serde_json::json!(expected))
+                    .with_suggestion("Layer indices must be sequential starting from 0"),
+            );
         }
         Ok(Self {
             layers,
@@ -329,8 +331,7 @@ impl LayerStack {
             "4-layer with 2 signal layers",
             vec![
                 LayerDefinition::new("F.Cu", 0, LayerType::Signal).outer(),
-                LayerDefinition::new("In1.Cu", 1, LayerType::Signal)
-                    .with_reference_plane("In2.Cu"),
+                LayerDefinition::new("In1.Cu", 1, LayerType::Signal).with_reference_plane("In2.Cu"),
                 LayerDefinition::new("In2.Cu", 2, LayerType::Plane).with_plane_net("GND"),
                 LayerDefinition::new("B.Cu", 3, LayerType::Mixed)
                     .outer()
@@ -363,10 +364,8 @@ impl LayerStack {
                     .outer()
                     .with_reference_plane("In1.Cu"),
                 LayerDefinition::new("In1.Cu", 1, LayerType::Plane).with_plane_net("GND"),
-                LayerDefinition::new("In2.Cu", 2, LayerType::Signal)
-                    .with_reference_plane("In1.Cu"),
-                LayerDefinition::new("In3.Cu", 3, LayerType::Signal)
-                    .with_reference_plane("In4.Cu"),
+                LayerDefinition::new("In2.Cu", 2, LayerType::Signal).with_reference_plane("In1.Cu"),
+                LayerDefinition::new("In3.Cu", 3, LayerType::Signal).with_reference_plane("In4.Cu"),
                 LayerDefinition::new("In4.Cu", 4, LayerType::Plane).with_plane_net("+3.3V"),
                 LayerDefinition::new("B.Cu", 5, LayerType::Signal)
                     .outer()

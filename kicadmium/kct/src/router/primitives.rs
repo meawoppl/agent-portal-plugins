@@ -212,7 +212,14 @@ pub struct Via {
 }
 
 impl Via {
-    pub fn new(x: f64, y: f64, drill: f64, diameter: f64, layers: (Layer, Layer), net: i64) -> Self {
+    pub fn new(
+        x: f64,
+        y: f64,
+        drill: f64,
+        diameter: f64,
+        layers: (Layer, Layer),
+        net: i64,
+    ) -> Self {
         Self {
             x,
             y,
@@ -397,8 +404,15 @@ impl Route {
                     .iter()
                     .any(|v| (v.x - tx).abs() < 0.01 && (v.y - ty).abs() < 0.01);
                 if !has_via {
-                    let via = Via::new(tx, ty, via_drill, via_diameter, (Layer::FCu, Layer::BCu), self.net)
-                        .with_net_name(&self.net_name);
+                    let via = Via::new(
+                        tx,
+                        ty,
+                        via_drill,
+                        via_diameter,
+                        (Layer::FCu, Layer::BCu),
+                        self.net,
+                    )
+                    .with_net_name(&self.net_name);
                     self.vias.push(via);
                     inserted += 1;
                 }
@@ -583,14 +597,19 @@ mod tests {
         let b = Point::new(1.00002, 2.0, Layer::FCu);
         assert_eq!(a, b);
         assert_eq!(a.grid_key(0.1), (10, 20, 0));
-        assert_eq!(Point::new(0.0, 0.0, Layer::FCu).distance_to(&Point::new(1.0, 1.0, Layer::BCu)), 4.5);
+        assert_eq!(
+            Point::new(0.0, 0.0, Layer::FCu).distance_to(&Point::new(1.0, 1.0, Layer::BCu)),
+            4.5
+        );
     }
 
     #[test]
     fn layer_transition_inserts_via() {
         let mut r = Route::new(1, "N");
-        r.segments.push(Segment::new(0.0, 0.0, 1.0, 0.0, 0.2, Layer::FCu, 1));
-        r.segments.push(Segment::new(1.0, 0.0, 2.0, 0.0, 0.2, Layer::BCu, 1));
+        r.segments
+            .push(Segment::new(0.0, 0.0, 1.0, 0.0, 0.2, Layer::FCu, 1));
+        r.segments
+            .push(Segment::new(1.0, 0.0, 2.0, 0.0, 0.2, Layer::BCu, 1));
         assert_eq!(r.validate_layer_transitions(0.35, 0.7), 1);
         assert_eq!(r.validate_layer_transitions(0.35, 0.7), 0);
     }

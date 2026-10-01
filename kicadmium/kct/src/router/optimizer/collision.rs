@@ -362,10 +362,22 @@ impl CollisionChecker for VectorCollisionChecker<'_> {
         let min_clearance = grid.trace_clearance();
         let half_width = width / 2.0;
         let r = half_width + min_clearance;
-        let envelope = (x1.min(x2) - r, y1.min(y2) - r, x1.max(x2) + r, y1.max(y2) + r);
+        let envelope = (
+            x1.min(x2) - r,
+            y1.min(y2) - r,
+            x1.max(x2) + r,
+            y1.max(y2) + r,
+        );
         let Some(candidates) = grid.segment_rtree_query(layer_idx, envelope) else {
-            return GridCollisionChecker::new(grid, self.ignore_overflow)
-                .path_is_clear(x1, y1, x2, y2, layer, width, exclude_net);
+            return GridCollisionChecker::new(grid, self.ignore_overflow).path_is_clear(
+                x1,
+                y1,
+                x2,
+                y2,
+                layer,
+                width,
+                exclude_net,
+            );
         };
         for other in &candidates {
             if other.net == exclude_net {
@@ -377,7 +389,12 @@ impl CollisionChecker for VectorCollisionChecker<'_> {
         }
         let via_clearance = min_clearance.max(grid.via_clearance());
         let vr = half_width + via_clearance;
-        let via_env = (x1.min(x2) - vr, y1.min(y2) - vr, x1.max(x2) + vr, y1.max(y2) + vr);
+        let via_env = (
+            x1.min(x2) - vr,
+            y1.min(y2) - vr,
+            x1.max(x2) + vr,
+            y1.max(y2) + vr,
+        );
         match grid.via_rtree_query(via_env) {
             Some(vias) if !vias.is_empty() => {
                 for via in &vias {

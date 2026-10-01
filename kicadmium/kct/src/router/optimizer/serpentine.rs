@@ -5,8 +5,8 @@
 //! [`route_length`]; the reservation-aware segment preference takes the
 //! grid through the [`ReservationGrid`] trait.
 
-use std::collections::{HashMap, HashSet};
 use super::geometry::{make_route, SegmentExt};
+use std::collections::{HashMap, HashSet};
 
 use super::geometry::segment_length;
 use crate::router::primitives::{Route, Segment};
@@ -176,30 +176,35 @@ impl SerpentineGenerator {
         }
         let (ux, uy) = snap_direction_8(dx, dy);
         let (px, py) = (-uy, ux);
-        let (initial_direction, alternate) = match (self.config.side.as_str(), self.config.outer_normal_hint) {
-            (side @ ("outer" | "inner"), Some((mut hx, mut hy))) => {
-                let mag = (hx * hx + hy * hy).sqrt();
-                if mag > 0.0 {
-                    hx /= mag;
-                    hy /= mag;
+        let (initial_direction, alternate) =
+            match (self.config.side.as_str(), self.config.outer_normal_hint) {
+                (side @ ("outer" | "inner"), Some((mut hx, mut hy))) => {
+                    let mag = (hx * hx + hy * hy).sqrt();
+                    if mag > 0.0 {
+                        hx /= mag;
+                        hy /= mag;
+                    }
+                    let dot = px * hx + py * hy;
+                    let dir = if side == "outer" {
+                        if dot >= 0.0 {
+                            1.0
+                        } else {
+                            -1.0
+                        }
+                    } else if dot >= 0.0 {
+                        -1.0
+                    } else {
+                        1.0
+                    };
+                    (dir, false)
                 }
-                let dot = px * hx + py * hy;
-                let dir = if side == "outer" {
-                    if dot >= 0.0 { 1.0 } else { -1.0 }
-                } else if dot >= 0.0 {
-                    -1.0
-                } else {
-                    1.0
-                };
-                (dir, false)
-            }
-            _ => (1.0, true),
-        };
+                _ => (1.0, true),
+            };
         let amplitude = self.config.amplitude;
         let gap = self.config.min_spacing * self.config.gap_factor;
         let length_per_loop = 2.0 * amplitude;
-        let mut num_loops = ((target_length_add / length_per_loop).ceil() as i64)
-            .min(self.config.max_iterations);
+        let mut num_loops =
+            ((target_length_add / length_per_loop).ceil() as i64).min(self.config.max_iterations);
         if num_loops <= 0 {
             return SerpentineResult {
                 success: true,
@@ -231,11 +236,17 @@ impl SerpentineGenerator {
         step(&mut out, &mut cx, &mut cy, nx, ny);
         let mut direction = initial_direction;
         for lp in 0..num_loops {
-            let (nx, ny) = (cx + px * amplitude * direction, cy + py * amplitude * direction);
+            let (nx, ny) = (
+                cx + px * amplitude * direction,
+                cy + py * amplitude * direction,
+            );
             step(&mut out, &mut cx, &mut cy, nx, ny);
             let (nx, ny) = (cx + ux * gap, cy + uy * gap);
             step(&mut out, &mut cx, &mut cy, nx, ny);
-            let (nx, ny) = (cx - px * amplitude * direction, cy - py * amplitude * direction);
+            let (nx, ny) = (
+                cx - px * amplitude * direction,
+                cy - py * amplitude * direction,
+            );
             step(&mut out, &mut cx, &mut cy, nx, ny);
             if lp < num_loops - 1 {
                 let (nx, ny) = (cx + ux * gap, cy + uy * gap);

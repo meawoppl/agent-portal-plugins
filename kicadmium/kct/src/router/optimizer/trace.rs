@@ -6,8 +6,8 @@
 //! [`PairwiseChecker`] / [`SyncedRouter`] traits so they compile ahead of the
 //! router core; `Autorouter`/`RoutingGrid` implement them when ported.
 
-use std::collections::{HashMap, HashSet};
 use super::geometry::make_route;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use anyhow::Result;
@@ -55,7 +55,9 @@ impl<'a> TraceOptimizer<'a> {
     fn path_is_clear(&self, seg: &Segment) -> bool {
         match self.collision_checker {
             None => true,
-            Some(c) => c.path_is_clear(seg.x1, seg.y1, seg.x2, seg.y2, seg.layer, seg.width, seg.net),
+            Some(c) => c.path_is_clear(
+                seg.x1, seg.y1, seg.x2, seg.y2, seg.layer, seg.width, seg.net,
+            ),
         }
     }
 
@@ -260,7 +262,10 @@ fn vertex_key(x: f64, y: f64, layer: Layer, tolerance: f64) -> VKey {
     let (qx, qy) = if tolerance <= 0.0 {
         ((x * 1e9).round_ties_even(), (y * 1e9).round_ties_even())
     } else {
-        ((x / tolerance).round_ties_even(), (y / tolerance).round_ties_even())
+        (
+            (x / tolerance).round_ties_even(),
+            (y / tolerance).round_ties_even(),
+        )
     };
     (qx as i64, qy as i64, layer.value())
 }
@@ -270,7 +275,9 @@ pub fn collect_terminal_endpoints(segments: &[Segment], tolerance: f64) -> HashS
     let mut counts: HashMap<VKey, usize> = HashMap::new();
     for seg in segments {
         for (x, y) in [seg.start(), seg.end()] {
-            *counts.entry(vertex_key(x, y, seg.layer, tolerance)).or_default() += 1;
+            *counts
+                .entry(vertex_key(x, y, seg.layer, tolerance))
+                .or_default() += 1;
         }
     }
     counts

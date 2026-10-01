@@ -28,7 +28,8 @@ static RE_END: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\(end\s+([\d.eE+-]+)\s+([\d.eE+-]+)\)").unwrap());
 static RE_WIDTH: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\(width\s+([\d.eE+-]+)\)").unwrap());
-static RE_LAYER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"\(layer\s+"([^"]+)"\)"#).unwrap());
+static RE_LAYER: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"\(layer\s+"([^"]+)"\)"#).unwrap());
 static RE_NET: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\(net\s+(\d+)\)").unwrap());
 static RE_NET_NAME: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"\(net\s+("(?:\\.|[^"\\])*")\)"#).unwrap());
@@ -109,7 +110,10 @@ pub fn extract_balanced_blocks(text: &str, keyword: &str) -> Result<Vec<(usize, 
                 if token == "("
                     && text[pos..].starts_with(&opener)
                     && after < bytes.len()
-                    && (text[after..].chars().next().is_some_and(char::is_whitespace)
+                    && (text[after..]
+                        .chars()
+                        .next()
+                        .is_some_and(char::is_whitespace)
                         || bytes[after] == b')')
                 {
                     start = Some(pos);
@@ -181,7 +185,8 @@ pub fn parse_segments(pcb_text: &str) -> Result<NetSegments> {
         ) else {
             continue;
         };
-        let parse = |s: &str| pyfloat(s).ok_or_else(|| anyhow!("could not convert string to float: '{s}'"));
+        let parse =
+            |s: &str| pyfloat(s).ok_or_else(|| anyhow!("could not convert string to float: '{s}'"));
         let layer = Layer::from_kicad_name(&ml[1]).unwrap_or(Layer::FCu);
         let seg = Segment {
             x1: parse(&ms[1])?,
@@ -212,7 +217,8 @@ pub fn parse_vias(pcb_text: &str) -> Result<Vec<(String, Vec<Via>)>> {
         ) else {
             continue;
         };
-        let parse = |s: &str| pyfloat(s).ok_or_else(|| anyhow!("could not convert string to float: '{s}'"));
+        let parse =
+            |s: &str| pyfloat(s).ok_or_else(|| anyhow!("could not convert string to float: '{s}'"));
         let is_micro = RE_VIA_TYPE
             .captures(&block)
             .is_some_and(|c| &c[1] == "micro");
@@ -313,9 +319,9 @@ fn total(c: &DrcCounts) -> usize {
 
 /// Any pad-violation category grew between `before` and `after`.
 pub fn pad_violations_grew(before: &DrcCounts, after: &DrcCounts) -> bool {
-    PAD_VIOLATION_CATEGORIES.iter().any(|c| {
-        after.get(*c).copied().unwrap_or(0) > before.get(*c).copied().unwrap_or(0)
-    })
+    PAD_VIOLATION_CATEGORIES
+        .iter()
+        .any(|c| after.get(*c).copied().unwrap_or(0) > before.get(*c).copied().unwrap_or(0))
 }
 
 /// `_run_drc_error_count_by_category`: clearance + dimension DRC error

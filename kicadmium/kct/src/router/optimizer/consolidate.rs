@@ -3,8 +3,8 @@
 //! collinear, anti-parallel vertices are smoothed away, so copper and
 //! connectivity are unchanged.
 
-use std::collections::{HashMap, HashSet};
 use super::geometry::SegmentExt;
+use std::collections::{HashMap, HashSet};
 
 use super::trace::{apply_route_transform_grid_synced, SyncedRouter};
 use crate::router::primitives::{Route, Segment};
@@ -300,8 +300,13 @@ pub fn consolidate_net_routes(
         return (routes.to_vec(), base);
     }
     let same_owner = |a: usize, b: usize| owner[a] == owner[b];
-    let (indexed, raw) =
-        consolidate_indexed(&flat, &protected, tolerance, path_is_clear, Some(&same_owner));
+    let (indexed, raw) = consolidate_indexed(
+        &flat,
+        &protected,
+        tolerance,
+        path_is_clear,
+        Some(&same_owner),
+    );
     if raw.runs_merged == 0 {
         return (
             routes.to_vec(),
@@ -370,7 +375,8 @@ pub fn consolidate_routes_grid_synced<R: SyncedRouter>(
         let idxs = &by_net[&net];
         let net_routes: Vec<Route> = idxs.iter().map(|&i| routes[i].clone()).collect();
         let pads = pads_by_net.get(&net).map(Vec::as_slice).unwrap_or(&[]);
-        let (new_routes, stats) = consolidate_net_routes(&net_routes, pads, tolerance, path_is_clear);
+        let (new_routes, stats) =
+            consolidate_net_routes(&net_routes, pads, tolerance, path_is_clear);
         total.segments_before += stats.segments_before;
         total.segments_after += stats.segments_after;
         total.runs_merged += stats.runs_merged;

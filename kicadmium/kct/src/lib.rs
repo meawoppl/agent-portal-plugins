@@ -7,18 +7,18 @@
 //! module per CLI command family under `cli`.
 
 pub mod cli;
-pub mod footprints;
-pub mod fsutil;
-pub mod manufacturers;
-pub mod parts;
-pub mod physics;
-pub mod schema;
 pub mod config;
 pub mod core;
 pub mod exceptions;
+pub mod footprints;
+pub mod fsutil;
 pub mod geometry;
+pub mod manufacturers;
+pub mod parts;
+pub mod physics;
 pub mod progress;
 pub mod project;
+pub mod schema;
 pub mod sexp;
 pub mod sidecars;
 pub mod transaction;

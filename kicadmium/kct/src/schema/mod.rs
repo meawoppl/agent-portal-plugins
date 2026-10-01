@@ -7,6 +7,7 @@ pub mod hierarchy_validation;
 pub mod instances;
 pub mod label;
 pub mod library;
+pub mod pcb;
 pub mod physical_identity;
 pub mod schematic;
 pub mod symbol;

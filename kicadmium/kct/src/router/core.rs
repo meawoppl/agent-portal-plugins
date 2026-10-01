@@ -487,6 +487,13 @@ impl Autorouter {
                     }
                 }
                 let Some(path) = path else {
+                    if std::env::var_os("KCT_ROUTE_DEBUG").is_some() {
+                        let bp = &self.board.pads[target_pad];
+                        eprintln!(
+                            "debug: net {} pad {}.{} unreachable: {} target cells, {} tree cells, {} expansions",
+                            name, bp.pad.r#ref, bp.pad.pin, targets.len(), tree.len(), self.pf.last.expansions
+                        );
+                    }
                     continue;
                 };
                 // Emit geometry.

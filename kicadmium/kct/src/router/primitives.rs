@@ -336,13 +336,10 @@ impl Segment {
         ))
     }
 
-    /// Infallible variant: strict-mode failures are serialized anyway after
-    /// the warning (callers wanting the error use [`Self::try_to_sexp`]).
-    pub fn to_sexp(&self, name_only: bool) -> String {
-        match self.try_to_sexp(name_only) {
-            Ok(s) => s,
-            Err(e) => panic!("{e}"),
-        }
+    /// KiCad S-expression; strict-mode off-angle copper is an error
+    /// (upstream raises `OffAngleSegmentError`).
+    pub fn to_sexp(&self, name_only: bool) -> Result<String, quantize::OffAngleSegmentError> {
+        self.try_to_sexp(name_only)
     }
 }
 
@@ -377,11 +374,9 @@ impl Route {
         Ok(parts.join("\n\t"))
     }
 
-    pub fn to_sexp(&self, name_only: bool) -> String {
-        match self.try_to_sexp(name_only) {
-            Ok(s) => s,
-            Err(e) => panic!("{e}"),
-        }
+    /// All segment/via S-expressions; fails on strict off-angle copper.
+    pub fn to_sexp(&self, name_only: bool) -> Result<String, quantize::OffAngleSegmentError> {
+        self.try_to_sexp(name_only)
     }
 
     /// Geometric snapshot (issue #3507).
@@ -577,10 +572,10 @@ mod tests {
     #[test]
     fn segment_sexp_shape() {
         let s = Segment::new(1.0, 2.0, 3.0, 2.0, 0.2, Layer::FCu, 3).with_net_name("A");
-        let txt = s.to_sexp(false);
+        let txt = s.to_sexp(false).unwrap();
         assert!(txt.starts_with("(segment\n\t\t(start 1.0000 2.0000)\n\t\t(end 3.0000 2.0000)\n\t\t(width 0.2)\n\t\t(layer \"F.Cu\")\n\t\t(uuid \""));
         assert!(txt.ends_with("(net 3)\n\t)"));
-        assert!(s.to_sexp(true).ends_with("(net \"A\")\n\t)"));
+        assert!(s.to_sexp(true).unwrap().ends_with("(net \"A\")\n\t)"));
     }
 
     #[test]

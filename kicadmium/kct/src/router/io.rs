@@ -356,7 +356,10 @@ pub fn merge_routes_into_pcb(
     let name_only = pcb.net_name_only_dialect();
     for r in routes {
         for seg in &r.segments {
-            let node = crate::sexp::parse(&seg.to_sexp(name_only))?;
+            let text = seg
+                .to_sexp(name_only)
+                .map_err(|e| anyhow::anyhow!("{e}"))?;
+            let node = crate::sexp::parse(&text)?;
             pcb.sexp_mut().push(node);
         }
         for via in &r.vias {

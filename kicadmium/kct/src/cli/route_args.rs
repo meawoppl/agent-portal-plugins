@@ -206,6 +206,7 @@ pub static ROUTE_AUTO_OPTS: &[Opt] = &[
     v(&["--via-drill"], "via_drill", None),
     v(&["--via-diameter"], "via_diameter", None),
     v(&["-o", "--output"], "output", None),
+    f(&["--in-place"], "in_place", "false", "true"),
     f(&["--dry-run"], "dry_run", "false", "true"),
     f(&["-v", "--verbose"], "verbose", "false", "true"),
     c(&["--format"], "format", Some("text"), &["text", "json"]),

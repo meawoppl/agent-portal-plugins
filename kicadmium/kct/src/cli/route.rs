@@ -684,6 +684,16 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
     }
     if !quiet {
         print_results(&best.stats);
+        let failed: Vec<String> = best
+            .router
+            .results
+            .values()
+            .filter(|r| !r.is_complete())
+            .map(|r| format!("{} ({}/{} pads)", r.name, r.connected_pads, r.pad_count))
+            .collect();
+        if !failed.is_empty() {
+            println!("  Failed nets:     {}", failed.join(", "));
+        }
     }
     // Save.
     let routes = best.router.routes();
@@ -819,10 +829,21 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
             return Ok(1);
         }
     }
-    let output = ns
-        .get("output")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| pcb_path.clone());
+    // Never rewrite the input implicitly: require -o/--output or --in-place.
+    let output = match (ns.get("output"), ns.flag("in_place")) {
+        (Some(o), _) => PathBuf::from(o),
+        (None, true) => pcb_path.clone(),
+        (None, false) if ns.flag("dry_run") => pcb_path.clone(),
+        (None, false) => {
+            let msg = "Error: route-auto needs -o/--output PATH (or --in-place to overwrite the input board)";
+            if as_json {
+                println!("{}", serde_json::to_string_pretty(&json!({"error": msg, "nets": []}))?);
+            } else {
+                eprintln!("{msg}");
+            }
+            return Ok(2);
+        }
+    };
     let declared = project_default_class(&pcb_path);
     let via_d = ns.f64("via_diameter").or(declared.map(|d| d.2).filter(|v| *v > 0.0)).unwrap_or(0.6);
     let via_dr = ns.f64("via_drill").or(declared.map(|d| d.3).filter(|v| *v > 0.0)).unwrap_or(0.3);

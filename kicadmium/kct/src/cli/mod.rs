@@ -13,8 +13,11 @@ use anyhow::Result;
 use crate::units::{self, UnitFormatter};
 
 pub mod design;
+pub mod drc;
+pub mod erc;
 pub mod footprint;
 pub mod mfr;
+pub mod runner;
 
 /// Global flags accepted before the command name.
 #[derive(Debug, Clone, Default)]
@@ -39,8 +42,8 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "symbols", about: "List symbols in a schematic", wave: "B", run: Some(design::symbols) },
     CommandSpec { name: "nets", about: "Trace nets in a schematic", wave: "B", run: Some(design::nets) },
     CommandSpec { name: "netlist", about: "Netlist analysis and comparison tools", wave: "B", run: Some(design::netlist) },
-    CommandSpec { name: "erc", about: "ERC validation and analysis", wave: "A", run: None },
-    CommandSpec { name: "drc", about: "Parse DRC report", wave: "A", run: None },
+    CommandSpec { name: "erc", about: "ERC validation and analysis", wave: "A", run: Some(erc::run) },
+    CommandSpec { name: "drc", about: "Parse DRC report", wave: "A", run: Some(drc::run) },
     CommandSpec { name: "bom", about: "Generate bill of materials", wave: "B", run: Some(design::bom) },
     CommandSpec { name: "check", about: "Pure Python DRC (no kicad-cli)", wave: "A", run: None },
     CommandSpec { name: "creepage", about: "HV creepage/clearance census (surface-path distance)", wave: "E", run: None },

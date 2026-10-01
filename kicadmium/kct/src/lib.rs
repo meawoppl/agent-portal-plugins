@@ -7,11 +7,16 @@
 //! module per CLI command family under `cli`.
 
 pub mod cli;
+pub mod drc;
+pub mod erc;
+pub mod feedback;
 pub mod footprints;
 pub mod fsutil;
 pub mod manufacturers;
+pub mod pyjson;
 pub mod sexp;
 pub mod units;
+pub mod validate;
 
 pub use anyhow::{Error, Result};
 pub use sexp::{parse, parse_file, Document, SExp, Value};

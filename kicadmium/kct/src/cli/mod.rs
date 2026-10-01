@@ -25,6 +25,7 @@ pub mod mfr;
 pub mod parts;
 pub mod pcb;
 pub mod project;
+pub mod render;
 pub mod runner;
 pub mod suggest;
 pub mod utility;
@@ -93,7 +94,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "suggest", about: "Part suggestions and recommendations", wave: "G", run: Some(suggest::run) },
     CommandSpec { name: "net-status", about: "Report net connectivity status for a PCB", wave: "C", run: None },
     CommandSpec { name: "fleet", about: "Fleet-wide PCB status and operations", wave: "C", run: None },
-    CommandSpec { name: "render", about: "Render per-board 2D SVGs + 3D PNGs into output/renders/", wave: "C", run: None },
+    CommandSpec { name: "render", about: "Render per-board 2D SVGs + 3D PNGs into output/renders/", wave: "C", run: Some(render::run) },
     CommandSpec { name: "board-metrics", about: "Emit a normalized board.json per board from existing artifacts", wave: "C", run: None },
     CommandSpec { name: "readiness", about: "Run the manufacturing-readiness gates and write output/readiness.json", wave: "C", run: None },
     CommandSpec { name: "clean", about: "Clean up old/orphaned files from KiCad projects", wave: "G", run: Some(utility::clean) },

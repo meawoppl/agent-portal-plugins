@@ -4,6 +4,7 @@ use anyhow::{bail, Context, Result};
 use clap::Parser;
 use serde::Serialize;
 use std::{
+    collections::BTreeMap,
     ffi::OsString,
     path::{Path, PathBuf},
     process::Command,
@@ -133,60 +134,430 @@ struct CreateArgs {
     no_update: bool,
     #[arg(long)]
     keep_netlist: bool,
+    #[arg(long, default_value_t = 100.0)]
+    width: f64,
+    #[arg(long, default_value_t = 100.0)]
+    height: f64,
+    #[arg(long, default_value_t = 2, value_parser = clap::value_parser!(u32).range(2..=4))]
+    layers: u32,
+    #[arg(long)]
+    title: Option<String>,
+    #[arg(long, default_value = "1.0")]
+    revision: String,
+    #[arg(long, default_value = "")]
+    company: String,
+    #[arg(long)]
+    no_place: bool,
+    #[arg(long, default_value_t = 15.0)]
+    spacing: f64,
+    #[arg(long)]
+    columns: Option<usize>,
+    #[arg(long, default_value_t = 3.0)]
+    margin: f64,
+    /// Additional KiCad footprint-library root (contains *.pretty directories).
+    #[arg(long = "footprint-dir")]
+    footprint_dirs: Vec<PathBuf>,
 }
 pub fn create_pcb(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a = parse_args::<CreateArgs>("create-pcb", args);
     if !a.schematic.is_file() {
         bail!("schematic not found: {}", a.schematic.display())
     }
-    let out = a
-        .output
-        .unwrap_or_else(|| a.schematic.with_extension("kicad_pcb"));
+    let out = a.output.clone().context(
+        "create-pcb is a design edit; provide an explicit --output (or use --dry-run with --output)",
+    )?;
     if out.exists() && !a.force {
         bail!("{} exists (use --force)", out.display())
     }
-    let root = SExp::list(
-        "kicad_pcb",
-        [
-            SExp::pair("version", 20240108),
-            SExp::list("generator", [SExp::symbol("kicadmium")]),
-            SExp::list("general", [SExp::pair("thickness", 1.6)]),
-            SExp::list("paper", [SExp::quoted("A4")]),
-            SExp::list(
-                "layers",
-                [
-                    (0, "F.Cu", "signal"),
-                    (31, "B.Cu", "signal"),
-                    (36, "B.SilkS", "user"),
-                    (37, "F.SilkS", "user"),
-                    (44, "Edge.Cuts", "user"),
-                ]
-                .into_iter()
-                .map(|(n, name, kind)| {
-                    SExp::list(n.to_string(), [SExp::quoted(name), SExp::symbol(kind)])
-                }),
-            ),
-        ],
-    );
-    if !a.dry_run {
-        Document {
-            root,
-            path: Some(out.clone()),
-        }
-        .save(None)?
+    if !(a.width.is_finite() && a.width > 0.0 && a.height.is_finite() && a.height > 0.0) {
+        bail!("--width and --height must be finite positive millimetre values")
     }
-    let data = serde_json::json!({"schematic":a.schematic,"pcb":out,"dry_run":a.dry_run,"note":"empty PCB container created; use kicad-cli/eeschema update-from-schematic to materialize footprints"});
-    if a.format == "json" {
-        println!("{}", serde_json::to_string_pretty(&data)?)
-    } else {
-        println!(
-            "{} {}",
-            if a.dry_run { "Would create" } else { "Created" },
-            out.display()
+    if !matches!(a.layers, 2 | 4) {
+        bail!("--layers must be 2 or 4")
+    }
+    if !(a.spacing.is_finite() && a.spacing > 0.0 && a.margin.is_finite() && a.margin >= 0.0) {
+        bail!("--spacing must be positive and --margin must be non-negative")
+    }
+
+    let project_dir = project_dir(&a);
+    let netlist_path = a.schematic.with_file_name(format!(
+        "{}-netlist.kicad_net",
+        a.schematic
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy()
+    ));
+    let temporary_netlist = !a.keep_netlist && !a.no_update;
+    if !a.no_update {
+        export_netlist(&a.schematic, &netlist_path)?;
+    } else if !netlist_path.is_file() {
+        bail!(
+            "--no-update requires an existing netlist: {}",
+            netlist_path.display()
         )
     }
-    let _ = (a.project, a.no_update, a.keep_netlist);
-    Ok(0)
+    let result = (|| -> Result<_> {
+        let netlist = parse_create_netlist(&netlist_path)?;
+        let mut board = crate::schema::pcb::Pcb::create(crate::schema::pcb::CreateOptions {
+            width: a.width,
+            height: a.height,
+            layers: a.layers,
+            title: a.title.clone().unwrap_or_else(|| {
+                a.schematic
+                    .file_stem()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .into_owned()
+            }),
+            revision: a.revision.clone(),
+            company: a.company.clone(),
+            ..Default::default()
+        })?;
+        let libraries = footprint_libraries(&project_dir, &a.footprint_dirs)?;
+        let placeable = netlist
+            .components
+            .iter()
+            .filter(|component| !component.footprint.is_empty())
+            .count();
+        let columns = a.columns.unwrap_or_else(|| {
+            (((a.width - 2.0 * a.margin) / a.spacing).floor() as usize)
+                .max(1)
+                .min(placeable.max(1))
+        });
+        if columns == 0 {
+            bail!("--columns must be positive")
+        }
+        let mut placed = Vec::new();
+        let mut failed = Vec::new();
+        let mut slot = 0usize;
+        for component in &netlist.components {
+            if component.reference.is_empty() || component.reference.starts_with('#') {
+                continue;
+            }
+            if component.footprint.is_empty() {
+                failed.push(CreateFailure {
+                    reference: component.reference.clone(),
+                    reason: "no footprint assigned".into(),
+                });
+                continue;
+            }
+            let Some(fp_path) = resolve_footprint(&component.footprint, &libraries) else {
+                failed.push(CreateFailure {
+                    reference: component.reference.clone(),
+                    reason: format!("footprint '{}' was not found", component.footprint),
+                });
+                continue;
+            };
+            let (x, y) = if a.no_place {
+                (a.margin, a.margin)
+            } else {
+                let point = (
+                    a.margin + (slot % columns) as f64 * a.spacing,
+                    a.margin + (slot / columns) as f64 * a.spacing,
+                );
+                slot += 1;
+                point
+            };
+            if !a.no_place && (x > a.width - a.margin || y > a.height - a.margin) {
+                failed.push(CreateFailure {
+                    reference: component.reference.clone(),
+                    reason: "placement grid exceeds board outline; increase board size or reduce spacing".into(),
+                });
+                continue;
+            }
+            board
+                .add_footprint_from_file(
+                    &fp_path,
+                    &component.reference,
+                    x,
+                    y,
+                    0.0,
+                    "F.Cu",
+                    &component.value,
+                )
+                .with_context(|| {
+                    format!("placing {} from {}", component.reference, fp_path.display())
+                })?;
+            placed.push(component.reference.clone());
+        }
+        let stats = board.assign_nets_from_netlist(&netlist.nets, None);
+        if !a.dry_run {
+            if let Some(parent) = out.parent().filter(|p| !p.as_os_str().is_empty()) {
+                std::fs::create_dir_all(parent)?;
+            }
+            board.save(Some(&out))?;
+        }
+        Ok(CreateReport {
+            command: "create-pcb",
+            schematic: a.schematic.clone(),
+            output: out.clone(),
+            board: CreateBoardReport {
+                width_mm: a.width,
+                height_mm: a.height,
+                layers: a.layers,
+            },
+            components_found: netlist.components.len(),
+            footprints_placed: placed.len(),
+            placed,
+            failed,
+            nets_defined: board.nets().iter().filter(|net| net.number != 0).count(),
+            pads_assigned: stats.assigned.len(),
+            missing_pads: stats.missing_pads,
+            dry_run: a.dry_run,
+            saved: !a.dry_run,
+        })
+    })();
+    if temporary_netlist {
+        let _ = std::fs::remove_file(&netlist_path);
+    }
+    let report = result?;
+    if a.format == "json" {
+        println!("{}", serde_json::to_string_pretty(&report)?)
+    } else {
+        println!(
+            "{} {} with {} of {} footprints and {} assigned pads",
+            if a.dry_run { "Would create" } else { "Created" },
+            out.display(),
+            report.footprints_placed,
+            report.components_found,
+            report.pads_assigned,
+        );
+        for failure in &report.failed {
+            eprintln!("warning: {}: {}", failure.reference, failure.reason);
+        }
+    }
+    Ok(
+        if report.failed.is_empty() && report.missing_pads.is_empty() {
+            0
+        } else {
+            1
+        },
+    )
+}
+
+#[derive(Debug)]
+struct CreateComponent {
+    reference: String,
+    value: String,
+    footprint: String,
+}
+
+#[derive(Debug)]
+struct CreateNetlist {
+    components: Vec<CreateComponent>,
+    nets: Vec<(String, Vec<(String, String)>)>,
+}
+
+#[derive(Serialize)]
+struct CreateFailure {
+    reference: String,
+    reason: String,
+}
+
+#[derive(Serialize)]
+struct CreateBoardReport {
+    width_mm: f64,
+    height_mm: f64,
+    layers: u32,
+}
+
+#[derive(Serialize)]
+struct CreateReport {
+    command: &'static str,
+    schematic: PathBuf,
+    output: PathBuf,
+    board: CreateBoardReport,
+    components_found: usize,
+    footprints_placed: usize,
+    placed: Vec<String>,
+    failed: Vec<CreateFailure>,
+    nets_defined: usize,
+    pads_assigned: usize,
+    missing_pads: Vec<String>,
+    dry_run: bool,
+    saved: bool,
+}
+
+fn export_netlist(schematic: &Path, output: &Path) -> Result<()> {
+    let cli = kicad_cli()?;
+    run(
+        &cli,
+        [
+            "sch",
+            "export",
+            "netlist",
+            "--format",
+            "kicadsexpr",
+            "-o",
+            path(output),
+            path(schematic),
+        ],
+    )
+    .context("exporting schematic netlist with kicad-cli")
+}
+
+fn parse_create_netlist(path: &Path) -> Result<CreateNetlist> {
+    let root = crate::sexp::parse_file(path)
+        .with_context(|| format!("parsing exported netlist {}", path.display()))?;
+    let components = root
+        .get("components")
+        .into_iter()
+        .flat_map(|node| node.children_named("comp"))
+        .map(|component| CreateComponent {
+            reference: component.child_str("ref").unwrap_or("").to_string(),
+            value: component.child_str("value").unwrap_or("").to_string(),
+            footprint: component.child_str("footprint").unwrap_or("").to_string(),
+        })
+        .collect();
+    let nets = root
+        .get("nets")
+        .into_iter()
+        .flat_map(|node| node.children_named("net"))
+        .filter_map(|net| {
+            let name = net.child_str("name")?.to_string();
+            let nodes = net
+                .children_named("node")
+                .filter_map(|node| {
+                    Some((
+                        node.child_str("ref")?.to_string(),
+                        node.child_str("pin")?.to_string(),
+                    ))
+                })
+                .collect();
+            Some((name, nodes))
+        })
+        .collect();
+    Ok(CreateNetlist { components, nets })
+}
+
+fn project_dir(args: &CreateArgs) -> PathBuf {
+    args.project
+        .as_deref()
+        .map(|p| {
+            if p.is_dir() {
+                p
+            } else {
+                p.parent().unwrap_or(Path::new("."))
+            }
+        })
+        .unwrap_or_else(|| {
+            args.schematic
+                .parent()
+                .unwrap_or(Path::new("."))
+                .to_path_buf()
+        })
+        .to_path_buf()
+}
+
+fn footprint_libraries(project: &Path, extras: &[PathBuf]) -> Result<BTreeMap<String, PathBuf>> {
+    let mut libraries = BTreeMap::new();
+    if let Ok(table) = crate::sexp::parse_file(&project.join("fp-lib-table")) {
+        for lib in table.children_named("lib") {
+            let Some(name) = lib.child_str("name") else {
+                continue;
+            };
+            let Some(uri) = lib.child_str("uri") else {
+                continue;
+            };
+            let expanded = uri.replace("${KIPRJMOD}", &project.to_string_lossy());
+            libraries.insert(name.to_string(), PathBuf::from(expanded));
+        }
+    }
+    let mut roots = extras.to_vec();
+    for key in [
+        "KICAD_FOOTPRINT_DIR",
+        "KICAD10_FOOTPRINT_DIR",
+        "KICAD9_FOOTPRINT_DIR",
+        "KICAD8_FOOTPRINT_DIR",
+    ] {
+        if let Some(root) = std::env::var_os(key) {
+            roots.push(root.into());
+        }
+    }
+    roots.extend([
+        PathBuf::from("/usr/share/kicad/footprints"),
+        PathBuf::from("/usr/local/share/kicad/footprints"),
+    ]);
+    for root in roots {
+        if let Ok(entries) = std::fs::read_dir(&root) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                let Some(stem) = path
+                    .file_name()
+                    .and_then(|v| v.to_str())
+                    .and_then(|v| v.strip_suffix(".pretty"))
+                else {
+                    continue;
+                };
+                libraries.entry(stem.to_string()).or_insert(path);
+            }
+        }
+    }
+    Ok(libraries)
+}
+
+fn resolve_footprint(id: &str, libraries: &BTreeMap<String, PathBuf>) -> Option<PathBuf> {
+    let (library, footprint) = id.split_once(':')?;
+    let path = libraries
+        .get(library)?
+        .join(format!("{footprint}.kicad_mod"));
+    path.is_file().then_some(path)
+}
+
+#[cfg(test)]
+mod create_pcb_tests {
+    use super::*;
+
+    #[test]
+    fn exported_netlist_keeps_components_and_pin_connectivity() {
+        let dir = tempfile::tempdir().unwrap();
+        let netlist = dir.path().join("design.kicad_net");
+        std::fs::write(
+            &netlist,
+            r#"(export (version "E")
+              (components
+                (comp (ref "R1") (value "10k") (footprint "Resistor_SMD:R_0603_1608Metric"))
+                (comp (ref "U1") (value "MCU") (footprint "Package_QFP:LQFP-32_7x7mm_P0.8mm")))
+              (nets
+                (net (code "1") (name "GND")
+                  (node (ref "R1") (pin "1")) (node (ref "U1") (pin "4")))
+                (net (code "2") (name "/SIG")
+                  (node (ref "R1") (pin "2")) (node (ref "U1") (pin "5")))))"#,
+        )
+        .unwrap();
+        let parsed = parse_create_netlist(&netlist).unwrap();
+        assert_eq!(parsed.components.len(), 2);
+        assert_eq!(parsed.components[0].reference, "R1");
+        assert_eq!(
+            parsed.components[0].footprint,
+            "Resistor_SMD:R_0603_1608Metric"
+        );
+        assert_eq!(parsed.nets[0].0, "GND");
+        assert_eq!(
+            parsed.nets[0].1,
+            [("R1".into(), "1".into()), ("U1".into(), "4".into())]
+        );
+    }
+
+    #[test]
+    fn project_library_table_resolves_kiprjmod_footprints() {
+        let dir = tempfile::tempdir().unwrap();
+        let pretty = dir.path().join("Local.pretty");
+        std::fs::create_dir(&pretty).unwrap();
+        let footprint = pretty.join("Widget.kicad_mod");
+        std::fs::write(&footprint, "(footprint \"Widget\")").unwrap();
+        std::fs::write(
+            dir.path().join("fp-lib-table"),
+            "(fp_lib_table (version 7) (lib (name \"Local\") (type \"KiCad\") (uri \"${KIPRJMOD}/Local.pretty\") (options \"\") (descr \"\")))",
+        )
+        .unwrap();
+        let libraries = footprint_libraries(dir.path(), &[]).unwrap();
+        assert_eq!(
+            resolve_footprint("Local:Widget", &libraries),
+            Some(footprint)
+        );
+        assert_eq!(resolve_footprint("Local:Missing", &libraries), None);
+    }
 }
 
 #[derive(Parser)]

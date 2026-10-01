@@ -385,6 +385,23 @@ pub fn rotate(g: &Geom, angle_deg: f64) -> Geom {
     map_coords(g, &|p| (c * p.0 - s * p.1, s * p.0 + c * p.1))
 }
 
+/// `shapely.affinity.rotate(g, angle_deg, origin=(x0, y0))`.
+pub fn rotate_about(g: &Geom, angle_deg: f64, origin: C) -> Geom {
+    let a = angle_deg * std::f64::consts::PI / 180.0;
+    let mut c = a.cos();
+    let mut s = a.sin();
+    if c.abs() < 2.5e-16 {
+        c = 0.0;
+    }
+    if s.abs() < 2.5e-16 {
+        s = 0.0;
+    }
+    let (x0, y0) = origin;
+    let xoff = x0 - x0 * c + y0 * s;
+    let yoff = y0 - x0 * s - y0 * c;
+    map_coords(g, &|p| (c * p.0 - s * p.1 + xoff, s * p.0 + c * p.1 + yoff))
+}
+
 /// `shapely.affinity.translate(g, dx, dy)`.
 pub fn translate(g: &Geom, dx: f64, dy: f64) -> Geom {
     map_coords(g, &|p| (p.0 + dx, p.1 + dy))
@@ -619,7 +636,7 @@ fn segment_intersection(a: C, b: C, c: C, d: C) -> Option<C> {
     if s == 1.0 {
         return Some(d);
     }
-    Some((a.0 + r * (b.0 - a.0), a.1 + r * (b.1 - a.1)))
+    Some(line_intersection(a, b, c, d).unwrap_or((a.0 + r * (b.0 - a.0), a.1 + r * (b.1 - a.1))))
 }
 
 /// GEOS `LineSegment::closestPoints` (`[on ab, on cd]`).
@@ -1267,6 +1284,44 @@ fn ring_is_simple(r: &[C]) -> bool {
     true
 }
 
+/// GEOS `Intersection::intersection` (midpoint-conditioned homogeneous
+/// line intersection); `None` for parallel lines.
+pub fn line_intersection(p1: C, p2: C, q1: C, q2: C) -> Option<C> {
+    let min_x0 = if p1.0 < p2.0 { p1.0 } else { p2.0 };
+    let min_y0 = if p1.1 < p2.1 { p1.1 } else { p2.1 };
+    let max_x0 = if p1.0 > p2.0 { p1.0 } else { p2.0 };
+    let max_y0 = if p1.1 > p2.1 { p1.1 } else { p2.1 };
+    let min_x1 = if q1.0 < q2.0 { q1.0 } else { q2.0 };
+    let min_y1 = if q1.1 < q2.1 { q1.1 } else { q2.1 };
+    let max_x1 = if q1.0 > q2.0 { q1.0 } else { q2.0 };
+    let max_y1 = if q1.1 > q2.1 { q1.1 } else { q2.1 };
+    let min_x = if min_x0 > min_x1 { min_x0 } else { min_x1 };
+    let max_x = if max_x0 < max_x1 { max_x0 } else { max_x1 };
+    let min_y = if min_y0 > min_y1 { min_y0 } else { min_y1 };
+    let max_y = if max_y0 < max_y1 { max_y0 } else { max_y1 };
+    let midx = (min_x + max_x) / 2.0;
+    let midy = (min_y + max_y) / 2.0;
+    let (p1x, p1y) = (p1.0 - midx, p1.1 - midy);
+    let (p2x, p2y) = (p2.0 - midx, p2.1 - midy);
+    let (q1x, q1y) = (q1.0 - midx, q1.1 - midy);
+    let (q2x, q2y) = (q2.0 - midx, q2.1 - midy);
+    let px = p1y - p2y;
+    let py = p2x - p1x;
+    let pw = p1x * p2y - p2x * p1y;
+    let qx = q1y - q2y;
+    let qy = q2x - q1x;
+    let qw = q1x * q2y - q2x * q1y;
+    let x = py * qw - qy * pw;
+    let y = qx * pw - px * qw;
+    let w = px * qy - qx * py;
+    let xi = x / w;
+    let yi = y / w;
+    if !xi.is_finite() || !yi.is_finite() {
+        return None;
+    }
+    Some((xi + midx, yi + midy))
+}
+
 /// Negative buffer (`buffer(-d)`) of a convex polygon: each edge offset
 /// inward by `d`, consecutive offset lines intersected. Returns `Empty`
 /// when the polygon collapses.
@@ -1301,13 +1356,10 @@ pub fn erode_convex(g: &Geom, d: f64) -> Geom {
     for i in 0..n {
         let (a0, a1) = lines[(i + n - 1) % n];
         let (b0, b1) = lines[i];
-        let den = (a1.0 - a0.0) * (b1.1 - b0.1) - (a1.1 - a0.1) * (b1.0 - b0.0);
-        if den == 0.0 {
-            out.push(b0);
-            continue;
+        match line_intersection(a0, a1, b0, b1) {
+            Some(p) => out.push(p),
+            None => out.push(b0),
         }
-        let t = ((b0.0 - a0.0) * (b1.1 - b0.1) - (b0.1 - a0.1) * (b1.0 - b0.0)) / den;
-        out.push((a0.0 + t * (a1.0 - a0.0), a0.1 + t * (a1.1 - a0.1)));
     }
     out.push(out[0]);
     let new_area = ring_area(&out);
@@ -1627,6 +1679,219 @@ pub fn intersects_prep(a: &Geom, b: &Prepared) -> bool {
         _ => {}
     }
     distance_points_prep(a, b).is_some_and(|d| d.0 == 0.0)
+}
+
+// ------------------------------------------------------- general buffer
+
+fn dedup_ring(ring: &[C]) -> Vec<C> {
+    let mut out: Vec<C> = Vec::with_capacity(ring.len());
+    for &p in ring {
+        if out.last() != Some(&p) {
+            out.push(p);
+        }
+    }
+    if out.len() > 1 && out.first() == out.last() {
+        out.pop();
+    }
+    out
+}
+
+/// Whether an open vertex ring (no closing point) is convex.
+pub fn ring_is_convex(pts: &[C]) -> bool {
+    let n = pts.len();
+    if n < 3 {
+        return false;
+    }
+    let mut sign = 0.0f64;
+    for i in 0..n {
+        let o = orient(pts[i], pts[(i + 1) % n], pts[(i + 2) % n]);
+        if o == 0.0 {
+            continue;
+        }
+        if sign == 0.0 {
+            sign = o.signum();
+        } else if o.signum() != sign {
+            return false;
+        }
+    }
+    sign != 0.0
+}
+
+/// GEOS `addCornerFillet`.
+fn corner_fillet(sl: &mut SegList, p: C, p0: C, p1: C, cw: bool, r: f64, quad: usize) {
+    use std::f64::consts::PI;
+    let mut start = (p0.1 - p.1).atan2(p0.0 - p.0);
+    let end = (p1.1 - p.1).atan2(p1.0 - p.0);
+    if cw {
+        if start <= end {
+            start += 2.0 * PI;
+        }
+    } else if start >= end {
+        start -= 2.0 * PI;
+    }
+    sl.add(p0);
+    directed_fillet(sl, p, start, end, cw, r, quad);
+    sl.add(p1);
+}
+
+/// GEOS `computeRingBufferCurve` on the outside of a convex ring (round
+/// joins): offset edges joined by fillets at every vertex.
+pub fn convex_ring_offset(ring: &[C], d: f64, quad: usize) -> Vec<C> {
+    let pts = dedup_ring(ring);
+    let n = pts.len();
+    let ccw = ring_area(&close(pts.clone())) < 0.0;
+    // Outside is to the right of a CCW ring, left of a CW one.
+    let left = !ccw;
+    let mut sl = SegList::new(d);
+    for i in 0..n {
+        let s0 = pts[(i + n - 1) % n];
+        let s1 = pts[i];
+        let s2 = pts[(i + 1) % n];
+        let (_, o0p1) = offset_seg(s0, s1, d, left);
+        let (o1p0, _) = offset_seg(s1, s2, d, left);
+        let o = orient(s0, s1, s2);
+        if o == 0.0 {
+            continue;
+        }
+        if dist(o0p1, o1p0) < d * 1e-3 {
+            sl.add(o0p1);
+            continue;
+        }
+        if i != 0 {
+            sl.add(o0p1);
+        }
+        corner_fillet(&mut sl, s1, o0p1, o1p0, o < 0.0, d, quad);
+        sl.add(o1p0);
+    }
+    sl.close()
+}
+
+/// `polygon.buffer(d)` for d > 0: exact GEOS vertex generation for convex
+/// hole-free polygons, otherwise the union of the polygon with its edge
+/// capsules (same area / distances up to join faceting).
+pub fn buffer_polygon(g: &Geom, d: f64) -> Geom {
+    if d <= 0.0 {
+        return g.clone();
+    }
+    if let Geom::Poly(p) = g {
+        let pts = dedup_ring(&p.shell);
+        if p.holes.is_empty() && ring_is_convex(&pts) {
+            return Geom::Poly(Poly {
+                shell: convex_ring_offset(&p.shell, d, QUAD_SEGS),
+                holes: vec![],
+            });
+        }
+    }
+    let mut parts = vec![g.clone()];
+    for l in g.lines() {
+        for w in l.windows(2) {
+            parts.push(segment_buffer(w[0], w[1], d));
+        }
+    }
+    unary_union(&parts)
+}
+
+/// `LineString(pts).buffer(d)`: open polylines and closed rings (a closed
+/// convex ring yields the outer offset with the inward offset as a hole).
+pub fn buffer_line(pts: &[C], d: f64) -> Geom {
+    if d <= 0.0 || pts.is_empty() {
+        return Geom::Empty;
+    }
+    if pts.len() == 2 {
+        return segment_buffer(pts[0], pts[1], d);
+    }
+    let closed = pts.len() >= 4 && pts.first() == pts.last();
+    if closed {
+        let open = dedup_ring(pts);
+        if ring_is_convex(&open) {
+            let shell = convex_ring_offset(pts, d, QUAD_SEGS);
+            let inner = erode_convex(&Geom::Poly(Poly::new(open)), d);
+            let holes = match inner {
+                Geom::Poly(h) => {
+                    let mut hole = h.shell;
+                    hole.reverse();
+                    vec![hole]
+                }
+                _ => vec![],
+            };
+            return Geom::Poly(Poly { shell, holes });
+        }
+    }
+    let parts: Vec<Geom> = pts
+        .windows(2)
+        .map(|w| segment_buffer(w[0], w[1], d))
+        .collect();
+    unary_union(&parts)
+}
+
+/// GEOS `Centroid` of polygonal geometry (triangle fan about the first
+/// shell vertex); falls back to the envelope centre.
+pub fn centroid(g: &Geom) -> C {
+    let polys = g.polys();
+    let mut base: Option<C> = None;
+    let (mut cx, mut cy, mut a2sum) = (0.0f64, 0.0f64, 0.0f64);
+    let mut tri = |ring: &[C], positive: bool, base: C| {
+        let sign = if positive { 1.0 } else { -1.0 };
+        for w in ring.windows(2) {
+            let (p0, p1, p2) = (base, w[0], w[1]);
+            let tx = p0.0 + p1.0 + p2.0;
+            let ty = p0.1 + p1.1 + p2.1;
+            let a2 = (p1.0 - p0.0) * (p2.1 - p0.1) - (p2.0 - p0.0) * (p1.1 - p0.1);
+            cx += sign * a2 * tx;
+            cy += sign * a2 * ty;
+            a2sum += sign * a2;
+        }
+    };
+    for p in &polys {
+        if p.shell.is_empty() {
+            continue;
+        }
+        let b = *base.get_or_insert(p.shell[0]);
+        let ccw = ring_area(&p.shell) < 0.0;
+        tri(&p.shell, !ccw, b);
+        for h in &p.holes {
+            let hccw = ring_area(h) < 0.0;
+            tri(h, hccw, b);
+        }
+    }
+    if a2sum.abs() > 0.0 {
+        return (cx / 3.0 / a2sum, cy / 3.0 / a2sum);
+    }
+    let b = g.bounds().unwrap_or((0.0, 0.0, 0.0, 0.0));
+    ((b.0 + b.2) / 2.0, (b.1 + b.3) / 2.0)
+}
+
+/// Convex hull area (`geom.convex_hull.area`).
+pub fn convex_hull_area(g: &Geom) -> f64 {
+    let mut pts: Vec<C> = Vec::new();
+    for l in g.lines() {
+        pts.extend_from_slice(l);
+    }
+    pts.extend(g.points());
+    pts.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.total_cmp(&b.1)));
+    pts.dedup();
+    if pts.len() < 3 {
+        return 0.0;
+    }
+    let cross = |o: C, a: C, b: C| (a.0 - o.0) * (b.1 - o.1) - (a.1 - o.1) * (b.0 - o.0);
+    let mut lower: Vec<C> = Vec::new();
+    for &p in &pts {
+        while lower.len() >= 2 && cross(lower[lower.len() - 2], lower[lower.len() - 1], p) <= 0.0 {
+            lower.pop();
+        }
+        lower.push(p);
+    }
+    let mut upper: Vec<C> = Vec::new();
+    for &p in pts.iter().rev() {
+        while upper.len() >= 2 && cross(upper[upper.len() - 2], upper[upper.len() - 1], p) <= 0.0 {
+            upper.pop();
+        }
+        upper.push(p);
+    }
+    lower.pop();
+    upper.pop();
+    lower.extend(upper);
+    ring_area(&close(lower)).abs()
 }
 
 #[cfg(test)]

@@ -8,6 +8,7 @@ pub mod pyfmt;
 pub mod pymath;
 pub mod pyrepr;
 pub mod scoring;
+pub mod stdsort;
 
 use std::path::Path;
 

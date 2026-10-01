@@ -145,3 +145,106 @@ pub fn check_pth_hole_clearance(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
     results.rules_checked = 1;
     results
 }
+
+/// `check_silk_pad_clearance`: modeled silk strokes vs pad copper /
+/// mask apertures on the same side.
+pub fn check_silk_pad_clearance(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
+    use super::silkscreen::{fp_transform, silk_side, stroke_geometry, SilkGraphic};
+    let mut results = DRCResults::new();
+    let Some(minimum) = rules.min_silk_to_pad_clearance_mm else {
+        return results;
+    };
+    let mut apertures: Vec<(&str, Geom, String)> = Vec::new();
+    for fp in pcb.footprints() {
+        for pad in &fp.pads {
+            if !matches!(pad.pad_type.as_str(), "smd" | "thru_hole" | "connect") {
+                continue;
+            }
+            let margin = pad
+                .solder_mask_margin
+                .unwrap_or_else(|| pcb.setup().map_or(0.0, |s| s.pad_to_mask_clearance));
+            let Some(copper) = super::clearance::pad_polygon(pad, fp) else {
+                continue;
+            };
+            for side in ["F", "B"] {
+                let cu = format!("{side}.Cu");
+                if !pad.layers.iter().any(|l| l == "*.Cu" || *l == cu) {
+                    continue;
+                }
+                let mask = format!("{side}.Mask");
+                let exposed = pad.layers.iter().any(|l| l == "*.Mask" || *l == mask);
+                let g = if exposed {
+                    sh::buffer_polygon(&copper, margin.max(0.0))
+                } else {
+                    copper.clone()
+                };
+                apertures.push((side, g, format!("{}-{}", fp.reference, pad.number)));
+            }
+        }
+    }
+    let by_side = |side: &str| -> Vec<(sh::Prepared, String)> {
+        apertures
+            .iter()
+            .filter(|(s, g, _)| *s == side && !g.is_empty())
+            .map(|(_, g, l)| (sh::Prepared::new(g.clone()), l.clone()))
+            .collect()
+    };
+    let sides = [("F", by_side("F")), ("B", by_side("B"))];
+    let trees: Vec<StrTree> = sides
+        .iter()
+        .map(|(_, e)| StrTree::new(&e.iter().map(|(g, _)| g.bounds()).collect::<Vec<_>>()))
+        .collect();
+    let mut strokes: Vec<(SilkGraphic, Option<&Footprint>, String, (f64, f64))> = Vec::new();
+    for fp in pcb.footprints() {
+        for g in &fp.graphics {
+            strokes.push((SilkGraphic::from(g), Some(fp), fp.reference.clone(), fp.position));
+        }
+    }
+    for g in pcb.graphics() {
+        strokes.push((SilkGraphic::from(g), None, "board".to_string(), g.start));
+    }
+    for (g, fp, reference, location) in strokes {
+        let Some(side) = silk_side(g.layer) else {
+            continue;
+        };
+        let si = if side == "F" { 0 } else { 1 };
+        if sides[si].1.is_empty() {
+            continue;
+        }
+        let geom = match fp {
+            Some(fp) => {
+                let t = fp_transform(fp);
+                stroke_geometry(&g, Some(&t))
+            }
+            None => stroke_geometry(&g, None),
+        };
+        let Some(geom) = geom else { continue };
+        let Some((x0, y0, x1, y1)) = geom.bounds() else {
+            continue;
+        };
+        let mut silk_item = format!("{reference} {}", g.graphic_type);
+        if !g.uuid.is_empty() {
+            silk_item = format!("{silk_item} {{{}}}", g.uuid);
+        }
+        for idx in trees[si].query((x0 - minimum, y0 - minimum, x1 + minimum, y1 + minimum)) {
+            let (ap, pad_ref) = &sides[si].1[idx];
+            let d = sh::distance_prep(&geom, ap);
+            if d + DRC_TOLERANCE < minimum {
+                results.add(
+                    DRCViolation::new(
+                        "silk_pad_clearance",
+                        "error",
+                        format!("Silk to pad clearance {d:.4}mm < {}mm", py_float_repr(minimum)),
+                    )
+                    .at(location.0, location.1)
+                    .layer(g.layer.to_string())
+                    .actual(d)
+                    .required(minimum)
+                    .items([silk_item.clone(), pad_ref.clone()]),
+                );
+            }
+        }
+    }
+    results.rules_checked = 1;
+    results
+}

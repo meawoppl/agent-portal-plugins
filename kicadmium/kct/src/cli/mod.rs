@@ -14,6 +14,7 @@ use crate::units::{self, UnitFormatter};
 
 pub mod datasheet;
 pub mod design;
+pub mod fabrication;
 pub mod footprint;
 pub mod mfr;
 pub mod parts;
@@ -92,9 +93,9 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "mcp", about: "MCP (Model Context Protocol) server for AI agents", wave: "H", run: None },
     CommandSpec { name: "ipc", about: "Interact with a running KiCad instance via IPC API (KiCad 9.0+)", wave: "H", run: None },
     CommandSpec { name: "init", about: "Initialize a KiCad project with manufacturer design rules", wave: "G", run: Some(project::init) },
-    CommandSpec { name: "panel", about: "Create manufacturing panels from board PCBs", wave: "G", run: None },
+    CommandSpec { name: "panel", about: "Create manufacturing panels from board PCBs", wave: "G", run: Some(fabrication::panel) },
     CommandSpec { name: "pipeline", about: "End-to-end repair pipeline for existing PCBs", wave: "G", run: None },
-    CommandSpec { name: "create-pcb", about: "Create a PCB from a KiCad schematic", wave: "G", run: None },
+    CommandSpec { name: "create-pcb", about: "Create a PCB from a KiCad schematic", wave: "G", run: Some(fabrication::create_pcb) },
     CommandSpec { name: "build", about: "Build from spec to manufacturable design", wave: "G", run: None },
     CommandSpec { name: "build-native", about: "Build C++ router backend for 10-100x faster routing", wave: "F", run: None },
     CommandSpec { name: "doctor", about: "Diagnose kicad-tools installation health (version-record drift + environment preflight)", wave: "G", run: Some(utility::doctor) },
@@ -108,7 +109,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "calibrate", about: "Calibrate routing performance settings for your machine", wave: "F", run: None },
     CommandSpec { name: "screenshot", about: "Capture a PNG screenshot of a KiCad board or schematic", wave: "C", run: None },
     CommandSpec { name: "report", about: "Generate a Markdown design report", wave: "C", run: None },
-    CommandSpec { name: "export", about: "Generate a complete manufacturing package (BOM, CPL, Gerbers, project ZIP, manifest)", wave: "G", run: None },
+    CommandSpec { name: "export", about: "Generate a complete manufacturing package (BOM, CPL, Gerbers, project ZIP, manifest)", wave: "G", run: Some(fabrication::export) },
     CommandSpec { name: "optim", about: "Placement / routing FOM tools (issue #3186)", wave: "E", run: None },
 ];
 

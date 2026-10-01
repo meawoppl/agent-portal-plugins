@@ -149,9 +149,11 @@ impl Write for Buf {
     }
 }
 
-fn sink() -> (Rc<RefCell<dyn Write>>, Rc<RefCell<Vec<u8>>>) {
+type Sink = Rc<RefCell<dyn Write>>;
+
+fn sink() -> (Sink, Rc<RefCell<Vec<u8>>>) {
     let bytes = Rc::new(RefCell::new(Vec::new()));
-    let w: Rc<RefCell<dyn Write>> = Rc::new(RefCell::new(Buf(bytes.clone())));
+    let w: Sink = Rc::new(RefCell::new(Buf(bytes.clone())));
     (w, bytes)
 }
 

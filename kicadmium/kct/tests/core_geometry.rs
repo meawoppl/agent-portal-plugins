@@ -153,7 +153,7 @@ fn rotate_pad_offset_matches_pcbnew_oracle() {
 #[test]
 fn rotation_90_and_270_discriminate_standard_ccw() {
     for (rot, oracle) in [ORACLE[1], ORACLE[3]] {
-        let rad = (rot as f64).to_radians();
+        let rad = rot.to_radians();
         let ccw = (
             FP_POS.0 + PAD_LOCAL.0 * rad.cos() - PAD_LOCAL.1 * rad.sin(),
             FP_POS.1 + PAD_LOCAL.0 * rad.sin() + PAD_LOCAL.1 * rad.cos(),

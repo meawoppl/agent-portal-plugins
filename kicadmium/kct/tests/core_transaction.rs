@@ -176,7 +176,7 @@ fn forensic_sidecar() {
     assert_eq!(s.len(), 2);
     let contents: std::collections::HashSet<Vec<u8>> =
         s.iter().map(|p| std::fs::read(p).unwrap()).collect();
-    assert!(contents.contains(&b"second failure".to_vec()));
+    assert!(contents.contains(b"second failure".as_slice()));
 }
 
 /// `board\.kicad_pcb\.failed-\d{8}T\d{6}Z(-\d+)?\.kicad_pcb`

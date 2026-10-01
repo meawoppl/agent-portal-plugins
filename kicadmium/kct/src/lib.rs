@@ -37,6 +37,7 @@ pub mod router;
 pub mod schema;
 pub mod sexp;
 pub mod sidecars;
+pub mod silkscreen;
 pub mod stitching;
 pub mod sync;
 pub mod transaction;

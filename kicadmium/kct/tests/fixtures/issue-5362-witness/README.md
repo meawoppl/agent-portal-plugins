@@ -49,5 +49,5 @@ Both analyzers instead treated adjacent fragments as continuous
 merged VCC fill fragments 2 and 5 — distance zero at board-relative
 `(41.435, 59.5)` — and absorbed `R13.1` into the main VCC population.
 
-See `tests/test_fill_fragment_bonding_5362.py` for the version-boundary
-measurement series this fixture anchors.
+This fixture anchors the native Rust fill-fragment regression. The original
+upstream Python measurement-series test is not tracked in Kicadmium.

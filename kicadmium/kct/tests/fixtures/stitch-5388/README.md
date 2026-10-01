@@ -14,30 +14,20 @@ Native reproduction at main `7368bf597eaefb2dbe171f79db3c3216843a2ae6`:
 | split | 2 | 1 | 2 |
 
 The second result is geometric progress, but is not physical power completion.
-`tests/test_stitch_physical_completion.py` calls the shared production stage with
-these boards and native KiCad 10. It verifies accepted bytes, pad bonds, native
-reports, and exact rollback. Variations exercise inner-layer planes, foreign
-pad/segment/via/zone contact, authored drill constraints, refill-only completion,
-untargeted orphan copper, and project-local library context. Tests skip explicitly
-when KiCad 10 is unavailable; a skip is not a native acceptance measurement.
+These boards originated in an upstream physical-completion test. That Python
+harness is not tracked here. Kicadmium uses the boards as native Rust regression
+fixtures; a skipped native KiCad measurement is not acceptance evidence.
 
 The intentionally minimal `Test` footprint library is not installed. Existing
 library-availability warnings remain visible in native evidence; completion
 requires no new findings, while `strict_drc=True` requires no findings at all.
 
-Reproduce the generic controls with:
+For an individual user board, inspect current native command help and write a
+separate output:
 
 ```sh
-uv run pytest tests/test_stitch_physical_completion.py --no-cov -q
-uv run python boards/05-bldc-motor-controller/design.py /tmp/board05-physical-stitch
+kicadmium kct -- stitch board.kicad_pcb --net GND --via-size 0.6 --drill 0.3 --output stitched.kicad_pcb
 ```
 
-Each native test retains its temporary-stage boards, native report JSON and
-command logs under pytest's temporary directory. For an individual user board:
-
-```sh
-kct stitch board.kicad_pcb --net GND --complete --via-size 0.6 --drill 0.3 --evidence-dir new-stitch-evidence
-```
-
-The input remains in its original project context. The public API returns only
-physically accepted results; ordinary `kct stitch` keeps its geometric scope.
+The input remains unchanged. Stitch placement is geometric; refill and verify
+the explicit output with native KiCad before treating it as electrically complete.

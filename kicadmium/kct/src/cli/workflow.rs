@@ -13,6 +13,7 @@ struct StepResult {
     args: Vec<String>,
     exit_code: i32,
     skipped: bool,
+    reason: Option<String>,
 }
 pub fn pipeline(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let parsed = PipelineArgs::parse(args)?;
@@ -37,14 +38,31 @@ pub fn pipeline(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         |s| vec![s],
     );
     let mut results = vec![];
+    let output_root = parsed
+        .output
+        .clone()
+        .unwrap_or_else(|| PathBuf::from("output/kct-pipeline"));
+    if !parsed.dry_run {
+        std::fs::create_dir_all(&output_root)?;
+    }
     for step in steps {
-        let command = step_command(step, &board, &parsed);
+        let Some(command) = step_command(step, &board, &parsed, &output_root) else {
+            results.push(StepResult {
+                name: step.into(),
+                args: vec![],
+                exit_code: 0,
+                skipped: true,
+                reason: Some("native command is not registered yet".into()),
+            });
+            continue;
+        };
         if parsed.dry_run {
             results.push(StepResult {
                 name: step.into(),
                 args: strings(&command),
                 exit_code: 0,
                 skipped: true,
+                reason: Some("dry run".into()),
             });
             continue;
         }
@@ -54,6 +72,7 @@ pub fn pipeline(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             args: strings(&command),
             exit_code: code,
             skipped: false,
+            reason: None,
         });
         if code != 0 && !parsed.keep_going {
             emit_results(&parsed.format, &results)?;
@@ -133,21 +152,57 @@ fn flag_takes_value(s: &str) -> bool {
             | "--exclude-nets"
     )
 }
-fn step_command(step: &str, board: &Path, a: &PipelineArgs) -> Vec<OsString> {
+fn step_command(
+    step: &str,
+    board: &Path,
+    a: &PipelineArgs,
+    output_root: &Path,
+) -> Option<Vec<OsString>> {
+    if crate::cli::COMMANDS
+        .iter()
+        .find(|spec| spec.name == step)
+        .is_some_and(|spec| spec.run.is_none())
+    {
+        return None;
+    }
     let b = board.as_os_str().to_owned();
-    match step {
+    let output_board = |name: &str| {
+        output_root
+            .join(format!("{name}.kicad_pcb"))
+            .into_os_string()
+    };
+    Some(match step {
         "erc" => vec![
             "erc".into(),
             board.with_extension("kicad_sch").into_os_string(),
         ],
         "sync" => vec![
             "sync".into(),
+            "--analyze".into(),
+            "--schematic".into(),
             board.with_extension("kicad_sch").into_os_string(),
-            b,
+            "--pcb".into(),
+            b.clone(),
         ],
-        "fix-silkscreen" | "fix-vias" | "route" | "stitch" | "fix-drc" | "optimize-traces"
-        | "zones" => vec![step.into(), b, "--mfr".into(), a.mfr.clone().into()],
-        "audit" | "report" => vec![
+        "fix-silkscreen" | "fix-vias" => vec![
+            step.into(),
+            b,
+            "--mfr".into(),
+            a.mfr.clone().into(),
+            "--output".into(),
+            output_board(step),
+        ],
+        "route" | "optimize-traces" => vec![step.into(), b, "--output".into(), output_board(step)],
+        "stitch" => vec!["stitch".into(), b, "--output".into(), output_board(step)],
+        "fix-drc" => vec!["fix-drc".into(), b, "--output".into(), output_board(step)],
+        "zones" => vec![
+            "zones".into(),
+            "fill".into(),
+            b,
+            "--output".into(),
+            output_board(step),
+        ],
+        "audit" => vec![
             step.into(),
             b,
             "--mfr".into(),
@@ -155,15 +210,27 @@ fn step_command(step: &str, board: &Path, a: &PipelineArgs) -> Vec<OsString> {
             "--format".into(),
             "json".into(),
         ],
+        "report" => vec![
+            "report".into(),
+            "generate".into(),
+            b,
+            "--mfr".into(),
+            a.mfr.clone().into(),
+            "--output".into(),
+            output_root.join("reports").into_os_string(),
+            "--format".into(),
+            "json".into(),
+        ],
         "export" => {
             let mut v = vec!["export".into(), b, "--mfr".into(), a.mfr.clone().into()];
-            if let Some(o) = &a.output {
-                v.extend(["--output".into(), o.as_os_str().to_owned()])
-            }
+            v.extend([
+                "--output".into(),
+                output_root.join("manufacturing").into_os_string(),
+            ]);
             v
         }
         other => vec![other.into(), b],
-    }
+    })
 }
 
 pub fn build(args: Vec<OsString>, _: &Globals) -> Result<i32> {
@@ -211,6 +278,7 @@ pub fn build(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 args: strings(&command),
                 exit_code: 0,
                 skipped: true,
+                reason: Some("dry run".into()),
             })
         } else {
             let code = crate::cli::run(command.clone())?;
@@ -219,6 +287,7 @@ pub fn build(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 args: strings(&command),
                 exit_code: code,
                 skipped: false,
+                reason: None,
             });
             if code != 0 {
                 break;
@@ -322,14 +391,16 @@ fn emit_results(format: &str, r: &[StepResult]) -> Result<()> {
                 "{:<18} {}{}",
                 x.name,
                 if x.skipped {
-                    "DRY-RUN"
+                    "SKIPPED"
                 } else if x.exit_code == 0 {
                     "OK"
                 } else {
                     "FAIL"
                 },
                 if x.exit_code == 0 {
-                    "".into()
+                    x.reason
+                        .as_ref()
+                        .map_or_else(String::new, |reason| format!(" ({reason})"))
                 } else {
                     format!(" ({})", x.exit_code)
                 }
@@ -352,5 +423,31 @@ mod tests {
         .unwrap();
         assert_eq!(a.step, Some("audit"));
         assert!(a.dry_run)
+    }
+
+    #[test]
+    fn workflow_argv_uses_real_subcommands_and_outputs() {
+        let args = PipelineArgs {
+            input: "board.kicad_pcb".into(),
+            step: None,
+            mfr: "jlcpcb".into(),
+            output: Some("artifacts".into()),
+            dry_run: true,
+            keep_going: false,
+            format: "json".into(),
+        };
+        let board = Path::new("board.kicad_pcb");
+        let root = Path::new("artifacts");
+        let zones = strings(&step_command("zones", board, &args, root).unwrap());
+        assert_eq!(zones[0..2], ["zones", "fill"]);
+        assert!(zones
+            .windows(2)
+            .any(|v| v == ["--output", "artifacts/zones.kicad_pcb"]));
+        let report = strings(&step_command("report", board, &args, root).unwrap());
+        assert_eq!(report[0..2], ["report", "generate"]);
+        let sync = strings(&step_command("sync", board, &args, root).unwrap());
+        assert!(sync.contains(&"--analyze".to_string()));
+        assert!(sync.contains(&"--schematic".to_string()));
+        assert!(sync.contains(&"--pcb".to_string()));
     }
 }

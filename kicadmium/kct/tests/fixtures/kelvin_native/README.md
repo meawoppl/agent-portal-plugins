@@ -33,24 +33,13 @@ Native audit image:
 Saved/refilled PCBs, DRC JSON, native component censuses, producer metadata and
 the generation/audit scripts are retained without filtering findings.
 
-## Reproduction
+## Reproduction status
 
-Extract into a temporary directory. From an installed checkout, run
-`python generate_escaped_root.py NEW_OUTPUT_DIRECTORY`; the script requires
-both Python and a rebuilt C++ backend. The repository regression suite is:
-
-```sh
-uv run pytest tests/router/test_kelvin_physical_topology.py --no-cov -q
-```
-
-The retained `audit_escaped_root.py` expects its working directory mounted at
-`/fixtures` and `native_components.py` at `/evidence/native_components.py`, in
-an environment with KiCad 10.0.5 CLI and its Python `pcbnew` bindings. Place
-new producer output at `/fixtures/after-escaped-root`; use a fresh directory
-without `/fixtures/native-escaped-root` so existing evidence is not overwritten.
-Run `/usr/bin/python3 /fixtures/audit_escaped_root.py`. This performs both saved
-and `--refill-zones --save-board` native audits and checks that producer inputs
-remain unchanged.
+This directory retains immutable evidence imported from an upstream experiment.
+The original Python/C++ producer and audit scripts are not part of Kicadmium and
+are not a runnable repository workflow. Use the checked-in boards and manifests
+as regression inputs for native Rust tests; use `kicad-cli` directly when a
+fresh native DRC measurement is required.
 
 ## Isolated historical-board comparison
 
@@ -83,7 +72,6 @@ The historical design is an electrically unsuitable stress fixture (see #4993),
 not a manufacturing candidate. These results also predate the original-pad
 obstacle and sense-impedance corrections in later commits of this PR.
 
-The retained `audit2.py` audits disposable copies and verifies producer hashes
-afterward. An earlier discarded audit triggered its directory hash guard when
-KiCad created a `.kicad_prl` file; the source PCB was unchanged. The retained
-audit's `before.json` includes that auxiliary file and its guard passed.
+The archived `before.json` includes the auxiliary `.kicad_prl` observed during
+the original audit. It is provenance, not an instruction to run an untracked
+helper.

@@ -5,11 +5,12 @@ description: Resolve and review exact PCB parts, packages, electrical ratings, a
 
 # Skill for part search, resolving BOM items
 
-Use either of the following MCPs for search:
-- https://pcbparts.dev/
-- https://zenode.ai/
-
-If either of the MCPs are not installed, prompt the user to install at least one before proceeding.
+Start with the native `kicadmium kct -- parts` and `datasheet` commands, plus
+manufacturer fields already present in the schematic. If current availability
+or pricing is required and an approved web/search capability is available, use
+authoritative manufacturer or distributor pages and record the retrieval date.
+Do not block BOM work on an unspecified MCP or require installation of a
+third-party service.
 
 Search for parts that meet actual requirements of the PCB. Use other skills that are available to you to determine if proposed parts will work electrically and mechanically.
 

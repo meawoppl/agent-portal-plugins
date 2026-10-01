@@ -91,6 +91,7 @@ fn make_temp(prefix: &str, suffix: &str) -> std::io::Result<PathBuf> {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn run(
     kicad_cli: Option<&Path>,
     sub: &str,

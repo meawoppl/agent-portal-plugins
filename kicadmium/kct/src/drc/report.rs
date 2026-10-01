@@ -365,7 +365,7 @@ pub fn parse_isoformat(s: &str) -> Option<String> {
 
 /// Extract required/actual values from a violation message (first matching
 /// wording wins; leaves the fields untouched otherwise).
-pub(crate) fn extract_values(v: &mut DRCViolation, message: &str) -> Result<()> {
+pub fn extract_values(v: &mut DRCViolation, message: &str) -> Result<()> {
     for re in [
         &*CLEARANCE_VALUES,
         &*MINIMUM_VALUES,

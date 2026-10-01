@@ -133,6 +133,7 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 if let Some(parent) = out.parent() {
                     std::fs::create_dir_all(parent)?
                 }
+                crate::install_tls_provider();
                 let bytes = reqwest::blocking::get(&p.datasheet_url)?
                     .error_for_status()?
                     .bytes()?;

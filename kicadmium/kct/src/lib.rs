@@ -50,3 +50,12 @@ pub use sexp::{parse, parse_file, Document, SExp, Value};
 
 /// Version of upstream kicad-tools this port tracks.
 pub const UPSTREAM_VERSION: &str = "0.22.0";
+
+/// Select the TLS crypto provider used by the network-backed catalog tools.
+///
+/// Reqwest's default Rustls provider pulls in an AWS-LC CMake build. Selecting
+/// Ring explicitly keeps fresh kicadmium builds independent of CMake while
+/// retaining a well-supported Rustls HTTPS stack.
+pub fn install_tls_provider() {
+    let _ = rustls::crypto::ring::default_provider().install_default();
+}

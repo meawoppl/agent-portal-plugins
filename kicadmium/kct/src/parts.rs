@@ -40,6 +40,7 @@ pub struct SearchResult {
     pub source: &'static str,
 }
 fn client() -> Result<reqwest::blocking::Client> {
+    crate::install_tls_provider();
     Ok(reqwest::blocking::Client::builder()
         .timeout(Duration::from_secs(20))
         .user_agent(concat!("kicadmium-kct/", env!("CARGO_PKG_VERSION")))

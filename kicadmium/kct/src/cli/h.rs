@@ -11,6 +11,10 @@ use std::sync::{Mutex, OnceLock};
 
 use anyhow::{bail, Context, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
+use rustyline::completion::FilenameCompleter;
+use rustyline::error::ReadlineError;
+use rustyline::highlight::Highlighter;
+use rustyline::{Completer, Editor, Helper, Hinter, Validator};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
@@ -252,6 +256,7 @@ fn call_tool(params: &Value) -> Result<Value> {
     Ok(json!({"content":[{"type":"text","text":text}],"isError":!out.status.success()}))
 }
 
+#[cfg(test)]
 const MCP_NAMES: &[&str] = &[
     "validate_assembly_bom",
     "export_gerbers",
@@ -301,7 +306,8 @@ const MCP_NAMES: &[&str] = &[
     "ecosystem_show",
 ];
 fn mcp_tools() -> Vec<Value> {
-    MCP_NAMES.iter().map(|name| json!({"name":name,"description":format!("Native kicad-tools {name} operation"),"inputSchema":{"type":"object","additionalProperties":true}})).collect()
+    serde_json::from_str(include_str!("../mcp_tools.json"))
+        .expect("embedded upstream MCP tool catalog must be valid JSON")
 }
 
 fn mcp_command(name: &str, args: &Value) -> Option<(&'static str, Vec<String>)> {
@@ -459,7 +465,8 @@ fn session_tool(name: &str, args: &Value) -> Result<Value> {
 }
 fn apply_session_move(session: &mut McpSession, args: &Value) -> Result<()> {
     let reference = args
-        .get("reference")
+        .get("ref")
+        .or_else(|| args.get("reference"))
         .and_then(Value::as_str)
         .context("reference required")?;
     let x = args
@@ -708,7 +715,9 @@ pub fn reason(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     }
     let text =
         fs::read_to_string(&a.pcb).with_context(|| format!("loading {}", a.pcb.display()))?;
-    let state = reasoning_state(&a.pcb, &text)?;
+    let mut state = reasoning_state(&a.pcb, &text)?;
+    let (drc, violations) = reason_drc(&a)?;
+    state["violations"] = Value::Array(violations);
     if let Some(path) = a.state_output.as_ref() {
         fs::write(path, serde_json::to_vec_pretty(&state)?)?;
     }
@@ -752,13 +761,6 @@ pub fn reason(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let routed = state["nets"]["routed"].as_array().map_or(0, Vec::len);
     let unrouted = state["nets"]["unrouted"].as_array().map_or(0, Vec::len);
     let board = json!({"width_mm":state["outline"]["width"],"height_mm":state["outline"]["height"],"components":state["components"].as_object().map_or(0,|x|x.len()),"nets_total":routed+unrouted,"nets_routed":routed,"nets_unrouted":unrouted,"violations":state["violations"].as_array().map_or(0,Vec::len)});
-    let drc = if let Some(path) = a.drc.as_ref() {
-        json!({"ran":false,"source":"report","path":path})
-    } else if a.no_drc {
-        json!({"ran":false,"source":"skipped"})
-    } else {
-        json!({"ran":false,"source":"checker","manufacturer":a.mfr,"layers":a.layers,"error":"native DRC checker unavailable; run kicadmium drc or kicad-cli pcb drc"})
-    };
     let mut report = json!({"command":"reason","mode":mode,"pcb":a.pcb,"board":board,"drc":drc,"warnings":[],"max_nets":a.max_nets,"dry_run":a.dry_run,"output":output,"success":true});
     if a.export_state {
         report["state"] = state.clone();
@@ -781,6 +783,82 @@ pub fn reason(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         emit(a.format, &report);
     }
     Ok(0)
+}
+
+fn reason_drc(args: &ReasonArgs) -> Result<(Value, Vec<Value>)> {
+    if args.no_drc {
+        return Ok((json!({"ran":false,"source":"skipped"}), vec![]));
+    }
+    if let Some(path) = args.drc.as_ref() {
+        let value: Value = serde_json::from_slice(&fs::read(path)?).unwrap_or_else(|_| json!({}));
+        return Ok((
+            json!({"ran":false,"source":"report","path":path}),
+            collect_violations(&value),
+        ));
+    }
+    let Some(cli) = find_kicad_cli() else {
+        return Ok((
+            json!({"ran":false,"source":"checker","manufacturer":args.mfr,"layers":args.layers,"error":"kicad-cli not found"}),
+            vec![],
+        ));
+    };
+    let report = std::env::temp_dir().join(format!(
+        "kct-reason-drc-{}-{}.json",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_nanos()
+    ));
+    let output = Command::new(&cli)
+        .args(["pcb", "drc", "--format", "json", "--output"])
+        .arg(&report)
+        .arg(&args.pcb)
+        .output()?;
+    let parsed = fs::read(&report)
+        .ok()
+        .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
+        .unwrap_or_else(|| json!({}));
+    let _ = fs::remove_file(&report);
+    let violations = collect_violations(&parsed);
+    let error = (!output.status.success())
+        .then(|| String::from_utf8_lossy(&output.stderr).trim().to_owned());
+    Ok((
+        json!({"ran":output.status.success(),"source":"checker","engine":"kicad-cli","manufacturer":args.mfr,"layers":args.layers,"rules_checked":parsed.get("coordinate_units").is_some().then_some(violations.len()),"error":error}),
+        violations,
+    ))
+}
+fn find_kicad_cli() -> Option<PathBuf> {
+    for key in ["KICADMIUM_KICAD_CLI", "KICAD_CLI"] {
+        if let Some(path) = std::env::var_os(key)
+            .map(PathBuf::from)
+            .filter(|p| p.is_file())
+        {
+            return Some(path);
+        }
+    }
+    std::env::var_os("PATH").and_then(|path| {
+        std::env::split_paths(&path)
+            .map(|p| p.join("kicad-cli"))
+            .find(|p| p.is_file())
+    })
+}
+fn collect_violations(value: &Value) -> Vec<Value> {
+    if let Some(items) = value.get("violations").and_then(Value::as_array) {
+        return items.iter().map(normalize_violation).collect();
+    }
+    if let Some(object) = value.as_object() {
+        for child in object.values() {
+            let found = collect_violations(child);
+            if !found.is_empty() {
+                return found;
+            }
+        }
+    }
+    vec![]
+}
+fn normalize_violation(value: &Value) -> Value {
+    let pos = value.get("position").or_else(|| value.get("pos"));
+    json!({"type":value.get("type").or_else(||value.get("code")).cloned().unwrap_or_else(||json!("drc")),"severity":value.get("severity").cloned().unwrap_or_else(||json!("error")),"message":value.get("description").or_else(||value.get("message")).cloned().unwrap_or_else(||json!("DRC violation")),"x":pos.and_then(|p|p.get("x")).cloned(),"y":pos.and_then(|p|p.get("y")).cloned(),"nets":value.get("nets").cloned().unwrap_or_else(||json!([]))})
 }
 
 fn reasoning_state(path: &Path, text: &str) -> Result<Value> {
@@ -887,6 +965,12 @@ struct InteractiveArgs {
     #[arg(long)]
     project: Option<PathBuf>,
 }
+#[derive(Helper, Completer, Hinter, Validator)]
+struct ReplHelper {
+    #[rustyline(Completer)]
+    files: FilenameCompleter,
+}
+impl Highlighter for ReplHelper {}
 pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
     let a = parse_args::<InteractiveArgs>("interactive", args);
     let mut loaded = a.project;
@@ -899,9 +983,43 @@ pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
         .and_then(|p| fs::read_to_string(p).ok())
         .map(|text| text.lines().map(str::to_owned).collect())
         .unwrap_or_default();
+    let interactive = std::io::IsTerminal::is_terminal(&io::stdin());
+    let mut editor = if interactive {
+        let mut editor = Editor::new()?;
+        editor.set_helper(Some(ReplHelper {
+            files: FilenameCompleter::new(),
+        }));
+        if let Some(path) = history_path.as_ref() {
+            let _ = editor.load_history(path);
+        }
+        Some(editor)
+    } else {
+        None
+    };
+    let stdin = io::stdin();
+    let mut stdin = stdin.lock();
     eprintln!("kicadmium kct interactive — type `help` or `quit`");
-    for line in io::stdin().lock().lines() {
-        let line = line?;
+    loop {
+        let line = if let Some(editor) = editor.as_mut() {
+            match editor.readline("kicad-tools> ") {
+                Ok(line) => {
+                    let _ = editor.add_history_entry(&line);
+                    line
+                }
+                Err(ReadlineError::Eof) => break,
+                Err(ReadlineError::Interrupted) => {
+                    eprintln!("Interrupted");
+                    break;
+                }
+                Err(error) => return Err(error.into()),
+            }
+        } else {
+            let mut line = String::new();
+            if stdin.read_line(&mut line)? == 0 {
+                break;
+            }
+            line.trim_end_matches(['\r', '\n']).to_owned()
+        };
         if !line.trim().is_empty() && history.last().is_none_or(|last| last != &line) {
             history.push(line.clone())
         }
@@ -1005,12 +1123,17 @@ pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
             }
         }
     }
-    if let Some(path) = history_path {
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)?
+    if let (Some(path), Some(editor)) = (history_path.as_ref(), editor.as_mut()) {
+        let _ = editor.save_history(path);
+    }
+    if editor.is_none() {
+        if let Some(path) = history_path {
+            if let Some(parent) = path.parent() {
+                fs::create_dir_all(parent)?
+            }
+            let start = history.len().saturating_sub(1000);
+            fs::write(path, format!("{}\n", history[start..].join("\n")))?
         }
-        let start = history.len().saturating_sub(1000);
-        fs::write(path, format!("{}\n", history[start..].join("\n")))?
     }
     Ok(0)
 }
@@ -1204,6 +1327,16 @@ mod tests {
             .collect();
         assert_eq!(names, MCP_NAMES);
         assert_eq!(names.len(), 46);
+        let gerbers = &listed["result"]["tools"][1];
+        assert_eq!(
+            gerbers["inputSchema"]["required"],
+            json!(["pcb_path", "output_dir"])
+        );
+        assert_eq!(
+            gerbers["inputSchema"]["properties"]["manufacturer"]["default"],
+            "generic"
+        );
+        assert!(gerbers["description"].as_str().unwrap().contains("Gerber"));
     }
     #[test]
     fn reason_state_has_component_pad_net_and_outline_shape() {
@@ -1218,6 +1351,14 @@ mod tests {
         assert_eq!(state["components"]["U1"]["pads"][0]["x"], 10.0);
         assert_eq!(state["components"]["U1"]["pads"][0]["y"], 21.0);
         assert_eq!(state["nets"]["routed"][0]["name"], "SIG");
+    }
+    #[test]
+    fn normalizes_native_kicad_drc_json() {
+        let source = json!({"violations":[{"type":"clearance","severity":"error","description":"too close","position":{"x":1.0,"y":2.0},"nets":["GND"]}]});
+        let violations = collect_violations(&source);
+        assert_eq!(violations.len(), 1);
+        assert_eq!(violations[0]["message"], "too close");
+        assert_eq!(violations[0]["x"], 1.0);
     }
     #[test]
     fn route_items_match_ipc_units_and_filter() {

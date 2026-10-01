@@ -11,6 +11,7 @@ pub mod footprints;
 pub mod fsutil;
 pub mod manufacturers;
 pub mod parts;
+pub mod schema;
 pub mod sexp;
 pub mod units;
 

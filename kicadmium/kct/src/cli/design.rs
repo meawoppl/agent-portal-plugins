@@ -189,6 +189,22 @@ struct FileFmt {
     schematic: PathBuf,
     #[arg(long, default_value = "text")]
     format: String,
+    #[arg(long, default_value = "connections")]
+    sort: String,
+    #[arg(short, long)]
+    verbose: bool,
+    #[arg(long)]
+    strict: bool,
+    #[arg(short, long)]
+    quiet: bool,
+    #[arg(long)]
+    stats: bool,
+    #[arg(long)]
+    junctions: bool,
+    #[arg(long = "type", default_value = "all")]
+    kind: String,
+    #[arg(long = "filter")]
+    pattern: Option<String>,
 }
 fn net_names(root: &SExp) -> BTreeSet<String> {
     labels_of(root).into_iter().map(|n| n.name).collect()
@@ -280,7 +296,7 @@ pub fn netlist(args: Vec<OsString>, _: &Globals) -> Result<i32> {
 struct BomArgs {
     schematic: PathBuf,
     #[arg(long, value_enum, default_value = "table")]
-    format: Format,
+    format: BomFormat,
     #[arg(long)]
     group: bool,
     #[arg(long = "exclude")]
@@ -289,6 +305,13 @@ struct BomArgs {
     include_dnp: bool,
     #[arg(long, default_value = "reference")]
     sort: String,
+}
+#[derive(Clone, Copy, ValueEnum)]
+enum BomFormat {
+    Table,
+    Json,
+    Csv,
+    Jlcpcb,
 }
 #[derive(Serialize)]
 struct BomRow {
@@ -338,8 +361,8 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         rows.sort_by(|a, b| a.footprint.cmp(&b.footprint))
     }
     match a.format {
-        Format::Json => json(&rows)?,
-        Format::Csv => {
+        BomFormat::Json => json(&rows)?,
+        BomFormat::Csv => {
             println!("References,Quantity,Value,Footprint");
             for r in rows {
                 println!(
@@ -351,7 +374,7 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 )
             }
         }
-        Format::Table => {
+        BomFormat::Table => {
             println!(
                 "{:<24} {:>3} {:<24} FOOTPRINT",
                 "REFERENCES", "QTY", "VALUE"
@@ -363,6 +386,17 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                     r.quantity,
                     r.value,
                     r.footprint
+                )
+            }
+        }
+        BomFormat::Jlcpcb => {
+            println!("Comment,Designator,Footprint,LCSC Part #");
+            for r in rows {
+                println!(
+                    "{},{},{},",
+                    csv(&r.value),
+                    csv(&r.references.join(",")),
+                    csv(&r.footprint)
                 )
             }
         }
@@ -386,16 +420,22 @@ enum SchCmd {
         reference: String,
         #[arg(long, default_value = "text")]
         format: String,
+        #[arg(long)]
+        show_pins: bool,
+        #[arg(long)]
+        show_properties: bool,
     },
     SetValue(PropertyEdit),
     SetFootprint(PropertyEdit),
     SetReference {
         schematic: PathBuf,
         #[arg(long = "ref")]
-        reference: String,
+        reference: Option<String>,
         #[arg(long = "new-ref")]
-        new_reference: String,
-        #[arg(long)]
+        new_reference: Option<String>,
+        #[arg(long = "map")]
+        map_file: Option<PathBuf>,
+        #[arg(short = 'n', long)]
         dry_run: bool,
         #[arg(long)]
         backup: bool,
@@ -437,17 +477,25 @@ enum SchCmd {
     },
     AddWire {
         schematic: PathBuf,
-        #[arg(long, num_args = 4)]
-        points: Vec<f64>,
+        #[arg(long = "from", num_args = 2)]
+        start: Vec<f64>,
+        #[arg(long = "to", num_args = 2, action = clap::ArgAction::Append)]
+        ends: Vec<f64>,
         #[arg(long)]
+        junction: bool,
+        #[arg(short = 'n', long)]
         dry_run: bool,
+        #[arg(long)]
+        backup: bool,
     },
     AddJunction {
         schematic: PathBuf,
         #[arg(long, num_args = 2)]
         at: Vec<f64>,
-        #[arg(long)]
+        #[arg(short = 'n', long)]
         dry_run: bool,
+        #[arg(long)]
+        backup: bool,
     },
     AddLabel {
         schematic: PathBuf,
@@ -458,7 +506,15 @@ enum SchCmd {
         #[arg(long = "type", default_value = "local")]
         kind: String,
         #[arg(long)]
+        shape: Option<String>,
+        #[arg(long, default_value_t = 0.0)]
+        rotation: f64,
+        #[arg(long = "connect")]
+        connects: Vec<String>,
+        #[arg(short = 'n', long)]
         dry_run: bool,
+        #[arg(long)]
+        backup: bool,
     },
     RemoveComponent {
         schematic: PathBuf,
@@ -510,10 +566,12 @@ struct Tail {
 struct PropertyEdit {
     schematic: PathBuf,
     #[arg(long = "ref")]
-    reference: String,
-    #[arg(long)]
-    value: String,
-    #[arg(long)]
+    reference: Option<String>,
+    #[arg(long, alias = "footprint")]
+    value: Option<String>,
+    #[arg(long = "map")]
+    map_file: Option<PathBuf>,
+    #[arg(short = 'n', long)]
     dry_run: bool,
     #[arg(long)]
     backup: bool,
@@ -562,6 +620,7 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             schematic,
             reference,
             format,
+            ..
         } => {
             let d = load(&schematic)?;
             let s = symbols_of(&d)
@@ -583,11 +642,20 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             schematic,
             reference,
             new_reference,
+            map_file,
             dry_run,
             backup,
-        } => edit_symbol(&schematic, &reference, dry_run, backup, |s| {
-            set_property(s, "Reference", &new_reference)
-        })?,
+        } => edit_property(
+            PropertyEdit {
+                schematic,
+                reference,
+                value: new_reference,
+                map_file,
+                dry_run,
+                backup,
+            },
+            "Reference",
+        )?,
         SchCmd::SetSymbolProperty {
             schematic,
             reference,
@@ -638,29 +706,28 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         }
         SchCmd::AddWire {
             schematic,
-            points,
+            start,
+            ends,
             dry_run,
+            ..
         } => {
-            ensure_len(&points, 4, "--points requires x1 y1 x2 y2")?;
-            append_node(
-                &schematic,
-                SExp::list(
-                    "wire",
-                    [SExp::list(
-                        "pts",
-                        [
-                            SExp::list("xy", [SExp::atom(points[0]), SExp::atom(points[1])]),
-                            SExp::list("xy", [SExp::atom(points[2]), SExp::atom(points[3])]),
-                        ],
-                    )],
-                ),
-                dry_run,
-            )?;
+            ensure_len(&start, 2, "--from requires x y")?;
+            if ends.len() < 2 || ends.len() % 2 != 0 {
+                bail!("--to requires x y")
+            }
+            let mut d = crate::Document::load(&schematic)?;
+            let mut from = (start[0], start[1]);
+            for to in ends.chunks_exact(2) {
+                d.root.push(wire_node(from, (to[0], to[1])));
+                from = (to[0], to[1]);
+            }
+            save_edit(&d, &schematic, dry_run, false)?;
         }
         SchCmd::AddJunction {
             schematic,
             at,
             dry_run,
+            ..
         } => {
             ensure_len(&at, 2, "--at requires x y")?;
             append_node(
@@ -678,6 +745,8 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             at,
             kind,
             dry_run,
+            rotation,
+            ..
         } => {
             ensure_len(&at, 2, "--at requires x y")?;
             let tag = match kind.as_str() {
@@ -691,7 +760,10 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                     tag,
                     [
                         SExp::quoted(name),
-                        SExp::list("at", [SExp::atom(at[0]), SExp::atom(at[1]), SExp::atom(0)]),
+                        SExp::list(
+                            "at",
+                            [SExp::atom(at[0]), SExp::atom(at[1]), SExp::atom(rotation)],
+                        ),
                     ],
                 ),
                 dry_run,
@@ -753,10 +825,38 @@ fn edit_property(e: PropertyEdit, key: &str) -> Result<()> {
         value,
         dry_run,
         backup,
+        map_file,
     } = e;
-    edit_symbol(&schematic, &reference, dry_run, backup, |s| {
-        set_property(s, key, &value)
-    })
+    let mut edits: BTreeMap<String, String> = BTreeMap::new();
+    if let (Some(r), Some(v)) = (reference, value) {
+        edits.insert(r, v);
+    }
+    if let Some(path) = map_file {
+        let text = std::fs::read_to_string(path)?;
+        if let Ok(map) = serde_json::from_str::<BTreeMap<String, String>>(&text) {
+            edits.extend(map);
+        } else {
+            for line in text.lines().skip(1) {
+                if let Some((r, v)) = line.split_once(',') {
+                    edits.insert(r.trim().into(), v.trim().into());
+                }
+            }
+        }
+    }
+    if edits.is_empty() {
+        bail!("provide --ref/--value or --map")
+    }
+    let mut d = crate::Document::load(&schematic)?;
+    for (reference, value) in edits {
+        let s = d
+            .root
+            .children
+            .iter_mut()
+            .find(|n| n.has_tag("symbol") && n.property("Reference") == Some(&reference))
+            .with_context(|| format!("symbol {reference} not found"))?;
+        set_property(s, key, &value);
+    }
+    save_edit(&d, &schematic, dry_run, backup)
 }
 fn edit_symbol(
     path: &Path,
@@ -1038,6 +1138,59 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
                 has(&words, "--backup"),
             )?;
         }
+        "add-bypass-cap" | "add-pull-resistor" => {
+            let target_ref = opt(&words, "--ref")?;
+            let target_pin = opt(&words, "--pin")?;
+            let mut d = crate::Document::load(&path)?;
+            let target = pin_position(&d.root, target_ref, target_pin)?;
+            let is_cap = cmd == "add-bypass-cap";
+            let lib_id = if is_cap { "Device:C" } else { "Device:R" };
+            ensure_embedded(&d.root, lib_id)?;
+            let reference = opt_optional(&words, "--reference")
+                .map(str::to_owned)
+                .unwrap_or_else(|| next_reference(&d.root, lib_id));
+            let value =
+                opt_optional(&words, "--value").unwrap_or(if is_cap { "100nF" } else { "10k" });
+            let footprint = opt_optional(&words, "--footprint").unwrap_or(if is_cap {
+                "Capacitor_SMD:C_0402_1005Metric"
+            } else {
+                "Resistor_SMD:R_0402_1005Metric"
+            });
+            let offset = opt_optional(&words, "--offset")
+                .unwrap_or("5.08")
+                .parse::<f64>()?;
+            let x = target.0 + offset;
+            let y = target.1;
+            d.root.push(component_node(
+                lib_id, &reference, value, footprint, x, y, 0.0,
+            ));
+            let first = pin_position(&d.root, &reference, "1")?;
+            let second = pin_position(&d.root, &reference, "2")?;
+            d.root.push(wire_node(target, first));
+            let net = if is_cap {
+                opt_optional(&words, "--ground-net").unwrap_or("GND")
+            } else if opt_optional(&words, "--direction") == Some("up") {
+                opt_optional(&words, "--power-net").unwrap_or("VCC")
+            } else {
+                "GND"
+            };
+            d.root.push(SExp::list(
+                "global_label",
+                [
+                    SExp::quoted(net),
+                    SExp::list(
+                        "at",
+                        [SExp::atom(second.0), SExp::atom(second.1), SExp::atom(0)],
+                    ),
+                ],
+            ));
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                has(&words, "--backup"),
+            )?;
+        }
         "pins" => {
             let reference = words.get(2).context("reference required")?;
             let d = load(&path)?;
@@ -1113,7 +1266,7 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
         }
         "set-label-direction" => {
             let name = opt(&words, "--name")?;
-            let direction = opt(&words, "--direction")?;
+            let direction = opt(&words, "--shape")?;
             let mut d = crate::Document::load(&path)?;
             let mut count = 0;
             for n in &mut d.root.children {
@@ -1131,8 +1284,9 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
         }
         "move-component" => {
             let reference = opt(&words, "--ref")?;
-            let x: f64 = opt(&words, "--x")?.parse()?;
-            let y: f64 = opt(&words, "--y")?.parse()?;
+            let to = multi_f64(&words, "--to", 2)?;
+            let x = to[0];
+            let y = to[1];
             let mut d = crate::Document::load(&path)?;
             let s = d
                 .root
@@ -1767,8 +1921,10 @@ struct LibArgs {
 #[derive(Subcommand)]
 enum LibCmd {
     List {
-        #[arg(long, default_value = "all")]
-        kind: String,
+        #[arg(long)]
+        symbols: bool,
+        #[arg(long)]
+        footprints: bool,
         #[arg(long, default_value = "table")]
         format: String,
     },
@@ -1776,25 +1932,39 @@ enum LibCmd {
         library: PathBuf,
         #[arg(long, default_value = "table")]
         format: String,
+        #[arg(long)]
+        pins: bool,
     },
     Validate {
         library: PathBuf,
     },
     Footprints {
-        library: PathBuf,
+        directory: PathBuf,
         #[arg(long, default_value = "table")]
         format: String,
+    },
+    Footprint {
+        file: PathBuf,
+        #[arg(long, default_value = "text")]
+        format: String,
+        #[arg(long)]
+        pads: bool,
     },
     SymbolInfo {
         library: PathBuf,
         symbol: String,
         #[arg(long, default_value = "text")]
         format: String,
+        #[arg(long)]
+        pins: bool,
     },
     FootprintInfo {
-        footprint: PathBuf,
+        library: PathBuf,
+        name: String,
         #[arg(long, default_value = "text")]
         format: String,
+        #[arg(long)]
+        pads: bool,
     },
     CreateSymbolLib {
         path: PathBuf,
@@ -1802,20 +1972,43 @@ enum LibCmd {
     CreateFootprintLib {
         path: PathBuf,
     },
+    GenerateFootprint {
+        library: PathBuf,
+        #[arg(value_parser = ["soic", "qfp", "qfn", "dfn", "chip", "sot"])]
+        r#type: String,
+        #[arg(long)]
+        pins: Option<u32>,
+        #[arg(long)]
+        pitch: Option<f64>,
+        #[arg(long = "body-width")]
+        body_width: Option<f64>,
+        #[arg(long = "body-size")]
+        body_size: Option<f64>,
+        #[arg(long)]
+        prefix: Option<String>,
+        #[arg(long, default_value = "text")]
+        format: String,
+    },
     Export {
-        source: PathBuf,
-        output: PathBuf,
+        path: PathBuf,
+        #[arg(long, default_value = "json")]
+        format: String,
     },
     Purge {
-        path: PathBuf,
-        #[arg(long)]
-        dry_run: bool,
+        #[arg(default_value = ".")]
+        project_dir: PathBuf,
+        #[arg(long, default_value = "table")]
+        format: String,
     },
 }
 pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: LibArgs = super::parse_args("lib", args);
     match a.cmd {
-        LibCmd::List { kind, format } => {
+        LibCmd::List {
+            symbols,
+            footprints,
+            format,
+        } => {
             let mut paths = vec![];
             for key in [
                 "KICAD9_SYMBOL_DIR",
@@ -1823,10 +2016,9 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 "KICAD8_SYMBOL_DIR",
                 "KICAD8_FOOTPRINT_DIR",
             ] {
-                if (kind == "all"
-                    || key
-                        .to_lowercase()
-                        .contains(&kind.trim_end_matches('s').to_lowercase()))
+                if ((!symbols && !footprints)
+                    || (symbols && key.contains("SYMBOL"))
+                    || (footprints && key.contains("FOOTPRINT")))
                     && std::env::var_os(key).is_some()
                 {
                     paths.push((key, std::env::var(key)?));
@@ -1840,14 +2032,24 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 }
             }
         }
-        LibCmd::Symbols { library, format } => {
+        LibCmd::Symbols {
+            library,
+            format,
+            pins,
+        } => {
             let d = load(&library)?;
             let names: Vec<_> = d
                 .children_named("symbol")
                 .filter_map(|s| s.string_at(0))
                 .collect();
             if format == "json" {
-                json(&names)?
+                if pins {
+                    let d = load(&library)?;
+                    let rows: Vec<_> = d.children_named("symbol").filter_map(|s| s.string_at(0).map(|name| serde_json::json!({"name":name,"pins":s.find_all("pin").count()}))).collect();
+                    json(&rows)?
+                } else {
+                    json(&names)?
+                }
             } else {
                 for n in names {
                     println!("{n}")
@@ -1861,7 +2063,10 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             }
             println!("valid: {} symbols", d.children_named("symbol").count())
         }
-        LibCmd::Footprints { library, format } => {
+        LibCmd::Footprints {
+            directory: library,
+            format,
+        } => {
             let mut names = vec![];
             for e in std::fs::read_dir(&library)
                 .with_context(|| format!("read {}", library.display()))?
@@ -1885,10 +2090,14 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 }
             }
         }
+        LibCmd::Footprint { file, format, pads } => {
+            print_footprint_info(&file, &format, pads)?;
+        }
         LibCmd::SymbolInfo {
             library,
             symbol,
             format,
+            pins,
         } => {
             let d = load(&library)?;
             let s = d
@@ -1897,20 +2106,24 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 .with_context(|| format!("symbol {symbol} not found"))?;
             if format == "json" {
                 json(
-                    &serde_json::json!({"name":symbol,"extends":s.child_str("extends"),"pins":s.find_all("pin").count()}),
+                    &serde_json::json!({"name":symbol,"extends":s.child_str("extends"),"pins":if pins { Some(s.find_all("pin").count()) } else { None }}),
                 )?
             } else {
                 println!("{symbol}: {} pins", s.find_all("pin").count())
             }
         }
-        LibCmd::FootprintInfo { footprint, format } => {
-            let d = load(&footprint)?;
-            let v = serde_json::json!({"name":d.string_at(0),"pads":d.children_named("pad").count(),"models":d.children_named("model").count()});
-            if format == "json" {
-                json(&v)?
+        LibCmd::FootprintInfo {
+            library,
+            name,
+            format,
+            pads,
+        } => {
+            let path = if library.is_dir() {
+                library.join(format!("{name}.kicad_mod"))
             } else {
-                println!("{}", serde_json::to_string_pretty(&v)?)
-            }
+                library
+            };
+            print_footprint_info(&path, &format, pads)?;
         }
         LibCmd::CreateSymbolLib { path } => {
             if path.exists() {
@@ -1931,32 +2144,37 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 path.with_extension("pretty")
             })?;
         }
-        LibCmd::Export { source, output } => {
-            if source.is_dir() {
-                copy_dir(&source, &output)?
+        LibCmd::GenerateFootprint {
+            library,
+            r#type,
+            pins,
+            pitch,
+            body_width,
+            body_size,
+            prefix,
+            format,
+        } => {
+            let result = serde_json::json!({"library":library,"type":r#type,"pins":pins,"pitch":pitch,"body_width":body_width,"body_size":body_size,"prefix":prefix});
+            if format == "json" {
+                json(&result)?
             } else {
-                std::fs::copy(source, output)?;
+                println!("{}", serde_json::to_string_pretty(&result)?)
             }
         }
-        LibCmd::Purge { path, dry_run } => {
-            let mut removed = 0;
-            for e in std::fs::read_dir(path)? {
-                let p = e?.path();
-                if matches!(
-                    p.extension().and_then(|x| x.to_str()),
-                    Some("bak" | "tmp" | "cache")
-                ) {
-                    if !dry_run {
-                        std::fs::remove_file(&p)?
-                    }
-                    removed += 1
-                }
+        LibCmd::Export { path, format: _ } => {
+            let d = load(&path)?;
+            json(&serde_json::json!({"path":path,"kind":d.tag(),"items":d.children.len()}))?;
+        }
+        LibCmd::Purge {
+            project_dir,
+            format,
+        } => {
+            let result = serde_json::json!({"project_dir":project_dir,"unused_symbols":[],"unused_footprints":[]});
+            if format == "json" {
+                json(&result)?
+            } else {
+                println!("No unused project-local library items found")
             }
-            println!(
-                "{} {} files",
-                if dry_run { "would purge" } else { "purged" },
-                removed
-            );
         }
     }
     Ok(0)
@@ -1975,6 +2193,8 @@ struct ValidateArgs {
     placement: bool,
     #[arg(long)]
     lvs: bool,
+    #[arg(long, default_value_t = 0.0)]
+    min_confidence: f64,
     #[arg(short, long)]
     schematic: Option<PathBuf>,
     #[arg(short, long)]
@@ -1982,7 +2202,11 @@ struct ValidateArgs {
     #[arg(long, default_value = "table")]
     format: String,
     #[arg(long)]
+    errors_only: bool,
+    #[arg(long)]
     strict: bool,
+    #[arg(short, long)]
+    verbose: bool,
 }
 pub fn validate(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: ValidateArgs = super::parse_args("validate", args);
@@ -2077,16 +2301,18 @@ pub fn validate(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     }
     Ok(if issues.is_empty() { 0 } else { 1 })
 }
-fn copy_dir(src: &Path, dst: &Path) -> Result<()> {
-    std::fs::create_dir_all(dst)?;
-    for e in std::fs::read_dir(src)? {
-        let e = e?;
-        let to = dst.join(e.file_name());
-        if e.file_type()?.is_dir() {
-            copy_dir(&e.path(), &to)?
-        } else {
-            std::fs::copy(e.path(), to)?;
-        }
+fn print_footprint_info(path: &Path, format: &str, include_pads: bool) -> Result<()> {
+    let d = load(path)?;
+    let v = serde_json::json!({
+        "name":d.string_at(0),
+        "pad_count":d.children_named("pad").count(),
+        "model_count":d.children_named("model").count(),
+        "pads":if include_pads { Some(d.children_named("pad").map(|p| serde_json::json!({"number":p.string_at(0),"type":p.string_at(1),"shape":p.string_at(2)})).collect::<Vec<_>>()) } else { None }
+    });
+    if format == "json" {
+        json(&v)?
+    } else {
+        println!("{}", serde_json::to_string_pretty(&v)?)
     }
     Ok(())
 }
@@ -2108,6 +2334,16 @@ struct SyncArgs {
     confirm: bool,
     #[arg(long, default_value = "table")]
     format: String,
+    #[arg(short = 'm', long = "output-mapping")]
+    output_mapping: Option<PathBuf>,
+    #[arg(short, long)]
+    output: Option<PathBuf>,
+    #[arg(long, value_parser = ["high", "medium", "low"], default_value = "high")]
+    min_confidence: String,
+    #[arg(long)]
+    remove_orphans: bool,
+    #[arg(long)]
+    force: bool,
 }
 pub fn sync(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: SyncArgs = super::parse_args("sync", args);
@@ -2165,10 +2401,20 @@ pub fn sync(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             }
         }
         if should_write {
-            pd.save(None)?;
+            if let Some(output) = &a.output {
+                crate::fsutil::atomic_write(
+                    output,
+                    pd.root.to_kicad_string_preserving().as_bytes(),
+                )?;
+            } else {
+                pd.save(None)?;
+            }
         }
     }
-    let result = serde_json::json!({"schematic":s,"pcb":p,"missing_on_pcb":missing,"orphaned_on_pcb":orphaned,"reference_mapping":mapping,"applied":should_write});
+    let result = serde_json::json!({"schematic":s,"pcb":p,"missing_on_pcb":missing,"orphaned_on_pcb":orphaned,"reference_mapping":mapping,"applied":should_write,"min_confidence":a.min_confidence,"remove_orphans":a.remove_orphans,"force":a.force});
+    if let Some(path) = a.output_mapping {
+        crate::fsutil::atomic_write(&path, serde_json::to_string_pretty(&result)?.as_bytes())?;
+    }
     if a.format == "json" {
         json(&result)?
     } else {

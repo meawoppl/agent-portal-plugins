@@ -326,11 +326,24 @@ pub fn drc_error_counts(
     layers: i64,
     copper_oz: f64,
 ) -> Result<DrcCounts> {
-    let _ = (pcb_text, manufacturer, layers, copper_oz);
-    bail!(
-        "DRC-aware mode needs the pure-Rust DRC checker (kicad_tools.validate.DRCChecker, \
-         `kct check`), which is not ported yet"
-    )
+    use crate::validate::checker::{DRCChecker, DRCCheckerOptions};
+    let pcb = crate::schema::pcb::Pcb::parse_str(pcb_text)?;
+    let checker = DRCChecker::new(
+        &pcb,
+        DRCCheckerOptions {
+            manufacturer: manufacturer.to_string(),
+            layers,
+            copper_oz,
+            ..DRCCheckerOptions::default()
+        },
+    )?;
+    let mut results = checker.check_clearances();
+    results.merge(checker.check_dimensions());
+    let mut counts: DrcCounts = HashMap::from([("__total__".to_string(), results.error_count())]);
+    for v in results.errors() {
+        *counts.entry(v.rule_id.clone()).or_default() += 1;
+    }
+    Ok(counts)
 }
 
 /// Optimize every net's segments in a board file.

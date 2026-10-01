@@ -1262,6 +1262,83 @@ fn ring_is_simple(r: &[C]) -> bool {
     true
 }
 
+/// Negative buffer (`buffer(-d)`) of a convex polygon: each edge offset
+/// inward by `d`, consecutive offset lines intersected. Returns `Empty`
+/// when the polygon collapses.
+pub fn erode_convex(g: &Geom, d: f64) -> Geom {
+    let Geom::Poly(p) = g else {
+        return Geom::Empty;
+    };
+    let mut ring: Vec<C> = Vec::new();
+    for &q in &p.shell {
+        if ring.last() != Some(&q) {
+            ring.push(q);
+        }
+    }
+    if ring.len() > 1 && ring.first() == ring.last() {
+        ring.pop();
+    }
+    let n = ring.len();
+    if n < 3 {
+        return Geom::Empty;
+    }
+    let area = ring_area(&p.shell);
+    // Inward normal side: left for clockwise-by-shapely-sign rings.
+    let ccw = area < 0.0; // GEOS ofRingSigned is positive for CW rings.
+    let lines: Vec<(C, C)> = (0..n)
+        .map(|i| {
+            let (a, b) = (ring[i], ring[(i + 1) % n]);
+            let (o0, o1) = offset_seg(a, b, d, ccw);
+            (o0, o1)
+        })
+        .collect();
+    let mut out = Vec::with_capacity(n + 1);
+    for i in 0..n {
+        let (a0, a1) = lines[(i + n - 1) % n];
+        let (b0, b1) = lines[i];
+        let den = (a1.0 - a0.0) * (b1.1 - b0.1) - (a1.1 - a0.1) * (b1.0 - b0.0);
+        if den == 0.0 {
+            out.push(b0);
+            continue;
+        }
+        let t = ((b0.0 - a0.0) * (b1.1 - b0.1) - (b0.1 - a0.1) * (b1.0 - b0.0)) / den;
+        out.push((a0.0 + t * (a1.0 - a0.0), a0.1 + t * (a1.1 - a0.1)));
+    }
+    out.push(out[0]);
+    let new_area = ring_area(&out);
+    if new_area == 0.0 || (new_area < 0.0) != (area < 0.0) || new_area.abs() >= area.abs() {
+        return Geom::Empty;
+    }
+    // Every original edge must survive with positive length in the same
+    // direction, otherwise the offset polygon inverted locally.
+    for i in 0..n {
+        let (a, b) = (ring[i], ring[(i + 1) % n]);
+        let (c, e) = (out[i], out[i + 1]);
+        if (b.0 - a.0) * (e.0 - c.0) + (b.1 - a.1) * (e.1 - c.1) <= 0.0 {
+            return Geom::Empty;
+        }
+    }
+    Geom::Poly(Poly {
+        shell: out,
+        holes: vec![],
+    })
+}
+
+/// Disc with a concentric hole (annulus); plain disc when `inner <= 0`.
+pub fn annulus(center: C, outer: f64, inner: f64, quad: usize) -> Geom {
+    let Geom::Poly(mut o) = point_buffer_q(center, outer, quad) else {
+        return Geom::Empty;
+    };
+    if inner > 0.0 {
+        if let Geom::Poly(h) = point_buffer_q(center, inner, quad) {
+            let mut hole = h.shell;
+            hole.reverse();
+            o.holes.push(hole);
+        }
+    }
+    Geom::Poly(o)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

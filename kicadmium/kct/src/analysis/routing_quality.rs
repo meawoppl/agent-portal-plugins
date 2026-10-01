@@ -267,10 +267,6 @@ pub fn compute_routing_quality(pcb: &Pcb) -> RoutingQualityMetrics {
         .collect();
     let mut m = compute_routing_quality_from_records(&records);
     m.copper_arc_count = pcb.arcs().len() as i64;
-    m.copper_arc_length_mm = pcb
-        .arcs()
-        .iter()
-        .map(|a| a.length())
-        .fold(0.0, |a, b| a + b);
+    m.copper_arc_length_mm = crate::utils::pymath::py_sum(pcb.arcs().iter().map(|a| a.length()));
     m
 }

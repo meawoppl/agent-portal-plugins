@@ -2,18 +2,13 @@
 //! (`kicad-cli sch export netlist --format kicadsexpr`), query them, and
 //! walk schematic sheet hierarchies.
 //!
-//! Gap: upstream's pure-Python fallback extractor
-//! (`build_netlist_from_schematic`) is built on `kicad_tools.schematic.models`
-//! connectivity, which is not ported; here the fallback reports an error
-//! instead of extracting.
-
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 
-use crate::pyjson::{py_round, Json};
+use crate::pyjson::{Json, py_round};
 use crate::sexp::SExp;
 
 pub use crate::cli::runner::find_kicad_cli;
@@ -485,15 +480,232 @@ pub fn count_hierarchy_sheets(sch_path: &Path) -> usize {
     walk(sch_path, &mut BTreeSet::new())
 }
 
-/// Upstream's pure-Python extractor (not ported; see module docs).
+#[derive(Default)]
+struct NativeSheet {
+    components: Vec<NetlistComponent>,
+    nets: BTreeMap<String, Vec<NetNode>>,
+    /// Named net at an arbitrary sheet connection point (not just a wire end).
+    point_nets: Vec<((f64, f64), String)>,
+}
+
+fn near(a: (f64, f64), b: (f64, f64)) -> bool {
+    (a.0 - b.0).abs() < 0.1 && (a.1 - b.1).abs() < 0.1
+}
+
+fn point_on_segment(p: (f64, f64), a: (f64, f64), b: (f64, f64)) -> bool {
+    crate::schema::wire::Wire::new(a, b).contains_point(p, 0.1)
+}
+
+fn extract_native_sheet(path: &Path, sheet_path: &str) -> Result<NativeSheet> {
+    use crate::schema::schematic::Schematic;
+
+    let sch = Schematic::load(path)?;
+    let mut out = NativeSheet::default();
+    let wires = sch.wires();
+    let mut parent: Vec<usize> = (0..wires.len()).collect();
+    fn root(parent: &mut [usize], i: usize) -> usize {
+        if parent[i] != i {
+            parent[i] = root(parent, parent[i]);
+        }
+        parent[i]
+    }
+    fn join(parent: &mut [usize], a: usize, b: usize) {
+        let (ra, rb) = (root(parent, a), root(parent, b));
+        if ra != rb {
+            parent[rb] = ra;
+        }
+    }
+    // KiCad connects a wire end to any segment it touches. A crossing in the
+    // middle connects only when KiCad emitted a junction there.
+    for i in 0..wires.len() {
+        for j in i + 1..wires.len() {
+            let endpoint_touch = [wires[i].start, wires[i].end]
+                .into_iter()
+                .any(|p| point_on_segment(p, wires[j].start, wires[j].end))
+                || [wires[j].start, wires[j].end]
+                    .into_iter()
+                    .any(|p| point_on_segment(p, wires[i].start, wires[i].end));
+            let junction_touch = sch.junctions().iter().any(|x| {
+                point_on_segment(x.position, wires[i].start, wires[i].end)
+                    && point_on_segment(x.position, wires[j].start, wires[j].end)
+            });
+            if endpoint_touch || junction_touch {
+                join(&mut parent, i, j);
+            }
+        }
+    }
+
+    let mut names: BTreeMap<usize, String> = BTreeMap::new();
+    let labels = sch
+        .labels()
+        .iter()
+        .map(|l| (l.position, l.text.clone()))
+        .chain(
+            sch.global_labels()
+                .into_iter()
+                .map(|l| (l.position, l.text)),
+        )
+        .chain(
+            sch.hierarchical_labels()
+                .iter()
+                .map(|l| (l.position, l.text.clone())),
+        )
+        .collect::<Vec<_>>();
+    for (pos, name) in &labels {
+        for (i, wire) in wires.iter().enumerate() {
+            if point_on_segment(*pos, wire.start, wire.end) {
+                names
+                    .entry(root(&mut parent, i))
+                    .or_insert_with(|| name.clone());
+            }
+        }
+    }
+
+    let mut component_nodes: BTreeMap<usize, Vec<NetNode>> = BTreeMap::new();
+    for sym in sch.symbols() {
+        if sym.reference().is_empty() || sym.reference().starts_with('#') {
+            continue;
+        }
+        let resolved = sch.get_lib_symbol_resolved(&sym.lib_id)?;
+        let pins = resolved
+            .as_ref()
+            .map(|lib| {
+                lib.pins
+                    .iter()
+                    .filter(|p| p.unit == 0 || p.unit == sym.unit)
+                    .filter_map(|p| {
+                        lib.get_pin_position(&p.number, sym.position, sym.rotation, &sym.mirror)
+                            .map(|pos| (p, pos))
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        out.components.push(NetlistComponent {
+            reference: sym.reference().to_string(),
+            value: sym.value().to_string(),
+            footprint: sym.footprint().to_string(),
+            lib_id: sym.lib_id.clone(),
+            sheet_path: sheet_path.to_string(),
+            properties: sym
+                .properties
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.value.clone()))
+                .collect(),
+            pins: pins
+                .iter()
+                .map(|(p, _)| ComponentPin {
+                    number: p.number.clone(),
+                    name: p.name.clone(),
+                    pin_type: p.pin_type.clone(),
+                })
+                .collect(),
+        });
+        for (pin, pos) in pins {
+            if let Some(i) = wires
+                .iter()
+                .position(|w| point_on_segment(pos, w.start, w.end))
+            {
+                component_nodes
+                    .entry(root(&mut parent, i))
+                    .or_default()
+                    .push(NetNode {
+                        reference: sym.reference().to_string(),
+                        pin: pin.number.clone(),
+                        pin_function: pin.name.clone(),
+                        pin_type: pin.pin_type.clone(),
+                    });
+            }
+        }
+    }
+    for i in 0..wires.len() {
+        let r = root(&mut parent, i);
+        let name = names
+            .get(&r)
+            .cloned()
+            .unwrap_or_else(|| format!("Net_{r:04X}"));
+        out.point_nets.push((wires[i].start, name.clone()));
+        out.point_nets.push((wires[i].end, name.clone()));
+        if let Some(nodes) = component_nodes.remove(&r) {
+            out.nets.entry(name).or_default().extend(nodes);
+        } else {
+            out.nets.entry(name).or_default();
+        }
+    }
+    for (pos, name) in labels {
+        out.point_nets.push((pos, name.clone()));
+        out.nets.entry(name).or_default();
+    }
+    Ok(out)
+}
+
+fn collect_native_hierarchy(
+    path: &Path,
+    sheet_path: &str,
+    visited: &mut BTreeSet<PathBuf>,
+) -> Result<NativeSheet> {
+    let resolved = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+    if !visited.insert(resolved) || !path.exists() {
+        return Ok(NativeSheet::default());
+    }
+    let mut out = extract_native_sheet(path, sheet_path)?;
+    for entry in get_sheet_entries(path)? {
+        let child_path = path
+            .parent()
+            .unwrap_or(Path::new("."))
+            .join(&entry.filename);
+        let child_sheet_path = format!("{sheet_path}{}/", entry.filename);
+        let mut child = collect_native_hierarchy(&child_path, &child_sheet_path, visited)?;
+        let aliases: BTreeMap<String, String> = entry
+            .pin_names
+            .iter()
+            .zip(&entry.pin_positions)
+            .filter_map(|(name, pos)| {
+                out.point_nets
+                    .iter()
+                    .find(|(p, _)| near(*p, *pos))
+                    .map(|(_, parent)| (name.clone(), parent.clone()))
+            })
+            .collect();
+        out.components.append(&mut child.components);
+        for (name, nodes) in child.nets {
+            out.nets
+                .entry(aliases.get(&name).cloned().unwrap_or(name))
+                .or_default()
+                .extend(nodes);
+        }
+    }
+    Ok(out)
+}
+
+/// Build a netlist directly from KiCad schematic models, including recursive
+/// sheets and parent-sheet-pin to hierarchical-label net merging.
 pub fn build_netlist_from_schematic(sch_path: &Path) -> Result<Netlist> {
     if !sch_path.exists() {
         bail!("Schematic not found: {}", sch_path.display());
     }
-    bail!(
-        "native schematic netlist extraction is not available; kicad-cli is required to export a netlist for {}",
-        sch_path.display()
-    )
+    let extracted = collect_native_hierarchy(sch_path, "/", &mut BTreeSet::new())?;
+    let nets = extracted
+        .nets
+        .into_iter()
+        .enumerate()
+        .map(|(i, (name, mut nodes))| {
+            nodes.sort_by(|a, b| (&a.reference, &a.pin).cmp(&(&b.reference, &b.pin)));
+            nodes.dedup_by(|a, b| a.reference == b.reference && a.pin == b.pin);
+            NetlistNet {
+                code: (i + 1) as i64,
+                name,
+                nodes,
+            }
+        })
+        .collect();
+    Ok(Netlist {
+        source_file: sch_path.display().to_string(),
+        tool: "kicadmium native schematic extractor".into(),
+        sheets: Vec::new(),
+        components: extracted.components,
+        nets,
+        date: String::new(),
+    })
 }
 
 /// Export a netlist with `kicad-cli` and parse it. `output_path` defaults
@@ -645,5 +857,40 @@ mod tests {
             "{s}"
         );
         assert!(s.contains("\"power_net_count\": 1"), "{s}");
+    }
+
+    #[test]
+    fn native_extractor_resolves_library_pin_positions() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/operations/regulator_schematic_with_wires.kicad_sch");
+        let netlist = build_netlist_from_schematic(&path).unwrap();
+        assert_eq!(netlist.components.len(), 1);
+        assert_eq!(netlist.components[0].reference, "U1");
+        assert_eq!(netlist.components[0].pins.len(), 3);
+        let connected: BTreeSet<_> = netlist
+            .nets
+            .iter()
+            .flat_map(|net| net.nodes.iter().map(|node| node.pin.as_str()))
+            .collect();
+        assert_eq!(connected, BTreeSet::from(["1", "2", "3"]));
+    }
+
+    #[test]
+    fn native_extractor_walks_schematic_hierarchy() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/hierarchical_lvs/root_lvs.kicad_sch");
+        let netlist = build_netlist_from_schematic(&path).unwrap();
+        let refs: BTreeSet<_> = netlist
+            .components
+            .iter()
+            .map(|component| component.reference.as_str())
+            .collect();
+        assert_eq!(refs, BTreeSet::from(["R1", "R2"]));
+        assert!(
+            netlist
+                .components
+                .iter()
+                .all(|component| component.sheet_path.starts_with('/'))
+        );
     }
 }

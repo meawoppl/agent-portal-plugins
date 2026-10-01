@@ -61,17 +61,13 @@ pub fn pad_copper_polygon(fp: &Footprint, pad: &Pad, shape_aware: bool) -> Optio
     Some(base)
 }
 
-/// `_fill_solid_region`: the fill polygon, repaired when invalid.
+/// `_fill_solid_region`: the fill polygon, `buffer(0)`-repaired when invalid.
 pub fn fill_solid_region(points: &[(f64, f64)]) -> Option<Geom> {
     if points.len() < 3 {
         return None;
     }
-    let poly = Poly::new(points.to_vec());
-    let g = if sh::is_valid(&poly) {
-        Geom::Poly(poly)
-    } else {
-        sh::make_valid(&poly)
-    };
+    // `Polygon(points)` then `buffer(0)` when invalid.
+    let g = sh::buffer0(&Poly::new(points.to_vec()));
     (!g.is_empty()).then_some(g)
 }
 

@@ -1294,6 +1294,84 @@ pub fn clip_segment(a: C, b: C, g: &Geom) -> Vec<(C, C)> {
     out
 }
 
+/// GEOS `Orientation::isCCW` (rising-segment / cap rule, GEOS 3.13).
+pub fn ring_is_ccw(ring: &[C]) -> bool {
+    let n_pts = ring.len().saturating_sub(1);
+    if n_pts < 3 {
+        return false;
+    }
+    let mut up_hi = ring[0];
+    let mut prev_y = up_hi.1;
+    let mut up_low: Option<C> = None;
+    let mut i_up_hi = 0usize;
+    for i in 1..=n_pts {
+        let py = ring[i].1;
+        if py > prev_y && py >= up_hi.1 {
+            i_up_hi = i;
+            up_low = Some(ring[i - 1]);
+            up_hi = ring[i];
+        }
+        prev_y = py;
+    }
+    if i_up_hi == 0 {
+        return false;
+    }
+    let mut i_down_low = i_up_hi;
+    loop {
+        i_down_low = (i_down_low + 1) % n_pts;
+        if i_down_low == i_up_hi || ring[i_down_low].1 != up_hi.1 {
+            break;
+        }
+    }
+    let down_low = ring[i_down_low];
+    let i_down_hi = if i_down_low > 0 { i_down_low - 1 } else { n_pts - 1 };
+    let down_hi = ring[i_down_hi];
+    if up_hi == down_hi {
+        let ul = up_low.unwrap_or(up_hi);
+        if ul == up_hi || down_low == up_hi || ul == down_low {
+            return false;
+        }
+        return orient(ul, up_hi, down_low) > 0.0;
+    }
+    down_hi.0 - up_hi.0 < 0.0
+}
+
+/// `Polygon(shell).buffer(0)` for a hole-free (possibly self-intersecting)
+/// ring: the region whose winding number has the ring's orientation sign
+/// (GEOS keeps only same-orientation lobes, unlike `make_valid`).
+pub fn buffer0(p: &Poly) -> Geom {
+    if is_valid(p) {
+        return Geom::Poly(p.clone());
+    }
+    let ring: Vec<[f64; 2]> = open_ring(&p.shell);
+    if ring.len() < 3 {
+        return Geom::Empty;
+    }
+    let mut shapes: Shapes = vec![vec![ring]];
+    for h in &p.holes {
+        if h.len() >= 3 {
+            shapes[0].push(open_ring(h));
+        }
+    }
+    let snap = Snapper::new(&[&shapes]);
+    let opts = OverlayOptions::<f64> {
+        preserve_input_collinear: true,
+        preserve_output_collinear: true,
+        output_direction: ContourDirection::Clockwise,
+        ..Default::default()
+    };
+    let rule = if ring_is_ccw(&p.shell) == BUFFER0_CCW_IS_POSITIVE {
+        FillRule::Positive
+    } else {
+        FillRule::Negative
+    };
+    let out = FloatOverlay::with_subj_custom(&shapes, opts, Solver::default()).overlay(OverlayRule::Subject, rule);
+    from_shapes(out, &snap)
+}
+
+/// i_overlay counts math-CCW contours with this winding sign.
+const BUFFER0_CCW_IS_POSITIVE: bool = true;
+
 /// Repair an invalid polygon (`make_valid`, linework/even-odd parity),
 /// polygonal parts only.
 pub fn make_valid(p: &Poly) -> Geom {
@@ -2056,6 +2134,23 @@ pub fn convex_hull_area(g: &Geom) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn buffer0_matches_geos_winding() {
+        // python: Polygon(pts).buffer(0).area for these rings.
+        let cases: [(&[(f64, f64)], f64); 4] = [
+            (&[(0.0, 0.0), (2.0, 2.0), (2.0, 0.0), (0.0, 2.0)], 1.0),
+            (&[(0.0, 0.0), (2.0, 0.0), (0.0, 2.0), (2.0, 2.0)], 1.0),
+            (&[(0.0, 0.0), (4.0, 0.0), (4.0, 1.0), (1.0, 1.0), (1.0, 3.0), (4.0, 3.0), (4.0, 1.0), (4.0, 4.0), (0.0, 4.0)], 10.0),
+            (&[(0.0, 0.0), (3.0, 0.0), (3.0, 3.0), (0.0, 3.0), (0.0, 0.0), (1.0, 1.0), (2.0, 1.0), (2.0, 2.0), (1.0, 2.0), (1.0, 1.0)], 9.0),
+        ];
+        for (pts, area) in cases {
+            let g = buffer0(&Poly::new(pts.to_vec()));
+            assert!((g.area() - area).abs() < 1e-9, "{pts:?}: {}", g.area());
+        }
+        let sq = Poly::new(vec![(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)]);
+        assert!(ring_is_ccw(&sq.shell));
+    }
 
     #[test]
     fn circle_matches_geos() {

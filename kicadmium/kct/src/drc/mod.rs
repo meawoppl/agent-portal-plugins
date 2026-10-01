@@ -15,6 +15,7 @@ pub mod local_rerouter;
 pub mod net_compat;
 pub mod predictive;
 pub mod repair_clearance;
+pub mod repair_drill_clearance;
 pub mod repair_silkscreen;
 pub mod report;
 pub mod severity;

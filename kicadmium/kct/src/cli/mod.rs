@@ -34,6 +34,7 @@ pub mod fix_vias;
 pub mod fleet;
 pub mod footprint;
 pub mod footprint_validation;
+pub mod fix_drc;
 pub mod h;
 pub mod impedance;
 pub mod mfr;
@@ -108,7 +109,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "fix-silkscreen", about: "Fix silkscreen line widths to meet manufacturer specifications", wave: "D", run: Some(fix_silkscreen::run) },
     CommandSpec { name: "place-silk-refs", about: "Move readable silkscreen reference designators to clear collisions", wave: "D", run: Some(place_silk_refs::run) },
     CommandSpec { name: "repair-clearance", about: "Repair clearance violations by nudging traces", wave: "D", run: Some(repair_clearance::run) },
-    CommandSpec { name: "fix-drc", about: "Automated DRC violation repair (clearance + drill)", wave: "D", run: None },
+    CommandSpec { name: "fix-drc", about: "Automated DRC violation repair (clearance + drill)", wave: "D", run: Some(fix_drc::run) },
     CommandSpec { name: "fix-erc", about: "Automated ERC violation repair (PWR_FLAG + no-connect)", wave: "D", run: Some(fix_erc::run) },
     CommandSpec { name: "parts", about: "LCSC parts lookup and search", wave: "G", run: Some(parts::run) },
     CommandSpec { name: "datasheet", about: "Datasheet search, download, and PDF parsing", wave: "G", run: Some(datasheet::run) },

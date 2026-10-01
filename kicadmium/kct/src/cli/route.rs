@@ -22,6 +22,9 @@ use crate::router::core::{Autorouter, RouterConfig, RoutingStats};
 use crate::router::io::{load_pcb_for_routing, merge_routes_into_pcb, pads_by_net, BoardData};
 use crate::schema::pcb::{is_power_net, Pcb};
 
+/// Default wall-clock routing budget (seconds) when `--timeout` is absent.
+pub const DEFAULT_ROUTE_BUDGET_S: f64 = 300.0;
+
 /// Exit code when routing completes below the requested completion rate.
 pub const EXIT_PARTIAL: i32 = 1;
 
@@ -738,6 +741,7 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
         }
     }
     let mut best: Option<Attempt> = None;
+    let mut budget_exhausted = false;
     for (k, &layers) in ladder.iter().enumerate() {
         if !quiet {
             println!("\n{}", "=".repeat(60));
@@ -753,7 +757,20 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
                 .collect();
             println!("  Plane layers (reserved): {}", desc.join(", "));
         }
-        let attempt = run_attempt(p, &pcb, layers, grid, &skip, &plan.late, &plan.planes)?;
+        // Shared wall-clock budget: --timeout, else a default cap so a
+        // route always terminates with its best partial result.
+        let budget = p.timeout.unwrap_or(DEFAULT_ROUTE_BUDGET_S);
+        let remaining = budget - started.elapsed().as_secs_f64();
+        if remaining <= 0.0 && best.is_some() {
+            budget_exhausted = true;
+            break;
+        }
+        let mut pa = p.clone();
+        pa.timeout = Some(remaining.max(1.0));
+        let attempt = run_attempt(&pa, &pcb, layers, grid, &skip, &plan.late, &plan.planes)?;
+        if attempt.router.budget_exhausted() {
+            budget_exhausted = true;
+        }
         if !quiet {
             println!(
                 "\n  Routed: {}/{} nets ({:.0}%)",
@@ -780,13 +797,20 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
         if done {
             break;
         }
-        if p.timeout
-            .is_some_and(|t| started.elapsed().as_secs_f64() > t)
-        {
+        if budget_exhausted {
             break;
         }
     }
     let best = best.expect("at least one attempt");
+    if budget_exhausted && !quiet {
+        println!(
+            "\nRouting budget exhausted after {:.1}s (--timeout {}); keeping the best partial result.",
+            started.elapsed().as_secs_f64(),
+            p.timeout
+                .map(crate::utils::pyrepr::py_float_repr)
+                .unwrap_or_else(|| format!("default {DEFAULT_ROUTE_BUDGET_S}s"))
+        );
+    }
     if !quiet && p.auto_layers {
         println!("\n{}", "=".repeat(60));
         println!("LAYER ESCALATION SUMMARY");

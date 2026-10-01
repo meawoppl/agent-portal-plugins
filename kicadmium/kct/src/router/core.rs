@@ -103,6 +103,8 @@ struct Component {
     set: HashSet<usize>,
     core_owner: HashMap<usize, usize>,
     pads: Vec<usize>,
+    /// Failed connection attempts per pad (bounded retries).
+    failed: HashMap<usize, u8>,
 }
 
 /// Aggregate statistics (upstream `get_statistics`).
@@ -139,6 +141,8 @@ pub struct Autorouter {
 }
 
 const HALO_MARGIN_CELLS: f64 = 0.3;
+/// A pad that failed to connect to a component this many times is skipped.
+const MAX_PAD_RETRIES: u8 = 2;
 /// Default drill-to-drill edge spacing (KiCad default rule).
 pub const DEFAULT_MIN_HOLE_TO_HOLE: f64 = 0.25;
 
@@ -449,6 +453,11 @@ impl Autorouter {
         self.order = nets.into_iter().map(|n| n.2).collect();
     }
 
+    /// Whether the total routing budget ran out during this run.
+    pub fn budget_exhausted(&self) -> bool {
+        self.timed_out()
+    }
+
     fn timed_out(&self) -> bool {
         self.config
             .total_timeout
@@ -626,6 +635,7 @@ impl Autorouter {
             core_owner: cells.iter().map(|&c| (c, pad)).collect(),
             cells,
             pads: vec![pad],
+            failed: HashMap::new(),
         }
     }
 
@@ -699,6 +709,9 @@ impl Autorouter {
         });
         for k in 0..remaining.len() {
             let target_pad = remaining[k];
+            if comp.failed.get(&target_pad).copied().unwrap_or(0) >= MAX_PAD_RETRIES {
+                continue;
+            }
             let targets = self.pad_cells(target_pad);
             if targets.is_empty() || comp.cells.is_empty() {
                 continue;
@@ -706,6 +719,7 @@ impl Autorouter {
             if !targets.iter().any(|t| comp.set.contains(t)) {
                 let sources = comp.cells.clone();
                 let Some(path) = self.search(res.net, &sources, &targets, present) else {
+                    *comp.failed.entry(target_pad).or_insert(0) += 1;
                     if std::env::var_os("KCT_ROUTE_DEBUG").is_some() {
                         let bp = &self.board.pads[target_pad];
                         eprintln!(
@@ -1298,10 +1312,9 @@ impl Autorouter {
                 s.nets_routed += 1;
             } else if !r.route.segments.is_empty() {
                 s.nets_partial += 1;
-            } else {
-                s.nets_unrouted += 1;
             }
         }
+        s.nets_unrouted = s.nets_total.saturating_sub(s.nets_routed + s.nets_partial);
         s
     }
 

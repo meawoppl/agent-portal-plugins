@@ -3,3 +3,5 @@
 pub mod copper;
 pub mod courtyard;
 pub mod package_body;
+pub mod shapely;
+pub mod strtree;

@@ -15,6 +15,7 @@ pub mod diffpair_length_skew;
 pub mod diffpair_routing_continuity;
 pub mod dimensions;
 pub mod edge;
+pub mod factory_clearance;
 pub mod impedance;
 pub mod match_group_length_skew;
 pub mod netlist;

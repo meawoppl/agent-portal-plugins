@@ -17,6 +17,7 @@ reqwest = { version = "0.13", default-features = false, features = ["blocking", 
 pdf-extract = "0.10"
 sha2 = "0.10"
 geo = "0.32"
+i_overlay = "4.0"
 num-bigint = "0.4"
 num-rational = "0.4"
 num-traits = "0.2"

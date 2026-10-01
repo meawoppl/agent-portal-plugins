@@ -36,8 +36,8 @@ Upstream reference: https://github.com/rjwalters/kicad-tools (MIT, see
 | G | parts, datasheet, suggest, mfr (+ `manufacturers`), init, footprint, panel, export, create-pcb, build, spec, pipeline, config, doctor, clean | kc-codex |
 | H | ipc, reason, interactive, run | shell-native agent workflows |
 
-`kct --help` marks commands still `[not yet ported]`; they exit 3. Wave G is
-native: manufacturer presets/DRU, parametric footprints, live LCSC parts and
+Every command in `kct --help` is wired to a native Rust implementation. Wave G
+includes manufacturer presets/DRU, parametric footprints, live LCSC parts and
 cache, datasheet acquisition/PDF analysis, suggestions, project/spec setup,
 panelization, manufacturing export, cleanup/doctor/config, and the repair/build
 orchestrators. These implementations invoke `kicad-cli` only for KiCad-native

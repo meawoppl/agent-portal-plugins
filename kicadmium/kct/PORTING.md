@@ -34,7 +34,7 @@ Upstream reference: https://github.com/rjwalters/kicad-tools (MIT, see
 | E | zones, stitch, creepage, creepage-export-rules, impedance, constraints, placement, optimize-placement, decisions, optim | kc-claude (subagent) |
 | F | route, route-auto, benchmark, bench, calibrate, build-native | kc-claude (subagent) |
 | G | parts, datasheet, suggest, mfr (+ `manufacturers`), init, footprint, panel, export, create-pcb, build, spec, pipeline, config, doctor, clean | kc-codex |
-| H | mcp, ipc, reason, interactive, run | decide last |
+| H | ipc, reason, interactive, run | shell-native agent workflows |
 
 `kct --help` marks commands still `[not yet ported]`; they exit 3. Wave G is
 native: manufacturer presets/DRU, parametric footprints, live LCSC parts and

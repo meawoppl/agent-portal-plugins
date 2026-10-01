@@ -32,6 +32,7 @@ pub mod project;
 pub mod render;
 pub mod report;
 pub mod runner;
+pub mod screenshot;
 pub mod suggest;
 pub mod utility;
 pub mod workflow;
@@ -121,7 +122,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "explain", about: "Explain design rules and DRC violations", wave: "A", run: None },
     CommandSpec { name: "detect-mistakes", about: "Detect common PCB design mistakes with educational explanations", wave: "A", run: None },
     CommandSpec { name: "calibrate", about: "Calibrate routing performance settings for your machine", wave: "F", run: None },
-    CommandSpec { name: "screenshot", about: "Capture a PNG screenshot of a KiCad board or schematic", wave: "C", run: None },
+    CommandSpec { name: "screenshot", about: "Capture a PNG screenshot of a KiCad board or schematic", wave: "C", run: Some(screenshot::run) },
     CommandSpec { name: "report", about: "Generate a Markdown design report", wave: "C", run: Some(report::run) },
     CommandSpec { name: "export", about: "Generate a complete manufacturing package (BOM, CPL, Gerbers, project ZIP, manifest)", wave: "G", run: Some(fabrication::export) },
     CommandSpec { name: "optim", about: "Placement / routing FOM tools (issue #3186)", wave: "E", run: None },

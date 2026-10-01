@@ -152,7 +152,7 @@ enum Commands {
     },
     /// Run the full embedded pcb-lint CLI (`inspect`, `rules`, `review`, etc.).
     PcbLint {
-        #[arg(last = true, trailing_var_arg = true)]
+        #[arg(last = true)]
         args: Vec<OsString>,
     },
     Export {
@@ -163,7 +163,7 @@ enum Commands {
     Kct {
         #[arg(long, default_value = ".")]
         cwd: PathBuf,
-        #[arg(last = true, trailing_var_arg = true)]
+        #[arg(last = true)]
         args: Vec<OsString>,
     },
     Tool {
@@ -171,7 +171,7 @@ enum Commands {
         json: bool,
         #[arg(long, default_value = ".")]
         cwd: PathBuf,
-        #[arg(last = true, trailing_var_arg = true)]
+        #[arg(last = true)]
         args: Vec<OsString>,
     },
 }
@@ -2596,5 +2596,16 @@ mod tests {
             footprints[0].models,
             vec!["${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0603_1608Metric.step"]
         );
+    }
+}
+
+#[cfg(test)]
+mod cli_tests {
+    use super::Cli;
+    use clap::CommandFactory;
+
+    #[test]
+    fn cli_definition_is_valid() {
+        Cli::command().debug_assert();
     }
 }

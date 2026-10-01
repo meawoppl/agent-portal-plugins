@@ -546,9 +546,86 @@ impl<'a> DRCChecker<'a> {
         auto_derive_threshold: bool,
         aggregate: bool,
     ) -> DRCResults {
-        let _ = (grid_resolution, threshold, auto_derive_threshold, aggregate);
+        use crate::router::preflight::check_pad_grid_alignment;
         let mut results = DRCResults::new();
+        if self.pcb.path().is_none() {
+            results.rules_checked += 1;
+            return results;
+        }
+        let report = check_pad_grid_alignment(
+            self.pcb.sexp(),
+            grid_resolution,
+            threshold,
+            self.design_rules.min_clearance_mm,
+            auto_derive_threshold,
+        );
         results.rules_checked += 1;
+        let per_pad = |results: &mut DRCResults, pads: &[&crate::router::preflight::PreflightOffGridPad]| {
+            for pad in pads {
+                let label = pad.label();
+                let mut v = DRCViolation::new(
+                    "pad_grid",
+                    "warning",
+                    pad.message(report.grid_resolution, report.suggested_grid),
+                )
+                .at(pad.x, pad.y)
+                .actual(pad.offset_mm)
+                .required(report.threshold);
+                if !label.is_empty() {
+                    v = v.items([label]);
+                }
+                results.add(v);
+            }
+        };
+        if !aggregate {
+            let all: Vec<_> = report.off_grid_pads.iter().collect();
+            per_pad(&mut results, &all);
+            return results;
+        }
+        let grid = crate::pyjson::py_float_repr(report.grid_resolution);
+        for (reference, pads) in report.grouped_by_ref() {
+            if pads.len() == 1 {
+                per_pad(&mut results, &pads);
+                continue;
+            }
+            // `max(pads, key=offset)`: first maximum.
+            let mut example = pads[0];
+            for p in &pads[1..] {
+                if p.offset_mm > example.offset_mm {
+                    example = p;
+                }
+            }
+            let fp = if example.footprint_name.is_empty() {
+                String::new()
+            } else {
+                format!(", footprint {}", example.footprint_name)
+            };
+            let head = format!(
+                "{reference}: {} pads off-grid by up to {:.3}mm (grid {grid}mm{fp}).\n  Example: pad {} at ({:.3}, {:.3}).\n",
+                pads.len(),
+                example.offset_mm,
+                example.label(),
+                example.x,
+                example.y
+            );
+            let tail = match report.suggested_grid {
+                Some(sg) => format!(
+                    "  Suggested fix: round pad positions OR set finer router grid ({}mm would align all pads).\n  Use --verbose for per-pad detail.",
+                    crate::pyjson::py_float_repr(sg)
+                ),
+                None => format!(
+                    "  Suggested fix: round pad positions to the router grid (footprint pitch may not align to {grid}mm).\n  Use --verbose for per-pad detail."
+                ),
+            };
+            let mut v = DRCViolation::new("pad_grid", "warning", head + &tail)
+                .at(example.x, example.y)
+                .actual(example.offset_mm)
+                .required(report.threshold);
+            if !reference.is_empty() {
+                v = v.items([reference.clone()]);
+            }
+            results.add(v);
+        }
         results
     }
 }

@@ -8,6 +8,7 @@ use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::{Mutex, OnceLock};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{bail, Context, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -223,11 +224,21 @@ fn rpc(req: &Value) -> Value {
 }
 
 fn call_tool(params: &Value) -> Result<Value> {
+    let started = Instant::now();
     let name = params.get("name").and_then(Value::as_str).unwrap_or("");
     let a = params
         .get("arguments")
         .cloned()
         .unwrap_or_else(|| json!({}));
+    let result = call_tool_inner(name, &a);
+    record_call(name, started.elapsed().as_millis(), &result);
+    result
+}
+
+fn call_tool_inner(name: &str, a: &Value) -> Result<Value> {
+    if name == "get_recent_calls" {
+        return Ok(mcp_result(recent_calls(a)));
+    }
     if name == "board_summary" {
         let path = Path::new(
             a.get("pcb_path")
@@ -235,9 +246,7 @@ fn call_tool(params: &Value) -> Result<Value> {
                 .context("pcb_path required")?,
         );
         let value = crate::cli::pcb::summary_path(path)?;
-        return Ok(
-            json!({"content":[{"type":"text","text":serde_json::to_string_pretty(&value)?}],"structuredContent":value}),
-        );
+        return Ok(mcp_result(value));
     }
     if matches!(
         name,
@@ -247,24 +256,117 @@ fn call_tool(params: &Value) -> Result<Value> {
             | "undo_move"
             | "commit_session"
             | "rollback_session"
+            | "declare_interface"
+            | "declare_power_rail"
+            | "list_intents"
+            | "clear_intent"
+            | "record_decision"
+            | "get_decision_history"
+            | "annotate_decision"
+            | "get_session_context"
+            | "create_checkpoint"
+            | "restore_checkpoint"
             | "get_session_summary"
     ) {
-        let value = session_tool(name, &a)?;
-        return Ok(
-            json!({"content":[{"type":"text","text":serde_json::to_string_pretty(&value)?}],"structuredContent":value}),
-        );
+        let value = session_tool(name, a)?;
+        return Ok(mcp_result(value));
     }
-    let (command, args) = mcp_command(name, &a).with_context(|| format!("unknown tool {name}"))?;
+    if name == "get_design_intent" {
+        let path = a
+            .get("spec_path")
+            .and_then(Value::as_str)
+            .context("spec_path required")?;
+        let value: serde_yaml::Value = serde_yaml::from_slice(&fs::read(path)?)?;
+        let value = serde_json::to_value(value)?;
+        return Ok(mcp_result(
+            json!({"summary":value.pointer("/intent/summary").or_else(||value.get("summary")).cloned().context("specification is missing intent summary")?,"constraints":value.get("constraints").cloned().unwrap_or_else(||json!([])),"decisions":value.get("decisions").cloned().unwrap_or_else(||json!([])),"spec_path":path}),
+        ));
+    }
+    let (command, args) = mcp_command(name, a).with_context(|| format!("unknown tool {name}"))?;
     let mut cmd = Command::new(std::env::current_exe()?);
     cmd.args(["kct", "--", command]);
     cmd.args(args);
     let out = cmd.output()?;
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
-    Ok(json!({"content":[{"type":"text","text":text}],"isError":!out.status.success()}))
+    let stdout = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+    let stderr = String::from_utf8_lossy(&out.stderr).trim().to_owned();
+    if !out.status.success() {
+        let text = [stdout, stderr]
+            .into_iter()
+            .filter(|s| !s.is_empty())
+            .collect::<Vec<_>>()
+            .join("\n");
+        return Ok(json!({"content":[{"type":"text","text":text}],"isError":true}));
+    }
+    let structured = serde_json::from_str(&stdout).unwrap_or_else(|_| json!({"output":stdout}));
+    Ok(mcp_result(structured))
+}
+
+fn mcp_result(value: Value) -> Value {
+    let text = serde_json::to_string_pretty(&value).unwrap_or_else(|_| value.to_string());
+    json!({"content":[{"type":"text","text":text}],"structuredContent":value,"isError":false})
+}
+
+#[derive(Clone, Serialize)]
+struct CallRecord {
+    tool_name: String,
+    duration_ms: u128,
+    status: String,
+    error_kind: Option<String>,
+    error_message: Option<String>,
+    timestamp_ms: u128,
+}
+static MCP_CALLS: OnceLock<Mutex<Vec<CallRecord>>> = OnceLock::new();
+fn record_call(name: &str, duration_ms: u128, result: &Result<Value>) {
+    if name == "get_recent_calls" {
+        return;
+    }
+    let (status, kind, message) = match result {
+        Ok(v) if v["isError"] == true => (
+            "error",
+            Some("command".into()),
+            v["content"][0]["text"].as_str().map(str::to_owned),
+        ),
+        Ok(_) => ("ok", None, None),
+        Err(e) => ("error", Some("tool".into()), Some(e.to_string())),
+    };
+    if let Ok(mut calls) = MCP_CALLS.get_or_init(|| Mutex::new(Vec::new())).lock() {
+        calls.push(CallRecord {
+            tool_name: name.into(),
+            duration_ms,
+            status: status.into(),
+            error_kind: kind,
+            error_message: message,
+            timestamp_ms: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis(),
+        });
+        if calls.len() > 256 {
+            calls.remove(0);
+        }
+    }
+}
+fn recent_calls(args: &Value) -> Value {
+    let limit = args
+        .get("limit")
+        .and_then(Value::as_u64)
+        .unwrap_or(20)
+        .min(256) as usize;
+    let tool = args.get("tool_name").and_then(Value::as_str);
+    let status = args.get("status").and_then(Value::as_str);
+    let calls = MCP_CALLS
+        .get_or_init(|| Mutex::new(Vec::new()))
+        .lock()
+        .expect("call history poisoned");
+    let filtered: Vec<_> = calls
+        .iter()
+        .rev()
+        .filter(|c| tool.is_none_or(|v| v == c.tool_name) && status.is_none_or(|v| v == c.status))
+        .take(limit)
+        .cloned()
+        .collect();
+    let errors = calls.iter().filter(|c| c.status == "error").count();
+    json!({"calls":filtered,"statistics":{"total_calls":calls.len(),"total_errors":errors,"error_rate":if calls.is_empty(){0.0}else{errors as f64/calls.len() as f64}}})
 }
 
 #[cfg(test)]
@@ -328,7 +430,8 @@ fn mcp_command(name: &str, args: &Value) -> Option<(&'static str, Vec<String>)> 
             .map(str::to_owned)
     };
     let pair = match name {
-        "board_summary" | "board_inspect" => ("pcb", vec!["summary".into(), path(&["pcb_path"])?]),
+        "board_summary" => ("pcb", vec!["summary".into(), path(&["pcb_path"])?]),
+        "board_inspect" => ("pcb", vec!["inspect".into(), path(&["pcb_path"])?]),
         "get_unrouted_nets" => (
             "net-status",
             vec![path(&["pcb_path"])?, "--format".into(), "json".into()],
@@ -357,9 +460,32 @@ fn mcp_command(name: &str, args: &Value) -> Option<(&'static str, Vec<String>)> 
             "detect-mistakes",
             vec![path(&["pcb_path"])?, "--format".into(), "json".into()],
         ),
-        "optimize_placement" | "evaluate_placement" | "resolve_placement_overlaps" => (
+        "optimize_placement" => (
             "optimize-placement",
-            vec![path(&["pcb_path"])?, "--format".into(), "json".into()],
+            vec![
+                "optimize".into(),
+                path(&["pcb_path"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "evaluate_placement" => (
+            "optimize-placement",
+            vec![
+                "evaluate".into(),
+                path(&["pcb_path"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "resolve_placement_overlaps" => (
+            "optimize-placement",
+            vec![
+                "resolve-overlaps".into(),
+                path(&["pcb_path"])?,
+                "--format".into(),
+                "json".into(),
+            ],
         ),
         "screenshot_board" | "screenshot_schematic" => (
             "screenshot",
@@ -389,6 +515,76 @@ fn mcp_command(name: &str, args: &Value) -> Option<(&'static str, Vec<String>)> 
             "placement",
             vec![path(&["pcb_path"])?, "--format".into(), "json".into()],
         ),
+        "measure_clearance" => (
+            "analyze",
+            vec![
+                "clearance".into(),
+                path(&["pcb_path"])?,
+                path(&["item1"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "validate_pattern" => (
+            "validate",
+            vec![
+                "pattern".into(),
+                path(&["pcb_path"])?,
+                path(&["pattern_type"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "adapt_pattern" => (
+            "suggest",
+            vec![
+                "pattern".into(),
+                path(&["pattern_type"])?,
+                path(&["component_mpn"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "get_component_requirements" => (
+            "parts",
+            vec![
+                "show".into(),
+                path(&["component_mpn"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "list_pattern_components" => (
+            "parts",
+            vec![
+                "pattern-components".into(),
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "list_mistake_categories" => (
+            "detect-mistakes",
+            vec!["--list-categories".into(), "--format".into(), "json".into()],
+        ),
+        "ecosystem_list" => (
+            "report",
+            vec![
+                "ecosystem".into(),
+                "list".into(),
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "ecosystem_show" => (
+            "report",
+            vec![
+                "ecosystem".into(),
+                "show".into(),
+                path(&["project_id"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
         _ => return None,
     };
     Some(pair)
@@ -400,6 +596,9 @@ struct McpSession {
     original: String,
     current: String,
     undo: Vec<String>,
+    intents: Vec<Value>,
+    decisions: Vec<Value>,
+    checkpoints: Vec<Value>,
 }
 static MCP_SESSIONS: OnceLock<Mutex<std::collections::HashMap<String, McpSession>>> =
     OnceLock::new();
@@ -429,6 +628,9 @@ fn session_tool(name: &str, args: &Value) -> Result<Value> {
                 original: text.clone(),
                 current: text,
                 undo: vec![],
+                intents: vec![],
+                decisions: vec![],
+                checkpoints: vec![],
             },
         );
         return Ok(json!({"session_id":id,"pcb_path":pcb,"status":"active","success":true}));
@@ -444,8 +646,99 @@ fn session_tool(name: &str, args: &Value) -> Result<Value> {
     let session = sessions.get_mut(id).context("session not found")?;
     match name {
         "get_session_summary" => Ok(
-            json!({"session_id":id,"pcb_path":session.pcb,"status":"active","undo_depth":session.undo.len(),"modified":session.current!=session.original,"success":true}),
+            json!({"session_id":id,"pcb_path":session.pcb,"status":"active","undo_depth":session.undo.len(),"modified":session.current!=session.original,"intent_count":session.intents.len(),"decision_count":session.decisions.len(),"success":true}),
         ),
+        "declare_interface" | "declare_power_rail" => {
+            let mut intent = args.clone();
+            intent["kind"] = json!(if name == "declare_interface" {
+                "interface"
+            } else {
+                "power_rail"
+            });
+            session.intents.push(intent.clone());
+            Ok(json!({"session_id":id,"intent":intent,"success":true}))
+        }
+        "list_intents" => Ok(json!({"session_id":id,"intents":session.intents,"success":true})),
+        "clear_intent" => {
+            let before = session.intents.len();
+            let interface = args.get("interface_type").and_then(Value::as_str);
+            let nets = args.get("nets").and_then(Value::as_array);
+            session.intents.retain(|i| {
+                let type_match = interface.is_none_or(|x| i["interface_type"] != x);
+                let net_match = nets.is_none_or(|xs| {
+                    !xs.iter()
+                        .any(|x| i["nets"].as_array().is_some_and(|ys| ys.contains(x)))
+                });
+                type_match && net_match
+            });
+            Ok(json!({"session_id":id,"removed":before-session.intents.len(),"success":true}))
+        }
+        "record_decision" => {
+            let mut d = args.clone();
+            d["decision_id"] = json!(format!("decision-{}", session.decisions.len() + 1));
+            d["outcome"] = json!("pending");
+            session.decisions.push(d.clone());
+            Ok(json!({"session_id":id,"decision":d,"success":true}))
+        }
+        "get_decision_history" => {
+            let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(20) as usize;
+            let filter = args.get("filter_action").and_then(Value::as_str);
+            let decisions: Vec<_> = session
+                .decisions
+                .iter()
+                .rev()
+                .filter(|d| filter.is_none_or(|x| d["action"] == x))
+                .take(limit)
+                .cloned()
+                .collect();
+            Ok(
+                json!({"session_id":id,"decisions":decisions,"total":session.decisions.len(),"success":true}),
+            )
+        }
+        "annotate_decision" => {
+            let did = args
+                .get("decision_id")
+                .and_then(Value::as_str)
+                .context("decision_id required")?;
+            let d = session
+                .decisions
+                .iter_mut()
+                .find(|d| d["decision_id"] == did)
+                .context("decision not found")?;
+            if let Some(v) = args.get("feedback") {
+                d["feedback"] = v.clone()
+            }
+            if let Some(v) = args.get("outcome") {
+                d["outcome"] = v.clone()
+            }
+            Ok(json!({"session_id":id,"decision":d,"success":true}))
+        }
+        "get_session_context" => Ok(
+            json!({"session_id":id,"detail_level":args.get("detail_level").and_then(Value::as_str).unwrap_or("summary"),"intents":session.intents,"decisions":session.decisions,"modified":session.current!=session.original,"success":true}),
+        ),
+        "create_checkpoint" => {
+            let cid = format!("checkpoint-{}", session.checkpoints.len() + 1);
+            let cp = json!({"checkpoint_id":cid,"name":args.get("name"),"drc_violation_count":args.get("drc_violation_count").cloned().unwrap_or(json!(0)),"score":args.get("score").cloned().unwrap_or(json!(0.0)),"board":session.current});
+            session.checkpoints.push(cp.clone());
+            Ok(json!({"session_id":id,"checkpoint":cp,"success":true}))
+        }
+        "restore_checkpoint" => {
+            let cid = args
+                .get("checkpoint_id")
+                .and_then(Value::as_str)
+                .context("checkpoint_id required")?;
+            let cp = session
+                .checkpoints
+                .iter()
+                .find(|c| c["checkpoint_id"] == cid)
+                .context("checkpoint not found")?;
+            session.undo.push(session.current.clone());
+            session.current = cp["board"]
+                .as_str()
+                .context("checkpoint board missing")?
+                .to_owned();
+            Ok(json!({"session_id":id,"checkpoint_id":cid,"restored":true,"success":true}))
+        }
         "query_move" => Ok(
             json!({"session_id":id,"reference":args.get("reference"),"x":args.get("x"),"y":args.get("y"),"allowed":true,"warnings":[],"success":true}),
         ),
@@ -1511,7 +1804,7 @@ mod tests {
         let result =
             call_tool(&json!({"name":"board_summary","arguments":{"pcb_path":path}})).unwrap();
         assert!(result["structuredContent"]["footprints"].is_number());
-        assert_eq!(result["isError"], Value::Null);
+        assert_eq!(result["isError"], false);
     }
     #[test]
     fn route_items_match_ipc_units_and_filter() {
@@ -1529,5 +1822,73 @@ mod tests {
         assert_eq!((tracks, vias, items.len()), (1, 1, 2));
         assert_eq!(items[0]["start"]["x"], 1_250_000);
         assert_eq!(items[1]["position"]["y"], 6_000_000);
+    }
+    #[test]
+    fn all_mcp_tools_have_a_native_adapter() {
+        let sample = json!({"pcb_path":"x.kicad_pcb","schematic_path":"x.kicad_sch","sch_path":"x.kicad_sch","project_path":"x.kicad_pro","output_dir":"out","session_id":"missing","spec_path":"x.kct","item1":"U1","net_name":"GND","pattern_type":"ldo","component_mpn":"X","project_id":"x"});
+        let direct = [
+            "board_summary",
+            "start_session",
+            "query_move",
+            "apply_move",
+            "undo_move",
+            "commit_session",
+            "rollback_session",
+            "declare_interface",
+            "declare_power_rail",
+            "list_intents",
+            "clear_intent",
+            "record_decision",
+            "get_decision_history",
+            "annotate_decision",
+            "get_session_context",
+            "create_checkpoint",
+            "restore_checkpoint",
+            "get_session_summary",
+            "get_design_intent",
+            "get_recent_calls",
+        ];
+        for name in MCP_NAMES {
+            assert!(
+                direct.contains(name) || mcp_command(name, &sample).is_some(),
+                "missing native MCP adapter for {name}"
+            );
+        }
+    }
+    #[test]
+    fn session_intents_decisions_and_checkpoints_round_trip() {
+        let dir = tempfile::tempdir().unwrap();
+        let pcb = dir.path().join("x.kicad_pcb");
+        fs::write(&pcb, "(kicad_pcb)").unwrap();
+        let started = session_tool("start_session", &json!({"pcb_path":pcb})).unwrap();
+        let id = started["session_id"].as_str().unwrap();
+        assert_eq!(
+            session_tool(
+                "declare_power_rail",
+                &json!({"session_id":id,"net":"VCC","voltage":3.3})
+            )
+            .unwrap()["success"],
+            true
+        );
+        let decision = session_tool(
+            "record_decision",
+            &json!({"session_id":id,"action":"place","target":"U1"}),
+        )
+        .unwrap();
+        assert_eq!(decision["decision"]["decision_id"], "decision-1");
+        let cp = session_tool(
+            "create_checkpoint",
+            &json!({"session_id":id,"name":"before"}),
+        )
+        .unwrap();
+        assert_eq!(cp["checkpoint"]["checkpoint_id"], "checkpoint-1");
+        assert_eq!(
+            session_tool("get_session_context", &json!({"session_id":id})).unwrap()["intents"]
+                .as_array()
+                .unwrap()
+                .len(),
+            1
+        );
+        session_tool("rollback_session", &json!({"session_id":id})).unwrap();
     }
 }

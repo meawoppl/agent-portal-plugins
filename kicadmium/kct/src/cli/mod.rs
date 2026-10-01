@@ -20,6 +20,7 @@ pub mod h;
 pub mod impedance;
 pub mod mfr;
 pub mod parts;
+pub mod pcb;
 pub mod project;
 pub mod suggest;
 pub mod utility;
@@ -55,7 +56,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "creepage", about: "HV creepage/clearance census (surface-path distance)", wave: "E", run: None },
     CommandSpec { name: "creepage-export-rules", about: "Export voltage-domain netclasses + pairwise HV clearance (rule) clauses so kicad-cli DRC enforces creepage (Issue #4508)", wave: "E", run: None },
     CommandSpec { name: "sch", about: "Schematic analysis tools", wave: "B", run: Some(design::sch) },
-    CommandSpec { name: "pcb", about: "PCB query tools", wave: "C", run: None },
+    CommandSpec { name: "pcb", about: "PCB query tools", wave: "C", run: Some(pcb::run) },
     CommandSpec { name: "lib", about: "Symbol and footprint library tools", wave: "B", run: Some(design::lib) },
     CommandSpec { name: "footprint", about: "Footprint generation and tools", wave: "G", run: Some(footprint::run) },
     CommandSpec { name: "mfr", about: "Manufacturer tools", wave: "G", run: Some(mfr::run) },

@@ -1298,6 +1298,80 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
                 has(&words, "--backup"),
             )?;
         }
+        "fix-wire-stubs" => {
+            let mut d = crate::Document::load(&path)?;
+            let refs: Vec<_> = symbols_of(&d.root)
+                .into_iter()
+                .map(|s| s.reference)
+                .collect();
+            let mut pins = vec![];
+            for r in refs {
+                let Some(sym) = d
+                    .root
+                    .children_named("symbol")
+                    .find(|s| s.property("Reference") == Some(&r))
+                else {
+                    continue;
+                };
+                let id = sym
+                    .child_str("lib_id")
+                    .unwrap_or("")
+                    .split(':')
+                    .next_back()
+                    .unwrap_or("");
+                let nums: Vec<_> = d
+                    .root
+                    .get("lib_symbols")
+                    .and_then(|ls| {
+                        ls.children_named("symbol").find(|s| {
+                            s.string_at(0)
+                                .is_some_and(|n| n == id || n.ends_with(&format!(":{id}")))
+                        })
+                    })
+                    .into_iter()
+                    .flat_map(|s| s.find_all("pin"))
+                    .filter_map(|p| p.get("number")?.string_at(0).map(str::to_owned))
+                    .collect();
+                for n in nums {
+                    if let Ok(p) = pin_position(&d.root, &r, &n) {
+                        pins.push(p)
+                    }
+                }
+            }
+            let mut fixed = 0;
+            for w in d.root.children.iter_mut().filter(|n| n.has_tag("wire")) {
+                let Some(pts) = w.get_mut("pts") else {
+                    continue;
+                };
+                for xy in pts.children.iter_mut().filter(|n| n.has_tag("xy")) {
+                    let Some(x) = xy.float_at(0) else { continue };
+                    let Some(y) = xy.float_at(1) else { continue };
+                    if let Some(&(px, py)) = pins
+                        .iter()
+                        .filter(|&&(px, py)| {
+                            let d = ((px - x).powi(2) + (py - y).powi(2)).sqrt();
+                            d > 1e-6 && d <= 2.54
+                        })
+                        .min_by(|a, b| {
+                            let da = (a.0 - x).powi(2) + (a.1 - y).powi(2);
+                            let db = (b.0 - x).powi(2) + (b.1 - y).powi(2);
+                            da.total_cmp(&db)
+                        })
+                    {
+                        xy.set_value(0, px);
+                        xy.set_value(1, py);
+                        fixed += 1
+                    }
+                }
+            }
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                false,
+            )?;
+            println!("fixed {fixed} wire endpoints");
+        }
         _ => bail!("unsupported sch subcommand {cmd}"),
     }
     Ok(0)

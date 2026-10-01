@@ -1,442 +1,381 @@
-//! Collision-screened silkscreen reference placement.
+//! `kct place-silk-refs` (port of `kicad_tools.cli.place_silk_refs_cmd`):
+//! move readable silkscreen reference designators to clear collisions,
+//! driven by [`crate::silkscreen::place_refs::SilkRefPlacer`].
+//!
+//! kicadmium design-edit policy: writing requires `-o/--output` or an
+//! explicit `--in-place` (upstream overwrites the input by default).
 
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Context, Result};
+use anyhow::Result;
 use clap::Parser;
-use serde::Serialize;
 
+use super::repair_common::{py_path_str, require_write_target, ALL_MANUFACTURER_NAMES};
 use super::{parse_args, Globals};
-use crate::core::geometry::rotate_pad_offset;
-use crate::schema::pcb::Pcb;
-use crate::sexp::SExp;
+use crate::pyjson::{dumps_indent, Json};
+use crate::silkscreen::place_refs::{PlaceSilkRefsResult, PlanOptions, SilkRefPlacer};
+use crate::silkscreen::silk_defaults::{
+    DEFAULT_CLEARANCE_MM, DEFAULT_MAX_OFFSET_MM, DEFAULT_STEP_MM, SILK_EDGE_CLEARANCE_MM,
+};
 
 #[derive(Parser)]
-#[command(about = "Move visible silkscreen references clear of pads, vias, text, and edges")]
+#[command(about = "Move readable silkscreen reference designators to clear collisions")]
 struct Args {
-    pcb: PathBuf,
-    #[arg(long)]
+    /// Path to .kicad_pcb file
+    pcb: String,
+    /// Manufacturer to source solder-mask clearance from (default: built-in 0.05mm)
+    #[arg(long, value_parser = ALL_MANUFACTURER_NAMES.to_vec())]
     mfr: Option<String>,
+    /// Number of PCB layers (default: 2)
     #[arg(long, default_value_t = 2)]
     layers: u8,
+    /// Outer copper weight in oz (default: 1.0)
     #[arg(long, default_value_t = 1.0)]
     copper: f64,
-    #[arg(long, default_value_t = 0.2)]
+    /// Required silk-to-pad/silk-to-silk clearance in mm (default: 0.15)
+    #[arg(long, default_value_t = DEFAULT_CLEARANCE_MM)]
     clearance: f64,
-    #[arg(long = "edge-clearance", default_value_t = 0.5)]
+    /// Required silk-to-board-edge clearance in mm (default: 0.2)
+    #[arg(long = "edge-clearance", default_value_t = SILK_EDGE_CLEARANCE_MM)]
     edge_clearance: f64,
-    #[arg(long = "max-offset", default_value_t = 5.0)]
+    /// Maximum search distance from the component body in mm (default: 8.0)
+    #[arg(long = "max-offset", default_value_t = DEFAULT_MAX_OFFSET_MM)]
     max_offset: f64,
-    #[arg(long, default_value_t = 0.25)]
+    /// Positive search ring spacing in mm; at most 4096 rings (default: 0.25)
+    #[arg(long, default_value_t = DEFAULT_STEP_MM)]
     step: f64,
+    /// Also try a 90-degree rotated orientation when the original does not fit
     #[arg(long = "allow-rotate")]
     allow_rotate: bool,
-    #[arg(short, long)]
-    output: Option<PathBuf>,
+    /// Output file path (required unless --dry-run or --in-place)
+    #[arg(short = 'o', long)]
+    output: Option<String>,
+    /// Explicitly authorize overwriting the input PCB
+    #[arg(long, conflicts_with = "output")]
+    in_place: bool,
+    /// Preview the move plan without modifying files
     #[arg(long)]
     dry_run: bool,
+    /// After applying, run native DRC; fail on silk findings or unavailable/failed verification
     #[arg(long = "verify-drc")]
     verify_drc: bool,
-    #[arg(long)]
-    render: Option<PathBuf>,
+    /// Write a rendered review artifact (SVG) of old/new reference positions
+    #[arg(long, value_name = "SVG_PATH")]
+    render: Option<String>,
+    /// Output format (default: text)
     #[arg(long, default_value = "text", value_parser = ["text", "json", "summary"])]
     format: String,
+    /// Suppress progress output (for scripting)
+    #[arg(short, long)]
+    quiet: bool,
 }
 
-#[derive(Clone, Copy)]
-struct Rect {
-    x1: f64,
-    y1: f64,
-    x2: f64,
-    y2: f64,
-}
-impl Rect {
-    fn expanded(self, d: f64) -> Self {
-        Self {
-            x1: self.x1 - d,
-            y1: self.y1 - d,
-            x2: self.x2 + d,
-            y2: self.y2 + d,
-        }
-    }
-    fn overlaps(self, o: Self) -> bool {
-        self.x1 < o.x2 && self.x2 > o.x1 && self.y1 < o.y2 && self.y2 > o.y1
-    }
-}
-
-#[derive(Serialize)]
-struct Placement {
-    footprint_ref: String,
-    old_position: (f64, f64),
-    new_position: (f64, f64),
-    old_rotation: f64,
-    new_rotation: f64,
-    moved: bool,
-    status: &'static str,
-    reason: String,
-}
-
-fn global(fp: (f64, f64), local: (f64, f64), rotation: f64) -> (f64, f64) {
-    let d = rotate_pad_offset(local.0, local.1, rotation);
-    (fp.0 + d.0, fp.1 + d.1)
-}
-fn local(fp: (f64, f64), point: (f64, f64), rotation: f64) -> (f64, f64) {
-    rotate_pad_offset(point.0 - fp.0, point.1 - fp.1, -rotation)
-}
-fn text_rect(center: (f64, f64), chars: usize, font: (f64, f64), rotation: f64) -> Rect {
-    let mut w = font.0 * (chars.max(1) as f64) * 0.65;
-    let mut h = font.1;
-    if ((rotation / 90.0).round() as i64).rem_euclid(2) == 1 {
-        std::mem::swap(&mut w, &mut h)
-    }
-    Rect {
-        x1: center.0 - w / 2.0,
-        y1: center.1 - h / 2.0,
-        x2: center.0 + w / 2.0,
-        y2: center.1 + h / 2.0,
-    }
-}
-
-fn raw_reference(node: &SExp) -> Option<&str> {
-    node.children_named("property")
-        .find(|p| p.string_at(0) == Some("Reference"))
-        .and_then(|p| p.string_at(1))
-        .or_else(|| {
-            node.children_named("fp_text")
-                .find(|p| p.string_at(0) == Some("reference"))
-                .and_then(|p| p.string_at(1))
-        })
-}
-fn set_reference_rotation(root: &mut SExp, reference: &str, rotation: f64) {
-    for fp in &mut root.children {
-        if !matches!(fp.tag(), Some("footprint" | "module")) || raw_reference(fp) != Some(reference)
-        {
-            continue;
-        }
-        for text in &mut fp.children {
-            let is_ref = (text.has_tag("fp_text") && text.string_at(0) == Some("reference"))
-                || (text.has_tag("property") && text.string_at(0) == Some("Reference"));
-            if is_ref {
-                if let Some(at) = text.get_mut("at") {
-                    at.set_value(2, rotation)
-                }
-            }
-        }
-        break;
-    }
-}
-
-fn verify_drc(path: &Path) -> serde_json::Value {
-    let mut report = std::env::temp_dir();
-    report.push(format!(
-        "kicadmium-silk-drc-{}.json",
-        crate::schema::pcb::util::new_uuid()
-    ));
-    let cli = std::env::var_os("KICADMIUM_KICAD_CLI")
-        .or_else(|| std::env::var_os("KICAD_CLI"))
-        .unwrap_or_else(|| "kicad-cli".into());
-    let result = std::process::Command::new(cli)
-        .args(["pcb", "drc", "--format", "json", "--output"])
-        .arg(&report)
-        .arg(path)
-        .output();
-    let document = match result {
-        Err(e) => serde_json::json!({"available":false,"error":e.to_string()}),
-        Ok(out) if !report.exists() => {
-            serde_json::json!({"available":true,"error":String::from_utf8_lossy(&out.stderr)})
-        }
-        Ok(_) => match std::fs::read_to_string(&report)
-            .ok()
-            .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
-        {
-            None => serde_json::json!({"available":true,"error":"invalid native DRC JSON"}),
-            Some(v) => {
-                let all = v
-                    .get("violations")
-                    .and_then(|x| x.as_array())
-                    .cloned()
-                    .unwrap_or_default();
-                let silk = all
-                    .iter()
-                    .filter(|x| {
-                        x.get("type")
-                            .and_then(|t| t.as_str())
-                            .is_some_and(|t| t.contains("silk"))
-                    })
-                    .count();
-                serde_json::json!({"available":true,"total_violations":all.len(),"silk_violations":silk})
-            }
-        },
+/// `_get_mask_clearance`.
+fn mask_clearance(mfr: Option<&str>, layers: u8, copper: f64) -> f64 {
+    let Some(m) = mfr else {
+        return 0.05;
     };
-    let _ = std::fs::remove_file(report);
-    document
-}
-
-fn render_svg(path: &Path, w: f64, h: f64, placements: &[Placement]) -> Result<()> {
-    let scale = (900.0 / w.max(h).max(1.0)).min(20.0);
-    let mut svg=format!("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}\" height=\"{}\" viewBox=\"0 0 {w} {h}\"><rect width=\"100%\" height=\"100%\" fill=\"#1a1b26\"/><rect x=\"0.1\" y=\"0.1\" width=\"{}\" height=\"{}\" fill=\"none\" stroke=\"#565f89\" stroke-width=\"{}\"/>",w*scale,h*scale,(w-0.2).max(0.0),(h-0.2).max(0.0),1.0/scale);
-    for p in placements {
-        svg.push_str(&format!("<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke=\"#e0af68\" stroke-width=\"{}\"/><circle cx=\"{}\" cy=\"{}\" r=\"{}\" fill=\"#f7768e\"/><circle cx=\"{}\" cy=\"{}\" r=\"{}\" fill=\"#9ece6a\"/><text x=\"{}\" y=\"{}\" fill=\"#c0caf5\" font-size=\"{}\">{}</text>",p.old_position.0,p.old_position.1,p.new_position.0,p.new_position.1,1.0/scale,p.old_position.0,p.old_position.1,2.0/scale,p.new_position.0,p.new_position.1,2.0/scale,p.new_position.0+2.0/scale,p.new_position.1,9.0/scale,p.footprint_ref));
-    }
-    svg.push_str("</svg>");
-    std::fs::write(path, svg).with_context(|| format!("write {}", path.display()))?;
-    Ok(())
-}
-
-pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
-    let args = parse_args::<Args>("place-silk-refs", args);
-    if args.pcb.extension().and_then(|s| s.to_str()) != Some("kicad_pcb") {
-        bail!("expected a .kicad_pcb file")
-    };
-    if args.step <= 0.0
-        || args.max_offset < 0.0
-        || args.clearance < 0.0
-        || args.edge_clearance < 0.0
-    {
-        bail!("step must be positive and distances non-negative")
-    };
-    if args.max_offset / args.step > 4096.0 {
-        bail!("search would exceed 4096 rings; increase --step or reduce --max-offset")
-    };
-    if !args.dry_run && args.output.is_none() {
-        bail!("place-silk-refs is a design edit; pass --output (or use --dry-run)")
-    }
-    let mask_clearance = match &args.mfr {
-        Some(m) => crate::manufacturers::rules(m, args.layers, args.copper)
-            .map(|r| r.min_solder_mask_clearance_mm)
-            .unwrap_or(0.05),
-        None => 0.05,
-    };
-    let mut pcb = Pcb::load(&args.pcb)?;
-    let (w, h) = pcb.board_size()?;
-    if w <= 0.0 || h <= 0.0 {
-        bail!("board has no usable Edge.Cuts outline")
-    }
-    let mut obstacles = Vec::new();
-    for fp in pcb.footprints() {
-        for pad in &fp.pads {
-            if let Some(p) = pcb.get_pad_position(&fp.reference, &pad.number) {
-                obstacles.push(text_rect(
-                    p,
-                    1,
-                    (
-                        pad.size.0 + 2.0 * mask_clearance,
-                        pad.size.1 + 2.0 * mask_clearance,
-                    ),
-                    pad.rotation,
-                ))
-            }
+    let id = crate::manufacturers::canonical_id(m);
+    match crate::manufacturers::design_rules(&id) {
+        Ok(all) => {
+            let key = format!("{layers}layer_{}oz", copper.trunc() as i64);
+            all.get(&key)
+                .or_else(|| all.get(&format!("{layers}layer_1oz")))
+                .or_else(|| all.values().next())
+                .map_or(0.05, |r| r.min_solder_mask_clearance_mm)
         }
-        for text in &fp.texts {
-            if !text.hidden && text.text_type != "reference" && text.layer.ends_with("SilkS") {
-                obstacles.push(text_rect(
-                    global(fp.position, text.position, fp.rotation),
-                    text.text.chars().count(),
-                    text.font_size,
-                    text.rotation,
-                ))
-            }
+        Err(_) => {
+            eprintln!("Warning: No configuration found for manufacturer '{m}'");
+            0.05
         }
     }
-    for via in pcb.vias() {
-        obstacles.push(Rect {
-            x1: via.position.0 - via.size / 2.0 - mask_clearance,
-            y1: via.position.1 - via.size / 2.0 - mask_clearance,
-            x2: via.position.0 + via.size / 2.0 + mask_clearance,
-            y2: via.position.1 + via.size / 2.0 + mask_clearance,
-        })
+}
+
+fn drc_summary_json(d: &DrcSummary) -> Json {
+    let mut o = Json::obj();
+    o.set("available", d.available);
+    if let Some(m) = &d.message {
+        o.set("message", m.as_str());
     }
-    let refs: Vec<_> = pcb
-        .footprints()
-        .iter()
-        .filter_map(|fp| {
-            fp.texts
-                .iter()
-                .find(|t| t.text_type == "reference" && !t.hidden && t.layer.ends_with("SilkS"))
-                .map(|t| (fp.reference.clone(), fp.position, fp.rotation, t.clone()))
-        })
-        .collect();
-    let mut placements = Vec::new();
-    let dirs = [
-        (1.0, 0.0),
-        (-1.0, 0.0),
-        (0.0, 1.0),
-        (0.0, -1.0),
-        (1.0, 1.0),
-        (1.0, -1.0),
-        (-1.0, 1.0),
-        (-1.0, -1.0),
-    ];
-    for (reference, fp_pos, fp_rotation, text) in refs {
-        let old = global(fp_pos, text.position, fp_rotation);
-        let mut chosen = None;
-        let rings = (args.max_offset / args.step).floor() as usize;
-        for ring in 0..=rings {
-            let candidates: Vec<_> = if ring == 0 {
-                vec![(old, text.rotation)]
+    if let Some(e) = &d.error {
+        o.set("error", e.as_str());
+    }
+    if let Some((total, silk)) = d.counts {
+        o.set("total_violations", total as i64);
+        o.set("silk_violations", silk as i64);
+    }
+    o
+}
+
+struct DrcSummary {
+    available: bool,
+    message: Option<String>,
+    error: Option<String>,
+    counts: Option<(usize, usize)>,
+}
+
+impl DrcSummary {
+    fn failed(&self) -> bool {
+        !self.available || self.error.is_some() || self.counts.is_some_and(|c| c.1 > 0)
+    }
+}
+
+/// `_run_verify_drc`.
+fn run_verify_drc(pcb_path: &Path) -> DrcSummary {
+    use super::runner::{find_kicad_cli, run_drc};
+    let fail = |e: String| DrcSummary {
+        available: true,
+        message: None,
+        error: Some(e),
+        counts: None,
+    };
+    if find_kicad_cli().is_none() {
+        return DrcSummary {
+            available: false,
+            message: Some("kicad-cli not found; skipped native DRC verification".into()),
+            error: None,
+            counts: None,
+        };
+    }
+    let res = run_drc(pcb_path, None, "json", false, None);
+    let out = res.output_path.clone();
+    let summary = (|| {
+        let Some(path) = out.as_ref().filter(|_| res.success && res.return_code == 0) else {
+            return fail(if res.stderr.is_empty() {
+                "DRC run failed".into()
             } else {
-                dirs.iter()
-                    .flat_map(|d| {
-                        let p = (
-                            fp_pos.0 + d.0 * ring as f64 * args.step,
-                            fp_pos.1 + d.1 * ring as f64 * args.step,
-                        );
-                        if args.allow_rotate {
-                            vec![(p, text.rotation), (p, text.rotation + 90.0)]
-                        } else {
-                            vec![(p, text.rotation)]
-                        }
-                    })
-                    .collect()
+                res.stderr.clone()
+            });
+        };
+        let raw: serde_json::Value = match std::fs::read_to_string(path)
+            .map_err(|e| e.to_string())
+            .and_then(|t| serde_json::from_str(&t).map_err(|e| e.to_string()))
+        {
+            Ok(v) => v,
+            Err(e) => return fail(format!("Invalid native DRC report: {e}")),
+        };
+        if !raw.get("violations").is_some_and(|v| v.is_array()) {
+            return fail("Invalid native DRC report: missing violations array".into());
+        }
+        let report = match crate::drc::DRCReport::load(path) {
+            Ok(r) => r,
+            Err(e) => return fail(format!("Invalid native DRC report: {e}")),
+        };
+        const SILK: [&str; 4] = [
+            "silk_over_copper",
+            "silk_overlap",
+            "silk_edge_clearance",
+            "silkscreen",
+        ];
+        let silk = report
+            .violations
+            .iter()
+            .filter(|v| SILK.iter().any(|t| v.type_str.contains(t)))
+            .count();
+        DrcSummary {
+            available: true,
+            message: None,
+            error: None,
+            counts: Some((report.violation_count(), silk)),
+        }
+    })();
+    if let Some(p) = out {
+        let _ = std::fs::remove_file(p);
+    }
+    summary
+}
+
+fn by_ref(
+    mut v: Vec<&crate::silkscreen::place_refs::RefPlacement>,
+) -> Vec<&crate::silkscreen::place_refs::RefPlacement> {
+    v.sort_by(|a, b| a.footprint_ref.cmp(&b.footprint_ref));
+    v
+}
+
+fn print_text(r: &PlaceSilkRefsResult, dry_run: bool) {
+    if r.placements.is_empty() {
+        println!("No visible reference designators found.");
+        return;
+    }
+    let action = if dry_run { "Would move" } else { "Moved" };
+    let (unplaceable, fallback) = (r.unplaceable(), r.under_component_fallback());
+    if !r.moved().is_empty() {
+        println!("{action} {} reference designator(s):", r.total_moved());
+        for p in by_ref(r.moved()) {
+            let rot = if p.new_rotation != p.old_rotation {
+                format!(", {:.0}deg -> {:.0}deg", p.old_rotation, p.new_rotation)
+            } else {
+                String::new()
             };
-            for (center, rotation) in candidates {
-                let rect = text_rect(center, reference.chars().count(), text.font_size, rotation);
-                let in_board = rect.x1 >= args.edge_clearance
-                    && rect.y1 >= args.edge_clearance
-                    && rect.x2 <= w - args.edge_clearance
-                    && rect.y2 <= h - args.edge_clearance;
-                let clear = in_board
-                    && !obstacles
-                        .iter()
-                        .any(|o| rect.overlaps(o.expanded(args.clearance)));
-                if clear {
-                    chosen = Some((center, rotation));
-                    break;
-                }
-            }
-            if chosen.is_some() {
-                break;
-            }
-        }
-        match chosen {
-            Some((new, rotation)) => {
-                let moved = (new.0 - old.0).abs() > 1e-9
-                    || (new.1 - old.1).abs() > 1e-9
-                    || (rotation - text.rotation).abs() > 1e-9;
-                if moved && !args.dry_run {
-                    let local_pos = local(fp_pos, new, fp_rotation);
-                    pcb.move_reference(&reference, (0.0, 0.0), Some(local_pos), None);
-                    set_reference_rotation(pcb.sexp_mut(), &reference, rotation);
-                }
-                if moved {
-                    obstacles.push(text_rect(
-                        new,
-                        reference.chars().count(),
-                        text.font_size,
-                        rotation,
-                    ));
-                }
-                placements.push(Placement {
-                    footprint_ref: reference,
-                    old_position: old,
-                    new_position: new,
-                    old_rotation: text.rotation,
-                    new_rotation: rotation,
-                    moved,
-                    status: if moved { "moved" } else { "unchanged" },
-                    reason: if moved {
-                        "nearest collision-free search position".into()
-                    } else {
-                        "already clear".into()
-                    },
-                })
-            }
-            None => placements.push(Placement {
-                footprint_ref: reference,
-                old_position: old,
-                new_position: old,
-                old_rotation: text.rotation,
-                new_rotation: text.rotation,
-                moved: false,
-                status: "unplaceable",
-                reason: "no collision-free location inside search radius".into(),
-            }),
-        }
-    }
-    if !args.dry_run {
-        pcb.save(args.output.as_deref())?
-    }
-    if let Some(path) = &args.render {
-        render_svg(path, w, h, &placements)?
-    }
-    let moved = placements.iter().filter(|p| p.moved).count();
-    let unplaceable = placements
-        .iter()
-        .filter(|p| p.status == "unplaceable")
-        .count();
-    let drc = if args.verify_drc && !args.dry_run {
-        Some(verify_drc(args.output.as_ref().unwrap()))
-    } else {
-        None
-    };
-    let drc_ok = drc.as_ref().is_none_or(|d| {
-        d.get("available").and_then(|v| v.as_bool()) == Some(true)
-            && d.get("error").is_none()
-            && d.get("silk_violations").and_then(|v| v.as_u64()) == Some(0)
-    });
-    let document = serde_json::json!({"command":"place-silk-refs","pcb":args.pcb,"output":args.output,"clearance_mm":args.clearance,"mask_clearance_mm":mask_clearance,"dry_run":args.dry_run,"total_moved":moved,"total_unchanged":placements.len()-moved-unplaceable,"total_unplaceable":unplaceable,"placements":placements,"drc_verification":drc,"render_artifact":args.render,"success":drc_ok});
-    if args.format == "json" {
-        println!("{}", serde_json::to_string_pretty(&document)?)
-    } else if args.format == "summary" {
-        println!(
-            "{} {moved} reference(s); {unplaceable} unplaceable (clearance: {:.2}mm)",
-            if args.dry_run { "Would move" } else { "Moved" },
-            args.clearance
-        )
-    } else if placements.is_empty() {
-        println!("No visible reference designators found.")
-    } else {
-        println!(
-            "{} {moved} reference designator(s); {unplaceable} unplaceable",
-            if args.dry_run { "Would move" } else { "Moved" }
-        );
-        for p in placements.iter().filter(|p| p.moved) {
             println!(
-                "  {}: ({:.3}, {:.3}) -> ({:.3}, {:.3})",
+                "  {}: ({:.3}, {:.3}) -> ({:.3}, {:.3}){rot}",
                 p.footprint_ref,
                 p.old_position.0,
                 p.old_position.1,
                 p.new_position.0,
                 p.new_position.1
-            )
+            );
         }
-        if !args.dry_run && moved > 0 {
-            println!("Saved to: {}", args.output.as_ref().unwrap().display())
+    } else if unplaceable.is_empty() && fallback.is_empty() {
+        println!("No collisions found -- every visible reference is already clear.");
+    } else {
+        println!("No references could be moved to a clear location.");
+    }
+    if !fallback.is_empty() {
+        println!(
+            "\n{} reference(s) fell back under their own component body:",
+            fallback.len()
+        );
+        for p in by_ref(fallback) {
+            println!("  {}: {}", p.footprint_ref, p.reason);
         }
     }
-    Ok(if drc_ok { 0 } else { 1 })
+    if !unplaceable.is_empty() {
+        println!(
+            "\n{} reference(s) could not be placed cleanly:",
+            unplaceable.len()
+        );
+        for p in by_ref(unplaceable) {
+            println!("  {}: {}", p.footprint_ref, p.reason);
+        }
+    }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn rectangle_overlap_is_strict() {
-        let a = Rect {
-            x1: 0.,
-            y1: 0.,
-            x2: 1.,
-            y2: 1.,
-        };
-        assert!(a.overlaps(Rect {
-            x1: 0.5,
-            y1: 0.5,
-            x2: 2.,
-            y2: 2.
-        }));
-        assert!(!a.overlaps(Rect {
-            x1: 1.,
-            y1: 0.,
-            x2: 2.,
-            y2: 1.
-        }));
+pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
+    let mut args: Args = parse_args("place-silk-refs", argv);
+    args.quiet |= g.quiet;
+    if let Some(code) = require_write_target(args.dry_run, args.output.as_deref(), args.in_place) {
+        return Ok(code);
     }
-    #[test]
-    fn transforms_round_trip() {
-        let p = (3., 7.);
-        let g = global((10., 20.), p, 90.);
-        let q = local((10., 20.), g, 90.);
-        assert!((q.0 - p.0).abs() < 1e-9 && (q.1 - p.1).abs() < 1e-9);
+    let pcb_path = PathBuf::from(&args.pcb);
+    if !pcb_path.exists() {
+        eprintln!("Error: PCB file not found: {}", py_path_str(&args.pcb));
+        return Ok(1);
     }
+    let suffix = pcb_path
+        .extension()
+        .map(|e| format!(".{}", e.to_string_lossy()))
+        .unwrap_or_default();
+    if suffix.to_lowercase() != ".kicad_pcb" {
+        eprintln!("Error: Expected .kicad_pcb file, got: {suffix}");
+        return Ok(1);
+    }
+    let mask = mask_clearance(args.mfr.as_deref(), args.layers, args.copper);
+    let mut placer = match SilkRefPlacer::new(&pcb_path) {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Error parsing PCB file: {e:#}");
+            return Ok(1);
+        }
+    };
+    let result = match placer.plan(&PlanOptions {
+        clearance_mm: args.clearance,
+        edge_clearance_mm: args.edge_clearance,
+        mask_clearance_mm: mask,
+        max_offset_mm: args.max_offset,
+        step_mm: args.step,
+        allow_rotate: args.allow_rotate,
+    }) {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("Error: {e:#}");
+            return Ok(1);
+        }
+    };
+    let output_str = args.output.clone().unwrap_or_else(|| args.pcb.clone());
+    let output_path = PathBuf::from(&output_str);
+    let mut drc: Option<DrcSummary> = None;
+    if !args.dry_run {
+        let applied = placer.apply(&result)?;
+        if applied > 0 || args.output.is_some() {
+            if let Err(e) = placer.save(Some(&output_path)) {
+                eprintln!("Error saving PCB file: {e:#}");
+                return Ok(1);
+            }
+        }
+        if args.verify_drc {
+            drc = Some(run_verify_drc(&output_path));
+        }
+    }
+    let render_path = match &args.render {
+        Some(p) => Some(placer.render_svg(&result, Path::new(p))?),
+        None => None,
+    };
+    let render_str = args.render.as_deref().map(py_path_str);
+
+    if !args.quiet {
+        match args.format.as_str() {
+            "json" => {
+                let mut d = Json::obj();
+                d.set("clearance_mm", Json::Float(result.clearance_mm));
+                d.set("dry_run", args.dry_run);
+                d.set("total_moved", result.total_moved() as i64);
+                d.set("total_unchanged", result.unchanged().len() as i64);
+                d.set("total_unplaceable", result.unplaceable().len() as i64);
+                d.set(
+                    "total_under_component_fallback",
+                    result.under_component_fallback().len() as i64,
+                );
+                d.set(
+                    "placements",
+                    Json::Arr(result.placements.iter().map(|p| p.to_dict()).collect()),
+                );
+                if let Some(s) = &drc {
+                    d.set("drc_verification", drc_summary_json(s));
+                }
+                if let Some(r) = &render_str {
+                    d.set("render_artifact", r.as_str());
+                }
+                println!("{}", dumps_indent(&d, 2));
+            }
+            "summary" => {
+                let action = if args.dry_run { "Would move" } else { "Moved" };
+                let mut parts = vec![format!("{action} {} reference(s)", result.total_moved())];
+                if !result.unplaceable().is_empty() {
+                    parts.push(format!("{} unplaceable", result.unplaceable().len()));
+                }
+                if !result.under_component_fallback().is_empty() {
+                    parts.push(format!(
+                        "{} under-component fallback",
+                        result.under_component_fallback().len()
+                    ));
+                }
+                println!(
+                    "{} (clearance: {:.2}mm)",
+                    parts.join("; "),
+                    result.clearance_mm
+                );
+            }
+            _ => print_text(&result, args.dry_run),
+        }
+        if args.format != "json" {
+            if let Some(s) = &drc {
+                if !s.available {
+                    println!(
+                        "Native DRC: {}",
+                        s.message.as_deref().unwrap_or("unavailable")
+                    );
+                } else if let Some(e) = &s.error {
+                    println!("Native DRC error: {e}");
+                } else {
+                    println!(
+                        "Native DRC: {} silk violation(s)",
+                        s.counts.map_or(0, |c| c.1)
+                    );
+                }
+            }
+        }
+        if !args.dry_run && result.total_moved() > 0 && args.format == "text" {
+            println!("\nSaved to: {}", py_path_str(&output_str));
+        }
+        if render_path.is_some() && args.format == "text" {
+            println!("Review artifact: {}", render_str.as_deref().unwrap_or(""));
+        }
+    }
+    Ok(if drc.as_ref().is_some_and(DrcSummary::failed) {
+        1
+    } else {
+        0
+    })
 }

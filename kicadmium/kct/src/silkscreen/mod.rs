@@ -1,10 +1,10 @@
 //! Port of `kicad_tools.silkscreen`: reference-designator visibility and
-//! board markings (`generator`), plus shared defaults (`silk_defaults`).
-//!
-//! The collision-screened reference placer (`place_refs`) lives with its
-//! command in `cli::place_silk_refs`.
+//! board markings (`generator`), the reference-designator placement solver
+//! behind `place-silk-refs` (`place_refs`), and shared defaults
+//! (`silk_defaults`).
 
 pub mod generator;
+pub mod place_refs;
 pub mod silk_defaults;
 
 pub use generator::{SilkscreenGenerator, SilkscreenResult, SILKSCREEN_LAYERS};

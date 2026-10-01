@@ -392,7 +392,11 @@ pub fn stroke_geometry(g: &SilkGraphic, transform: PointTransform) -> Option<Geo
     Some(sh::buffer_line(&ring, width / 2.0))
 }
 
-fn pad_aperture_geometry(pad: &crate::schema::pcb::Pad, pos: (f64, f64), min_mask: f64) -> Geom {
+pub fn pad_aperture_geometry(
+    pad: &crate::schema::pcb::Pad,
+    pos: (f64, f64),
+    min_mask: f64,
+) -> Geom {
     let margin = pad.solder_mask_margin.unwrap_or(min_mask);
     let w = pad.size.0 + 2.0 * margin;
     let h = pad.size.1 + 2.0 * margin;
@@ -405,13 +409,13 @@ fn pad_aperture_geometry(pad: &crate::schema::pcb::Pad, pos: (f64, f64), min_mas
     ap
 }
 
-fn via_aperture_geometry(via: &Via, min_mask: f64) -> Geom {
+pub fn via_aperture_geometry(via: &Via, min_mask: f64) -> Geom {
     let d = via.size + 2.0 * min_mask;
     let (cx, cy) = via.position;
     sh::box_poly(cx - d / 2.0, cy - d / 2.0, cx + d / 2.0, cy + d / 2.0)
 }
 
-fn via_is_tented(via: &Via, setup: Option<&Setup>, side: &str) -> bool {
+pub fn via_is_tented(via: &Via, setup: Option<&Setup>, side: &str) -> bool {
     let o = if side == "F" {
         via.tenting_front.as_deref()
     } else {

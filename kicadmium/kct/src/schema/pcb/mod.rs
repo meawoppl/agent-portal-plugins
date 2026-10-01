@@ -27,6 +27,7 @@
 mod edit;
 mod models;
 mod outline;
+pub(crate) use outline::{chain_segment_indices, group_segments_by_connectivity};
 mod strip;
 pub mod util;
 

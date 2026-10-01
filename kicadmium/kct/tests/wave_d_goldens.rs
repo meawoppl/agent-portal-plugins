@@ -181,7 +181,137 @@ fn case(case: &str, board: &str, args: &[&str], board_golden: Option<&str>) {
     } else if output.exists() {
         problems.push("board written but upstream wrote none".into());
     }
+    let want_svg = gold(&format!("{case}.svg"));
+    if want_svg.exists() {
+        match std::fs::read_to_string(work.join(format!("{case}.svg"))) {
+            Ok(got) => {
+                let want = std::fs::read_to_string(&want_svg).unwrap();
+                if got != want {
+                    problems.push(format!("svg differs: {}", first_line_diff(&got, &want)));
+                }
+            }
+            Err(_) => problems.push("svg not written".into()),
+        }
+    }
     assert!(problems.is_empty(), "{case}: {}", problems.join("\n"));
+}
+
+#[test]
+fn place_silk_refs_json_noop() {
+    case(
+        "psr_charlie",
+        CHARLIE,
+        &["place-silk-refs", "{IN}", "-o", "{OUT}", "--format", "json"],
+        None,
+    );
+}
+
+#[test]
+fn place_silk_refs_text_render() {
+    case(
+        "psr_charlie_text",
+        CHARLIE,
+        &[
+            "place-silk-refs",
+            "{IN}",
+            "-o",
+            "{OUT}",
+            "--allow-rotate",
+            "--render",
+            "{WORK}/psr_charlie_text.svg",
+        ],
+        Some("psr_charlie"),
+    );
+}
+
+#[test]
+fn place_silk_refs_moves_json() {
+    case(
+        "psr_matchgroup",
+        MATCHGROUP,
+        &[
+            "place-silk-refs",
+            "{IN}",
+            "-o",
+            "{OUT}",
+            "--format",
+            "json",
+            "--mfr",
+            "jlcpcb",
+            "--clearance",
+            "0.2",
+        ],
+        None,
+    );
+}
+
+#[test]
+fn place_silk_refs_moves_text_render() {
+    case(
+        "psr_matchgroup_text",
+        MATCHGROUP,
+        &[
+            "place-silk-refs",
+            "{IN}",
+            "-o",
+            "{OUT}",
+            "--allow-rotate",
+            "--clearance",
+            "0.25",
+            "--render",
+            "{WORK}/psr_matchgroup_text.svg",
+        ],
+        None,
+    );
+}
+
+#[test]
+fn place_silk_refs_unplaceable_dry_run() {
+    case(
+        "psr_matchgroup_stuck",
+        MATCHGROUP,
+        &[
+            "place-silk-refs",
+            "{IN}",
+            "--dry-run",
+            "--max-offset",
+            "0",
+            "--format",
+            "json",
+        ],
+        None,
+    );
+}
+
+#[test]
+fn place_silk_refs_summary_and_dry_text() {
+    case(
+        "psr_pin1",
+        "pin1_marker.kicad_pcb",
+        &[
+            "place-silk-refs",
+            "{IN}",
+            "-o",
+            "{OUT}",
+            "--format",
+            "summary",
+        ],
+        None,
+    );
+    case(
+        "psr_charlie_dry",
+        CHARLIE,
+        &[
+            "place-silk-refs",
+            "{IN}",
+            "--dry-run",
+            "--max-offset",
+            "2",
+            "--step",
+            "0.5",
+        ],
+        None,
+    );
 }
 
 const CHARLIE: &str =

@@ -57,7 +57,7 @@ impl UnionFind {
 
 /// Groups of segment indices connected by endpoint proximity, in order of
 /// first member.
-fn group_segments_by_connectivity(segments: &[Seg], tol: f64) -> Vec<Vec<usize>> {
+pub(crate) fn group_segments_by_connectivity(segments: &[Seg], tol: f64) -> Vec<Vec<usize>> {
     let n = segments.len();
     let mut uf = UnionFind::new(n);
     for i in 0..n {
@@ -89,7 +89,7 @@ fn group_segments_by_connectivity(segments: &[Seg], tol: f64) -> Vec<Vec<usize>>
 
 /// Chain one component into a closed, nondegenerate polygon (empty when
 /// the component is open, branched, or encloses no area).
-fn chain_segment_indices(segments: &[Seg], indices: &[usize], tol: f64) -> Vec<Point> {
+pub(crate) fn chain_segment_indices(segments: &[Seg], indices: &[usize], tol: f64) -> Vec<Point> {
     if indices.len() < 3 {
         return vec![];
     }

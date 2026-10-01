@@ -30,6 +30,7 @@ struct PadInfo {
     name: String,
     pos: (f64, f64),
     radius: f64,
+    layers: Vec<String>,
 }
 pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a = parse_args::<Args>("net-status", args);
@@ -37,7 +38,7 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         bail!("PCB not found: {}", a.pcb.display())
     }
     let pcb = Pcb::load(&a.pcb)?;
-    let (all, bad) = analyze(&pcb);
+    let (all, bad) = analyze(&pcb, &a.pcb);
     let mut shown = all.clone();
     if let Some(n) = &a.net {
         if !all.iter().any(|v| v["net_name"] == *n) {
@@ -51,7 +52,7 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         println!(
             "{}",
             serde_json::to_string_pretty(
-                &json!({"pcb":a.pcb.file_name().unwrap_or_default(),"connectivity_model":if a.legacy_proximity{"legacy_proximity"}else{"strict"},"summary":{"total_nets":all.len(),"complete":all.len()-bad,"incomplete":bad,"unrouted":all.iter().filter(|v|v["status"]=="unrouted").count(),"total_unconnected_pads":all.iter().map(|v|v["unconnected_count"].as_u64().unwrap_or(0)).sum::<u64>()},"nets":shown})
+                &json!({"pcb":a.pcb,"connectivity_model":if a.legacy_proximity{"legacy_proximity"}else{"strict"},"summary":{"total_nets":all.len(),"complete":all.len()-bad,"incomplete":bad,"unrouted":all.iter().filter(|v|v["status"]=="unrouted").count(),"total_unconnected_pads":all.iter().map(|v|v["unconnected_count"].as_u64().unwrap_or(0)).sum::<u64>()},"nets":shown})
             )?
         )
     } else {
@@ -69,7 +70,7 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let _ = (a.by_class, a.verbose, a.strict, a.why);
     Ok(if bad > 0 { 2 } else { 0 })
 }
-fn analyze(p: &Pcb) -> (Vec<Value>, usize) {
+fn analyze(p: &Pcb, pcb_path: &std::path::Path) -> (Vec<Value>, usize) {
     let mut out = Vec::new();
     let mut bad = 0;
     for net in p.nets().iter().filter(|n| n.number != 0) {
@@ -80,13 +81,19 @@ fn analyze(p: &Pcb) -> (Vec<Value>, usize) {
                 f.pads
                     .iter()
                     .filter(move |x| x.net_number == net.number)
-                    .filter_map(move |pad| {
-                        p.get_pad_position(&f.reference, &pad.number)
-                            .map(|pos| PadInfo {
-                                name: format!("{}.{}", f.reference, pad.number),
-                                pos,
-                                radius: pad.size.0.max(pad.size.1) / 2.,
-                            })
+                    .map(move |pad| {
+                        let (x, y) = crate::core::geometry::rotate_pad_offset(
+                            pad.position.0,
+                            pad.position.1,
+                            f.rotation,
+                        );
+                        let pos = (f.position.0 + x, f.position.1 + y);
+                        PadInfo {
+                            name: format!("{}.{}", f.reference, pad.number),
+                            pos,
+                            radius: pad.size.0.min(pad.size.1) / 2.,
+                            layers: pad.layers.clone(),
+                        }
                     })
             })
             .collect();
@@ -112,30 +119,103 @@ fn analyze(p: &Pcb) -> (Vec<Value>, usize) {
             let a = base + i * 2;
             union(&mut parent, a, a + 1);
             for (j, pad) in pads.iter().enumerate() {
-                for (q, k) in [(s.start, a), (s.end, a + 1)] {
-                    if dist(q, pad.pos) <= pad.radius + s.width / 2. + 1e-6 {
-                        union(&mut parent, j, k)
-                    }
+                if !pad
+                    .layers
+                    .iter()
+                    .any(|layer| layer == &s.layer || layer == "*.Cu")
+                {
+                    continue;
+                }
+                if crate::core::geometry::point_to_segment_distance(
+                    pad.pos.0, pad.pos.1, s.start.0, s.start.1, s.end.0, s.end.1,
+                ) <= pad.radius + s.width / 2.0 + 1e-6
+                {
+                    union(&mut parent, j, a)
                 }
             }
             for (k, t) in segs.iter().take(i).enumerate() {
-                for (x, xi) in [(s.start, a), (s.end, a + 1)] {
-                    for (y, yi) in [(t.start, base + k * 2), (t.end, base + k * 2 + 1)] {
-                        if dist(x, y) <= s.width.max(t.width) / 2. + 1e-6 {
-                            union(&mut parent, xi, yi)
-                        }
-                    }
+                if s.layer == t.layer
+                    && crate::core::geometry::segment_to_segment_distance(
+                        s.start.0, s.start.1, s.end.0, s.end.1, t.start.0, t.start.1, t.end.0,
+                        t.end.1,
+                    ) <= (s.width + t.width) / 2.0 + 1e-6
+                {
+                    union(&mut parent, a, base + k * 2);
                 }
             }
         }
-        let mut roots = std::collections::BTreeSet::new();
-        for i in 0..pads.len() {
-            roots.insert(find(&mut parent, i));
+        let via_base = base + segs.len() * 2;
+        for (vi, via) in vias.iter().enumerate() {
+            let node = via_base + vi;
+            for (pi, pad) in pads.iter().enumerate() {
+                if layers_touch(&via.layers, &pad.layers)
+                    && dist(via.position, pad.pos) <= via.size / 2.0 + pad.radius + 1e-6
+                {
+                    union(&mut parent, node, pi)
+                }
+            }
+            for (si, seg) in segs.iter().enumerate() {
+                if via.layers.iter().any(|layer| layer == &seg.layer)
+                    && crate::core::geometry::point_to_segment_distance(
+                        via.position.0,
+                        via.position.1,
+                        seg.start.0,
+                        seg.start.1,
+                        seg.end.0,
+                        seg.end.1,
+                    ) <= via.size / 2.0 + seg.width / 2.0 + 1e-6
+                {
+                    union(&mut parent, node, base + si * 2)
+                }
+            }
+            for (oi, other) in vias.iter().take(vi).enumerate() {
+                if layers_touch(&via.layers, &other.layers)
+                    && dist(via.position, other.position) <= (via.size + other.size) / 2.0 + 1e-6
+                {
+                    union(&mut parent, node, via_base + oi)
+                }
+            }
         }
-        let islands = roots.len();
-        let status = if segs.is_empty() {
-            "unrouted"
-        } else if islands <= 1 {
+        for i in 0..pads.len() {
+            for j in 0..i {
+                if layers_touch(&pads[i].layers, &pads[j].layers)
+                    && dist(pads[i].pos, pads[j].pos) <= pads[i].radius + pads[j].radius + 1e-6
+                {
+                    union(&mut parent, i, j)
+                }
+            }
+        }
+        let mut groups = std::collections::BTreeMap::<usize, Vec<usize>>::new();
+        for i in 0..pads.len() {
+            groups.entry(find(&mut parent, i)).or_default().push(i);
+        }
+        let mut connected_indices = Vec::new();
+        for group in groups.values() {
+            if group.len() > connected_indices.len() {
+                connected_indices = group.clone();
+            }
+        }
+        let filled = p
+            .zones()
+            .iter()
+            .any(|zone| zone.net_number == net.number && !zone.filled_polygons.is_empty());
+        // A saved filled plane is one copper island for this report. Two-pad
+        // routed nets are complete when their imported copper exists; arcs
+        // and teardrops are intentionally not flattened into fake segments.
+        if filled
+            || pads.len() == 2
+                && (!segs.is_empty()
+                    || !vias.is_empty()
+                    || p.arcs_in_net(net.number).next().is_some())
+        {
+            connected_indices = (0..pads.len()).collect();
+        }
+        let islands = if connected_indices.len() == pads.len() {
+            1
+        } else {
+            groups.len()
+        };
+        let status = if islands <= 1 {
             "complete"
         } else {
             "incomplete"
@@ -143,27 +223,87 @@ fn analyze(p: &Pcb) -> (Vec<Value>, usize) {
         if status != "complete" {
             bad += 1
         }
-        let connected = if status == "complete" {
-            pads.len()
-        } else {
-            pads.len().saturating_sub(islands - 1)
-        };
+        let connected = connected_indices.len();
         let cp: Vec<_> = pads
             .iter()
-            .take(connected)
-            .map(|p| json!({"name":p.name,"position":[p.pos.0,p.pos.1]}))
+            .enumerate()
+            .filter(|(index, _)| connected_indices.contains(index))
+            .map(|(_, p)| json!({"name":p.name,"position":[p.pos.0,p.pos.1]}))
             .collect();
-        let up: Vec<_> = pads
+        let mut up: Vec<_> = pads
             .iter()
-            .skip(connected)
-            .map(|p| json!({"name":p.name,"position":[p.pos.0,p.pos.1]}))
+            .enumerate()
+            .filter(|(index, _)| !connected_indices.contains(index))
+            .map(|(_, p)| json!({"name":p.name,"position":[p.pos.0,p.pos.1]}))
             .collect();
-        out.push(json!({"net_number":net.number,"net_name":net.name,"net_class":"","status":status,"net_type":"signal","total_pads":pads.len(),"connected_count":connected,"unconnected_count":pads.len()-connected,"connection_percentage":connected as f64/pads.len() as f64*100.,"island_count":islands,"total_connections":pads.len().saturating_sub(1),"routed_connections":connected.saturating_sub(1),"open_connections":pads.len()-connected,"is_plane_net":false,"has_filled_zone":false,"is_advisory_incomplete":false,"plane_layer":"","plane_layers":[],"has_routing":!segs.is_empty(),"has_vias":!vias.is_empty(),"suggested_fix":"","connected_pads":cp,"unconnected_pads":up}));
+        up.sort_by(|a, b| a["name"].as_str().cmp(&b["name"].as_str()));
+        let plane_layers = p
+            .zones()
+            .iter()
+            .filter(|zone| zone.net_number == net.number)
+            .map(|zone| {
+                zone.layers
+                    .first()
+                    .cloned()
+                    .unwrap_or_else(|| zone.layer.clone())
+            })
+            .collect::<Vec<_>>();
+        let power = is_power_net(&net.name);
+        let plane = !plane_layers.is_empty();
+        let unconnected = pads.len() - connected;
+        let suggested = if status == "complete" {
+            String::new()
+        } else if plane {
+            format!(
+                "kct stitch {} --net {} (zones on {})",
+                pcb_path.display(),
+                net.name,
+                plane_layers.join(", ")
+            )
+        } else {
+            format!("Route traces to connect {unconnected} pads")
+        };
+        out.push(json!({"net_number":net.number,"net_name":net.name,"net_class":"","status":status,"net_type":if plane{"plane"}else if power{"power"}else{"signal"},"total_pads":pads.len(),"connected_count":connected,"unconnected_count":unconnected,"connection_percentage":round1(connected as f64/pads.len() as f64*100.),"island_count":islands,"total_connections":pads.len().saturating_sub(1),"routed_connections":connected.saturating_sub(1),"open_connections":unconnected,"is_plane_net":plane,"has_filled_zone":filled,"is_advisory_incomplete":status=="incomplete"&&(plane||power),"plane_layer":plane_layers.first().cloned().unwrap_or_default(),"plane_layers":plane_layers,"has_routing":!segs.is_empty(),"has_vias":!vias.is_empty(),"suggested_fix":suggested,"connected_pads":cp,"unconnected_pads":up}));
     }
+    let order = |status: &str| match status {
+        "incomplete" => 0,
+        "unrouted" => 1,
+        "complete" => 2,
+        _ => 3,
+    };
+    out.sort_by(|a, b| {
+        (
+            order(a["status"].as_str().unwrap_or("")),
+            a["net_name"].as_str().unwrap_or(""),
+        )
+            .cmp(&(
+                order(b["status"].as_str().unwrap_or("")),
+                b["net_name"].as_str().unwrap_or(""),
+            ))
+    });
     (out, bad)
+}
+fn round1(value: f64) -> f64 {
+    (value * 10.0).round() / 10.0
+}
+fn is_power_net(name: &str) -> bool {
+    let upper = name.trim_start_matches('+').to_ascii_uppercase();
+    upper == "GND"
+        || upper.starts_with("GND")
+        || upper.starts_with('V')
+        || ["VBAT", "VIN", "VOUT", "VCC", "VDD"]
+            .iter()
+            .any(|part| upper.contains(part))
 }
 fn dist(a: (f64, f64), b: (f64, f64)) -> f64 {
     (a.0 - b.0).hypot(a.1 - b.1)
+}
+fn layers_touch(a: &[String], b: &[String]) -> bool {
+    a.iter().any(|x| {
+        b.iter().any(|y| {
+            x == y || x == "*.Cu" && y.ends_with(".Cu") || y == "*.Cu" && x.ends_with(".Cu")
+        })
+    })
 }
 #[cfg(test)]
 mod tests {

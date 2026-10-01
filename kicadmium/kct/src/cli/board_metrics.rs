@@ -143,8 +143,6 @@ pub fn extract(d: &Path) -> Result<Value> {
         "status".into(),
         json!(if mfg.is_dir() {
             "partial"
-        } else if o.contains_key("part_count") {
-            "no_artifacts"
         } else {
             "no_artifacts"
         }),

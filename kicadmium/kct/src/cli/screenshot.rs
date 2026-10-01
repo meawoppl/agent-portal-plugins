@@ -19,7 +19,7 @@ struct Args {
     layers: Option<String>,
     #[arg(long, default_value_t = 1568)]
     max_size: u32,
-    #[arg(long = "bw", alias = "black-and-white")]
+    #[arg(long = "bw", visible_alias = "black-and-white")]
     black_and_white: bool,
     #[arg(long)]
     theme: Option<String>,

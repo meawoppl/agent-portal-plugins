@@ -3,10 +3,10 @@ use crate::schema::pcb::Pcb;
 use serde_json::{json, Value};
 use std::collections::BTreeMap;
 fn r2(v: f64) -> f64 {
-    (v * 100.).round() / 100.
+    crate::pyjson::py_round(v, 2)
 }
 fn r4(v: f64) -> f64 {
-    (v * 10000.).round() / 10000.
+    crate::pyjson::py_round(v, 4)
 }
 pub fn estimate(
     p: &Pcb,
@@ -69,17 +69,31 @@ pub fn estimate(
         1.
     };
     let pcb_total = (2. + area_cost + layer_cost + finish_cost + color_cost + thick_cost) * disc;
-    let mut groups: BTreeMap<(String, String), (String, usize)> = BTreeMap::new();
+    let mut groups: Vec<((String, String), (String, usize))> = Vec::new();
     for f in p
         .footprints()
         .iter()
         .filter(|f| !f.reference.is_empty() && !f.reference.starts_with('#') && !f.dnp)
     {
-        let e = groups
-            .entry((f.value.clone(), f.name.clone()))
-            .or_insert((f.reference.clone(), 0));
-        e.1 += 1;
+        let key = (f.value.clone(), f.name.clone());
+        if let Some((_, (first, count))) = groups.iter_mut().find(|(existing, _)| *existing == key)
+        {
+            *count += 1;
+            if natural_ref_cmp(&f.reference, first).is_lt() {
+                *first = f.reference.clone()
+            }
+        } else {
+            groups.push((key, (f.reference.clone(), 1)));
+        }
     }
+    groups.sort_by(|a, b| {
+        prefix(&a.1 .0)
+            .chars()
+            .next()
+            .unwrap_or('\0')
+            .cmp(&prefix(&b.1 .0).chars().next().unwrap_or('\0'))
+            .then(a.0 .0.cmp(&b.0 .0))
+    });
     let mut items = Vec::new();
     let mut categories: BTreeMap<&str, f64> = BTreeMap::new();
     let mut component_total = 0.;
@@ -100,6 +114,12 @@ pub fn estimate(
             0.005
         } else if fl.contains("1206") {
             0.008
+        } else if fl.contains("1210") {
+            0.010
+        } else if fl.contains("2010") {
+            0.015
+        } else if fl.contains("2512") {
+            0.020
         } else {
             match prefix(reference) {
                 "D" | "LED" => 0.02,
@@ -140,7 +160,80 @@ pub fn estimate(
     let pcb_unit = pcb_total / qty as f64;
     let asm_unit = asm_total / qty as f64;
     let total = pcb_unit + component_total + asm_unit;
-    json!({"manufacturer":mfr,"quantity":qty,"currency":"USD","summary":{"pcb_cost_per_unit":r2(pcb_unit),"component_cost_per_unit":r2(component_total),"assembly_cost_per_unit":r2(asm_unit),"total_per_unit":r2(total),"total_for_quantity":r2(total*qty as f64)},"pcb":{"cost_per_unit":r2(pcb_unit),"total_cost":r2(pcb_total),"breakdown":{"base":2.0,"area":r2(area_cost),"layers":r2(layer_cost),"finish":r2(finish_cost),"color":r2(color_cost),"vias":0.0,"thickness":r2(thick_cost)},"specs":{"width_mm":w,"height_mm":h,"area_cm2":r2(area),"layer_count":layers,"surface_finish":finish,"solder_mask_color":color,"board_thickness_mm":thickness}},"components":{"cost_per_unit":r2(component_total),"total_parts":groups.values().map(|x|x.1).sum::<usize>(),"unique_parts":groups.len(),"breakdown":categories,"items":items},"assembly":{"cost_per_unit":r2(asm_unit),"total_cost":r2(asm_total),"breakdown":{"smt":r2(smt_cost),"through_hole":r2(tht_cost),"setup":9.5,"bga":r2(bga_cost),"fine_pitch":0.0},"specs":{"smt_parts":smt,"through_hole_parts":tht,"unique_parts":groups.len(),"bga_parts":bga,"double_sided":double}},"cost_drivers":[],"optimization_suggestions":[format!("Use basic parts to avoid extended part fees ({} extended parts)",groups.len())]})
+    let mut drivers = Vec::new();
+    if layer_cost > 0.5 {
+        drivers.push(format!("{layers}-layer board adds ${layer_cost:.2}"))
+    }
+    if finish_cost > 0.0 {
+        drivers.push(format!(
+            "{} finish adds ${finish_cost:.2}",
+            finish.to_uppercase()
+        ))
+    }
+    if area > 50.0 {
+        drivers.push(format!("Large board area ({area:.0} cm2)"))
+    }
+    let mut expensive = items.clone();
+    expensive.sort_by(|a, b| {
+        b["extended_cost"]
+            .as_f64()
+            .unwrap_or(0.0)
+            .total_cmp(&a["extended_cost"].as_f64().unwrap_or(0.0))
+    });
+    for c in expensive.iter().take(3) {
+        if c["extended_cost"].as_f64().unwrap_or(0.0) > 0.5 {
+            drivers.push(format!(
+                "{} ({}) is ${:.2}",
+                c["reference"].as_str().unwrap_or(""),
+                c["value"].as_str().unwrap_or(""),
+                c["extended_cost"].as_f64().unwrap()
+            ))
+        }
+    }
+    if tht > 0 {
+        drivers.push(format!("{tht} through-hole parts add ${tht_cost:.2}"))
+    }
+    if double {
+        drivers.push("Double-sided assembly increases cost".into())
+    }
+    if bga > 0 {
+        drivers.push(format!("{bga} BGA parts add complexity"))
+    }
+    drivers.truncate(5);
+    let mut suggestions = Vec::new();
+    if layers > 2 {
+        suggestions.push(format!(
+            "Consider 2-layer design to save ${:.2}/unit",
+            layer_cost / qty as f64
+        ))
+    }
+    if !matches!(finish, "hasl" | "hasl_lead_free") {
+        suggestions.push("HASL finish is lowest cost option".into())
+    }
+    if color_cost > 0.0 {
+        suggestions.push("Green solder mask has no additional cost".into())
+    }
+    if !groups.is_empty() {
+        suggestions.push(format!(
+            "Use basic parts to avoid extended part fees ({} extended parts)",
+            groups.len()
+        ))
+    }
+    if tht > 5 {
+        suggestions.push("Reduce through-hole parts for lower assembly cost".into())
+    }
+    if double {
+        suggestions.push("Single-sided assembly is significantly cheaper".into())
+    }
+    suggestions.truncate(5);
+    json!({"manufacturer":mfr,"quantity":qty,"currency":"USD","summary":{"pcb_cost_per_unit":r2(pcb_unit),"component_cost_per_unit":r2(component_total),"assembly_cost_per_unit":r2(asm_unit),"total_per_unit":r2(total),"total_for_quantity":r2(total*qty as f64)},"pcb":{"cost_per_unit":r2(pcb_unit),"total_cost":r2(pcb_total),"breakdown":{"base":2.0,"area":r2(area_cost),"layers":r2(layer_cost),"finish":r2(finish_cost),"color":r2(color_cost),"vias":0.0,"thickness":r2(thick_cost)},"specs":{"width_mm":w,"height_mm":h,"area_cm2":r2(area),"layer_count":layers,"surface_finish":finish,"solder_mask_color":color,"board_thickness_mm":thickness}},"components":{"cost_per_unit":r2(component_total),"total_parts":groups.iter().map(|(_,x)|x.1).sum::<usize>(),"unique_parts":groups.len(),"breakdown":categories,"items":items},"assembly":{"cost_per_unit":r2(asm_unit),"total_cost":r2(asm_total),"breakdown":{"smt":r2(smt_cost),"through_hole":r2(tht_cost),"setup":9.5,"bga":r2(bga_cost),"fine_pitch":0.0},"specs":{"smt_parts":smt,"through_hole_parts":tht,"unique_parts":groups.len(),"bga_parts":bga,"double_sided":double}},"cost_drivers":drivers,"optimization_suggestions":suggestions})
+}
+fn natural_ref_cmp(a: &str, b: &str) -> std::cmp::Ordering {
+    fn split(s: &str) -> (&str, u64) {
+        let i = s.find(|c: char| c.is_ascii_digit()).unwrap_or(s.len());
+        (&s[..i], s[i..].parse::<u64>().unwrap_or(0))
+    }
+    split(a).cmp(&split(b))
 }
 fn prefix(r: &str) -> &str {
     let n = r.find(|c: char| c.is_ascii_digit()).unwrap_or(r.len());

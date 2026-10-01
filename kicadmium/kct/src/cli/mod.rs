@@ -13,6 +13,7 @@ use anyhow::Result;
 use crate::units::{self, UnitFormatter};
 
 pub mod analyze;
+pub mod audit;
 pub mod board_metrics;
 pub mod check;
 pub mod datasheet;
@@ -97,13 +98,13 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "analyze", about: "PCB analysis tools", wave: "C", run: Some(analyze::run) },
     CommandSpec { name: "constraints", about: "Constraint conflict detection and management", wave: "E", run: None },
     CommandSpec { name: "estimate", about: "Manufacturing cost estimation", wave: "C", run: Some(estimate::run) },
-    CommandSpec { name: "audit", about: "Manufacturing readiness audit (ERC, DRC, connectivity, compatibility)", wave: "C", run: None },
+    CommandSpec { name: "audit", about: "Manufacturing readiness audit (ERC, DRC, connectivity, compatibility)", wave: "C", run: Some(audit::audit) },
     CommandSpec { name: "suggest", about: "Part suggestions and recommendations", wave: "G", run: Some(suggest::run) },
     CommandSpec { name: "net-status", about: "Report net connectivity status for a PCB", wave: "C", run: Some(net_status::run) },
     CommandSpec { name: "fleet", about: "Fleet-wide PCB status and operations", wave: "C", run: Some(fleet::run) },
     CommandSpec { name: "render", about: "Render per-board 2D SVGs + 3D PNGs into output/renders/", wave: "C", run: Some(render::run) },
     CommandSpec { name: "board-metrics", about: "Emit a normalized board.json per board from existing artifacts", wave: "C", run: Some(board_metrics::run) },
-    CommandSpec { name: "readiness", about: "Run the manufacturing-readiness gates and write output/readiness.json", wave: "C", run: None },
+    CommandSpec { name: "readiness", about: "Run the manufacturing-readiness gates and write output/readiness.json", wave: "C", run: Some(audit::readiness) },
     CommandSpec { name: "clean", about: "Clean up old/orphaned files from KiCad projects", wave: "G", run: Some(utility::clean) },
     CommandSpec { name: "impedance", about: "Transmission line impedance calculations", wave: "E", run: Some(impedance::run) },
     CommandSpec { name: "mcp", about: "MCP (Model Context Protocol) server for AI agents", wave: "H", run: Some(h::mcp) },

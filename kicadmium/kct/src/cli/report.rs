@@ -3,7 +3,10 @@ use crate::{cost, schema::pcb::Pcb};
 use anyhow::{bail, Result};
 use clap::{Args as ClapArgs, Parser, Subcommand};
 use serde_json::json;
-use std::{ffi::OsString, path::PathBuf};
+use std::{
+    ffi::OsString,
+    path::{Path, PathBuf},
+};
 #[derive(Parser)]
 struct Args {
     #[command(subcommand)]
@@ -71,7 +74,7 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let _ = (a.data_dir, a.template, a.sch, a.skip_erc);
     Ok(0)
 }
-fn next_version(root: &PathBuf) -> PathBuf {
+fn next_version(root: &Path) -> PathBuf {
     let mut n = 1;
     while root.join(format!("v{n}")).exists() {
         n += 1
@@ -84,8 +87,8 @@ mod tests {
     #[test]
     fn versioning() {
         let d = tempfile::tempdir().unwrap();
-        assert_eq!(next_version(&d.path().to_path_buf()), d.path().join("v1"));
+        assert_eq!(next_version(d.path()), d.path().join("v1"));
         std::fs::create_dir(d.path().join("v1")).unwrap();
-        assert_eq!(next_version(&d.path().to_path_buf()), d.path().join("v2"));
+        assert_eq!(next_version(d.path()), d.path().join("v2"));
     }
 }

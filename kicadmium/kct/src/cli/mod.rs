@@ -12,6 +12,7 @@ use anyhow::Result;
 
 use crate::units::{self, UnitFormatter};
 
+pub mod analyze;
 pub mod datasheet;
 pub mod design;
 pub mod drc;
@@ -85,7 +86,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "config", about: "View and manage configuration", wave: "G", run: Some(utility::config) },
     CommandSpec { name: "interactive", about: "Launch interactive REPL mode", wave: "H", run: Some(h::interactive) },
     CommandSpec { name: "validate", about: "Validation tools", wave: "B", run: Some(design::validate) },
-    CommandSpec { name: "analyze", about: "PCB analysis tools", wave: "C", run: None },
+    CommandSpec { name: "analyze", about: "PCB analysis tools", wave: "C", run: Some(analyze::run) },
     CommandSpec { name: "constraints", about: "Constraint conflict detection and management", wave: "E", run: None },
     CommandSpec { name: "estimate", about: "Manufacturing cost estimation", wave: "C", run: None },
     CommandSpec { name: "audit", about: "Manufacturing readiness audit (ERC, DRC, connectivity, compatibility)", wave: "C", run: None },

@@ -21,9 +21,12 @@ use crate::router::optimizer::{OptimizationConfig, TraceOptimizer};
 struct Args {
     /// Path to .kicad_pcb file
     pcb: String,
-    /// Output file (default: modify in place)
+    /// Output file (required unless --dry-run or --in-place)
     #[arg(short = 'o', long)]
     output: Option<String>,
+    /// Explicitly authorize modifying the input PCB
+    #[arg(long, conflicts_with = "output")]
+    in_place: bool,
     /// Only optimize traces matching this net pattern
     #[arg(long)]
     net: Option<String>,
@@ -88,6 +91,14 @@ pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
             as_json,
             &args.pcb,
             "--drc-aware requires --mfr to specify the manufacturer profile (e.g., --mfr jlcpcb)",
+            None,
+        ));
+    }
+    if !args.dry_run && args.output.is_none() && !args.in_place {
+        return Ok(fail(
+            as_json,
+            &args.pcb,
+            "design edits require --output, --in-place, or --dry-run",
             None,
         ));
     }
@@ -197,6 +208,7 @@ pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
             "command" => "optimize-traces",
             "pcb" => pcb_str.as_str(),
             "output" => args.output.clone(),
+            "in_place" => args.in_place,
             "net_filter" => args.net.clone(),
             "optimizations" => jobj! {
                 "merge_collinear" => config.merge_collinear,

@@ -65,6 +65,35 @@ enum Command {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+    ApplyRules {
+        file: PathBuf,
+        manufacturer: String,
+        #[arg(short = 'l', long, default_value_t = 2)]
+        layers: u8,
+        #[arg(short = 'c', long, default_value_t = 1.0)]
+        copper: f64,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        json: bool,
+    },
+    Validate {
+        file: PathBuf,
+        manufacturer: String,
+        #[arg(short = 'l', long, default_value_t = 2)]
+        layers: u8,
+        #[arg(short = 'c', long, default_value_t = 1.0)]
+        copper: f64,
+        #[arg(long)]
+        json: bool,
+    },
+    ImportDru {
+        file: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 pub fn run(args: Vec<OsString>, _globals: &Globals) -> Result<i32> {
@@ -174,6 +203,130 @@ pub fn run(args: Vec<OsString>, _globals: &Globals) -> Result<i32> {
                 crate::fsutil::atomic_write(&path, dru.as_bytes())?;
             } else {
                 print!("{dru}");
+            }
+        }
+        Command::ApplyRules {
+            file,
+            manufacturer,
+            layers,
+            copper,
+            output,
+            dry_run,
+            json,
+        } => {
+            let dru = manufacturers::dru_preset(&manufacturer, layers, copper)?;
+            let target = output.unwrap_or_else(|| file.with_extension("kicad_dru"));
+            if !dry_run {
+                crate::fsutil::atomic_write(&target, dru.as_bytes())?;
+            }
+            if json {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(
+                        &serde_json::json!({"target":target,"manufacturer":manufacturer,"dry_run":dry_run})
+                    )?
+                );
+            } else {
+                println!(
+                    "{} rules: {}",
+                    if dry_run { "Would write" } else { "Wrote" },
+                    target.display()
+                );
+            }
+        }
+        Command::Validate {
+            file,
+            manufacturer,
+            layers,
+            copper,
+            json,
+        } => {
+            let limits = manufacturers::rules(&manufacturer, layers, copper)?;
+            let root = crate::sexp::parse_file(&file)?;
+            let mut violations = vec![];
+            fn walk(
+                n: &crate::sexp::SExp,
+                limits: &crate::manufacturers::DesignRules,
+                out: &mut Vec<serde_json::Value>,
+            ) {
+                if n.name.as_deref() == Some("segment") {
+                    if let Some(w) = n
+                        .children
+                        .iter()
+                        .find(|c| c.name.as_deref() == Some("width"))
+                        .and_then(|c| c.children.first())
+                        .and_then(|x| x.value.as_ref())
+                        .and_then(crate::sexp::Value::as_f64)
+                    {
+                        if w < limits.min_trace_width_mm {
+                            out.push(serde_json::json!({"kind":"trace_width","actual_mm":w,"minimum_mm":limits.min_trace_width_mm}));
+                        }
+                    }
+                }
+                if n.name.as_deref() == Some("via") {
+                    let size = n
+                        .children
+                        .iter()
+                        .find(|c| c.name.as_deref() == Some("size"))
+                        .and_then(|c| c.children.first())
+                        .and_then(|x| x.value.as_ref())
+                        .and_then(crate::sexp::Value::as_f64);
+                    let drill = n
+                        .children
+                        .iter()
+                        .find(|c| c.name.as_deref() == Some("drill"))
+                        .and_then(|c| c.children.first())
+                        .and_then(|x| x.value.as_ref())
+                        .and_then(crate::sexp::Value::as_f64);
+                    if size.is_some_and(|v| v < limits.min_via_diameter_mm)
+                        || drill.is_some_and(|v| v < limits.min_via_drill_mm)
+                    {
+                        out.push(serde_json::json!({"kind":"via_size","diameter_mm":size,"drill_mm":drill,"minimum_diameter_mm":limits.min_via_diameter_mm,"minimum_drill_mm":limits.min_via_drill_mm}));
+                    }
+                }
+                for c in &n.children {
+                    walk(c, limits, out);
+                }
+            }
+            walk(&root, &limits, &mut violations);
+            let ok = violations.is_empty();
+            if json {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(
+                        &serde_json::json!({"valid":ok,"violations":violations})
+                    )?
+                )
+            } else {
+                println!(
+                    "{}: {} violation(s)",
+                    if ok { "PASS" } else { "FAIL" },
+                    violations.len()
+                )
+            }
+            if !ok {
+                return Ok(1);
+            }
+        }
+        Command::ImportDru { file, json } => {
+            let text = std::fs::read_to_string(&file)?;
+            let rules = text
+                .lines()
+                .filter(|l| l.trim_start().starts_with("(rule "))
+                .map(|l| l.trim().to_owned())
+                .collect::<Vec<_>>();
+            if json {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(
+                        &serde_json::json!({"file":file,"rules":rules,"text":text})
+                    )?
+                )
+            } else {
+                println!("{}\n{} rule declaration(s)", file.display(), rules.len());
+                for r in rules {
+                    println!("  {r}")
+                }
             }
         }
     }

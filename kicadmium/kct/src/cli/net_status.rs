@@ -38,7 +38,7 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         bail!("PCB not found: {}", a.pcb.display())
     }
     let pcb = Pcb::load(&a.pcb)?;
-    let (all, bad) = analyze(&pcb);
+    let (all, bad) = analyze(&pcb, &a.pcb);
     let mut shown = all.clone();
     if let Some(n) = &a.net {
         if !all.iter().any(|v| v["net_name"] == *n) {
@@ -70,7 +70,7 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let _ = (a.by_class, a.verbose, a.strict, a.why);
     Ok(if bad > 0 { 2 } else { 0 })
 }
-fn analyze(p: &Pcb) -> (Vec<Value>, usize) {
+fn analyze(p: &Pcb, pcb_path: &std::path::Path) -> (Vec<Value>, usize) {
     let mut out = Vec::new();
     let mut bad = 0;
     for net in p.nets().iter().filter(|n| n.number != 0) {
@@ -81,14 +81,19 @@ fn analyze(p: &Pcb) -> (Vec<Value>, usize) {
                 f.pads
                     .iter()
                     .filter(move |x| x.net_number == net.number)
-                    .filter_map(move |pad| {
-                        p.get_pad_position(&f.reference, &pad.number)
-                            .map(|pos| PadInfo {
-                                name: format!("{}.{}", f.reference, pad.number),
-                                pos,
-                                radius: pad.size.0.max(pad.size.1) / 2.,
-                                layers: pad.layers.clone(),
-                            })
+                    .map(move |pad| {
+                        let (x, y) = crate::core::geometry::rotate_pad_offset(
+                            pad.position.0,
+                            pad.position.1,
+                            f.rotation,
+                        );
+                        let pos = (f.position.0 + x, f.position.1 + y);
+                        PadInfo {
+                            name: format!("{}.{}", f.reference, pad.number),
+                            pos,
+                            radius: pad.size.0.min(pad.size.1) / 2.,
+                            layers: pad.layers.clone(),
+                        }
                     })
             })
             .collect();
@@ -244,8 +249,21 @@ fn analyze(p: &Pcb) -> (Vec<Value>, usize) {
             })
             .collect::<Vec<_>>();
         let power = is_power_net(&net.name);
+        let plane = !plane_layers.is_empty();
         let unconnected = pads.len() - connected;
-        out.push(json!({"net_number":net.number,"net_name":net.name,"net_class":"","status":status,"net_type":if power{"power"}else{"signal"},"total_pads":pads.len(),"connected_count":connected,"unconnected_count":unconnected,"connection_percentage":round1(connected as f64/pads.len() as f64*100.),"island_count":islands,"total_connections":pads.len().saturating_sub(1),"routed_connections":connected.saturating_sub(1),"open_connections":unconnected,"is_plane_net":!plane_layers.is_empty(),"has_filled_zone":filled,"is_advisory_incomplete":status=="incomplete"&&power,"plane_layer":plane_layers.first().cloned().unwrap_or_default(),"plane_layers":plane_layers,"has_routing":!segs.is_empty(),"has_vias":!vias.is_empty(),"suggested_fix":if unconnected>0{format!("Route traces to connect {unconnected} pads")}else{String::new()},"connected_pads":cp,"unconnected_pads":up}));
+        let suggested = if status == "complete" {
+            String::new()
+        } else if plane {
+            format!(
+                "kct stitch {} --net {} (zones on {})",
+                pcb_path.display(),
+                net.name,
+                plane_layers.join(", ")
+            )
+        } else {
+            format!("Route traces to connect {unconnected} pads")
+        };
+        out.push(json!({"net_number":net.number,"net_name":net.name,"net_class":"","status":status,"net_type":if plane{"plane"}else if power{"power"}else{"signal"},"total_pads":pads.len(),"connected_count":connected,"unconnected_count":unconnected,"connection_percentage":round1(connected as f64/pads.len() as f64*100.),"island_count":islands,"total_connections":pads.len().saturating_sub(1),"routed_connections":connected.saturating_sub(1),"open_connections":unconnected,"is_plane_net":plane,"has_filled_zone":filled,"is_advisory_incomplete":status=="incomplete"&&plane,"plane_layer":plane_layers.first().cloned().unwrap_or_default(),"plane_layers":plane_layers,"has_routing":!segs.is_empty(),"has_vias":!vias.is_empty(),"suggested_fix":suggested,"connected_pads":cp,"unconnected_pads":up}));
     }
     let order = |status: &str| match status {
         "incomplete" => 0,
@@ -269,11 +287,11 @@ fn round1(value: f64) -> f64 {
     (value * 10.0).round() / 10.0
 }
 fn is_power_net(name: &str) -> bool {
-    let upper = name.to_ascii_uppercase();
+    let upper = name.trim_start_matches('+').to_ascii_uppercase();
     upper == "GND"
         || upper.starts_with("GND")
         || upper.starts_with('V')
-        || ["POWER", "PWR", "VBAT", "VIN", "VOUT"]
+        || ["VBAT", "VIN", "VOUT", "VCC", "VDD"]
             .iter()
             .any(|part| upper.contains(part))
 }

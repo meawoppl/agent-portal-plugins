@@ -687,7 +687,14 @@ fn thermal_cmd(a: ThermalArgs) -> Result<i32> {
             ("mosfet", 0.1)
         } else if reference.starts_with('D') || u.contains("LED") {
             ("led", 0.02)
-        } else if u.contains("LDO") || u.contains("REG") || u.contains("AMS1117") {
+        } else if u.contains("LDO")
+            || u.contains("REG")
+            || u.contains("AMS1117")
+            || regex::Regex::new(r"(?i)(LM|LT|AP|MIC|XC)\d{4}")
+                .unwrap()
+                .is_match(value)
+            || regex::Regex::new(r"(?i)TPS").unwrap().is_match(value)
+        {
             ("regulator", 0.5)
         } else if u.contains("DRV") || u.contains("L298") || u.contains("A4988") {
             ("driver", 1.0)
@@ -844,7 +851,7 @@ fn thermal_cmd(a: ThermalArgs) -> Result<i32> {
         if thermal_vias < 4 && total > 0.2 {
             let main = nearby
                 .iter()
-                .max_by(|a, b| a.power.total_cmp(&b.power))
+                .reduce(|a, b| if b.power > a.power { b } else { a })
                 .unwrap();
             suggestions.push(format!(
                 "Add thermal vias under {} (currently {}, recommend 4+ for {:.2}W)",
@@ -854,6 +861,11 @@ fn thermal_cmd(a: ThermalArgs) -> Result<i32> {
         let min_copper = total * 100.;
         if copper < min_copper {
             suggestions.push(format!("Increase copper pour area for heat spreading (current: {:.0}mm², recommend: {:.0}mm²+)",copper,min_copper));
+        }
+        for source in &nearby {
+            if source.power > 0.5 && source.thermal.is_some_and(|r| source.power * r > 50.0) {
+                suggestions.push(format!("{} may exceed safe temperature (estimated +{:.0}°C rise) - consider heatsink or larger pad",source.reference,source.power*source.thermal.unwrap()));
+            }
         }
         hotspots.push(json!({"position":{"x":round2(center.0),"y":round2(center.1)},"radius_mm":round2(radius),"sources":source_json,"total_power_w":round3(total),"copper_area_mm2":round1(copper),"via_count":via_count,"thermal_vias":thermal_vias,"severity":sev,"max_temp_rise_c":round1(rise),"suggestions":suggestions}));
     }
@@ -1242,9 +1254,15 @@ fn complexity(pcb: &Pcb, grid_size: f64) -> Value {
     for footprint in pcb.footprints() {
         for pad in &footprint.pads {
             if pad.net_number > 0 {
-                if let Some(pos) = pcb.get_pad_position(&footprint.reference, &pad.number) {
-                    positions.entry(pad.net_number).or_default().push(pos);
-                }
+                let (x, y) = crate::core::geometry::rotate_pad_offset(
+                    pad.position.0,
+                    pad.position.1,
+                    footprint.rotation,
+                );
+                positions
+                    .entry(pad.net_number)
+                    .or_default()
+                    .push((footprint.position.0 + x, footprint.position.1 + y));
             }
         }
     }
@@ -1360,7 +1378,7 @@ fn complexity(pcb: &Pcb, grid_size: f64) -> Value {
         }
     };
     let p2 = if !pair_bases.is_empty() || high_speed > 0 {
-        probability(2) * 0.8
+        crate::pyjson::py_round(probability(2) * 0.8, 2)
     } else {
         probability(2)
     };

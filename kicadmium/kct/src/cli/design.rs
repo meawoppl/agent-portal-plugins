@@ -1372,6 +1372,66 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
             )?;
             println!("fixed {fixed} wire endpoints");
         }
+        "sync-hierarchy" => {
+            let mut root = crate::Document::load(&path)?;
+            let base = path.parent().unwrap_or(Path::new("."));
+            let dry = has(&words, "--dry-run") || has(&words, "-n");
+            let mut changes = 0;
+            for sheet in root.root.children.iter_mut().filter(|n| n.has_tag("sheet")) {
+                let Some(file) = sheet.property("Sheetfile") else {
+                    continue;
+                };
+                if opt_optional(&words, "--sheet").is_some_and(|wanted| !file.contains(wanted)) {
+                    continue;
+                }
+                let child_path = base.join(file);
+                let mut child = crate::Document::load(&child_path)?;
+                let pins: BTreeSet<_> = sheet
+                    .children_named("pin")
+                    .filter_map(|p| p.string_at(0).map(str::to_owned))
+                    .collect();
+                let labels: BTreeSet<_> = child
+                    .root
+                    .children_named("hierarchical_label")
+                    .filter_map(|p| p.string_at(0).map(str::to_owned))
+                    .collect();
+                if has(&words, "--remove-orphan-pins") {
+                    let before = sheet.children.len();
+                    sheet.children.retain(|p| {
+                        !p.has_tag("pin") || p.string_at(0).is_some_and(|n| labels.contains(n))
+                    });
+                    changes += before - sheet.children.len();
+                }
+                if has(&words, "--add-labels") {
+                    for (i, name) in pins.difference(&labels).enumerate() {
+                        child.root.push(SExp::list(
+                            "hierarchical_label",
+                            [
+                                SExp::quoted(name.clone()),
+                                SExp::list("shape", [SExp::symbol("input")]),
+                                SExp::list(
+                                    "at",
+                                    [
+                                        SExp::atom(20.0),
+                                        SExp::atom(20.0 + i as f64 * 2.54),
+                                        SExp::atom(0),
+                                    ],
+                                ),
+                                SExp::pair("uuid", fresh_uuid()),
+                            ],
+                        ));
+                        changes += 1
+                    }
+                    if !dry {
+                        child.save(None)?;
+                    }
+                }
+            }
+            if !dry {
+                root.save(None)?;
+            }
+            json(&serde_json::json!({"changes":changes,"dry_run":dry}))?;
+        }
         _ => bail!("unsupported sch subcommand {cmd}"),
     }
     Ok(0)

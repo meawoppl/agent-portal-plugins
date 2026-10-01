@@ -22,9 +22,11 @@ pub mod footprint;
 pub mod h;
 pub mod impedance;
 pub mod mfr;
+pub mod optimize_traces;
 pub mod parts;
 pub mod pcb;
 pub mod project;
+pub mod repair_common;
 pub mod runner;
 pub mod suggest;
 pub mod utility;
@@ -69,7 +71,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "route", about: "Autoroute a PCB", wave: "F", run: None },
     CommandSpec { name: "route-auto", about: "Route a net using RoutingOrchestrator smart strategy selection", wave: "F", run: None },
     CommandSpec { name: "reason", about: "LLM-driven PCB layout reasoning", wave: "H", run: Some(h::reason) },
-    CommandSpec { name: "optimize-traces", about: "Optimize PCB traces", wave: "D", run: None },
+    CommandSpec { name: "optimize-traces", about: "Optimize PCB traces", wave: "D", run: Some(optimize_traces::run) },
     CommandSpec { name: "validate-footprints", about: "Validate footprints for pad spacing issues", wave: "D", run: None },
     CommandSpec { name: "fix-footprints", about: "Fix footprint pad spacing issues", wave: "D", run: None },
     CommandSpec { name: "fix-vias", about: "Fix vias to meet manufacturer specifications", wave: "D", run: None },

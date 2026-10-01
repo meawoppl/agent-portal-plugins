@@ -8,6 +8,7 @@ pub mod layers;
 pub mod netclass_diagnostics;
 pub mod netclass_templates;
 pub mod outline_tessellation;
+pub mod project_file;
 pub mod severity;
 pub mod sexp_file;
 pub mod types;

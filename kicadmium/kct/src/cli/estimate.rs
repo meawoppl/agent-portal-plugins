@@ -17,19 +17,21 @@ struct Cost {
     pcb: PathBuf,
     #[arg(long)]
     bom: Option<PathBuf>,
-    #[arg(long, default_value_t = 10)]
+    #[arg(short, long, default_value_t = 10)]
     quantity: usize,
-    #[arg(long, default_value = "jlcpcb")]
+    #[arg(short, long, default_value = "jlcpcb")]
     mfr: String,
-    #[arg(long, default_value = "hasl")]
+    #[arg(long, default_value = "hasl", value_parser = ["hasl", "hasl_lead_free", "enig", "osp"])]
     finish: String,
-    #[arg(long, default_value = "green")]
+    #[arg(long, default_value = "green", value_parser = ["green", "red", "blue", "black", "white", "yellow"])]
     color: String,
+    #[arg(short, long)]
+    layers: Option<u8>,
     #[arg(long, default_value_t = 1.6)]
     thickness: f64,
     #[arg(long)]
     no_lcsc: bool,
-    #[arg(long, default_value = "text")]
+    #[arg(short, long, default_value = "text", value_parser = ["text", "json"])]
     format: String,
     #[arg(short, long)]
     verbose: bool,
@@ -45,6 +47,6 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     } else {
         println!("Manufacturing Cost Estimate ({}, qty: {}):\n  TOTAL: ${:.2}/unit (${:.2} for {} units)",a.mfr.to_uppercase(),a.quantity,v["summary"]["total_per_unit"].as_f64().unwrap_or(0.),v["summary"]["total_for_quantity"].as_f64().unwrap_or(0.),a.quantity)
     }
-    let _ = (a.bom, a.no_lcsc, a.verbose);
+    let _ = (a.bom, a.layers, a.no_lcsc, a.verbose);
     Ok(0)
 }

@@ -136,7 +136,20 @@ fn layer(n: &SExp) -> String {
     n.child_str("layer").unwrap_or("").to_string()
 }
 fn property<'a>(n: &'a SExp, k: &str) -> &'a str {
-    n.property(k).unwrap_or("")
+    n.property(k)
+        .or_else(|| {
+            let kind = if k == "Reference" {
+                "reference"
+            } else if k == "Value" {
+                "value"
+            } else {
+                return None;
+            };
+            n.find_all("fp_text")
+                .find(|text| text.string_at(0) == Some(kind))
+                .and_then(|text| text.string_at(1))
+        })
+        .unwrap_or("")
 }
 fn query_summary(r: &SExp) -> Value {
     let (x0, y0, x1, y1) = edge_bounds(r).unwrap_or((0., 0., 0., 0.));
@@ -152,14 +165,15 @@ fn query_summary(r: &SExp) -> Value {
         .map(|l| {
             l.children
                 .iter()
-                .filter(|x| x.string_at(1).is_some_and(|s| s.ends_with(".Cu")))
+                .filter(|x| x.string_at(0).is_some_and(|s| s.ends_with(".Cu")))
                 .count()
         })
         .unwrap_or(0);
     json!({"title":title.and_then(|n|n.child_str("title")).unwrap_or(""),"revision":title.and_then(|n|n.child_str("rev")).unwrap_or(""),"width_mm":round2(x1-x0),"height_mm":round2(y1-y0),"area_mm2":round2((x1-x0)*(y1-y0)),"copper_layers":copper,"footprints":nodes(r,"footprint").count(),"nets":nets+1,"segments":segs.len(),"arcs":nodes(r,"arc").count(),"vias":nodes(r,"via").count(),"zones":nodes(r,"zone").count(),"trace_length_mm":round2(trace)})
 }
 fn query_footprints(r: &SExp) -> Value {
-    Value::Array(nodes(r,"footprint").map(|f|{let at=f.get("at");json!({"reference":property(f,"Reference"),"value":property(f,"Value"),"footprint":f.string_at(0).unwrap_or(""),"layer":layer(f),"position":{"x":at.and_then(|x|x.float_at(0)).unwrap_or(0.),"y":at.and_then(|x|x.float_at(1)).unwrap_or(0.)},"rotation":at.and_then(|x|x.float_at(2)).unwrap_or(0.),"pads":nodes(f,"pad").count()})}).collect())
+    let (ox, oy, _, _) = edge_bounds(r).unwrap_or_default();
+    Value::Array(nodes(r,"footprint").map(|f|{let at=f.get("at");json!({"reference":property(f,"Reference"),"value":property(f,"Value"),"footprint":f.string_at(0).unwrap_or(""),"layer":layer(f),"position":{"x":at.and_then(|x|x.float_at(0)).unwrap_or(0.)-ox,"y":at.and_then(|x|x.float_at(1)).unwrap_or(0.)-oy},"rotation":at.and_then(|x|x.float_at(2)).unwrap_or(0.),"pads":nodes(f,"pad").count()})}).collect())
 }
 fn query_nets(r: &SExp) -> Value {
     let mut out = Vec::new();

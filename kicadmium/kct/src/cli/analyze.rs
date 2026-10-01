@@ -130,13 +130,15 @@ struct ComponentStressArgs {
 #[derive(ClapArgs)]
 struct TraceArgs {
     pcb: PathBuf,
-    #[arg(long, default_value = "text")]
+    #[arg(short, long, default_value = "text", value_parser = ["text", "json", "csv"])]
     format: String,
-    #[arg(long = "net")]
+    #[arg(short = 'n', long = "net")]
     nets: Vec<String>,
-    #[arg(long)]
+    #[arg(short = 'a', long)]
     all: bool,
-    #[arg(long = "no-diff-pairs")]
+    #[arg(short = 'd', long = "diff-pairs", conflicts_with = "no_diff_pairs")]
+    diff_pairs: bool,
+    #[arg(long = "no-diff-pairs", conflicts_with = "diff_pairs")]
     no_diff_pairs: bool,
 }
 #[derive(ClapArgs)]
@@ -153,7 +155,7 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         Command::TraceLengths(a) => {
             let r = load(&a.pcb)?;
             emit(
-                trace_lengths(&r, &a.nets, a.all, !a.no_diff_pairs),
+                trace_lengths(&r, &a.nets, a.all, a.diff_pairs || !a.no_diff_pairs),
                 &a.format,
             )
         }
@@ -198,8 +200,8 @@ fn congestion_cmd(a: CongestionArgs) -> Result<i32> {
     let r = load(&a.pcb)?;
     let area = a.grid_size * a.grid_size;
     let names = net_names(&r);
-    let mut cells: BTreeMap<(i64, i64), (f64, usize, usize, BTreeSet<String>, BTreeSet<String>)> =
-        BTreeMap::new();
+    type CongestionCell = (f64, usize, usize, BTreeSet<String>, BTreeSet<String>);
+    let mut cells: BTreeMap<(i64, i64), CongestionCell> = BTreeMap::new();
     for s in segments(&r) {
         let p = point(s, "start");
         let c = (
@@ -571,11 +573,8 @@ fn load(p: &PathBuf) -> Result<SExp> {
     Ok(Document::load(p)?.root)
 }
 fn emit(v: Value, f: &str) -> Result<i32> {
-    if f == "json" {
-        println!("{}", serde_json::to_string_pretty(&v)?)
-    } else {
-        println!("{}", serde_json::to_string_pretty(&v)?)
-    }
+    let _ = f;
+    println!("{}", serde_json::to_string_pretty(&v)?);
     Ok(0)
 }
 fn segments(r: &SExp) -> impl Iterator<Item = &SExp> {

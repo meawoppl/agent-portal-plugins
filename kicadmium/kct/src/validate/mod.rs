@@ -12,6 +12,7 @@ pub mod diffpair_engagement;
 pub mod diffpair_skew;
 pub mod doc_drift;
 pub mod filters;
+pub mod impedance_specs;
 pub mod manifest;
 pub mod mask_copper;
 pub mod match_group_skew;

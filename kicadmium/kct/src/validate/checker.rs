@@ -475,7 +475,12 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_impedance(&self) -> DRCResults {
-        let rule = rules::impedance::ImpedanceRule::default();
+        let rule = match &self.net_class_map {
+            None => rules::impedance::ImpedanceRule::default(),
+            Some(m) => rules::impedance::ImpedanceRule::with_specs(
+                crate::validate::impedance_specs::derive_single_ended_impedance_specs(Some(m)),
+            ),
+        };
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 

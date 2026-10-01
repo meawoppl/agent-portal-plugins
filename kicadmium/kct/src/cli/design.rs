@@ -938,28 +938,76 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     match a.cmd {
         SchCmd::Summary(x) => {
             let d = load(&x.schematic)?;
-            json(
-                &serde_json::json!({"symbols":symbols_of(&d).len(),"labels":labels_of(&d).len(),"wires":d.children_named("wire").count(),"junctions":d.children_named("junction").count()}),
-            )?
+            let v = serde_json::json!({"symbols":symbols_of(&d).len(),"labels":labels_of(&d).len(),"wires":d.children_named("wire").count(),"junctions":d.children_named("junction").count()});
+            if x.format == "json" {
+                json(&v)?
+            } else {
+                println!("Schematic Summary\n=================\nSymbols: {}\nLabels: {}\nWires: {}\nJunctions: {}",v["symbols"],v["labels"],v["wires"],v["junctions"]);
+            }
         }
         SchCmd::Labels(x) => {
-            return nets(
-                vec![
-                    x.schematic.into_os_string(),
-                    "--format".into(),
-                    if x.format == "json" { "json" } else { "table" }.into(),
-                ],
-                &Globals::default(),
-            )
+            let d = load(&x.schematic)?;
+            let mut rows = labels_of(&d);
+            rows.retain(|r| {
+                (x.kind == "all"
+                    || r.kind.trim_end_matches("_label") == x.kind
+                    || x.kind == "local" && r.kind == "label")
+                    && x.pattern.as_ref().is_none_or(|p| wildcard(p, &r.name))
+            });
+            match x.format.as_str() {
+                "json" => json(&rows)?,
+                "csv" => {
+                    println!("Text,Type,X,Y");
+                    for r in rows {
+                        println!("{},{},{},{}", csv(&r.name), r.kind, r.x, r.y)
+                    }
+                }
+                _ => {
+                    println!("{:<32} {:<20} POSITION", "TEXT", "TYPE");
+                    for r in rows {
+                        println!("{:<32} {:<20} {},{}", r.name, r.kind, r.x, r.y)
+                    }
+                }
+            }
         }
         SchCmd::Wires(x) => {
             let d = load(&x.schematic)?;
             let w: Vec<_> = d.children_named("wire").map(|n| n.points()).collect();
-            if x.format == "json" {
+            if x.stats {
+                println!(
+                    "wires: {}\njunctions: {}\ntotal_length_mm: {:.3}",
+                    w.len(),
+                    d.children_named("junction").count(),
+                    w.iter()
+                        .map(|p| p
+                            .windows(2)
+                            .map(|q| ((q[1].0 - q[0].0).powi(2) + (q[1].1 - q[0].1).powi(2)).sqrt())
+                            .sum::<f64>())
+                        .sum::<f64>()
+                );
+            } else if x.format == "json" {
                 json(&w)?
+            } else if x.format == "csv" {
+                println!("X1,Y1,X2,Y2");
+                for p in w {
+                    if p.len() >= 2 {
+                        println!(
+                            "{},{},{},{}",
+                            p[0].0,
+                            p[0].1,
+                            p[p.len() - 1].0,
+                            p[p.len() - 1].1
+                        )
+                    }
+                }
             } else {
                 for p in w {
                     println!("{:?}", p)
+                }
+                if x.junctions {
+                    for j in d.children_named("junction").filter_map(|j| j.at()) {
+                        println!("junction {},{}", j.0, j.1)
+                    }
                 }
             }
         }
@@ -977,7 +1025,8 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             schematic,
             reference,
             format,
-            ..
+            show_pins,
+            show_properties,
         } => {
             let d = load(&schematic)?;
             let s = symbols_of(&d)
@@ -985,7 +1034,24 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 .find(|s| s.reference == reference)
                 .with_context(|| format!("symbol {reference} not found"))?;
             if format == "json" {
-                json(&s)?
+                let mut v = serde_json::json!({"reference":s.reference,"value":s.value,"lib_id":s.lib_id,"footprint":s.footprint,"position":[s.x.parse::<f64>().unwrap_or(0.0),s.y.parse::<f64>().unwrap_or(0.0)],"rotation":s.rotation.parse::<f64>().unwrap_or(0.0),"unit":s.unit,"uuid":s.uuid,"in_bom":s.in_bom,"dnp":s.dnp});
+                let raw = d
+                    .children_named("symbol")
+                    .find(|n| n.property("Reference") == Some(&reference))
+                    .unwrap();
+                if show_properties {
+                    let props:Vec<_>=raw.children_named("property").map(|p|{let at=p.at().unwrap_or((0.0,0.0,0.0));serde_json::json!({"name":p.string_at(0),"value":p.string_at(1),"position":[at.0,at.1]})}).collect();
+                    v.as_object_mut()
+                        .unwrap()
+                        .insert("properties".into(), props.into());
+                }
+                if show_pins {
+                    let pins:Vec<_>=raw.children_named("pin").map(|p|serde_json::json!({"number":p.string_at(0),"uuid":p.child_str("uuid")})).collect();
+                    v.as_object_mut()
+                        .unwrap()
+                        .insert("pins".into(), pins.into());
+                }
+                json(&v)?
             } else {
                 println!(
                     "{}: {} [{}] {}",

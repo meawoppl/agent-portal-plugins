@@ -935,6 +935,51 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
                 return Ok(1);
             }
         }
+        "assign-footprints" => {
+            let mut d = crate::Document::load(&path)?;
+            let force = has(&words, "--force");
+            let mut assigned = vec![];
+            let mut unresolved = vec![];
+            for s in d.root.children.iter_mut().filter(|n| n.has_tag("symbol")) {
+                let reference = s.property("Reference").unwrap_or("").to_owned();
+                if reference.starts_with('#') && !has(&words, "--include-power") {
+                    continue;
+                }
+                if s.flag("dnp") && !has(&words, "--include-dnp") {
+                    continue;
+                }
+                if !force && !s.property("Footprint").unwrap_or("").is_empty() {
+                    continue;
+                }
+                let value = s.property("Value").unwrap_or("");
+                if let Some(fp) = passive_footprint(&reference, value) {
+                    set_property(s, "Footprint", fp);
+                    assigned.push((reference, fp.to_owned()));
+                } else {
+                    unresolved.push(reference)
+                }
+            }
+            let dry = has(&words, "--dry-run") || has(&words, "-n");
+            if !dry && !assigned.is_empty() {
+                save_edit(&d, &path, false, !has(&words, "--no-backup"))?
+            }
+            json(&serde_json::json!({"assigned":assigned,"unresolved":unresolved,"dry_run":dry}))?;
+            if !unresolved.is_empty() && has(&words, "--assign-missing") {
+                return Ok(1);
+            }
+        }
+        "suggest-footprint" => {
+            let d = load(&path)?;
+            let reference = opt(&words, "--ref")?;
+            let s = symbols_of(&d)
+                .into_iter()
+                .find(|s| s.reference == reference)
+                .with_context(|| format!("symbol {reference} not found"))?;
+            let suggestions: Vec<_> = passive_footprint(&s.reference, &s.value)
+                .into_iter()
+                .collect();
+            json(&serde_json::json!({"reference":reference,"suggestions":suggestions}))?;
+        }
         "pins" => {
             let reference = words.get(2).context("reference required")?;
             let d = load(&path)?;
@@ -1110,6 +1155,15 @@ fn multi_f64(words: &[String], name: &str, n: usize) -> Result<Vec<f64>> {
 }
 fn near(a: (f64, f64), b: (f64, f64)) -> bool {
     (a.0 - b.0).abs() < 1e-6 && (a.1 - b.1).abs() < 1e-6
+}
+fn passive_footprint(reference: &str, value: &str) -> Option<&'static str> {
+    match reference.chars().next()? {
+        'R' => Some("Resistor_SMD:R_0603_1608Metric"),
+        'C' => Some("Capacitor_SMD:C_0603_1608Metric"),
+        'L' => Some("Inductor_SMD:L_0603_1608Metric"),
+        'D' if value.to_ascii_lowercase().contains("led") => Some("LED_SMD:LED_0603_1608Metric"),
+        _ => None,
+    }
 }
 fn duplicate_strings<'a>(it: impl Iterator<Item = &'a str>) -> Vec<String> {
     let mut seen = BTreeSet::new();

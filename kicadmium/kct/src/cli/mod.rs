@@ -22,6 +22,7 @@ pub mod footprint;
 pub mod h;
 pub mod impedance;
 pub mod mfr;
+pub mod net_status;
 pub mod parts;
 pub mod pcb;
 pub mod project;
@@ -92,7 +93,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "estimate", about: "Manufacturing cost estimation", wave: "C", run: None },
     CommandSpec { name: "audit", about: "Manufacturing readiness audit (ERC, DRC, connectivity, compatibility)", wave: "C", run: None },
     CommandSpec { name: "suggest", about: "Part suggestions and recommendations", wave: "G", run: Some(suggest::run) },
-    CommandSpec { name: "net-status", about: "Report net connectivity status for a PCB", wave: "C", run: None },
+    CommandSpec { name: "net-status", about: "Report net connectivity status for a PCB", wave: "C", run: Some(net_status::run) },
     CommandSpec { name: "fleet", about: "Fleet-wide PCB status and operations", wave: "C", run: None },
     CommandSpec { name: "render", about: "Render per-board 2D SVGs + 3D PNGs into output/renders/", wave: "C", run: Some(render::run) },
     CommandSpec { name: "board-metrics", about: "Emit a normalized board.json per board from existing artifacts", wave: "C", run: None },

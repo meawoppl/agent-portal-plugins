@@ -48,6 +48,7 @@ pub mod placement;
 pub mod project;
 pub mod relocate_in_pad_vias;
 pub mod render;
+pub mod repair_clearance;
 pub mod repair_common;
 pub mod report;
 pub mod router_support;
@@ -106,7 +107,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "fix-vias", about: "Fix vias to meet manufacturer specifications", wave: "D", run: Some(fix_vias::run) },
     CommandSpec { name: "fix-silkscreen", about: "Fix silkscreen line widths to meet manufacturer specifications", wave: "D", run: Some(fix_silkscreen::run) },
     CommandSpec { name: "place-silk-refs", about: "Move readable silkscreen reference designators to clear collisions", wave: "D", run: Some(place_silk_refs::run) },
-    CommandSpec { name: "repair-clearance", about: "Repair clearance violations by nudging traces", wave: "D", run: None },
+    CommandSpec { name: "repair-clearance", about: "Repair clearance violations by nudging traces", wave: "D", run: Some(repair_clearance::run) },
     CommandSpec { name: "fix-drc", about: "Automated DRC violation repair (clearance + drill)", wave: "D", run: None },
     CommandSpec { name: "fix-erc", about: "Automated ERC violation repair (PWR_FLAG + no-connect)", wave: "D", run: Some(fix_erc::run) },
     CommandSpec { name: "parts", about: "LCSC parts lookup and search", wave: "G", run: Some(parts::run) },

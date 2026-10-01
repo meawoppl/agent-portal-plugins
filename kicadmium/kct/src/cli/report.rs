@@ -1,6 +1,6 @@
 use super::{parse_args, Globals};
 use crate::{cost, schema::pcb::Pcb};
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Result};
 use clap::{Args as ClapArgs, Parser, Subcommand};
 use serde_json::json;
 use std::{

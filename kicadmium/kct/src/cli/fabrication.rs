@@ -440,12 +440,7 @@ fn project_dir(args: &CreateArgs) -> PathBuf {
                 p.parent().unwrap_or(Path::new("."))
             }
         })
-        .unwrap_or_else(|| {
-            args.schematic
-                .parent()
-                .unwrap_or(Path::new("."))
-                .to_path_buf()
-        })
+        .unwrap_or_else(|| args.schematic.parent().unwrap_or(Path::new(".")))
         .to_path_buf()
 }
 

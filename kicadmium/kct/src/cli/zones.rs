@@ -2,7 +2,7 @@
 
 use std::ffi::OsString;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand};
@@ -139,7 +139,19 @@ fn add(add: &Add) -> Result<serde_json::Value> {
         .map(|(x, y)| format!("(xy {x} {y})"))
         .collect::<Vec<_>>()
         .join(" ");
-    let text=format!("(zone (net {}) (net_name \"{}\") (layer \"{}\") (uuid \"{}\") (hatch edge 0.5) (priority {}) (connect_pads (clearance {})) (min_thickness {}) (fill yes (thermal_gap {}) (thermal_bridge_width {})) (polygon (pts {})))",net.number,add.net,add.layer,new_uuid(),add.priority,add.clearance,add.min_thickness,add.thermal_gap,add.thermal_bridge,pts);
+    let text = format!(
+        "(zone (net {}) (net_name \"{}\") (layer \"{}\") (uuid \"{}\") (hatch edge 0.5) (priority {}) (connect_pads (clearance {})) (min_thickness {}) (fill yes (thermal_gap {}) (thermal_bridge_width {})) (polygon (pts {})))",
+        net.number,
+        add.net,
+        add.layer,
+        new_uuid(),
+        add.priority,
+        add.clearance,
+        add.min_thickness,
+        add.thermal_gap,
+        add.thermal_bridge,
+        pts
+    );
     doc.root.children.push(crate::parse(&text)?);
     let output = add.output.clone();
     if !add.dry_run {
@@ -151,6 +163,40 @@ fn add(add: &Add) -> Result<serde_json::Value> {
     Ok(
         serde_json::json!({"pcb":add.pcb,"output":output,"dry_run":add.dry_run,"saved":!add.dry_run,"zone":{"net":add.net,"layer":add.layer,"priority":add.priority,"clearance_mm":add.clearance,"boundary_points":points.len()},"sexp":if add.dry_run{Some(text)}else{None}}),
     )
+}
+
+fn refill_copy(input: &Path, output: &Path) -> Result<()> {
+    if input == output {
+        bail!("zones fill never modifies its input; --output must name a different file")
+    }
+    std::fs::copy(input, output).with_context(|| {
+        format!(
+            "copy {} to {} before zone refill",
+            input.display(),
+            output.display()
+        )
+    })?;
+    let cli = super::runner::find_kicad_cli()
+        .context("kicad-cli not found; set KICADMIUM_KICAD_CLI or KICAD_CLI, or add it to PATH")?;
+    let report = std::env::temp_dir().join(format!(
+        "kct-zones-fill-{}-{}.json",
+        std::process::id(),
+        new_uuid()
+    ));
+    let result = std::process::Command::new(cli)
+        .args(["pcb", "drc", "--format", "json", "--severity-all", "-o"])
+        .arg(&report)
+        .args(["--refill-zones", "--save-board"])
+        .arg(output)
+        .output()
+        .context("launch kicad-cli zone refill")?;
+    let report_ok = std::fs::metadata(&report).is_ok_and(|m| m.len() > 0);
+    let _ = std::fs::remove_file(&report);
+    if !result.status.success() && !report_ok {
+        let stderr = String::from_utf8_lossy(&result.stderr);
+        bail!("kicad-cli zone refill failed: {}", stderr.trim())
+    }
+    Ok(())
 }
 
 pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
@@ -260,20 +306,21 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
                 bail!("zones fill is a design edit; pass --output (or use --dry-run)")
             }
             let target = output.as_ref().unwrap_or(&pcb);
-            if !dry_run {
-                std::fs::copy(&pcb, target)?;
-                let cli = std::env::var_os("KICAD_CLI")
-                    .or_else(|| std::env::var_os("KICADMIUM_KICAD_CLI"))
-                    .unwrap_or_else(|| "kicad-cli".into());
-                let status = std::process::Command::new(cli)
-                    .args(["pcb", "render", "--help"])
-                    .status()
-                    .context("launch kicad-cli")?;
-                if !status.success() {
-                    bail!("kicad-cli is unavailable; zone fill requires native KiCad")
+            let board = Pcb::load(&pcb)?;
+            if let Some(name) = &net {
+                if !board.nets().iter().any(|candidate| &candidate.name == name) {
+                    bail!("net {name:?} not found")
                 }
             }
-            let doc = serde_json::json!({"pcb":pcb,"output":target,"net":net,"dry_run":dry_run,"filled":false,"note":"KiCad CLI exposes no stable headless save-and-refill command; board copied but fills were not fabricated. Open/save in KiCad."});
+            if !dry_run {
+                refill_copy(&pcb, target)?;
+            }
+            let note = if dry_run {
+                "Dry run: input validated; no output copied or zones refilled"
+            } else {
+                "Copied the input and refilled all zones in the explicit output with kicad-cli"
+            };
+            let doc = serde_json::json!({"pcb":pcb,"output":output,"net":net,"dry_run":dry_run,"filled":!dry_run,"scope":"all zones (KiCad refill is board-wide)","note":note});
             if format == "json" {
                 println!("{}", serde_json::to_string_pretty(&doc)?)
             } else {

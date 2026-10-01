@@ -762,7 +762,11 @@ fn lookup_bom_part(id: &str) -> (Option<crate::parts::Part>, Option<String>) {
         if p.is_some() {
             Ok(p)
         } else {
-            crate::parts::lookup(id)
+            let live = crate::parts::lookup(id)?;
+            if let Some(part) = &live {
+                crate::parts::cache_put(part)?;
+            }
+            Ok(live)
         }
     }) {
         Ok(p) => (p, None),
@@ -786,7 +790,7 @@ fn bom_availability(rows: &[BomRow], boards: usize, format: BomFormat) -> Result
         } else if let Some(p) = part.as_ref() {
             let status = if p.stock == 0 {
                 "out_of_stock"
-            } else if p.stock < needed as i64 {
+            } else if p.stock < std::cmp::max((needed * 2) as i64, 100) {
                 "low_stock"
             } else {
                 "available"
@@ -802,7 +806,7 @@ fn bom_availability(rows: &[BomRow], boards: usize, format: BomFormat) -> Result
                 p.stock > 0,
             )
         } else if error.is_some() {
-            ("unknown", 0, None, vec![], false)
+            ("unavailable", 0, None, vec![], false)
         } else {
             ("not_found", 0, None, vec![], false)
         };
@@ -834,7 +838,7 @@ fn bom_availability(rows: &[BomRow], boards: usize, format: BomFormat) -> Result
         }
         items.push(serde_json::json!({"reference":r.references.join(","),"value":r.value,"footprint":r.footprint,"mpn":if r.mpn.is_empty(){None}else{Some(r.mpn.as_str())},"lcsc_part":if r.lcsc.is_empty(){None}else{Some(r.lcsc.as_str())},"quantity_needed":needed,"quantity_available":stock,"status":status,"in_stock":in_stock,"sufficient_stock":sufficient,"inventory":{},"min_order_qty":min_order,"price_breaks":prices,"unit_price":unit,"extended_price":ext,"lead_time_days":null,"alternatives":[],"error":error}));
     }
-    let result = serde_json::json!({"summary":{"total_items":items.len(),"available":available,"low_stock":low,"out_of_stock":oos,"missing":missing,"unverified":items.iter().filter(|i|i["status"]=="unknown").count(),"unavailable":0,"all_available":all,"total_cost":if cost_known{Some(total_cost)}else{None},"quantity_multiplier":boards},"checked_at":null,"items":items});
+    let result = serde_json::json!({"summary":{"total_items":items.len(),"available":available,"low_stock":low,"out_of_stock":oos,"missing":missing,"unverified":items.iter().filter(|i|i["status"]=="unknown").count(),"unavailable":items.iter().filter(|i|i["status"]=="unavailable").count(),"all_available":all,"total_cost":if cost_known{Some(total_cost)}else{None},"quantity_multiplier":boards},"checked_at":null,"items":items});
     match format {
         BomFormat::Json => json(&result)?,
         BomFormat::Csv => {
@@ -877,17 +881,34 @@ fn bom_availability(rows: &[BomRow], boards: usize, format: BomFormat) -> Result
 }
 fn bom_assembly_validation(rows: &[BomRow], boards: usize, format: BomFormat) -> Result<i32> {
     let mut items = vec![];
-    let (mut available, mut basic, mut extended, mut low, mut oos, mut missing, mut not_found) =
-        (0, 0, 0, 0, 0, 0, 0);
+    let (
+        mut available,
+        mut basic,
+        mut extended,
+        mut low,
+        mut oos,
+        mut missing,
+        mut not_found,
+        mut invalid,
+    ) = (0, 0, 0, 0, 0, 0, 0, 0);
     for r in rows {
         let qty = r.quantity * boards;
-        let (part, error) = lookup_bom_part(&r.lcsc);
+        let valid_lcsc = r.lcsc.len() > 1
+            && matches!(r.lcsc.as_bytes()[0], b'C' | b'c')
+            && r.lcsc[1..].bytes().all(|b| b.is_ascii_digit());
+        let (part, error) = if valid_lcsc {
+            lookup_bom_part(&r.lcsc)
+        } else {
+            (None, None)
+        };
         let (status, tier, stock, mfr, desc) = if r.lcsc.is_empty() {
             ("no_lcsc", "unknown", 0, "", " ")
+        } else if !valid_lcsc {
+            ("invalid_format", "unknown", 0, "", "")
         } else if let Some(p) = part.as_ref() {
             let status = if p.stock == 0 {
                 "out_of_stock"
-            } else if p.stock < 100 {
+            } else if p.stock < std::cmp::max((qty * 2) as i64, 100) {
                 "low_stock"
             } else {
                 "available"
@@ -899,6 +920,8 @@ fn bom_assembly_validation(rows: &[BomRow], boards: usize, format: BomFormat) ->
                 p.mfr_part.as_str(),
                 p.description.as_str(),
             )
+        } else if error.is_some() {
+            ("unknown", "unknown", 0, "", "")
         } else {
             ("not_found", "unknown", 0, "", "")
         };
@@ -923,10 +946,13 @@ fn bom_assembly_validation(rows: &[BomRow], boards: usize, format: BomFormat) ->
         if status == "not_found" {
             not_found += 1
         }
+        if status == "invalid_format" {
+            invalid += 1
+        }
         items.push(serde_json::json!({"references":r.references.join(","),"value":r.value,"footprint":r.footprint,"quantity":qty,"lcsc_part":if r.lcsc.is_empty(){None}else{Some(r.lcsc.as_str())},"status":status,"tier":tier,"stock":stock,"inventory":{},"in_stock":stock>0,"mfr_part":mfr,"description":desc,"error":error}));
     }
-    let ready = oos + missing + not_found == 0;
-    let result = serde_json::json!({"summary":{"total_items":items.len(),"available":available,"basic_parts":basic,"extended_parts":extended,"low_stock":low,"out_of_stock":oos,"missing_lcsc":missing,"not_found":not_found,"assembly_ready":ready,"extended_fee":extended as f64*3.0},"validated_at":null,"items":items});
+    let ready = available == items.len();
+    let result = serde_json::json!({"summary":{"total_items":items.len(),"available":available,"basic_parts":basic,"extended_parts":extended,"low_stock":low,"out_of_stock":oos,"missing_lcsc":missing,"not_found":not_found,"invalid_format":invalid,"assembly_ready":ready,"extended_fee":extended as f64*3.0},"validated_at":null,"items":items});
     if matches!(format, BomFormat::Json) {
         json(&result)?
     } else {

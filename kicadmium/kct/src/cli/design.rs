@@ -1432,6 +1432,64 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
             }
             json(&serde_json::json!({"changes":changes,"dry_run":dry}))?;
         }
+        "add-bypass-cap" | "add-pull-resistor" => {
+            let target = opt(&words, "--ref")?;
+            let pin = opt(&words, "--pin")?;
+            let mut d = crate::Document::load(&path)?;
+            let (tx, ty) = pin_position(&d.root, target, pin)?;
+            let is_cap = cmd == "add-bypass-cap";
+            let lib_id = if is_cap { "Device:C" } else { "Device:R" };
+            ensure_embedded(&d.root, lib_id)?;
+            let prefix = if is_cap { "C" } else { "R" };
+            let reference = opt_optional(&words, "--reference")
+                .map(str::to_owned)
+                .unwrap_or_else(|| next_reference(&d.root, prefix));
+            let value =
+                opt_optional(&words, "--value").unwrap_or(if is_cap { "100nF" } else { "10k" });
+            let footprint = opt_optional(&words, "--footprint").unwrap_or(if is_cap {
+                "Capacitor_SMD:C_0402_1005Metric"
+            } else {
+                "Resistor_SMD:R_0402_1005Metric"
+            });
+            let offset = opt_optional(&words, "--offset")
+                .unwrap_or("5.08")
+                .parse::<f64>()?;
+            let direction = opt_optional(&words, "--direction").unwrap_or("down");
+            let cy = if direction == "up" {
+                ty - offset
+            } else {
+                ty + offset
+            };
+            d.root.push(component_node(
+                lib_id, &reference, value, footprint, tx, cy, 0.0,
+            ));
+            let (p1x, p1y) = pin_position(&d.root, &reference, "1")?;
+            let (p2x, p2y) = pin_position(&d.root, &reference, "2")?;
+            d.root.push(wire_node((tx, ty), (p1x, p1y)));
+            let net = if is_cap {
+                opt_optional(&words, "--ground-net").unwrap_or("GND")
+            } else {
+                opt_optional(&words, "--power-net").unwrap_or(if direction == "up" {
+                    "+3.3V"
+                } else {
+                    "GND"
+                })
+            };
+            d.root.push(SExp::list(
+                "label",
+                [
+                    SExp::quoted(net),
+                    SExp::list("at", [SExp::atom(p2x), SExp::atom(p2y), SExp::atom(0)]),
+                    SExp::pair("uuid", fresh_uuid()),
+                ],
+            ));
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                has(&words, "--backup"),
+            )?;
+        }
         _ => bail!("unsupported sch subcommand {cmd}"),
     }
     Ok(0)
@@ -1537,6 +1595,68 @@ fn next_reference(root: &SExp, lib_id: &str) -> String {
         .map(|n| format!("{default}{n}"))
         .find(|r| !used.contains(r))
         .unwrap()
+}
+fn ensure_embedded(root: &SExp, lib_id: &str) -> Result<()> {
+    if root.get("lib_symbols").is_some_and(|ls| {
+        ls.children_named("symbol").any(|s| {
+            s.string_at(0) == Some(lib_id)
+                || s.string_at(0).is_some_and(|n| {
+                    n.ends_with(&format!(
+                        ":{}",
+                        lib_id.split(':').next_back().unwrap_or(lib_id)
+                    ))
+                })
+        })
+    }) {
+        Ok(())
+    } else {
+        bail!("{lib_id} is not embedded in schematic")
+    }
+}
+fn component_node(
+    lib_id: &str,
+    reference: &str,
+    value: &str,
+    footprint: &str,
+    x: f64,
+    y: f64,
+    rotation: f64,
+) -> SExp {
+    SExp::list(
+        "symbol",
+        [
+            SExp::pair("lib_id", lib_id),
+            SExp::list("at", [SExp::atom(x), SExp::atom(y), SExp::atom(rotation)]),
+            SExp::pair("unit", 1),
+            SExp::pair("in_bom", "yes"),
+            SExp::pair("on_board", "yes"),
+            SExp::pair("uuid", fresh_uuid()),
+            SExp::list(
+                "property",
+                [SExp::quoted("Reference"), SExp::quoted(reference)],
+            ),
+            SExp::list("property", [SExp::quoted("Value"), SExp::quoted(value)]),
+            SExp::list(
+                "property",
+                [SExp::quoted("Footprint"), SExp::quoted(footprint)],
+            ),
+        ],
+    )
+}
+fn wire_node(a: (f64, f64), b: (f64, f64)) -> SExp {
+    SExp::list(
+        "wire",
+        [
+            SExp::list(
+                "pts",
+                [
+                    SExp::list("xy", [SExp::atom(a.0), SExp::atom(a.1)]),
+                    SExp::list("xy", [SExp::atom(b.0), SExp::atom(b.1)]),
+                ],
+            ),
+            SExp::pair("uuid", fresh_uuid()),
+        ],
+    )
 }
 fn duplicate_strings<'a>(it: impl Iterator<Item = &'a str>) -> Vec<String> {
     let mut seen = BTreeSet::new();

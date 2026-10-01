@@ -483,7 +483,25 @@ impl<'a> DRCChecker<'a> {
         if self.net_class_map.is_none() {
             self.warn_inactive_skew_rule("match_group_length_skew");
         }
-        let rule = rules::match_group_length_skew::MatchGroupLengthSkewRule;
+        let rule = match &self.net_class_map {
+            None => rules::match_group_length_skew::MatchGroupLengthSkewRule::default(),
+            Some(m) => {
+                let (skew, groups, thresholds) =
+                    crate::validate::match_group_skew::derive_group_skew_data(
+                        self.pcb,
+                        Some(m),
+                        Some(self.design_rules.board_thickness_mm),
+                        self.layers,
+                        false,
+                    );
+                rules::match_group_length_skew::MatchGroupLengthSkewRule::new(
+                    skew,
+                    groups,
+                    thresholds,
+                    self.emit_skew_info,
+                )
+            }
+        };
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 

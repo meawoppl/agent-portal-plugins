@@ -7,7 +7,9 @@
 //! module per CLI command family under `cli`.
 
 pub mod cli;
+pub mod core;
 pub mod fsutil;
+pub mod schema;
 pub mod sexp;
 pub mod units;
 

@@ -1168,6 +1168,7 @@ fn trace_lengths_pcb(pcb: &Pcb, wanted: &[String], all: bool, pairs: bool) -> Va
         }
     }
     let mut reports = Vec::new();
+    let mut raw_total = 0.0;
     for name in selected {
         let Some(net) = pcb.nets().iter().find(|net| net.name == name) else {
             reports.push(json!({"net_name":name,"total_length_mm":0.0,"segment_count":0,"arc_count":0,"via_count":0,"layers_used":[]}));
@@ -1193,6 +1194,7 @@ fn trace_lengths_pcb(pcb: &Pcb, wanted: &[String], all: bool, pairs: bool) -> Va
         if all && length <= 0.0 {
             continue;
         }
+        raw_total += length;
         let mut row = json!({"net_name":name,"total_length_mm":round3(length),"segment_count":segs.len(),"arc_count":arcs.len(),"via_count":vias,"layers_used":layers});
         if ordered.len() > 1 {
             row["layer_changes"] = json!(ordered
@@ -1203,13 +1205,9 @@ fn trace_lengths_pcb(pcb: &Pcb, wanted: &[String], all: bool, pairs: bool) -> Va
         reports.push(row)
     }
     reports.sort_by(|a, b| a["net_name"].as_str().cmp(&b["net_name"].as_str()));
-    let total = reports
-        .iter()
-        .filter_map(|r| r["total_length_mm"].as_f64())
-        .sum::<f64>();
     let report_count = reports.len();
     let pair_count = if pairs { diff_pairs.len() } else { 0 };
-    json!({"nets":reports,"differential_pairs":if pairs{diff_pairs}else{vec![]},"summary":{"total_nets":report_count,"differential_pairs":pair_count,"total_length_mm":round3(total)}})
+    json!({"nets":reports,"differential_pairs":if pairs{diff_pairs}else{vec![]},"summary":{"total_nets":report_count,"differential_pairs":pair_count,"total_length_mm":round3(raw_total)}})
 }
 fn complexity(pcb: &Pcb, grid_size: f64) -> Value {
     let mut edge_points = Vec::new();

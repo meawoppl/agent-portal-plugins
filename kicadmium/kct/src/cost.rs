@@ -76,8 +76,12 @@ pub fn estimate(
         .filter(|f| !f.reference.is_empty() && !f.reference.starts_with('#') && !f.dnp)
     {
         let key = (f.value.clone(), f.name.clone());
-        if let Some((_, (_, count))) = groups.iter_mut().find(|(existing, _)| *existing == key) {
+        if let Some((_, (first, count))) = groups.iter_mut().find(|(existing, _)| *existing == key)
+        {
             *count += 1;
+            if natural_ref_cmp(&f.reference, first).is_lt() {
+                *first = f.reference.clone()
+            }
         } else {
             groups.push((key, (f.reference.clone(), 1)));
         }
@@ -110,6 +114,12 @@ pub fn estimate(
             0.005
         } else if fl.contains("1206") {
             0.008
+        } else if fl.contains("1210") {
+            0.010
+        } else if fl.contains("2010") {
+            0.015
+        } else if fl.contains("2512") {
+            0.020
         } else {
             match prefix(reference) {
                 "D" | "LED" => 0.02,
@@ -217,6 +227,13 @@ pub fn estimate(
     }
     suggestions.truncate(5);
     json!({"manufacturer":mfr,"quantity":qty,"currency":"USD","summary":{"pcb_cost_per_unit":r2(pcb_unit),"component_cost_per_unit":r2(component_total),"assembly_cost_per_unit":r2(asm_unit),"total_per_unit":r2(total),"total_for_quantity":r2(total*qty as f64)},"pcb":{"cost_per_unit":r2(pcb_unit),"total_cost":r2(pcb_total),"breakdown":{"base":2.0,"area":r2(area_cost),"layers":r2(layer_cost),"finish":r2(finish_cost),"color":r2(color_cost),"vias":0.0,"thickness":r2(thick_cost)},"specs":{"width_mm":w,"height_mm":h,"area_cm2":r2(area),"layer_count":layers,"surface_finish":finish,"solder_mask_color":color,"board_thickness_mm":thickness}},"components":{"cost_per_unit":r2(component_total),"total_parts":groups.iter().map(|(_,x)|x.1).sum::<usize>(),"unique_parts":groups.len(),"breakdown":categories,"items":items},"assembly":{"cost_per_unit":r2(asm_unit),"total_cost":r2(asm_total),"breakdown":{"smt":r2(smt_cost),"through_hole":r2(tht_cost),"setup":9.5,"bga":r2(bga_cost),"fine_pitch":0.0},"specs":{"smt_parts":smt,"through_hole_parts":tht,"unique_parts":groups.len(),"bga_parts":bga,"double_sided":double}},"cost_drivers":drivers,"optimization_suggestions":suggestions})
+}
+fn natural_ref_cmp(a: &str, b: &str) -> std::cmp::Ordering {
+    fn split(s: &str) -> (&str, u64) {
+        let i = s.find(|c: char| c.is_ascii_digit()).unwrap_or(s.len());
+        (&s[..i], s[i..].parse::<u64>().unwrap_or(0))
+    }
+    split(a).cmp(&split(b))
 }
 fn prefix(r: &str) -> &str {
     let n = r.find(|c: char| c.is_ascii_digit()).unwrap_or(r.len());

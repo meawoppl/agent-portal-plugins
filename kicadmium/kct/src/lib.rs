@@ -14,6 +14,7 @@ pub mod cost;
 pub mod drc;
 pub mod erc;
 pub mod exceptions;
+pub mod explain;
 pub mod feedback;
 pub mod footprints;
 pub mod fsutil;

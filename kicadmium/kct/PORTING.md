@@ -42,3 +42,15 @@ cache, datasheet acquisition/PDF analysis, suggestions, project/spec setup,
 panelization, manufacturing export, cleanup/doctor/config, and the repair/build
 orchestrators. These implementations invoke `kicad-cli` only for KiCad-native
 exports and checks; no Python interpreter or wrapper remains in their path.
+
+### `kct run` migration
+
+Upstream `kct run FILE.py -- ARGS...` executes arbitrary Python in the
+kicad-tools interpreter. Kicadmium cannot preserve that ABI without shipping
+Python, so native `kct run` intentionally accepts a versioned JSON or YAML
+workflow instead. A workflow contains `steps`, each with a native `command`,
+`args`, and optional `continue_on_error`; `${1}` etc. expand trailing CLI
+arguments and `${NAME}` expands values from the workflow's `env` map.
+`--dry-run` prints every resolved command without executing it. This covers
+sequencing, arguments, variables, and error policy, but does not execute Python
+language constructs or imports; those must become native kct commands.

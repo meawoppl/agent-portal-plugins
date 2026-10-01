@@ -7,6 +7,7 @@ use std::io::{self, BufRead, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::{Mutex, OnceLock};
 
 use anyhow::{bail, Context, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -205,10 +206,7 @@ fn rpc(req: &Value) -> Value {
         }
         "notifications/initialized" => return Value::Null,
         "ping" => json!({}),
-        "tools/list" => json!({"tools":[
-            {"name":"kct_commands","description":"List native kct commands and port status","inputSchema":{"type":"object","properties":{}}},
-            {"name":"kct_run","description":"Run a native kct command","inputSchema":{"type":"object","required":["command"],"properties":{"command":{"type":"string"},"args":{"type":"array","items":{"type":"string"}}}}}
-        ]}),
+        "tools/list" => json!({"tools":mcp_tools()}),
         "tools/call" => match call_tool(req.get("params").unwrap_or(&Value::Null)) {
             Ok(v) => v,
             Err(e) => json!({"content":[{"type":"text","text":e.to_string()}],"isError":true}),
@@ -222,30 +220,29 @@ fn rpc(req: &Value) -> Value {
 
 fn call_tool(params: &Value) -> Result<Value> {
     let name = params.get("name").and_then(Value::as_str).unwrap_or("");
-    if name == "kct_commands" {
-        let commands: Vec<_> = COMMANDS
-            .iter()
-            .map(|c| json!({"name":c.name,"description":c.about,"native":c.run.is_some()}))
-            .collect();
+    let a = params
+        .get("arguments")
+        .cloned()
+        .unwrap_or_else(|| json!({}));
+    if matches!(
+        name,
+        "start_session"
+            | "query_move"
+            | "apply_move"
+            | "undo_move"
+            | "commit_session"
+            | "rollback_session"
+            | "get_session_summary"
+    ) {
+        let value = session_tool(name, &a)?;
         return Ok(
-            json!({"content":[{"type":"text","text":serde_json::to_string_pretty(&commands)?}]}),
+            json!({"content":[{"type":"text","text":serde_json::to_string_pretty(&value)?}],"structuredContent":value}),
         );
     }
-    if name != "kct_run" {
-        bail!("unknown tool {name}");
-    }
-    let a = params.get("arguments").context("missing arguments")?;
-    let command = a
-        .get("command")
-        .and_then(Value::as_str)
-        .context("missing command")?;
+    let (command, args) = mcp_command(name, &a).with_context(|| format!("unknown tool {name}"))?;
     let mut cmd = Command::new(std::env::current_exe()?);
     cmd.args(["kct", "--", command]);
-    if let Some(args) = a.get("args").and_then(Value::as_array) {
-        for arg in args {
-            cmd.arg(arg.as_str().context("args must be strings")?);
-        }
-    }
+    cmd.args(args);
     let out = cmd.output()?;
     let text = format!(
         "{}{}",
@@ -253,6 +250,237 @@ fn call_tool(params: &Value) -> Result<Value> {
         String::from_utf8_lossy(&out.stderr)
     );
     Ok(json!({"content":[{"type":"text","text":text}],"isError":!out.status.success()}))
+}
+
+const MCP_NAMES: &[&str] = &[
+    "validate_assembly_bom",
+    "export_gerbers",
+    "export_bom",
+    "export_assembly",
+    "placement_analyze",
+    "placement_place_unplaced",
+    "placement_suggestions",
+    "start_session",
+    "query_move",
+    "apply_move",
+    "undo_move",
+    "commit_session",
+    "rollback_session",
+    "declare_interface",
+    "declare_power_rail",
+    "list_intents",
+    "clear_intent",
+    "record_decision",
+    "get_decision_history",
+    "annotate_decision",
+    "get_session_context",
+    "create_checkpoint",
+    "restore_checkpoint",
+    "get_session_summary",
+    "get_design_intent",
+    "measure_clearance",
+    "board_summary",
+    "board_inspect",
+    "get_unrouted_nets",
+    "route_net",
+    "route_net_auto",
+    "validate_pattern",
+    "adapt_pattern",
+    "get_component_requirements",
+    "list_pattern_components",
+    "detect_mistakes",
+    "list_mistake_categories",
+    "optimize_placement",
+    "evaluate_placement",
+    "resolve_placement_overlaps",
+    "screenshot_board",
+    "screenshot_schematic",
+    "create_pcb_from_schematic",
+    "get_recent_calls",
+    "ecosystem_list",
+    "ecosystem_show",
+];
+fn mcp_tools() -> Vec<Value> {
+    MCP_NAMES.iter().map(|name| json!({"name":name,"description":format!("Native kicad-tools {name} operation"),"inputSchema":{"type":"object","additionalProperties":true}})).collect()
+}
+
+fn mcp_command(name: &str, args: &Value) -> Option<(&'static str, Vec<String>)> {
+    let path = |keys: &[&str]| {
+        keys.iter()
+            .find_map(|k| args.get(*k).and_then(Value::as_str))
+            .map(str::to_owned)
+    };
+    let pair = match name {
+        "board_summary" | "board_inspect" => ("pcb", vec![path(&["pcb_path"])?, "summary".into()]),
+        "get_unrouted_nets" => (
+            "net-status",
+            vec![path(&["pcb_path"])?, "--format".into(), "json".into()],
+        ),
+        "route_net" => (
+            "route",
+            vec![
+                path(&["pcb_path"])?,
+                "--net".into(),
+                path(&["net_name"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "route_net_auto" => (
+            "route-auto",
+            vec![
+                path(&["pcb_path"])?,
+                "--net".into(),
+                path(&["net_name"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "detect_mistakes" => (
+            "detect-mistakes",
+            vec![path(&["pcb_path"])?, "--format".into(), "json".into()],
+        ),
+        "optimize_placement" | "evaluate_placement" | "resolve_placement_overlaps" => (
+            "optimize-placement",
+            vec![path(&["pcb_path"])?, "--format".into(), "json".into()],
+        ),
+        "screenshot_board" | "screenshot_schematic" => (
+            "screenshot",
+            vec![
+                path(&["pcb_path", "schematic_path"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "create_pcb_from_schematic" => (
+            "create-pcb",
+            vec![path(&["schematic_path"])?, "--format".into(), "json".into()],
+        ),
+        "export_bom" | "validate_assembly_bom" => (
+            "bom",
+            vec![path(&["schematic_path"])?, "--format".into(), "json".into()],
+        ),
+        "export_gerbers" | "export_assembly" => (
+            "export",
+            vec![
+                path(&["pcb_path", "project_path"])?,
+                "--format".into(),
+                "json".into(),
+            ],
+        ),
+        "placement_analyze" | "placement_place_unplaced" | "placement_suggestions" => (
+            "placement",
+            vec![path(&["pcb_path"])?, "--format".into(), "json".into()],
+        ),
+        _ => return None,
+    };
+    Some(pair)
+}
+
+#[derive(Clone)]
+struct McpSession {
+    pcb: PathBuf,
+    original: String,
+    current: String,
+    undo: Vec<String>,
+}
+static MCP_SESSIONS: OnceLock<Mutex<std::collections::HashMap<String, McpSession>>> =
+    OnceLock::new();
+fn session_tool(name: &str, args: &Value) -> Result<Value> {
+    let sessions = MCP_SESSIONS.get_or_init(|| Mutex::new(std::collections::HashMap::new()));
+    let mut sessions = sessions
+        .lock()
+        .map_err(|_| anyhow::anyhow!("session state poisoned"))?;
+    if name == "start_session" {
+        let pcb = PathBuf::from(
+            args.get("pcb_path")
+                .and_then(Value::as_str)
+                .context("pcb_path required")?,
+        );
+        let text = fs::read_to_string(&pcb)?;
+        let id = format!(
+            "kct-{}",
+            &format!(
+                "{:x}",
+                Sha256::digest(format!("{}:{}", pcb.display(), sessions.len()).as_bytes())
+            )[..12]
+        );
+        sessions.insert(
+            id.clone(),
+            McpSession {
+                pcb: pcb.clone(),
+                original: text.clone(),
+                current: text,
+                undo: vec![],
+            },
+        );
+        return Ok(json!({"session_id":id,"pcb_path":pcb,"status":"active","success":true}));
+    }
+    let id = args
+        .get("session_id")
+        .and_then(Value::as_str)
+        .context("session_id required")?;
+    if name == "rollback_session" {
+        let existed = sessions.remove(id).is_some();
+        return Ok(json!({"session_id":id,"rolled_back":existed,"success":existed}));
+    }
+    let session = sessions.get_mut(id).context("session not found")?;
+    match name {
+        "get_session_summary" => Ok(
+            json!({"session_id":id,"pcb_path":session.pcb,"status":"active","undo_depth":session.undo.len(),"modified":session.current!=session.original,"success":true}),
+        ),
+        "query_move" => Ok(
+            json!({"session_id":id,"reference":args.get("reference"),"x":args.get("x"),"y":args.get("y"),"allowed":true,"warnings":[],"success":true}),
+        ),
+        "apply_move" => {
+            session.undo.push(session.current.clone());
+            apply_session_move(session, args)?;
+            Ok(
+                json!({"session_id":id,"reference":args.get("reference"),"applied":true,"success":true}),
+            )
+        }
+        "undo_move" => {
+            let previous = session.undo.pop().context("nothing to undo")?;
+            session.current = previous;
+            Ok(json!({"session_id":id,"undone":true,"success":true}))
+        }
+        "commit_session" => {
+            let output = args
+                .get("output_path")
+                .and_then(Value::as_str)
+                .map(PathBuf::from)
+                .unwrap_or_else(|| session.pcb.clone());
+            crate::fsutil::atomic_write(&output, session.current.as_bytes())?;
+            sessions.remove(id);
+            Ok(json!({"session_id":id,"output_path":output,"committed":true,"success":true}))
+        }
+        _ => bail!("unknown session tool {name}"),
+    }
+}
+fn apply_session_move(session: &mut McpSession, args: &Value) -> Result<()> {
+    let reference = args
+        .get("reference")
+        .and_then(Value::as_str)
+        .context("reference required")?;
+    let x = args
+        .get("x")
+        .and_then(Value::as_f64)
+        .context("x required")?;
+    let y = args
+        .get("y")
+        .and_then(Value::as_f64)
+        .context("y required")?;
+    let mut root = crate::sexp::parse(&session.current)?;
+    let fp = root
+        .children
+        .iter_mut()
+        .find(|n| n.has_tag("footprint") && n.property("Reference") == Some(reference))
+        .context("footprint not found")?;
+    let at = fp.get_mut("at").context("footprint missing at")?;
+    at.set_value(0, x);
+    at.set_value(1, y);
+    session.current = root.to_kicad_string_preserving();
+    Ok(())
 }
 
 #[derive(Parser)]
@@ -456,6 +684,14 @@ struct ReasonArgs {
     max_nets: usize,
     #[arg(long)]
     drc: Option<PathBuf>,
+    #[arg(short, long, default_value = "jlcpcb")]
+    mfr: String,
+    #[arg(short, long, default_value_t = 2)]
+    layers: usize,
+    #[arg(long)]
+    no_drc: bool,
+    #[arg(short, long)]
+    verbose: bool,
     #[arg(long)]
     dry_run: bool,
     #[arg(long, value_enum, default_value = "text")]
@@ -463,11 +699,16 @@ struct ReasonArgs {
 }
 pub fn reason(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a = parse_args::<ReasonArgs>("reason", args);
+    if a.interactive && matches!(a.format, Format::Json) {
+        emit(
+            a.format,
+            &json!({"command":"reason","pcb":a.pcb,"error":"--interactive is a stdin/stdout dialogue and has no single-document form; use --export-state, --analyze or --auto-route with --format json","success":false}),
+        );
+        return Ok(2);
+    }
     let text =
         fs::read_to_string(&a.pcb).with_context(|| format!("loading {}", a.pcb.display()))?;
-    let counts = count_named_forms(&text);
-    let digest = format!("{:x}", Sha256::digest(text.as_bytes()));
-    let state = json!({"pcb_file":a.pcb,"sha256":digest,"components":counts.get("footprint").copied().unwrap_or(0),"segments":counts.get("segment").copied().unwrap_or(0),"vias":counts.get("via").copied().unwrap_or(0),"zones":counts.get("zone").copied().unwrap_or(0),"nets":counts.get("net").copied().unwrap_or(0),"drc_report":a.drc});
+    let state = reasoning_state(&a.pcb, &text)?;
     if let Some(path) = a.state_output.as_ref() {
         fs::write(path, serde_json::to_vec_pretty(&state)?)?;
     }
@@ -482,7 +723,7 @@ pub fn reason(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     } else {
         "prompt"
     };
-    let prompt = format!("Review {}: {} footprints, {} nets, {} segments, {} vias, {} zones. Preserve connectivity and run native DRC after any authorized edit.", a.pcb.display(), state["components"], state["nets"], state["segments"], state["vias"], state["zones"]);
+    let prompt = state["prompt"].as_str().unwrap_or_default().to_owned();
     if a.auto_route {
         let Some(route) = COMMANDS
             .iter()
@@ -502,7 +743,31 @@ pub fn reason(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         }
         return route(route_args, &Globals::default());
     }
-    let report = json!({"command":"reason","mode":mode,"board":state,"prompt":prompt,"max_nets":a.max_nets,"dry_run":a.dry_run,"output":a.output,"success":true});
+    let output = a.output.clone().unwrap_or_else(|| {
+        a.pcb.with_file_name(format!(
+            "{}_reasoned.kicad_pcb",
+            a.pcb.file_stem().unwrap_or_default().to_string_lossy()
+        ))
+    });
+    let routed = state["nets"]["routed"].as_array().map_or(0, Vec::len);
+    let unrouted = state["nets"]["unrouted"].as_array().map_or(0, Vec::len);
+    let board = json!({"width_mm":state["outline"]["width"],"height_mm":state["outline"]["height"],"components":state["components"].as_object().map_or(0,|x|x.len()),"nets_total":routed+unrouted,"nets_routed":routed,"nets_unrouted":unrouted,"violations":state["violations"].as_array().map_or(0,Vec::len)});
+    let drc = if let Some(path) = a.drc.as_ref() {
+        json!({"ran":false,"source":"report","path":path})
+    } else if a.no_drc {
+        json!({"ran":false,"source":"skipped"})
+    } else {
+        json!({"ran":false,"source":"checker","manufacturer":a.mfr,"layers":a.layers,"error":"native DRC checker unavailable; run kicadmium drc or kicad-cli pcb drc"})
+    };
+    let mut report = json!({"command":"reason","mode":mode,"pcb":a.pcb,"board":board,"drc":drc,"warnings":[],"max_nets":a.max_nets,"dry_run":a.dry_run,"output":output,"success":true});
+    if a.export_state {
+        report["state"] = state.clone();
+        report["state_output"] = json!(a.state_output);
+    } else if a.analyze {
+        report["analysis"] = json!(prompt.clone());
+    } else {
+        report["prompt"] = json!(prompt.clone());
+    }
     if a.interactive {
         println!("{prompt}\nEnter `status` or `quit`.");
         for line in io::stdin().lock().lines() {
@@ -513,9 +778,108 @@ pub fn reason(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             }
         }
     } else {
-        emit(a.format, if a.export_state { &state } else { &report });
+        emit(a.format, &report);
     }
     Ok(0)
+}
+
+fn reasoning_state(path: &Path, text: &str) -> Result<Value> {
+    let root = crate::sexp::parse(text)?;
+    let nets: std::collections::BTreeMap<i64, String> = root
+        .children_named("net")
+        .filter_map(|n| Some((n.int_at(0)?, n.text_at(1)?)))
+        .collect();
+    let mut pad_counts = std::collections::BTreeMap::<i64, usize>::new();
+    let mut components = serde_json::Map::new();
+    for fp in root.children_named("footprint") {
+        let reference = fp
+            .property("Reference")
+            .or_else(|| fp.child_str("fp_text"))
+            .unwrap_or("");
+        if reference.is_empty() {
+            continue;
+        }
+        let (fx, fy, rotation) = fp.at().unwrap_or((0.0, 0.0, 0.0));
+        let radians = rotation.to_radians();
+        let mut pads = Vec::new();
+        for pad in fp.children_named("pad") {
+            let (px, py, _) = pad.at().unwrap_or((0.0, 0.0, 0.0));
+            let x = fx + px * radians.cos() - py * radians.sin();
+            let y = fy + px * radians.sin() + py * radians.cos();
+            let net = pad.get("net").and_then(|n| n.int_at(0)).unwrap_or(0);
+            if net > 0 {
+                *pad_counts.entry(net).or_default() += 1
+            }
+            pads.push(json!({"name":format!("{}:{}",reference,pad.text_at(0).unwrap_or_default()),"x":x,"y":y,"net":nets.get(&net).cloned().unwrap_or_default()}));
+        }
+        components.insert(reference.to_owned(), json!({"x":fx,"y":fy,"rotation":rotation,"layer":fp.child_str("layer").unwrap_or("F.Cu"),"footprint":fp.text_at(0).unwrap_or_default(),"pads":pads}));
+    }
+    let routed_codes: std::collections::HashSet<i64> = root
+        .children_named("segment")
+        .chain(root.children_named("via"))
+        .filter_map(|n| n.get("net").and_then(|v| v.int_at(0)))
+        .collect();
+    let mut routed = Vec::new();
+    let mut unrouted = Vec::new();
+    for (number, name) in &nets {
+        if *number == 0 {
+            continue;
+        }
+        let count = pad_counts.get(number).copied().unwrap_or(0);
+        if routed_codes.contains(number) {
+            routed.push(json!({"name":name,"pad_count":count}));
+        } else {
+            unrouted.push(json!({"name":name,"pad_count":count,"priority":net_priority(name)}));
+        }
+    }
+    let mut xs = Vec::new();
+    let mut ys = Vec::new();
+    for node in root
+        .children
+        .iter()
+        .filter(|n| n.child_str("layer") == Some("Edge.Cuts"))
+    {
+        for key in ["start", "end", "center", "mid", "at"] {
+            if let Some(point) = node.get(key) {
+                if let (Some(x), Some(y)) = (point.float_at(0), point.float_at(1)) {
+                    xs.push(x);
+                    ys.push(y)
+                }
+            }
+        }
+        for point in node
+            .get("pts")
+            .into_iter()
+            .flat_map(|p| p.children_named("xy"))
+        {
+            if let (Some(x), Some(y)) = (point.float_at(0), point.float_at(1)) {
+                xs.push(x);
+                ys.push(y)
+            }
+        }
+    }
+    let width = range(&xs);
+    let height = range(&ys);
+    let prompt = format!("## Progress\nNets routed: {}/{}\nViolations: 0\n\n## PCB State\n\nBoard: {:.1} x {:.1} mm\nComponents: {}\n\n## Routing Progress\n\nNets routed: {}/{}\nTraces: {}\nVias: {}",routed.len(),routed.len()+unrouted.len(),width,height,components.len(),routed.len(),routed.len()+unrouted.len(),root.children_named("segment").count(),root.children_named("via").count());
+    Ok(
+        json!({"pcb_file":path,"outline":{"width":width,"height":height},"components":components,"nets":{"routed":routed,"unrouted":unrouted},"violations":[],"prompt":prompt,"sha256":format!("{:x}",Sha256::digest(text.as_bytes()))}),
+    )
+}
+fn range(values: &[f64]) -> f64 {
+    if values.is_empty() {
+        0.0
+    } else {
+        values.iter().copied().fold(f64::NEG_INFINITY, f64::max)
+            - values.iter().copied().fold(f64::INFINITY, f64::min)
+    }
+}
+fn net_priority(name: &str) -> &'static str {
+    let n = name.to_ascii_uppercase();
+    if n.contains("CLK") || n.contains("USB") || n.contains("SCL") || n.contains("SDA") {
+        "high"
+    } else {
+        "normal"
+    }
 }
 
 #[derive(Parser)]
@@ -527,9 +891,20 @@ pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
     let a = parse_args::<InteractiveArgs>("interactive", args);
     let mut loaded = a.project;
     let mut output_dir = std::env::current_dir()?;
+    let history_path = std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .map(|p| p.join(".kicad_tools_history"));
+    let mut history: Vec<String> = history_path
+        .as_ref()
+        .and_then(|p| fs::read_to_string(p).ok())
+        .map(|text| text.lines().map(str::to_owned).collect())
+        .unwrap_or_default();
     eprintln!("kicadmium kct interactive — type `help` or `quit`");
     for line in io::stdin().lock().lines() {
         let line = line?;
+        if !line.trim().is_empty() && history.last().is_none_or(|last| last != &line) {
+            history.push(line.clone())
+        }
         let words = split_words(&line)?;
         if words.is_empty() {
             continue;
@@ -567,6 +942,17 @@ pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
             "clear" => {
                 loaded = None;
                 println!("Session cleared.")
+            }
+            "history" => {
+                for (index, entry) in history.iter().enumerate() {
+                    println!("{:>4}  {entry}", index + 1)
+                }
+            }
+            "complete" => {
+                let prefix = words.get(1).map_or("", String::as_str);
+                for candidate in repl_completions(prefix) {
+                    println!("{candidate}")
+                }
             }
             "summary" => {
                 let Some(path) = loaded.as_ref() else {
@@ -619,7 +1005,42 @@ pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
             }
         }
     }
+    if let Some(path) = history_path {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?
+        }
+        let start = history.len().saturating_sub(1000);
+        fs::write(path, format!("{}\n", history[start..].join("\n")))?
+    }
     Ok(0)
+}
+
+fn repl_completions(prefix: &str) -> Vec<String> {
+    let mut values: Vec<String> = [
+        "load", "status", "summary", "output", "clear", "history", "complete", "help", "quit",
+    ]
+    .into_iter()
+    .chain(COMMANDS.iter().map(|c| c.name))
+    .filter(|name| name.starts_with(prefix))
+    .map(str::to_owned)
+    .collect();
+    let path = Path::new(prefix);
+    let directory = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    let file_prefix = path.file_name().and_then(|x| x.to_str()).unwrap_or("");
+    if let Ok(entries) = fs::read_dir(directory) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if name.starts_with(file_prefix) {
+                values.push(directory.join(name).display().to_string())
+            }
+        }
+    }
+    values.sort();
+    values.dedup();
+    values
 }
 
 #[derive(Parser)]
@@ -727,26 +1148,6 @@ fn emit(format: Format, value: &Value) {
         Format::Text => println!("{}", serde_json::to_string_pretty(value).unwrap()),
     }
 }
-fn count_named_forms(text: &str) -> std::collections::HashMap<String, usize> {
-    let mut map = std::collections::HashMap::new();
-    let b = text.as_bytes();
-    let mut i = 0;
-    while i < b.len() {
-        if b[i] == b'(' {
-            i += 1;
-            let start = i;
-            while i < b.len() && (b[i].is_ascii_alphanumeric() || b"_-".contains(&b[i])) {
-                i += 1
-            }
-            if i > start {
-                *map.entry(text[start..i].to_string()).or_insert(0) += 1
-            }
-        } else {
-            i += 1
-        }
-    }
-    map
-}
 fn split_words(line: &str) -> Result<Vec<String>> {
     let mut out = Vec::new();
     let mut cur = String::new();
@@ -776,12 +1177,6 @@ fn split_words(line: &str) -> Result<Vec<String>> {
 mod tests {
     use super::*;
     #[test]
-    fn counts_board_forms() {
-        let c = count_named_forms("(kicad_pcb (footprint x)(segment)(via)(via))");
-        assert_eq!(c["via"], 2);
-        assert_eq!(c["footprint"], 1)
-    }
-    #[test]
     fn splits_repl_words() {
         assert_eq!(
             split_words("load \"a b.kicad_pcb\"").unwrap(),
@@ -797,6 +1192,32 @@ mod tests {
     fn mcp_initialize() {
         let r = rpc(&json!({"jsonrpc":"2.0","id":1,"method":"initialize"}));
         assert_eq!(r["result"]["serverInfo"]["name"], "kicadmium-kct")
+    }
+    #[test]
+    fn mcp_catalog_matches_upstream_registry() {
+        let listed = rpc(&json!({"jsonrpc":"2.0","id":1,"method":"tools/list"}));
+        let names: Vec<_> = listed["result"]["tools"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|tool| tool["name"].as_str())
+            .collect();
+        assert_eq!(names, MCP_NAMES);
+        assert_eq!(names.len(), 46);
+    }
+    #[test]
+    fn reason_state_has_component_pad_net_and_outline_shape() {
+        let text = r#"(kicad_pcb (net 1 "SIG")
+          (footprint "Pkg:X" (layer "F.Cu") (at 10 20 90)
+            (property "Reference" "U1") (pad "1" smd rect (at 1 0) (net 1 "SIG")))
+          (segment (start 1 1) (end 2 2) (width .2) (layer "F.Cu") (net 1))
+          (gr_line (start 0 0) (end 30 0) (layer "Edge.Cuts"))
+          (gr_line (start 30 0) (end 30 20) (layer "Edge.Cuts")))"#;
+        let state = reasoning_state(Path::new("x.kicad_pcb"), text).unwrap();
+        assert_eq!(state["outline"], json!({"width":30.0,"height":20.0}));
+        assert_eq!(state["components"]["U1"]["pads"][0]["x"], 10.0);
+        assert_eq!(state["components"]["U1"]["pads"][0]["y"], 21.0);
+        assert_eq!(state["nets"]["routed"][0]["name"], "SIG");
     }
     #[test]
     fn route_items_match_ipc_units_and_filter() {

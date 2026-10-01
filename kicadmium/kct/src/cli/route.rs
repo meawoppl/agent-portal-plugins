@@ -1504,13 +1504,52 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         params.max_cells,
         min_pad_pitch(&board) < FINE_PITCH_MM,
     );
+    // Input-copper safety: targets the input already connects are left
+    // exactly as they are (their copper stays a fixed obstacle).
+    let status = crate::analysis::net_status::NetStatusAnalyzer::new(&pcb, false).analyze();
+    let kept_input: HashSet<String> = status
+        .nets
+        .iter()
+        .filter(|n| {
+            n.total_pads >= 2
+                && n.status() == "complete"
+                && (n.has_routing || n.has_vias || n.has_filled_zone)
+                && targets.contains(&n.net_name)
+        })
+        .map(|n| n.net_name.clone())
+        .collect();
     let skip: HashSet<String> = names
         .iter()
-        .filter(|n| !targets.contains(n))
+        .filter(|n| !targets.contains(n) || kept_input.contains(*n))
         .cloned()
         .collect();
     // Existing copper of the target nets is kept as same-net fixed copper.
     let attempt = run_attempt(&params, &pcb, detected, grid, &skip, &HashSet::new(), &[])?;
+    // Same finer-grid retry as `route`: 0.05 mm when the first pass falls
+    // short and the all-layer cell budget allows.
+    let fine_grid = 0.05;
+    let fine_cells = ((bw / fine_grid).ceil() + 1.0) * ((bh / fine_grid).ceil() + 1.0);
+    let attempt = if attempt.completion < 1.0 - 1e-9
+        && grid > fine_grid + 1e-9
+        && fine_cells * detected as f64 <= (params.max_cells * 32) as f64
+    {
+        let retry = run_attempt(
+            &params,
+            &pcb,
+            detected,
+            fine_grid,
+            &skip,
+            &HashSet::new(),
+            &[],
+        )?;
+        if retry.completion > attempt.completion + 1e-9 {
+            retry
+        } else {
+            attempt
+        }
+    } else {
+        attempt
+    };
     let routes = attempt.router.routes();
     merge_routes_into_pcb(&pcb_path, &output, &routes, &[], detected)?;
     let mut entries = Vec::new();
@@ -1526,13 +1565,25 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
             ),
             None => (true, 0, 0, 0.0),
         };
+        let kept = kept_input.contains(t);
+        let warnings: Vec<&str> = if kept {
+            vec!["already connected in the input; left unchanged"]
+        } else {
+            Vec::new()
+        };
         if !ok {
             failed += 1;
         }
         if !as_json {
             println!(
                 "  {t}: {} ({segs} segments, {vias} vias, {len:.2}mm)",
-                if ok { "routed" } else { "FAILED" }
+                if kept {
+                    "already connected (unchanged)"
+                } else if ok {
+                    "routed"
+                } else {
+                    "FAILED"
+                }
             );
         }
         entries.push(json!({
@@ -1540,7 +1591,7 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
             "strategy": if strategy == "auto" { "global" } else { strategy.as_str() },
             "success": ok,
             "metrics": {"segments": segs, "vias": vias, "length_mm": (len * 1000.0).round() / 1000.0},
-            "warnings": [],
+            "warnings": warnings,
         }));
     }
     if as_json {

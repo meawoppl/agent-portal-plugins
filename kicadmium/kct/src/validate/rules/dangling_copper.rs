@@ -27,6 +27,18 @@ pub struct CopperItem {
     pub net_name: String,
     /// Identity of the source object (`None` for fills and arcs).
     pub key: Option<usize>,
+    /// Indexed copy for large fill polygons.
+    pub prep: Option<std::sync::Arc<sh::Prepared>>,
+}
+
+impl CopperItem {
+    /// `self.geom.distance(other)`.
+    pub fn distance_to(&self, other: &Geom) -> f64 {
+        match &self.prep {
+            Some(p) => sh::distance_prep(other, p),
+            None => sh::distance(&self.geom, other),
+        }
+    }
 }
 
 /// STRtree over one layer's copper.
@@ -58,6 +70,7 @@ fn get<'a>(idx: &'a LayerIndexes, layer: &str) -> Option<&'a LayerIndex> {
 pub struct ClusterSeed {
     pub layer: String,
     pub geom: Geom,
+    pub prep: Option<std::sync::Arc<sh::Prepared>>,
     pub net_number: i64,
     pub net_name: String,
 }
@@ -98,6 +111,7 @@ pub fn cluster_copper_kinds(indexes: &LayerIndexes, seeds: &[ClusterSeed]) -> Ve
     struct Node<'a> {
         layer: &'a str,
         geom: &'a Geom,
+        prep: Option<&'a sh::Prepared>,
         number: i64,
         name: &'a str,
         kind: &'static str,
@@ -108,6 +122,7 @@ pub fn cluster_copper_kinds(indexes: &LayerIndexes, seeds: &[ClusterSeed]) -> Ve
         .map(|s| Node {
             layer: &s.layer,
             geom: &s.geom,
+            prep: s.prep.as_deref(),
             number: s.net_number,
             name: &s.net_name,
             kind: "fill",
@@ -124,6 +139,7 @@ pub fn cluster_copper_kinds(indexes: &LayerIndexes, seeds: &[ClusterSeed]) -> Ve
             nodes.push(Node {
                 layer,
                 geom: &item.geom,
+                prep: item.prep.as_deref(),
                 number: item.net_number,
                 name: &item.net_name,
                 kind: item.kind,
@@ -157,7 +173,12 @@ pub fn cluster_copper_kinds(indexes: &LayerIndexes, seeds: &[ClusterSeed]) -> Ve
                 if !copper_nets_match(nodes[i].number, nodes[i].name, nodes[j].number, nodes[j].name) {
                     continue;
                 }
-                if sh::distance(nodes[i].geom, nodes[j].geom) <= DRC_TOLERANCE {
+                let d = match (nodes[i].prep, nodes[j].prep) {
+                    (_, Some(pj)) => sh::distance_prep(nodes[i].geom, pj),
+                    (Some(pi), None) => sh::distance_prep(nodes[j].geom, pi),
+                    (None, None) => sh::distance(nodes[i].geom, nodes[j].geom),
+                };
+                if d <= DRC_TOLERANCE {
                     let (ri, rj) = (find(&mut parent, i), find(&mut parent, j));
                     if ri != rj {
                         parent[rj] = ri;
@@ -246,6 +267,7 @@ pub fn build_copper_layer_indexes(
                 net_number: resolve_net(s.net_number, &s.net_name),
                 net_name: s.net_name.clone(),
                 key: Some(KEY_SEGMENT + i),
+                prep: None,
             },
         );
     }
@@ -271,6 +293,7 @@ pub fn build_copper_layer_indexes(
                 net_number: resolve_net(a.net_number, &a.net_name),
                 net_name: a.net_name.clone(),
                 key: None,
+                prep: None,
             },
         );
     }
@@ -291,6 +314,7 @@ pub fn build_copper_layer_indexes(
                         net_number: net,
                         net_name: v.net_name.clone(),
                         key: Some(KEY_VIA + i),
+                        prep: None,
                     },
                 );
             }
@@ -314,6 +338,7 @@ pub fn build_copper_layer_indexes(
                             net_number: net,
                             net_name: pad.net_name.clone(),
                             key: Some(KEY_PAD + pad_id),
+                            prep: None,
                         },
                     );
                 }
@@ -331,6 +356,7 @@ pub fn build_copper_layer_indexes(
                         net_number: f.net_number,
                         net_name: f.net_name,
                         key: None,
+                        prep: Some(f.prep),
                     },
                 );
             }
@@ -405,7 +431,7 @@ impl DanglingCopperRule {
             if item.kind == "fill" && !fill_net_matches(net_number, net_name, item) {
                 continue;
             }
-            if sh::distance(&item.geom, &pt) <= reach {
+            if item.distance_to(&pt) <= reach {
                 return true;
             }
         }
@@ -510,7 +536,7 @@ impl DanglingCopperRule {
                     if item.kind == "fill" && !fill_net_matches(net, &v.net_name, item) {
                         continue;
                     }
-                    if sh::distance(&item.geom, &center) <= r + TOUCH_TOL_MM {
+                    if item.distance_to(&center) <= r + TOUCH_TOL_MM {
                         bonded += 1;
                         break;
                     }

@@ -6,3 +6,4 @@ pub mod diffpair;
 pub mod net_class;
 pub mod net_names;
 pub mod rules;
+pub mod via_in_pad_eligibility;

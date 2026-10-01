@@ -638,10 +638,10 @@ impl<'a> NetStatusAnalyzer<'a> {
                 continue;
             }
             let n = zone.filled_polygons.len();
-            let regions: Vec<Option<Geom>> = zone
+            let regions: Vec<Option<sh::Prepared>> = zone
                 .filled_polygons
                 .iter()
-                .map(|pts| cv::fill_solid_region(pts))
+                .map(|pts| cv::fill_solid_region(pts).map(sh::Prepared::new))
                 .collect();
             let layers: Vec<&str> = (0..n).map(|i| zone.filled_polygon_layer(i)).collect();
             let mut dsu = Dsu::new(n);
@@ -655,7 +655,7 @@ impl<'a> NetStatusAnalyzer<'a> {
                 let touched: Vec<usize> = (0..n)
                     .filter(|&i| {
                         regions[i].as_ref().is_some_and(|r| {
-                            via_spans_layer(&vg.layers, layers[i]) && sh::intersects(r, &vg.annulus)
+                            via_spans_layer(&vg.layers, layers[i]) && sh::intersects_prep(&vg.annulus, r)
                         })
                     })
                     .collect();
@@ -678,9 +678,9 @@ impl<'a> NetStatusAnalyzer<'a> {
                         let Some(r) = &regions[i] else { return false };
                         ch.iter().any(|&s| {
                             via_spans_layer(std::slice::from_ref(&cs[s].layer), layers[i])
-                                && sh::intersects(r, &seg_poly(s))
+                                && sh::intersects_prep(&seg_poly(s), r)
                         }) || chain_vias.iter().any(|vg| {
-                            via_spans_layer(&vg.layers, layers[i]) && sh::intersects(r, &vg.annulus)
+                            via_spans_layer(&vg.layers, layers[i]) && sh::intersects_prep(&vg.annulus, r)
                         })
                     })
                     .collect();
@@ -706,12 +706,12 @@ impl<'a> NetStatusAnalyzer<'a> {
                     }
                 };
                 for (id, g) in &pad_polys {
-                    if pad_layer_matches_zone(pad_layers(id), layers[i]) && sh::intersects(region, g) {
+                    if pad_layer_matches_zone(pad_layers(id), layers[i]) && sh::intersects_prep(g, region) {
                         add(&mut bonded, id);
                     }
                 }
                 for vg in &vgs {
-                    if !via_spans_layer(&vg.layers, layers[i]) || !sh::intersects(region, &vg.annulus)
+                    if !via_spans_layer(&vg.layers, layers[i]) || !sh::intersects_prep(&vg.annulus, region)
                     {
                         continue;
                     }
@@ -743,7 +743,7 @@ impl<'a> NetStatusAnalyzer<'a> {
                     }
                     if ch.iter().any(|&s| {
                         via_spans_layer(std::slice::from_ref(&cs[s].layer), layers[i])
-                            && sh::intersects(region, &seg_poly(s))
+                            && sh::intersects_prep(&seg_poly(s), region)
                     }) {
                         for id in cp {
                             add(&mut bonded, id);
@@ -801,7 +801,11 @@ pub fn polyline_buffer(pts: &[(f64, f64)], r: f64, quad: usize) -> Geom {
     Geom::Multi(polys)
 }
 
-fn adjacent_fill_pairs(regions: &[Option<Geom>], layers: &[&str], reach: f64) -> Vec<(usize, usize)> {
+fn adjacent_fill_pairs(
+    regions: &[Option<sh::Prepared>],
+    layers: &[&str],
+    reach: f64,
+) -> Vec<(usize, usize)> {
     let idx: Vec<usize> = (0..regions.len()).filter(|&i| regions[i].is_some()).collect();
     if idx.len() < 2 {
         return vec![];
@@ -814,7 +818,8 @@ fn adjacent_fill_pairs(regions: &[Option<Geom>], layers: &[&str], reach: f64) ->
     for (a, b) in crate::validate::spatial::candidate_pairs(&bounds, reach) {
         let (i, j) = (idx[a], idx[b]);
         if layers[i] == layers[j]
-            && sh::distance(regions[i].as_ref().unwrap(), regions[j].as_ref().unwrap()) <= reach
+            && sh::distance_prep(&regions[i].as_ref().unwrap().geom, regions[j].as_ref().unwrap())
+                <= reach
         {
             out.push((i, j));
         }

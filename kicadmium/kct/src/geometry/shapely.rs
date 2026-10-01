@@ -779,6 +779,11 @@ pub fn nearest_points(g1: &Geom, g2: &Geom) -> (C, C) {
 
 /// `g1.intersects(g2)`.
 pub fn intersects(g1: &Geom, g2: &Geom) -> bool {
+    match (g1.bounds(), g2.bounds()) {
+        (Some(a), Some(b)) if env_distance(a, b) > 0.0 => return false,
+        (None, _) | (_, None) => return false,
+        _ => {}
+    }
     distance_points(g1, g2).is_some_and(|d| d.0 == 0.0)
 }
 
@@ -1337,6 +1342,291 @@ pub fn annulus(center: C, outer: f64, inner: f64, quad: usize) -> Geom {
         }
     }
     Geom::Poly(o)
+}
+
+// ------------------------------------------------------------- prepared
+
+/// Uniform-grid segment index over one linear component.
+#[derive(Debug, Clone)]
+struct LineIndex {
+    min: C,
+    cell: f64,
+    nx: usize,
+    ny: usize,
+    cells: Vec<Vec<u32>>,
+}
+
+impl LineIndex {
+    fn new(l: &[C]) -> Self {
+        let b = line_env(l);
+        let nseg = l.len().saturating_sub(1).max(1);
+        let w = (b.2 - b.0).max(1e-9);
+        let h = (b.3 - b.1).max(1e-9);
+        let target = (nseg as f64 / 2.0).max(1.0);
+        let cell = ((w * h) / target).sqrt().max(w.max(h) / 1024.0).max(1e-9);
+        let nx = ((w / cell).floor() as usize + 1).min(4096);
+        let ny = ((h / cell).floor() as usize + 1).min(4096);
+        let mut cells = vec![Vec::new(); nx * ny];
+        let idx = LineIndex {
+            min: (b.0, b.1),
+            cell,
+            nx,
+            ny,
+            cells: Vec::new(),
+        };
+        for i in 0..l.len().saturating_sub(1) {
+            let (a, c) = (l[i], l[i + 1]);
+            let (x0, x1) = idx.col_range(a.0.min(c.0), a.0.max(c.0));
+            let (y0, y1) = idx.row_range(a.1.min(c.1), a.1.max(c.1));
+            for y in y0..=y1 {
+                for x in x0..=x1 {
+                    cells[y * nx + x].push(i as u32);
+                }
+            }
+        }
+        LineIndex { cells, ..idx }
+    }
+
+    fn col_range(&self, lo: f64, hi: f64) -> (usize, usize) {
+        let f = |v: f64| (((v - self.min.0) / self.cell).floor().max(0.0) as usize).min(self.nx - 1);
+        (f(lo), f(hi))
+    }
+
+    fn row_range(&self, lo: f64, hi: f64) -> (usize, usize) {
+        let f = |v: f64| (((v - self.min.1) / self.cell).floor().max(0.0) as usize).min(self.ny - 1);
+        (f(lo), f(hi))
+    }
+
+    /// Segment indices whose bbox may intersect `b`, ascending, deduped.
+    fn query(&self, b: Bounds, out: &mut Vec<u32>) {
+        out.clear();
+        let (x0, x1) = self.col_range(b.0, b.2);
+        let (y0, y1) = self.row_range(b.1, b.3);
+        for y in y0..=y1 {
+            for x in x0..=x1 {
+                out.extend_from_slice(&self.cells[y * self.nx + x]);
+            }
+        }
+        out.sort_unstable();
+        out.dedup();
+    }
+}
+
+/// A geometry with per-ring segment indexes for repeated distance /
+/// intersects / point-location queries (results identical to the plain
+/// functions, including nearest-point tie-breaking).
+#[derive(Debug, Clone)]
+pub struct Prepared {
+    pub geom: Geom,
+    lines: Vec<LineIndex>,
+    envs: Vec<Bounds>,
+    bounds: Option<Bounds>,
+}
+
+impl Prepared {
+    pub fn new(geom: Geom) -> Self {
+        let lines = geom.lines().iter().map(|l| LineIndex::new(l)).collect();
+        let envs = geom.lines().iter().map(|l| line_env(l)).collect();
+        let bounds = geom.bounds();
+        Prepared {
+            geom,
+            lines,
+            envs,
+            bounds,
+        }
+    }
+
+    pub fn bounds(&self) -> Option<Bounds> {
+        self.bounds
+    }
+
+    fn locate_ring(&self, li: usize, ring: &[C], p: C, buf: &mut Vec<u32>) -> Location {
+        let idx = &self.lines[li];
+        let e = line_env(ring);
+        if p.1 < e.1 || p.1 > e.3 || p.0 > e.2 {
+            return Location::Exterior;
+        }
+        idx.query((p.0, p.1, e.2, p.1), buf);
+        let mut crossings = 0usize;
+        for &k in buf.iter() {
+            let i = k as usize + 1;
+            let p1 = ring[i];
+            let p2 = ring[i - 1];
+            if p1.0 < p.0 && p2.0 < p.0 {
+                continue;
+            }
+            if p == p2 || p == p1 {
+                return Location::Boundary;
+            }
+            if p1.1 == p.1 && p2.1 == p.1 {
+                let (mn, mx) = if p1.0 < p2.0 { (p1.0, p2.0) } else { (p2.0, p1.0) };
+                if p.0 >= mn && p.0 <= mx {
+                    return Location::Boundary;
+                }
+                continue;
+            }
+            if (p1.1 > p.1 && p2.1 <= p.1) || (p2.1 > p.1 && p1.1 <= p.1) {
+                let mut o = orient(p1, p2, p).signum();
+                if o == 0.0 {
+                    return Location::Boundary;
+                }
+                if p2.1 < p1.1 {
+                    o = -o;
+                }
+                if o > 0.0 {
+                    crossings += 1;
+                }
+            }
+        }
+        if crossings % 2 == 1 {
+            Location::Interior
+        } else {
+            Location::Exterior
+        }
+    }
+
+    /// Point covered by (interior or boundary of) the polygonal parts.
+    pub fn covers_point(&self, p: C) -> bool {
+        let mut buf = Vec::new();
+        let mut li = 0;
+        for poly in self.geom.polys() {
+            let n = 1 + poly.holes.len();
+            if !poly.is_empty() {
+                match self.locate_ring(li, &poly.shell, p, &mut buf) {
+                    Location::Boundary => return true,
+                    Location::Exterior => {}
+                    Location::Interior => {
+                        let mut inside = true;
+                        for (k, h) in poly.holes.iter().enumerate() {
+                            match self.locate_ring(li + 1 + k, h, p, &mut buf) {
+                                Location::Interior => {
+                                    inside = false;
+                                    break;
+                                }
+                                Location::Boundary => return true,
+                                Location::Exterior => {}
+                            }
+                        }
+                        if inside {
+                            return true;
+                        }
+                    }
+                }
+            }
+            li += n;
+        }
+        false
+    }
+}
+
+/// `distance_points(a, b)` with `b` prepared.
+pub fn distance_points_prep(a: &Geom, b: &Prepared) -> Option<(f64, C, C)> {
+    if a.is_empty() || b.geom.is_empty() {
+        return None;
+    }
+    if !b.geom.polys().is_empty() {
+        for p in a.element_locations() {
+            if b.covers_point(p) {
+                return Some((0.0, p, p));
+            }
+        }
+    }
+    let polys1 = a.polys();
+    if !polys1.is_empty() {
+        for p in b.geom.element_locations() {
+            if polys1
+                .iter()
+                .any(|poly| locate_in_poly(p, poly) != Location::Exterior)
+            {
+                return Some((0.0, p, p));
+            }
+        }
+    }
+    let lines1 = a.lines();
+    let lines2 = b.geom.lines();
+    let pts1 = a.points();
+    let ab = a.bounds()?;
+    let bb = b.bounds?;
+    let mut r = env_distance(ab, bb)
+        .max(0.5 * (ab.2 - ab.0).max(ab.3 - ab.1))
+        .max(0.05);
+    let span = (bb.2 - bb.0)
+        .max(bb.3 - bb.1)
+        .max(ab.2 - ab.0)
+        .max(ab.3 - ab.1);
+    let mut buf: Vec<u32> = Vec::new();
+    loop {
+        let q = (ab.0 - r, ab.1 - r, ab.2 + r, ab.3 + r);
+        let mut min = f64::INFINITY;
+        let mut loc = ((0.0, 0.0), (0.0, 0.0));
+        let mut found_zero = false;
+        'outer: for l1 in &lines1 {
+            let e1 = line_env(l1);
+            for (li, l2) in lines2.iter().enumerate() {
+                let e2 = b.envs[li];
+                if env_distance(q, e2) > 0.0 || env_distance(e1, e2) > min {
+                    continue;
+                }
+                b.lines[li].query(q, &mut buf);
+                if buf.is_empty() {
+                    continue;
+                }
+                for i in 0..l1.len().saturating_sub(1) {
+                    for &j in buf.iter() {
+                        let j = j as usize;
+                        let d = segment_to_segment(l1[i], l1[i + 1], l2[j], l2[j + 1]);
+                        if d < min {
+                            min = d;
+                            loc = closest_points_segments(l1[i], l1[i + 1], l2[j], l2[j + 1]);
+                        }
+                        if min <= 0.0 {
+                            found_zero = true;
+                            break 'outer;
+                        }
+                    }
+                }
+            }
+        }
+        if found_zero {
+            return Some((min, loc.0, loc.1));
+        }
+        for &p in &pts1 {
+            for (li, l2) in lines2.iter().enumerate() {
+                if env_distance(q, b.envs[li]) > 0.0 {
+                    continue;
+                }
+                b.lines[li].query(q, &mut buf);
+                for &j in buf.iter() {
+                    let j = j as usize;
+                    let d = point_to_segment(p, l2[j], l2[j + 1]);
+                    if d < min {
+                        min = d;
+                        loc = (p, closest_point_on_segment(p, l2[j], l2[j + 1]));
+                    }
+                }
+            }
+        }
+        if min <= r || r > 4.0 * span + 1.0 {
+            if min.is_infinite() {
+                return distance_points(a, &b.geom);
+            }
+            return Some((min, loc.0, loc.1));
+        }
+        r *= 4.0;
+    }
+}
+
+pub fn distance_prep(a: &Geom, b: &Prepared) -> f64 {
+    distance_points_prep(a, b).map_or(f64::NAN, |d| d.0)
+}
+
+pub fn intersects_prep(a: &Geom, b: &Prepared) -> bool {
+    match (a.bounds(), b.bounds) {
+        (Some(x), Some(y)) if env_distance(x, y) > 0.0 => return false,
+        (None, _) | (_, None) => return false,
+        _ => {}
+    }
+    distance_points_prep(a, b).is_some_and(|d| d.0 == 0.0)
 }
 
 #[cfg(test)]

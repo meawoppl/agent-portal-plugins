@@ -126,6 +126,7 @@ impl IsolatedCopperRule {
             .map(|i| ClusterSeed {
                 layer: i.layer.clone(),
                 geom: i.polygon.clone(),
+                prep: Some(std::sync::Arc::new(sh::Prepared::new(i.polygon.clone()))),
                 net_number: i.net_number,
                 net_name: i.net_name.clone(),
             })

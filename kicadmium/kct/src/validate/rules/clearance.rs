@@ -426,7 +426,11 @@ fn segment_circle_clearance(seg: &CopperElement, circle: &CopperElement) -> (f64
 fn segment_polygon_clearance(seg: &CopperElement, circle: &CopperElement) -> Option<f64> {
     let pad = circle.polygon.as_ref()?;
     let sg = seg.segment_geom();
-    let inter = sh::intersection(sg, pad);
+    let inter = if sh::intersects(sg, pad) {
+        sh::intersection(sg, pad)
+    } else {
+        Geom::Empty
+    };
     if !inter.is_empty() && inter.area() > 0.0 {
         let (a, b, c, d) = inter.bounds()?;
         let w = c - a;
@@ -514,7 +518,11 @@ pub fn py_min(v: &[f64]) -> f64 {
 fn polygon_pair_clearance(c1: &CopperElement, c2: &CopperElement) -> Option<(f64, f64, f64)> {
     let g1 = c1.copper_geom()?;
     let g2 = c2.copper_geom()?;
-    let inter = sh::intersection(g1, g2);
+    let inter = if sh::intersects(g1, g2) {
+        sh::intersection(g1, g2)
+    } else {
+        Geom::Empty
+    };
     if !inter.is_empty() && inter.area() > 0.0 {
         let (a, b, c, d) = inter.bounds()?;
         let (w, h) = (c - a, d - b);
@@ -680,6 +688,12 @@ impl ClearanceRule {
     }
 
     fn elements_touch(a: &CopperElement, b: &CopperElement) -> bool {
+        // Broad phase: copper clearance is never below the envelope gap.
+        let (x, y) = (a.bounds(), b.bounds());
+        let m = 2.0 * COLOCATION_EPSILON_MM;
+        if x.0 - m > y.2 || y.0 - m > x.2 || x.1 - m > y.3 || y.1 - m > x.3 {
+            return false;
+        }
         if colocated(a, b) {
             return false;
         }
@@ -822,6 +836,7 @@ pub struct ZoneFill {
     pub net_name: String,
     pub layer: String,
     pub polygon: Geom,
+    pub prep: std::sync::Arc<sh::Prepared>,
     pub source_clearance: f64,
     pub source_zone_id: String,
     pub source_zone_index: usize,
@@ -875,6 +890,7 @@ pub fn collect_zone_fills(pcb: &Pcb, include_unassigned: bool) -> Vec<(String, V
                 net_number: net,
                 net_name: net_name.clone(),
                 layer: layer.to_string(),
+                prep: std::sync::Arc::new(sh::Prepared::new(geom.clone())),
                 polygon: geom,
                 source_clearance: zone.clearance,
                 source_zone_id: zone.uuid.clone(),
@@ -946,7 +962,7 @@ impl SegmentZoneClearanceRule {
         layer: &str,
     ) -> Option<DRCViolation> {
         let poly = &fill.polygon;
-        let (cdist, pl, pp) = sh::distance_points(line, poly)?;
+        let (cdist, pl, pp) = sh::distance_points_prep(line, &fill.prep)?;
         let seg_net = if seg.net_number != 0 {
             seg.net_name.clone()
         } else {
@@ -1164,7 +1180,7 @@ fn check_shape(
     let poly = &fill.polygon;
     let label = if net_number != 0 { net_name } else { "" };
     let zref = zone_ref(fill);
-    let (d, ps, pp) = sh::distance_points(shape, poly)?;
+    let (d, ps, pp) = sh::distance_points_prep(shape, &fill.prep)?;
     if d > 0.0 {
         if d + DRC_TOLERANCE >= min {
             return None;

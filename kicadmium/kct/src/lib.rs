@@ -6,26 +6,35 @@
 //! foundations (`sexp`, `units`, `core`, `schema`, `manufacturers`) plus one
 //! module per CLI command family under `cli`.
 
+pub mod analysis;
 pub mod cli;
 pub mod config;
 pub mod core;
+pub mod cost;
+pub mod drc;
+pub mod erc;
 pub mod exceptions;
+pub mod feedback;
 pub mod footprints;
 pub mod fsutil;
 pub mod geometry;
 pub mod ipc;
+pub mod lvs;
 pub mod manufacturers;
 pub mod parts;
 pub mod physics;
 pub mod progress;
 pub mod project;
+pub mod pyjson;
 pub mod router;
 pub mod schema;
 pub mod sexp;
 pub mod sidecars;
+pub mod sync;
 pub mod transaction;
 pub mod units;
 pub mod utils;
+pub mod validate;
 
 pub use anyhow::{Error, Result};
 pub use sexp::{parse, parse_file, Document, SExp, Value};

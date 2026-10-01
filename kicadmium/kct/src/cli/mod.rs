@@ -13,16 +13,28 @@ use anyhow::Result;
 use crate::units::{self, UnitFormatter};
 
 pub mod analyze;
+pub mod audit;
+pub mod board_metrics;
+pub mod check;
 pub mod datasheet;
 pub mod design;
+pub mod drc;
+pub mod erc;
+pub mod estimate;
 pub mod fabrication;
+pub mod fleet;
 pub mod footprint;
 pub mod h;
 pub mod impedance;
 pub mod mfr;
+pub mod net_status;
 pub mod parts;
 pub mod pcb;
 pub mod project;
+pub mod render;
+pub mod report;
+pub mod runner;
+pub mod screenshot;
 pub mod suggest;
 pub mod utility;
 pub mod workflow;
@@ -50,10 +62,10 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "symbols", about: "List symbols in a schematic", wave: "B", run: Some(design::symbols) },
     CommandSpec { name: "nets", about: "Trace nets in a schematic", wave: "B", run: Some(design::nets) },
     CommandSpec { name: "netlist", about: "Netlist analysis and comparison tools", wave: "B", run: Some(design::netlist) },
-    CommandSpec { name: "erc", about: "ERC validation and analysis", wave: "A", run: None },
-    CommandSpec { name: "drc", about: "Parse DRC report", wave: "A", run: None },
+    CommandSpec { name: "erc", about: "ERC validation and analysis", wave: "A", run: Some(erc::run) },
+    CommandSpec { name: "drc", about: "Parse DRC report", wave: "A", run: Some(drc::run) },
     CommandSpec { name: "bom", about: "Generate bill of materials", wave: "B", run: Some(design::bom) },
-    CommandSpec { name: "check", about: "Pure Python DRC (no kicad-cli)", wave: "A", run: None },
+    CommandSpec { name: "check", about: "Pure Python DRC (no kicad-cli)", wave: "A", run: Some(check::run) },
     CommandSpec { name: "creepage", about: "HV creepage/clearance census (surface-path distance)", wave: "E", run: None },
     CommandSpec { name: "creepage-export-rules", about: "Export voltage-domain netclasses + pairwise HV clearance (rule) clauses so kicad-cli DRC enforces creepage (Issue #4508)", wave: "E", run: None },
     CommandSpec { name: "sch", about: "Schematic analysis tools", wave: "B", run: Some(design::sch) },
@@ -85,17 +97,16 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "validate", about: "Validation tools", wave: "B", run: Some(design::validate) },
     CommandSpec { name: "analyze", about: "PCB analysis tools", wave: "C", run: Some(analyze::run) },
     CommandSpec { name: "constraints", about: "Constraint conflict detection and management", wave: "E", run: None },
-    CommandSpec { name: "estimate", about: "Manufacturing cost estimation", wave: "C", run: None },
-    CommandSpec { name: "audit", about: "Manufacturing readiness audit (ERC, DRC, connectivity, compatibility)", wave: "C", run: None },
+    CommandSpec { name: "estimate", about: "Manufacturing cost estimation", wave: "C", run: Some(estimate::run) },
+    CommandSpec { name: "audit", about: "Manufacturing readiness audit (ERC, DRC, connectivity, compatibility)", wave: "C", run: Some(audit::audit) },
     CommandSpec { name: "suggest", about: "Part suggestions and recommendations", wave: "G", run: Some(suggest::run) },
-    CommandSpec { name: "net-status", about: "Report net connectivity status for a PCB", wave: "C", run: None },
-    CommandSpec { name: "fleet", about: "Fleet-wide PCB status and operations", wave: "C", run: None },
-    CommandSpec { name: "render", about: "Render per-board 2D SVGs + 3D PNGs into output/renders/", wave: "C", run: None },
-    CommandSpec { name: "board-metrics", about: "Emit a normalized board.json per board from existing artifacts", wave: "C", run: None },
-    CommandSpec { name: "readiness", about: "Run the manufacturing-readiness gates and write output/readiness.json", wave: "C", run: None },
+    CommandSpec { name: "net-status", about: "Report net connectivity status for a PCB", wave: "C", run: Some(net_status::run) },
+    CommandSpec { name: "fleet", about: "Fleet-wide PCB status and operations", wave: "C", run: Some(fleet::run) },
+    CommandSpec { name: "render", about: "Render per-board 2D SVGs + 3D PNGs into output/renders/", wave: "C", run: Some(render::run) },
+    CommandSpec { name: "board-metrics", about: "Emit a normalized board.json per board from existing artifacts", wave: "C", run: Some(board_metrics::run) },
+    CommandSpec { name: "readiness", about: "Run the manufacturing-readiness gates and write output/readiness.json", wave: "C", run: Some(audit::readiness) },
     CommandSpec { name: "clean", about: "Clean up old/orphaned files from KiCad projects", wave: "G", run: Some(utility::clean) },
     CommandSpec { name: "impedance", about: "Transmission line impedance calculations", wave: "E", run: Some(impedance::run) },
-    CommandSpec { name: "mcp", about: "MCP (Model Context Protocol) server for AI agents", wave: "H", run: Some(h::mcp) },
     CommandSpec { name: "ipc", about: "Interact with a running KiCad instance via IPC API (KiCad 9.0+)", wave: "H", run: Some(h::ipc) },
     CommandSpec { name: "init", about: "Initialize a KiCad project with manufacturer design rules", wave: "G", run: Some(project::init) },
     CommandSpec { name: "panel", about: "Create manufacturing panels from board PCBs", wave: "G", run: Some(fabrication::panel) },
@@ -112,8 +123,8 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "explain", about: "Explain design rules and DRC violations", wave: "A", run: None },
     CommandSpec { name: "detect-mistakes", about: "Detect common PCB design mistakes with educational explanations", wave: "A", run: None },
     CommandSpec { name: "calibrate", about: "Calibrate routing performance settings for your machine", wave: "F", run: None },
-    CommandSpec { name: "screenshot", about: "Capture a PNG screenshot of a KiCad board or schematic", wave: "C", run: None },
-    CommandSpec { name: "report", about: "Generate a Markdown design report", wave: "C", run: None },
+    CommandSpec { name: "screenshot", about: "Capture a PNG screenshot of a KiCad board or schematic", wave: "C", run: Some(screenshot::run) },
+    CommandSpec { name: "report", about: "Generate a Markdown design report", wave: "C", run: Some(report::run) },
     CommandSpec { name: "export", about: "Generate a complete manufacturing package (BOM, CPL, Gerbers, project ZIP, manifest)", wave: "G", run: Some(fabrication::export) },
     CommandSpec { name: "optim", about: "Placement / routing FOM tools (issue #3186)", wave: "E", run: None },
 ];

@@ -510,6 +510,7 @@ fn fiducial_footprint(x: f64, y: f64) -> SExp {
 }
 
 #[cfg(test)]
+#[allow(clippy::items_after_test_module)]
 mod panel_parity_tests {
     use super::*;
 

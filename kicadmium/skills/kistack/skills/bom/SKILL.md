@@ -6,8 +6,8 @@ description: Resolve and review exact PCB parts, packages, electrical ratings, a
 # Skill for part search, resolving BOM items
 
 Use either of the following MCPs for search:
-- https://pcbparts.dev/mcp
-- https://api.zenode.ai/mcp/
+- https://pcbparts.dev/
+- https://zenode.ai/
 
 If either of the MCPs are not installed, prompt the user to install at least one before proceeding.
 

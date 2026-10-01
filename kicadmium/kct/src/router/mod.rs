@@ -4,8 +4,12 @@
 //! C++ backend (`router/cpp/`, `cpp_backend.py`, `evaluators/cpp_astar.py`)
 //! is replaced by the native Rust pathfinder; there is no FFI.
 
+pub mod current_paths;
 pub mod geometry;
 pub mod layers;
+pub mod net_class;
+pub mod net_names;
 pub mod primitives;
 pub mod pyrandom;
 pub mod quantize;
+pub mod rules;

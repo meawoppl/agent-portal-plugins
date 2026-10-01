@@ -32,6 +32,9 @@ struct Args {
     hv_threshold: f64,
     #[arg(long = "dru-floor", default_value_t = 0.2)]
     dru_floor: f64,
+    /// Explicit destination `.kicad_dru`; required unless `--dry-run`.
+    #[arg(short, long, value_name = "DRU")]
+    output: Option<PathBuf>,
     #[arg(long)]
     dry_run: bool,
     #[arg(long, default_value = "text", value_parser = ["text", "json"])]
@@ -115,7 +118,20 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
         .pcb
         .clone()
         .unwrap_or_else(|| args.project.with_extension("kicad_pcb"));
-    let dru = args.project.with_extension("kicad_dru");
+    if !args.dry_run && args.output.is_none() {
+        bail!("creepage-export-rules writes design rules; pass --output (or use --dry-run)")
+    }
+    if args
+        .output
+        .as_ref()
+        .is_some_and(|path| path.extension().and_then(|s| s.to_str()) != Some("kicad_dru"))
+    {
+        bail!("--output must be a .kicad_dru file")
+    }
+    let dru = args
+        .output
+        .clone()
+        .unwrap_or_else(|| args.project.with_extension("kicad_dru"));
     let Some(map_path) = &args.voltage_map else {
         let document = serde_json::json!({"command":"creepage-export-rules","project":args.project,"pcb":pcb,"dru":dru,"voltage_map":null,"rules":[],"written":false,"skipped_reason":"no-voltage-map","success":true});
         if args.format == "json" {

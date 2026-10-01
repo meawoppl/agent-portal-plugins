@@ -10,7 +10,7 @@ use std::collections::BTreeSet;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use anyhow::{bail, Context, Result};
 use clap::Parser;
 
 use super::Globals;
@@ -119,6 +119,9 @@ struct Args {
     legacy_connectivity: bool,
     #[arg(long = "refill-zones")]
     refill_zones: bool,
+    /// Copy the board here, refill that copy, and lint the copy.
+    #[arg(long = "refill-output", value_name = "PCB", requires = "refill_zones")]
+    refill_output: Option<PathBuf>,
     #[arg(long, short = 'm', value_parser = clap::builder::PossibleValuesParser::new(mfr_ids()))]
     mfr: Option<String>,
     #[arg(long, short = 'l')]
@@ -472,8 +475,18 @@ fn warn_stale_zone_fills(violations: &[DRCViolation], pcb_path: &Path) {
     );
 }
 
-/// `run_refill_zones` (simplified: no net-table restoration).
-fn refill_zones_in_place(pcb_path: &Path) {
+/// Copy a board, refill zones in the copy, and return the path to lint.
+fn refill_zones_copy(pcb_path: &Path, output: &Path) -> Result<PathBuf> {
+    if pcb_path == output {
+        bail!("--refill-output must differ from the input board")
+    }
+    std::fs::copy(pcb_path, output).with_context(|| {
+        format!(
+            "copy {} to {} before zone refill",
+            pcb_path.display(),
+            output.display()
+        )
+    })?;
     let result = (|| -> std::result::Result<(), String> {
         let cli = super::runner::find_kicad_cli().ok_or_else(|| {
             "kicad-cli not found. Install KiCad 8 from https://www.kicad.org/download/".to_string()
@@ -488,14 +501,17 @@ fn refill_zones_in_place(pcb_path: &Path) {
                 t.contains("--refill-zones") && t.contains("--save-board")
             })
             .unwrap_or(false);
+        if !supports {
+            return Err(
+                "installed kicad-cli does not expose --refill-zones and --save-board".into(),
+            );
+        }
         let mut cmd = std::process::Command::new(&cli);
         cmd.args(["pcb", "drc", "--output"])
             .arg(&report)
             .args(["--format", "json"]);
-        if supports {
-            cmd.args(["--refill-zones", "--save-board"]);
-        }
-        cmd.arg(pcb_path);
+        cmd.args(["--refill-zones", "--save-board"]);
+        cmd.arg(output);
         let out = cmd
             .output()
             .map_err(|e| format!("kicad-cli not found: {e}"))?;
@@ -512,21 +528,9 @@ fn refill_zones_in_place(pcb_path: &Path) {
             })
         }
     })();
-    match result {
-        Ok(()) => eprintln!(
-            "[INFO] refilled zones in place via kicad-cli: {}",
-            pcb_path.display()
-        ),
-        Err(e) => {
-            let e = e.trim().to_string();
-            eprintln!(
-                "WARNING: --refill-zones requested but the refill did not run ({}); continuing \
-                 against the stored (possibly stale) zone fills.  Install KiCad 8+ so kicad-cli \
-                 is on PATH to enable the pre-check refill (issue #4096).",
-                if e.is_empty() { "unknown error" } else { &e }
-            )
-        }
-    }
+    result.map_err(anyhow::Error::msg)?;
+    eprintln!("[INFO] refilled zones in copy: {}", output.display());
+    Ok(output.to_path_buf())
 }
 
 // ------------------------------------------------------------ meta checks
@@ -1585,7 +1589,7 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
         eprintln!("Error: Path not found: {}", input_path.display());
         return Ok(1);
     }
-    let pcb_path = if input_path.is_dir() {
+    let mut pcb_path = if input_path.is_dir() {
         match find_pcb_file(&input_path) {
             Some(p) => p,
             None => {
@@ -1610,6 +1614,10 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
         input_path
     };
 
+    if args.refill_zones && args.refill_output.is_none() {
+        bail!("--refill-zones is a design edit; pass --refill-output")
+    }
+
     if args.netlist_sync {
         return crate::sync::drift::run_netlist_sync_gate(
             &pcb_path,
@@ -1618,7 +1626,12 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
         );
     }
     if args.refill_zones {
-        refill_zones_in_place(&pcb_path);
+        pcb_path = refill_zones_copy(
+            &pcb_path,
+            args.refill_output
+                .as_deref()
+                .context("--refill-zones requires --refill-output")?,
+        )?;
     }
     let pcb = match Pcb::load(&pcb_path) {
         Ok(p) => p,

@@ -1247,6 +1247,57 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
             )?;
             println!("repaired {count} symbol instance blocks");
         }
+        "disconnect" => {
+            let reference = opt(&words, "--ref")?;
+            let pin = opt(&words, "--pin")?;
+            let mut d = crate::Document::load(&path)?;
+            let (x, y) = pin_position(&d.root, reference, pin)?;
+            let before = d.root.children_named("wire").count();
+            d.root
+                .children
+                .retain(|n| !n.has_tag("wire") || !n.points().iter().any(|p| near(*p, (x, y))));
+            let removed = before - d.root.children_named("wire").count();
+            if has(&words, "--add-nc") {
+                d.root.push(SExp::list(
+                    "no_connect",
+                    [
+                        SExp::list("at", [SExp::atom(x), SExp::atom(y)]),
+                        SExp::pair("uuid", fresh_uuid()),
+                    ],
+                ));
+            }
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                has(&words, "--backup"),
+            )?;
+            println!("removed {removed} attached wires");
+        }
+        "reconnect-pin" => {
+            let reference = opt(&words, "--ref")?;
+            let pin = opt(&words, "--pin")?;
+            let net = opt(&words, "--to-net")?;
+            let mut d = crate::Document::load(&path)?;
+            let (x, y) = pin_position(&d.root, reference, pin)?;
+            d.root
+                .children
+                .retain(|n| !n.has_tag("wire") || !n.points().iter().any(|p| near(*p, (x, y))));
+            d.root.push(SExp::list(
+                "label",
+                [
+                    SExp::quoted(net),
+                    SExp::list("at", [SExp::atom(x), SExp::atom(y), SExp::atom(0)]),
+                    SExp::pair("uuid", fresh_uuid()),
+                ],
+            ));
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                has(&words, "--backup"),
+            )?;
+        }
         _ => bail!("unsupported sch subcommand {cmd}"),
     }
     Ok(0)
@@ -1269,6 +1320,38 @@ fn opt_optional<'a>(words: &'a [String], name: &str) -> Option<&'a str> {
         .windows(2)
         .find(|w| w[0] == name)
         .map(|w| w[1].as_str())
+}
+fn pin_position(root: &SExp, reference: &str, pin: &str) -> Result<(f64, f64)> {
+    let sym = root
+        .children_named("symbol")
+        .find(|s| s.property("Reference") == Some(reference))
+        .with_context(|| format!("symbol {reference} not found"))?;
+    let (sx, sy, rot) = sym.at().context("symbol has no position")?;
+    let id = sym
+        .child_str("lib_id")
+        .unwrap_or("")
+        .split(':')
+        .next_back()
+        .unwrap_or("");
+    let lib = root
+        .get("lib_symbols")
+        .and_then(|ls| {
+            ls.children_named("symbol").find(|s| {
+                s.string_at(0)
+                    .is_some_and(|n| n == id || n.ends_with(&format!(":{id}")))
+            })
+        })
+        .context("embedded library symbol not found")?;
+    let p = lib
+        .find_all("pin")
+        .find(|p| p.get("number").and_then(|n| n.string_at(0)) == Some(pin))
+        .with_context(|| format!("pin {pin} not found"))?;
+    let (px, py, _) = p.at().context("pin has no position")?;
+    let a = rot.to_radians();
+    Ok((
+        sx + px * a.cos() + py * a.sin(),
+        sy - px * a.sin() + py * a.cos(),
+    ))
 }
 fn multi_f64(words: &[String], name: &str, n: usize) -> Result<Vec<f64>> {
     let i = words

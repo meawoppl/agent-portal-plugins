@@ -4,6 +4,7 @@
 //! port uses wherever upstream interpolates values into user-facing text
 //! (`f"{value!r}"`), so messages stay byte-compatible with kicad-tools.
 
+pub mod pyfmt;
 pub mod pyrepr;
 pub mod scoring;
 

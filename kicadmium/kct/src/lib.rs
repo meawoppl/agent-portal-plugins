@@ -23,6 +23,7 @@ pub mod physics;
 pub mod progress;
 pub mod project;
 pub mod pyjson;
+pub mod router;
 pub mod schema;
 pub mod sexp;
 pub mod sidecars;

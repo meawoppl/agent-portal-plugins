@@ -14,6 +14,7 @@ use crate::units::{self, UnitFormatter};
 
 pub mod analyze;
 pub mod board_metrics;
+pub mod check;
 pub mod datasheet;
 pub mod design;
 pub mod drc;
@@ -63,7 +64,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "erc", about: "ERC validation and analysis", wave: "A", run: Some(erc::run) },
     CommandSpec { name: "drc", about: "Parse DRC report", wave: "A", run: Some(drc::run) },
     CommandSpec { name: "bom", about: "Generate bill of materials", wave: "B", run: Some(design::bom) },
-    CommandSpec { name: "check", about: "Pure Python DRC (no kicad-cli)", wave: "A", run: None },
+    CommandSpec { name: "check", about: "Pure Python DRC (no kicad-cli)", wave: "A", run: Some(check::run) },
     CommandSpec { name: "creepage", about: "HV creepage/clearance census (surface-path distance)", wave: "E", run: None },
     CommandSpec { name: "creepage-export-rules", about: "Export voltage-domain netclasses + pairwise HV clearance (rule) clauses so kicad-cli DRC enforces creepage (Issue #4508)", wave: "E", run: None },
     CommandSpec { name: "sch", about: "Schematic analysis tools", wave: "B", run: Some(design::sch) },

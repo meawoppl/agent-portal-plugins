@@ -4,6 +4,10 @@
 //! published upstream YAML and `.kicad_dru` presets are embedded so querying a
 //! profile never depends on a Python installation or runtime data directory.
 
+pub mod drc_sidecars;
+pub mod fabrication_overrides;
+pub mod fabrication_process;
+
 use std::collections::BTreeMap;
 
 use anyhow::{bail, Context, Result};

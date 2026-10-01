@@ -13,8 +13,17 @@ pub mod manufacturers;
 pub mod parts;
 pub mod physics;
 pub mod schema;
+pub mod config;
+pub mod core;
+pub mod exceptions;
+pub mod geometry;
+pub mod progress;
+pub mod project;
 pub mod sexp;
+pub mod sidecars;
+pub mod transaction;
 pub mod units;
+pub mod utils;
 
 pub use anyhow::{Error, Result};
 pub use sexp::{parse, parse_file, Document, SExp, Value};

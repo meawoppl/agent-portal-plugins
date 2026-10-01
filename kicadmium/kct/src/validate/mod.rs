@@ -8,6 +8,8 @@ pub mod ampacity_specs;
 pub mod checker;
 pub mod connectivity;
 pub mod consistency;
+pub mod diffpair_engagement;
+pub mod diffpair_skew;
 pub mod doc_drift;
 pub mod filters;
 pub mod manifest;

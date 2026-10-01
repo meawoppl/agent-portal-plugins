@@ -8,6 +8,7 @@ pub mod pyfmt;
 pub mod pyjsondecode;
 pub mod pymath;
 pub mod pyrepr;
+pub mod pyset;
 pub mod scoring;
 pub mod stdsort;
 

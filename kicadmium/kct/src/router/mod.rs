@@ -3,6 +3,7 @@
 
 pub mod current_paths;
 pub mod diffpair;
+pub mod diffpair_detection;
 pub mod net_class;
 pub mod net_names;
 pub mod preflight;

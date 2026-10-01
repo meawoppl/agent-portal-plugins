@@ -103,7 +103,7 @@ pub fn parse_differential_signal(net: &str) -> Option<(String, &'static str, &'s
     None
 }
 
-fn detect_pair_type(base: &str) -> DifferentialPairType {
+pub fn detect_pair_type(base: &str) -> DifferentialPairType {
     let u = base.to_uppercase();
     if u.contains("USB") {
         if u.contains("USB3") || u.contains("SS") {
@@ -174,19 +174,17 @@ pub fn detect_differential_pairs(net_names: &[(i64, String)]) -> Vec<Differentia
     pairs
 }
 
-/// `should_engage_coupled(pair, {net_name: NetClassRouting})`.
-pub fn should_engage_coupled(
+/// `should_engage_coupled(pair, net_class_routing, net_to_class)`, with the
+/// two-convention `_lookup_net_class` supplied as `lookup`.
+pub fn should_engage_coupled<'a>(
     pair: &DifferentialPair,
-    net_class_routing: Option<&[(String, NetClassRouting)]>,
+    lookup: impl Fn(&str) -> Option<&'a NetClassRouting>,
 ) -> (bool, &'static str) {
     let (p, n) = (&pair.positive.net_name, &pair.negative.net_name);
     if is_single_ended_refused(p) && is_single_ended_refused(n) {
         return (false, "single_ended_refusal");
     }
-    let look = |name: &str| {
-        net_class_routing.and_then(|m| m.iter().find(|(k, _)| k == name).map(|(_, v)| v))
-    };
-    let (pc, nc) = (look(p), look(n));
+    let (pc, nc) = (lookup(p), lookup(n));
     if pc.is_none() && nc.is_none() {
         return (false, "no_class_match");
     }

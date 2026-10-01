@@ -388,7 +388,7 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_diffpair_clearance_intra(&self) -> DRCResults {
-        let rule = rules::diffpair_clearance_intra::DiffPairClearanceIntraRule;
+        let rule = rules::diffpair_clearance_intra::DiffPairClearanceIntraRule::default();
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -416,7 +416,23 @@ impl<'a> DRCChecker<'a> {
         if self.net_class_map.is_none() {
             self.warn_inactive_skew_rule("diffpair_length_skew");
         }
-        let rule = rules::diffpair_length_skew::DiffPairLengthSkewRule;
+        let (skew, thresholds) = crate::validate::diffpair_skew::derive_skew_data(
+            self.pcb,
+            self.net_class_map.as_ref(),
+            Some(self.design_rules.board_thickness_mm),
+            self.layers,
+        );
+        let (engaged, _) = crate::validate::diffpair_engagement::derive_engagement_state(
+            self.pcb,
+            self.net_class_map.as_ref(),
+        );
+        let rule = rules::diffpair_length_skew::DiffPairLengthSkewRule::new(
+            skew,
+            engaged.iter().copied().collect(),
+            thresholds,
+            rules::diffpair_length_skew::DEFAULT_SKEW_TOLERANCE_MM,
+            self.emit_skew_info,
+        );
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -424,7 +440,15 @@ impl<'a> DRCChecker<'a> {
         if self.net_class_map.is_none() {
             self.warn_inactive_skew_rule("diffpair_routing_continuity");
         }
-        let rule = rules::diffpair_routing_continuity::DiffPairRoutingContinuityRule;
+        let (engaged, thresholds) = crate::validate::diffpair_engagement::derive_engagement_state(
+            self.pcb,
+            self.net_class_map.as_ref(),
+        );
+        let rule = rules::diffpair_routing_continuity::DiffPairRoutingContinuityRule::new(
+            &engaged,
+            thresholds,
+            self.emit_skew_info,
+        );
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 

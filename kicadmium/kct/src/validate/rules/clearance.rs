@@ -390,7 +390,7 @@ fn calculate_clearance(e1: &CopperElement, e2: &CopperElement) -> (f64, f64, f64
     }
 }
 
-fn segment_segment_clearance(a: &CopperElement, b: &CopperElement) -> (f64, f64, f64) {
+pub(crate) fn segment_segment_clearance(a: &CopperElement, b: &CopperElement) -> (f64, f64, f64) {
     let g = &a.geometry;
     let h = &b.geometry;
     let center = segment_to_segment_distance(g[0], g[1], g[2], g[3], h[0], h[1], h[2], h[3]);

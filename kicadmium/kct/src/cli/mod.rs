@@ -16,6 +16,7 @@ pub mod datasheet;
 pub mod design;
 pub mod fabrication;
 pub mod footprint;
+pub mod h;
 pub mod mfr;
 pub mod parts;
 pub mod project;
@@ -61,7 +62,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "stitch", about: "Auto-add stitching vias for plane connections", wave: "E", run: None },
     CommandSpec { name: "route", about: "Autoroute a PCB", wave: "F", run: None },
     CommandSpec { name: "route-auto", about: "Route a net using RoutingOrchestrator smart strategy selection", wave: "F", run: None },
-    CommandSpec { name: "reason", about: "LLM-driven PCB layout reasoning", wave: "H", run: None },
+    CommandSpec { name: "reason", about: "LLM-driven PCB layout reasoning", wave: "H", run: Some(h::reason) },
     CommandSpec { name: "optimize-traces", about: "Optimize PCB traces", wave: "D", run: None },
     CommandSpec { name: "validate-footprints", about: "Validate footprints for pad spacing issues", wave: "D", run: None },
     CommandSpec { name: "fix-footprints", about: "Fix footprint pad spacing issues", wave: "D", run: None },
@@ -77,7 +78,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "placement", about: "Detect and fix placement conflicts", wave: "E", run: None },
     CommandSpec { name: "optimize-placement", about: "Run CMA-ES placement optimization on a KiCad PCB", wave: "E", run: None },
     CommandSpec { name: "config", about: "View and manage configuration", wave: "G", run: Some(utility::config) },
-    CommandSpec { name: "interactive", about: "Launch interactive REPL mode", wave: "H", run: None },
+    CommandSpec { name: "interactive", about: "Launch interactive REPL mode", wave: "H", run: Some(h::interactive) },
     CommandSpec { name: "validate", about: "Validation tools", wave: "B", run: Some(design::validate) },
     CommandSpec { name: "analyze", about: "PCB analysis tools", wave: "C", run: None },
     CommandSpec { name: "constraints", about: "Constraint conflict detection and management", wave: "E", run: None },
@@ -91,8 +92,8 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "readiness", about: "Run the manufacturing-readiness gates and write output/readiness.json", wave: "C", run: None },
     CommandSpec { name: "clean", about: "Clean up old/orphaned files from KiCad projects", wave: "G", run: Some(utility::clean) },
     CommandSpec { name: "impedance", about: "Transmission line impedance calculations", wave: "E", run: None },
-    CommandSpec { name: "mcp", about: "MCP (Model Context Protocol) server for AI agents", wave: "H", run: None },
-    CommandSpec { name: "ipc", about: "Interact with a running KiCad instance via IPC API (KiCad 9.0+)", wave: "H", run: None },
+    CommandSpec { name: "mcp", about: "MCP (Model Context Protocol) server for AI agents", wave: "H", run: Some(h::mcp) },
+    CommandSpec { name: "ipc", about: "Interact with a running KiCad instance via IPC API (KiCad 9.0+)", wave: "H", run: Some(h::ipc) },
     CommandSpec { name: "init", about: "Initialize a KiCad project with manufacturer design rules", wave: "G", run: Some(project::init) },
     CommandSpec { name: "panel", about: "Create manufacturing panels from board PCBs", wave: "G", run: Some(fabrication::panel) },
     CommandSpec { name: "pipeline", about: "End-to-end repair pipeline for existing PCBs", wave: "G", run: Some(workflow::pipeline) },
@@ -104,7 +105,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "benchmark", about: "Run routing benchmarks and regression tests", wave: "F", run: None },
     CommandSpec { name: "bench", about: "Run external DeepPCB-comparable board benchmarks", wave: "F", run: None },
     CommandSpec { name: "sync", about: "Reconcile schematic and PCB references", wave: "B", run: Some(design::sync) },
-    CommandSpec { name: "run", about: "Run a Python script using the kicad-tools interpreter", wave: "H", run: None },
+    CommandSpec { name: "run", about: "Run a native kct JSON/YAML automation workflow", wave: "H", run: Some(h::run) },
     CommandSpec { name: "explain", about: "Explain design rules and DRC violations", wave: "A", run: None },
     CommandSpec { name: "detect-mistakes", about: "Detect common PCB design mistakes with educational explanations", wave: "A", run: None },
     CommandSpec { name: "calibrate", about: "Calibrate routing performance settings for your machine", wave: "F", run: None },

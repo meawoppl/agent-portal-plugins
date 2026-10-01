@@ -55,6 +55,7 @@ pub struct RouteParams {
     pub verbose: bool,
     pub quiet: bool,
     pub json: bool,
+    pub reserve_planes: bool,
 }
 
 /// Board-declared Default net class (from the sibling `.kicad_pro`).
@@ -170,6 +171,7 @@ fn resolve_params(ns: &Namespace, g: &Globals) -> Result<RouteParams, (i32, Stri
         verbose: ns.flag("verbose") || g.verbose,
         quiet,
         json: ns.get("format") == Some("json"),
+        reserve_planes: ns.flag("reserve_plane_layers"),
     })
 }
 
@@ -202,7 +204,7 @@ fn min_pad_pitch(board: &BoardData) -> f64 {
     }
     let mut best = f64::MAX;
     for pts in by_ref.values() {
-        if pts.len() > 64 {
+        if pts.len() > 600 {
             continue;
         }
         for i in 0..pts.len() {
@@ -308,6 +310,48 @@ fn make_config(p: &RouteParams, layers: usize, grid: f64, skip: &HashSet<String>
     }
 }
 
+/// Per-attempt pour handling: inner-layer pours become reserved planes
+/// (pads reach them by via), outer-layer pours are routed last as traces.
+struct PourPlan {
+    planes: Vec<(String, String)>,
+    late: HashSet<String>,
+}
+
+fn pour_plan(
+    p: &RouteParams,
+    pcb: &Pcb,
+    layers: usize,
+    pour_nets: &[String],
+    skip: &HashSet<String>,
+) -> Result<PourPlan> {
+    let board = load_pcb_for_routing(pcb, layers)?;
+    let mut planes = Vec::new();
+    let mut late = HashSet::new();
+    let inner = |l: &str| l != "F.Cu" && l != "B.Cu";
+    for (net, layer) in pour_assignments(&board, layers) {
+        if !pour_nets.contains(&net) {
+            continue;
+        }
+        if inner(&layer) && p.reserve_planes {
+            planes.push((net, layer));
+        } else {
+            late.insert(net);
+        }
+    }
+    // Existing zones: inner-layer zones of routed nets act as planes.
+    for (net, layer) in &board.zone_layers {
+        if skip.contains(net) || planes.iter().any(|(n, _)| n == net) {
+            continue;
+        }
+        if inner(layer) && p.reserve_planes && !planes.iter().any(|(_, l)| l == layer) {
+            planes.push((net.clone(), layer.clone()));
+        } else {
+            late.insert(net.clone());
+        }
+    }
+    Ok(PourPlan { planes, late })
+}
+
 fn run_attempt(
     p: &RouteParams,
     pcb: &Pcb,
@@ -315,6 +359,7 @@ fn run_attempt(
     grid: f64,
     skip: &HashSet<String>,
     late: &HashSet<String>,
+    planes: &[(String, String)],
 ) -> Result<Attempt> {
     let board = load_pcb_for_routing(pcb, layers)?;
     let mut board = board;
@@ -325,7 +370,8 @@ fn run_attempt(
             skip.contains(&name)
         });
     }
-    let cfg = make_config(p, layers, grid, skip, late);
+    let mut cfg = make_config(p, layers, grid, skip, late);
+    cfg.plane_layers = planes.to_vec();
     let mut router = Autorouter::new(board, cfg);
     if !p.quiet {
         println!(
@@ -543,45 +589,21 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
         }
     }
     let start_layers = p.layers.unwrap_or(detected_layers).min(p.max_layers.max(2));
-    // Auto-pour plane nets.
-    let mut late: HashSet<String> = HashSet::new();
+    // Auto-pour plane nets (zones are created for the winning layer count).
     let board0 = load_pcb_for_routing(&pcb, start_layers)?;
-    let mut pour_skipped: Vec<String> = Vec::new();
-    let mut zone_text: Vec<String> = Vec::new();
+    let mut pour_nets: Vec<String> = Vec::new();
     if p.auto_pour && p.only_nets.is_none() {
-        let assigns = pour_assignments(&board0, start_layers);
-        let mut created = Vec::new();
-        for (net, layer) in &assigns {
-            if board0.zone_nets.contains(net) || skip.contains(net) {
-                continue;
-            }
-            let uuid = uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_OID, format!("{net}:{layer}").as_bytes())
-                .to_string();
-            zone_text.push(zone_sexp(net, layer, board0.bounds, p.edge_clearance, &uuid));
-            created.push(net.clone());
-            if pour_connects_all(&board0, net, layer) {
-                pour_skipped.push(net.clone());
-            } else {
-                late.insert(net.clone());
+        for (net, _) in pour_assignments(&board0, start_layers) {
+            if !board0.zone_nets.contains(&net) && !skip.contains(&net) {
+                pour_nets.push(net);
             }
         }
-        if !created.is_empty() && !quiet {
+        if !pour_nets.is_empty() && !quiet {
             println!(
                 "Auto-pour: created {} zone(s) for {}",
-                created.len(),
-                created.join(", ")
+                pour_nets.len(),
+                pour_nets.join(", ")
             );
-        }
-        for (net, _) in &assigns {
-            if board0.zone_nets.contains(net) && pour_connects_all(&board0, net, &assigns.iter().find(|a| &a.0 == net).unwrap().1) {
-                pour_skipped.push(net.clone());
-            }
-        }
-        if !pour_skipped.is_empty() && !quiet {
-            println!("Auto-skip: {} (pour nets — use zone fill)", pour_skipped.join(", "));
-        }
-        for n in &pour_skipped {
-            skip.insert(n.clone());
         }
     }
     let (bw, bh) = (board0.bounds.2 - board0.bounds.0, board0.bounds.3 - board0.bounds.1);
@@ -634,7 +656,12 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
             println!("Attempt {}: {layers} layers", k + 1);
             println!("{}", "=".repeat(60));
         }
-        let attempt = run_attempt(p, &pcb, layers, grid, &skip, &late)?;
+        let plan = pour_plan(p, &pcb, layers, &pour_nets, &skip)?;
+        if !quiet && !plan.planes.is_empty() {
+            let desc: Vec<String> = plan.planes.iter().map(|(n, l)| format!("{n} on {l}")).collect();
+            println!("  Plane layers (reserved): {}", desc.join(", "));
+        }
+        let attempt = run_attempt(p, &pcb, layers, grid, &skip, &plan.late, &plan.planes)?;
         if !quiet {
             println!(
                 "\n  Routed: {}/{} nets ({:.0}%)",
@@ -704,6 +731,16 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
             }
         }
     }
+    let board_best = load_pcb_for_routing(&pcb, best.layers)?;
+    let zone_text: Vec<String> = pour_assignments(&board_best, best.layers)
+        .into_iter()
+        .filter(|(n, _)| pour_nets.contains(n))
+        .map(|(net, layer)| {
+            let uuid = uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_OID, format!("{net}:{layer}").as_bytes())
+                .to_string();
+            zone_sexp(&net, &layer, board_best.bounds, p.edge_clearance, &uuid)
+        })
+        .collect();
     if !zone_text.is_empty() {
         for z in &zone_text {
             let node = crate::sexp::parse(z)?;
@@ -875,6 +912,7 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         verbose: ns.flag("verbose") || g.verbose,
         quiet: true,
         json: false,
+        reserve_planes: true,
     };
     if !as_json {
         println!("Routing {} net(s) in {} (strategy: {strategy})", targets.len(), pcb_path.display());
@@ -895,7 +933,7 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
     let grid = auto_grid(bw, bh, params.clearance, params.max_cells, min_pad_pitch(&board) < 0.65);
     let skip: HashSet<String> = names.iter().filter(|n| !targets.contains(n)).cloned().collect();
     // Existing copper of the target nets is kept as same-net fixed copper.
-    let attempt = run_attempt(&params, &pcb, detected, grid, &skip, &HashSet::new())?;
+    let attempt = run_attempt(&params, &pcb, detected, grid, &skip, &HashSet::new(), &[])?;
     let routes = attempt.router.routes();
     merge_routes_into_pcb(&pcb_path, &output, &routes, &[], detected)?;
     let mut entries = Vec::new();

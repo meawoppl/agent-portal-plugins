@@ -106,6 +106,9 @@ pub struct RoutingGrid {
     pub history: Vec<f32>,
     /// Cells where vias are not allowed (in addition to owner checks).
     pub no_via: Vec<bool>,
+    /// Committed/pending via holes whose drill keep-out covers the cell
+    /// (hole-to-hole spacing, any net).
+    pub via_block: Vec<u16>,
 }
 
 impl RoutingGrid {
@@ -125,6 +128,7 @@ impl RoutingGrid {
             dynamic: vec![Vec::new(); n],
             history: vec![0.0; n],
             no_via: vec![false; cols * rows],
+            via_block: vec![0; cols * rows],
         }
     }
 
@@ -319,6 +323,21 @@ impl RoutingGrid {
             }
         }
         out
+    }
+
+    /// Add (`delta` = +1) or remove (-1) a via hole keep-out disc.
+    pub fn block_via_hole(&mut self, x: f64, y: f64, radius: f64, delta: i32) {
+        let (x0, y0, x1, y1) = self.cell_range((x, y, x, y), radius + self.resolution);
+        for gy in y0..=y1 {
+            for gx in x0..=x1 {
+                let (wx, wy) = self.grid_to_world(gx, gy);
+                if (wx - x).hypot(wy - y) < radius {
+                    let i = self.xy_idx(gx, gy);
+                    let v = self.via_block[i] as i32 + delta;
+                    self.via_block[i] = v.max(0) as u16;
+                }
+            }
+        }
     }
 
     /// Disc offsets (dx, dy) with centre distance < radius (in cells).

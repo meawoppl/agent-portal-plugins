@@ -79,6 +79,8 @@ pub struct BoardData {
     pub name_only: bool,
     /// Names of nets that own a zone on the board.
     pub zone_nets: HashSet<String>,
+    /// (net name, layer) of every copper zone on the board.
+    pub zone_layers: Vec<(String, String)>,
 }
 
 fn pad_shape(p: &crate::schema::pcb::Pad, cx: f64, cy: f64) -> PadShape {
@@ -273,6 +275,7 @@ pub fn load_pcb_for_routing(pcb: &Pcb, n_layers: usize) -> Result<BoardData> {
     }
     let mut keepouts = Vec::new();
     let mut zone_nets = HashSet::new();
+    let mut zone_layers = Vec::new();
     for z in pcb.zones() {
         if let Some(k) = &z.keepout {
             let mut layers = z.layers.clone();
@@ -287,6 +290,13 @@ pub fn load_pcb_for_routing(pcb: &Pcb, n_layers: usize) -> Result<BoardData> {
             });
         } else if !z.net_name.is_empty() {
             zone_nets.insert(z.net_name.clone());
+            let mut layers = z.layers.clone();
+            if layers.is_empty() && !z.layer.is_empty() {
+                layers.push(z.layer.clone());
+            }
+            for l in copper_layers_for(&layers, &stack) {
+                zone_layers.push((z.net_name.clone(), l));
+            }
         }
     }
     Ok(BoardData {
@@ -299,6 +309,7 @@ pub fn load_pcb_for_routing(pcb: &Pcb, n_layers: usize) -> Result<BoardData> {
         copper_layer_count: detect_layer_count(pcb),
         name_only: pcb.net_name_only_dialect(),
         zone_nets,
+        zone_layers,
     })
 }
 

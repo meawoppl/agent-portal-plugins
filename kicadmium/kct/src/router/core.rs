@@ -39,6 +39,9 @@ pub struct RouterConfig {
     pub net_widths: HashMap<String, f64>,
     /// Allowed layer names (None = all).
     pub allowed_layers: Option<Vec<String>>,
+    /// Reserved plane layers: (net name, inner layer name). Only the plane
+    /// net reaches them (through vias); signals never route there.
+    pub plane_layers: Vec<(String, String)>,
     pub verbose: bool,
     pub quiet: bool,
 }
@@ -61,6 +64,7 @@ impl Default for RouterConfig {
             late_nets: HashSet::new(),
             net_widths: HashMap::new(),
             allowed_layers: None,
+            plane_layers: Vec::new(),
             verbose: false,
             quiet: false,
         }
@@ -132,6 +136,8 @@ pub struct Autorouter {
 }
 
 const HALO_MARGIN_CELLS: f64 = 0.3;
+/// Minimum drill-to-drill edge spacing (mm) enforced between vias and holes.
+const MIN_HOLE_TO_HOLE: f64 = 0.5;
 
 impl Autorouter {
     /// Build the grid and obstacle maps for `board`.
@@ -222,11 +228,26 @@ impl Autorouter {
                 continue;
             }
             let owner = if net > 0 { net } else { BLOCKED };
-            self.grid.add_shape_halo(&bp.shape, &layers, owner, c + w / 2.0);
+            // Margin covers the clearance dip of diagonal moves between cell
+            // centres passing a pad corner.
+            self.grid
+                .add_shape_halo(&bp.shape, &layers, owner, c + w / 2.0 + 0.25 * g);
             if bp.hole > 0.0 {
-                // Plated hole: keep vias of any net away from the drill.
-                let hole = PadShape::circle(bp.shape.cx, bp.shape.cy, bp.hole / 2.0);
-                let _ = hole;
+                // Plated hole: keep via drills hole-to-hole clear of it.
+                let r = bp.hole / 2.0 + self.config.via_drill / 2.0 + 0.25;
+                let (x0, y0, x1, y1) = self.grid.cell_range(
+                    (bp.shape.cx, bp.shape.cy, bp.shape.cx, bp.shape.cy),
+                    r + g,
+                );
+                for y in y0..=y1 {
+                    for x in x0..=x1 {
+                        let (wx, wy) = self.grid.grid_to_world(x, y);
+                        if (wx - bp.shape.cx).hypot(wy - bp.shape.cy) < r {
+                            let i = self.grid.xy_idx(x, y);
+                            self.grid.no_via[i] = true;
+                        }
+                    }
+                }
             }
             // No vias inside SMD pads (via-in-pad needs fab support).
             if !bp.pad.through_hole {
@@ -281,6 +302,8 @@ impl Autorouter {
                 FixedCopper::Via { at, diameter, .. } => {
                     let shape = PadShape::circle(at.0, at.1, diameter / 2.0);
                     self.grid.add_shape_halo(&shape, &all, owner, c + w / 2.0);
+                    let r = self.config.via_drill + MIN_HOLE_TO_HOLE;
+                    self.grid.block_via_hole(at.0, at.1, r, 1);
                 }
             }
         }
@@ -352,6 +375,33 @@ impl Autorouter {
             .collect()
     }
 
+    /// Reserved plane layer indices with their net names.
+    fn plane_layer_indices(&self) -> Vec<(String, usize)> {
+        self.config
+            .plane_layers
+            .iter()
+            .filter_map(|(n, l)| self.layer_index(l).map(|i| (n.clone(), i)))
+            .collect()
+    }
+
+    /// Layers a net's traces may use (reserved plane layers excluded).
+    fn net_layers(&self, _net: i64) -> Vec<usize> {
+        let planes = self.plane_layer_indices();
+        self.allowed_layers()
+            .into_iter()
+            .filter(|l| !planes.iter().any(|(_, pl)| pl == l))
+            .collect()
+    }
+
+    /// Plane layer reserved for `net`, if any.
+    fn plane_for(&self, net: i64) -> Option<usize> {
+        let name = self.board.nets.get(&net)?;
+        self.plane_layer_indices()
+            .into_iter()
+            .find(|(n, _)| n == name)
+            .map(|(_, l)| l)
+    }
+
     fn cell_xy(&self, i: usize) -> (usize, usize, usize) {
         let per = self.grid.cols * self.grid.rows;
         let l = i / per;
@@ -402,6 +452,13 @@ impl Autorouter {
     /// back to the main tree (so partial routes keep as much copper as
     /// possible). `connected_pads` counts the pads of the largest component.
     fn route_net(&mut self, net: i64, present: Option<f64>) -> NetResult {
+        let res = self.route_net_inner(net, present);
+        // Pending via keep-outs were added while routing; `commit` re-adds them.
+        self.block_route_vias(&res.route, -1);
+        res
+    }
+
+    fn route_net_inner(&mut self, net: i64, present: Option<f64>) -> NetResult {
         let pads = self.net_pads.get(&net).cloned().unwrap_or_default();
         let name = self.board.nets.get(&net).cloned().unwrap_or_default();
         let mut res = NetResult {
@@ -415,6 +472,9 @@ impl Autorouter {
             return res;
         }
         let w = self.width_for(net);
+        if let Some(plane) = self.plane_for(net) {
+            return self.route_to_plane(res, &pads, plane, w, present);
+        }
         // Start from the pad closest to the net centroid.
         let (mut sx, mut sy) = (0.0, 0.0);
         for &p in &pads {
@@ -482,6 +542,72 @@ impl Autorouter {
         res
     }
 
+    /// Plane net: connect every pad to its reserved plane layer with a short
+    /// fan-out trace and a via (the zone fill carries the net).
+    fn route_to_plane(
+        &mut self,
+        mut res: NetResult,
+        pads: &[usize],
+        plane: usize,
+        w: f64,
+        present: Option<f64>,
+    ) -> NetResult {
+        let net32 = res.net as i32;
+        let mut connected = 0;
+        for &p in pads {
+            let bp = &self.board.pads[p];
+            if bp.copper.iter().any(|l| self.layer_index(l) == Some(plane)) {
+                connected += 1;
+                continue;
+            }
+            let src = self.pad_cells(p);
+            if src.is_empty() {
+                continue;
+            }
+            let pad_layers: Vec<usize> = bp
+                .copper
+                .iter()
+                .filter_map(|l| self.layer_index(l))
+                .collect();
+            let mut found = None;
+            for radius in [2.0, 5.0] {
+                let bb = self.board.pads[p].shape.bbox();
+                let (x0, y0, x1, y1) = self.grid.cell_range(bb, radius);
+                let mut targets = Vec::new();
+                for y in y0..=y1 {
+                    for x in x0..=x1 {
+                        let i = self.grid.idx(plane, x, y);
+                        if self.grid.static_ok(i, net32) {
+                            targets.push(i);
+                        }
+                    }
+                }
+                let mut layers = pad_layers.clone();
+                layers.push(plane);
+                if let Some(path) = self.search_layers(res.net, &src, &targets, present, layers) {
+                    found = Some(path);
+                    break;
+                }
+            }
+            if let Some(path) = found {
+                self.emit_path(&mut res, &path, w, Some(p), None);
+                connected += 1;
+            } else if std::env::var_os("KCT_ROUTE_DEBUG").is_some() {
+                let bp = &self.board.pads[p];
+                eprintln!(
+                    "debug: plane net {} pad {}.{} cannot reach plane layer {plane} ({} src cells, {} expansions)",
+                    res.name,
+                    bp.pad.r#ref,
+                    bp.pad.pin,
+                    src.len(),
+                    self.pf.last.expansions
+                );
+            }
+        }
+        res.connected_pads = connected;
+        res
+    }
+
     fn new_component(&self, pad: usize) -> Component {
         let cells = self.pad_cells(pad);
         Component {
@@ -499,7 +625,18 @@ impl Autorouter {
         targets: &[usize],
         present: Option<f64>,
     ) -> Option<Vec<usize>> {
-        let allowed = self.allowed_layers();
+        let allowed = self.net_layers(net);
+        self.search_layers(net, sources, targets, present, allowed)
+    }
+
+    fn search_layers(
+        &mut self,
+        net: i64,
+        sources: &[usize],
+        targets: &[usize],
+        present: Option<f64>,
+        allowed: Vec<usize>,
+    ) -> Option<Vec<usize>> {
         let inner: Vec<usize> = (1..self.grid.num_layers.saturating_sub(1)).collect();
         let via_disc = std::mem::take(&mut self.via_disc);
         let window = self.search_window(sources, targets, 40);
@@ -633,8 +770,19 @@ impl Autorouter {
     }
 
     /// Convert a cell path into segments/vias appended to `res`.
+    fn via_hole_radius(&self) -> f64 {
+        self.config.via_drill + MIN_HOLE_TO_HOLE
+    }
+
+    fn block_route_vias(&mut self, route: &Route, delta: i32) {
+        let r = self.via_hole_radius();
+        for v in &route.vias {
+            self.grid.block_via_hole(v.x, v.y, r, delta);
+        }
+    }
+
     fn emit_path(
-        &self,
+        &mut self,
         res: &mut NetResult,
         path: &[usize],
         width: f64,
@@ -645,6 +793,7 @@ impl Autorouter {
         let layer_of = |l: usize| -> Layer {
             Layer::from_name(&self.layer_names[l]).unwrap_or(Layer::FCu)
         };
+        let mut pending: Vec<(f64, f64)> = Vec::new();
         // Split into same-layer runs.
         let mut runs: Vec<(usize, Vec<(f64, f64)>)> = Vec::new();
         for &c in path {
@@ -671,6 +820,7 @@ impl Autorouter {
                         );
                         res.route.vias.push(via);
                         res.via_cells.push(self.grid.world_to_grid(at.0, at.1));
+                        pending.push(at);
                     }
                     runs.push((l, vec![p]));
                 }
@@ -696,6 +846,10 @@ impl Autorouter {
             }
         }
         let _ = n_runs;
+        let r = self.via_hole_radius();
+        for at in pending {
+            self.grid.block_via_hole(at.0, at.1, r, 1);
+        }
         for (l, pts) in runs {
             let pts = simplify(&pts);
             for win in pts.windows(2) {
@@ -771,11 +925,13 @@ impl Autorouter {
 
     fn rip(&mut self, net: i64) {
         if let Some(old) = self.results.remove(&net) {
+            self.block_route_vias(&old.route, -1);
             self.unmark(&old);
         }
     }
 
     fn commit(&mut self, mut res: NetResult) {
+        self.block_route_vias(&res.route, 1);
         self.mark(&mut res);
         self.results.insert(res.net, res);
     }
@@ -1022,6 +1178,12 @@ impl Autorouter {
                     }
                     let d = seg_seg_distance(a.a, a.b, b.a, b.b) - a.r - b.r;
                     if d < c {
+                        if std::env::var_os("KCT_ROUTE_DEBUG").is_some() {
+                            eprintln!(
+                                "debug: exact: net {} {:?}-{:?} vs net {} {:?}-{:?} (d={d:.4})",
+                                a.net, a.a, a.b, b.net, b.a, b.b
+                            );
+                        }
                         bad.insert(a.net.max(b.net));
                     }
                 }
@@ -1053,6 +1215,12 @@ impl Autorouter {
                         }
                         let d = shape_segment_distance(&bp.shape, it.a, it.b) - it.r;
                         if d < c {
+                            if std::env::var_os("KCT_ROUTE_DEBUG").is_some() {
+                                eprintln!(
+                                    "debug: exact: net {} item {:?}-{:?} r={} layer={:?} too close to pad {}.{} (d={d:.4})",
+                                    it.net, it.a, it.b, it.r, it.layer, bp.pad.r#ref, bp.pad.pin
+                                );
+                            }
                             bad.insert(it.net);
                         }
                     }

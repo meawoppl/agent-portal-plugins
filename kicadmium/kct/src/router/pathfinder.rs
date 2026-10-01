@@ -159,7 +159,8 @@ impl Pathfinder {
     /// Whether a through via for `net` may sit at (x, y); returns its
     /// congestion cost.
     fn via_cost(&self, grid: &RoutingGrid, x: usize, y: usize, req: &SearchRequest) -> Option<f64> {
-        if grid.no_via[grid.xy_idx(x, y)] {
+        let xy = grid.xy_idx(x, y);
+        if grid.no_via[xy] || grid.via_block[xy] > 0 {
             return None;
         }
         let mut extra = 0.0;

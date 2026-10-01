@@ -1490,6 +1490,87 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
                 has(&words, "--backup"),
             )?;
         }
+        "insert-inline" => {
+            let lib_id = opt(&words, "--lib-id")?;
+            let mut d = crate::Document::load(&path)?;
+            ensure_embedded(&d.root, lib_id)?;
+            let from = if has(&words, "--from") {
+                let v = multi_f64(&words, "--from", 2)?;
+                (v[0], v[1])
+            } else {
+                let n = multi_f64(&words, "--near", 2)?;
+                let near = (n[0], n[1]);
+                d.root
+                    .children_named("wire")
+                    .filter_map(|w| {
+                        let p = w.points();
+                        (p.len() >= 2).then(|| {
+                            let a = p[0];
+                            let b = p[p.len() - 1];
+                            let dist = point_segment_distance(near, a, b);
+                            (dist, a)
+                        })
+                    })
+                    .min_by(|a, b| a.0.total_cmp(&b.0))
+                    .map(|x| x.1)
+                    .context("no wire found")?
+            };
+            let to = if has(&words, "--to") {
+                let v = multi_f64(&words, "--to", 2)?;
+                (v[0], v[1])
+            } else {
+                let wire = d
+                    .root
+                    .children_named("wire")
+                    .find(|w| w.points().first().is_some_and(|p| near(*p, from)))
+                    .context("wire not found")?;
+                *wire.points().last().unwrap()
+            };
+            let index = d
+                .root
+                .children
+                .iter()
+                .position(|w| {
+                    w.has_tag("wire") && {
+                        let p = w.points();
+                        p.len() >= 2
+                            && ((near(p[0], from) && near(p[p.len() - 1], to))
+                                || (near(p[0], to) && near(p[p.len() - 1], from)))
+                    }
+                })
+                .context("target wire not found")?;
+            d.root.children.remove(index);
+            let reference = opt_optional(&words, "--reference")
+                .map(str::to_owned)
+                .unwrap_or_else(|| next_reference(&d.root, lib_id));
+            let value = opt_optional(&words, "--value").unwrap_or("");
+            let footprint = opt_optional(&words, "--footprint").unwrap_or("");
+            let x = (from.0 + to.0) / 2.0;
+            let y = (from.1 + to.1) / 2.0;
+            let rotation = opt_optional(&words, "--rotation")
+                .map(str::parse)
+                .transpose()?
+                .unwrap_or(if (to.1 - from.1).abs() > (to.0 - from.0).abs() {
+                    90.0
+                } else {
+                    0.0
+                });
+            d.root.push(component_node(
+                lib_id, &reference, value, footprint, x, y, rotation,
+            ));
+            let pin_a = opt_optional(&words, "--pin-a").unwrap_or("1");
+            let pin_b = opt_optional(&words, "--pin-b").unwrap_or("2");
+            let a = pin_position(&d.root, &reference, pin_a)?;
+            let b = pin_position(&d.root, &reference, pin_b)?;
+            d.root.push(wire_node(from, a));
+            d.root.push(wire_node(b, to));
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                has(&words, "--backup"),
+            )?;
+        }
         _ => bail!("unsupported sch subcommand {cmd}"),
     }
     Ok(0)
@@ -1657,6 +1738,15 @@ fn wire_node(a: (f64, f64), b: (f64, f64)) -> SExp {
             SExp::pair("uuid", fresh_uuid()),
         ],
     )
+}
+fn point_segment_distance(p: (f64, f64), a: (f64, f64), b: (f64, f64)) -> f64 {
+    let dx = b.0 - a.0;
+    let dy = b.1 - a.1;
+    if dx == 0.0 && dy == 0.0 {
+        return ((p.0 - a.0).powi(2) + (p.1 - a.1).powi(2)).sqrt();
+    }
+    let t = (((p.0 - a.0) * dx + (p.1 - a.1) * dy) / (dx * dx + dy * dy)).clamp(0.0, 1.0);
+    ((p.0 - (a.0 + t * dx)).powi(2) + (p.1 - (a.1 + t * dy)).powi(2)).sqrt()
 }
 fn duplicate_strings<'a>(it: impl Iterator<Item = &'a str>) -> Vec<String> {
     let mut seen = BTreeSet::new();

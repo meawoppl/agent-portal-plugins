@@ -28,12 +28,12 @@ pub mod erc;
 pub mod estimate;
 pub mod explain;
 pub mod fabrication;
+pub mod fix_erc;
 pub mod fix_silkscreen;
 pub mod fix_vias;
 pub mod fleet;
 pub mod footprint;
 pub mod footprint_validation;
-pub mod fix_erc;
 pub mod h;
 pub mod impedance;
 pub mod mfr;
@@ -42,8 +42,8 @@ pub mod optim;
 pub mod optimize_placement;
 pub mod optimize_traces;
 pub mod parts;
-pub mod place_silk_refs;
 pub mod pcb;
+pub mod place_silk_refs;
 pub mod placement;
 pub mod project;
 pub mod relocate_in_pad_vias;
@@ -51,9 +51,9 @@ pub mod render;
 pub mod repair_clearance;
 pub mod repair_common;
 pub mod report;
-pub mod router_support;
 pub mod route;
 pub mod route_args;
+pub mod router_support;
 pub mod runner;
 pub mod screenshot;
 pub mod stitch;
@@ -88,9 +88,9 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "erc", about: "ERC validation and analysis", wave: "A", run: Some(erc::run) },
     CommandSpec { name: "drc", about: "Parse DRC report", wave: "A", run: Some(drc::run) },
     CommandSpec { name: "bom", about: "Generate bill of materials", wave: "B", run: Some(design::bom) },
-    CommandSpec { name: "check", about: "Pure Python DRC (no kicad-cli)", wave: "A", run: Some(check::run) },
-    CommandSpec { name: "creepage", about: "HV creepage/clearance census (surface-path distance)", wave: "E", run: Some(creepage::run) },
-    CommandSpec { name: "creepage-export-rules", about: "Export voltage-domain netclasses + pairwise HV clearance (rule) clauses so kicad-cli DRC enforces creepage (Issue #4508)", wave: "E", run: Some(creepage_export_rules::run) },
+    CommandSpec { name: "check", about: "Native Rust PCB checks (no kicad-cli required)", wave: "A", run: Some(check::run) },
+    CommandSpec { name: "creepage", about: "Conservative HV conductor-envelope clearance census", wave: "E", run: Some(creepage::run) },
+    CommandSpec { name: "creepage-export-rules", about: "Export pairwise HV clearance clauses to a KiCad DRU file", wave: "E", run: Some(creepage_export_rules::run) },
     CommandSpec { name: "sch", about: "Schematic analysis tools", wave: "B", run: Some(design::sch) },
     CommandSpec { name: "pcb", about: "PCB query tools", wave: "C", run: Some(pcb::run) },
     CommandSpec { name: "lib", about: "Symbol and footprint library tools", wave: "B", run: Some(design::lib) },
@@ -100,7 +100,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "stitch", about: "Auto-add stitching vias for plane connections", wave: "E", run: Some(stitch::run) },
     CommandSpec { name: "route", about: "Autoroute a PCB", wave: "F", run: Some(route::run) },
     CommandSpec { name: "route-auto", about: "Route a net using RoutingOrchestrator smart strategy selection", wave: "F", run: Some(route::run_auto) },
-    CommandSpec { name: "reason", about: "LLM-driven PCB layout reasoning", wave: "H", run: Some(h::reason) },
+    CommandSpec { name: "reason", about: "Export PCB reasoning state and apply explicit JSON layout commands", wave: "H", run: Some(h::reason) },
     CommandSpec { name: "optimize-traces", about: "Optimize PCB traces", wave: "D", run: Some(optimize_traces::run) },
     CommandSpec { name: "validate-footprints", about: "Validate footprints for pad spacing issues", wave: "D", run: Some(footprint_validation::validate) },
     CommandSpec { name: "fix-footprints", about: "Fix footprint pad spacing issues", wave: "D", run: Some(footprint_validation::fix) },
@@ -114,7 +114,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "datasheet", about: "Datasheet search, download, and PDF parsing", wave: "G", run: Some(datasheet::run) },
     CommandSpec { name: "decisions", about: "Query design decisions (placement and routing rationale)", wave: "E", run: Some(decisions::run) },
     CommandSpec { name: "placement", about: "Detect and fix placement conflicts", wave: "E", run: Some(placement::run) },
-    CommandSpec { name: "optimize-placement", about: "Run CMA-ES placement optimization on a KiCad PCB", wave: "E", run: Some(optimize_placement::run) },
+    CommandSpec { name: "optimize-placement", about: "Run deterministic force-directed placement optimization", wave: "E", run: Some(optimize_placement::run) },
     CommandSpec { name: "config", about: "View and manage configuration", wave: "G", run: Some(utility::config) },
     CommandSpec { name: "interactive", about: "Launch interactive REPL mode", wave: "H", run: Some(h::interactive) },
     CommandSpec { name: "validate", about: "Validation tools", wave: "B", run: Some(design::validate) },
@@ -138,8 +138,8 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "build", about: "Build from spec to manufacturable design", wave: "G", run: Some(workflow::build) },
     CommandSpec { name: "doctor", about: "Diagnose kicad-tools installation health (version-record drift + environment preflight)", wave: "G", run: Some(utility::doctor) },
     CommandSpec { name: "spec", about: "Project specification (.kct) management", wave: "G", run: Some(project::spec) },
-    CommandSpec { name: "benchmark", about: "Run routing benchmarks and regression tests", wave: "F", run: Some(router_support::benchmark) },
-    CommandSpec { name: "bench", about: "Run external DeepPCB-comparable board benchmarks", wave: "F", run: Some(router_support::bench) },
+    CommandSpec { name: "benchmark", about: "Benchmark native routing support workloads", wave: "F", run: Some(router_support::benchmark) },
+    CommandSpec { name: "bench", about: "Analyze routing metrics on a board corpus", wave: "F", run: Some(router_support::bench) },
     CommandSpec { name: "sync", about: "Reconcile schematic and PCB references", wave: "B", run: Some(design::sync) },
     CommandSpec { name: "run", about: "Run a native kct JSON/YAML automation workflow", wave: "H", run: Some(h::run) },
     CommandSpec { name: "explain", about: "Explain design rules and DRC violations", wave: "A", run: Some(explain::run) },

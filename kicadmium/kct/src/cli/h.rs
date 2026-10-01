@@ -852,6 +852,65 @@ fn execute_reason_command(board: &mut String, command: &Value) -> Result<Value> 
         "check_drc" => Ok(
             json!({"success":true,"command_type":"check_drc","message":"Run reason without --no-drc to refresh native KiCad DRC"}),
         ),
+        "delete_net_routing" => {
+            let net = command
+                .get("net")
+                .and_then(Value::as_str)
+                .context("net required")?;
+            let mut root = crate::sexp::parse(board)?;
+            let code = root
+                .children_named("net")
+                .find(|n| n.text_at(1).as_deref() == Some(net))
+                .and_then(|n| n.int_at(0))
+                .context("net not found")?;
+            let before = root.children.len();
+            root.children.retain(|node| {
+                !matches!(node.tag(), Some("segment" | "via"))
+                    || node.get("net").and_then(|n| n.int_at(0)) != Some(code)
+            });
+            let removed = before - root.children.len();
+            *board = root.to_kicad_string_preserving();
+            Ok(
+                json!({"success":true,"command_type":"delete_net_routing","message":format!("Deleted {removed} routing items on {net}"),"details":{"removed":removed}}),
+            )
+        }
+        "add_via" => {
+            let at = command
+                .get("at")
+                .and_then(Value::as_array)
+                .context("at required")?;
+            let x = at
+                .first()
+                .and_then(Value::as_f64)
+                .context("at x required")?;
+            let y = at.get(1).and_then(Value::as_f64).context("at y required")?;
+            let mut root = crate::sexp::parse(board)?;
+            let net_name = command.get("net").and_then(Value::as_str).unwrap_or("");
+            let net = root
+                .children_named("net")
+                .find(|n| n.text_at(1).as_deref() == Some(net_name))
+                .and_then(|n| n.int_at(0))
+                .unwrap_or(0);
+            let size = command.get("size").and_then(Value::as_f64).unwrap_or(0.8);
+            let drill = command.get("drill").and_then(Value::as_f64).unwrap_or(0.4);
+            root.children.push(crate::SExp::list(
+                "via",
+                [
+                    crate::SExp::list("at", [crate::SExp::atom(x), crate::SExp::atom(y)]),
+                    crate::SExp::pair("size", size),
+                    crate::SExp::pair("drill", drill),
+                    crate::SExp::list(
+                        "layers",
+                        [crate::SExp::quoted("F.Cu"), crate::SExp::quoted("B.Cu")],
+                    ),
+                    crate::SExp::pair("net", net),
+                ],
+            ));
+            *board = root.to_kicad_string_preserving();
+            Ok(
+                json!({"success":true,"command_type":"add_via","message":format!("Added via at ({x:.1}, {y:.1})"),"vias_added":1}),
+            )
+        }
         "route_net" | "route_direct" | "route_escape" | "reroute_net" => {
             bail!("native routing command is not yet available")
         }

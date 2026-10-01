@@ -980,6 +980,64 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
                 .collect();
             json(&serde_json::json!({"reference":reference,"suggestions":suggestions}))?;
         }
+        "add-component" => {
+            let lib_id = opt(&words, "--lib-id")?;
+            let at = multi_f64(&words, "--at", 2)?;
+            let mut d = crate::Document::load(&path)?;
+            let available = d.root.get("lib_symbols").is_some_and(|ls| {
+                ls.children_named("symbol").any(|s| {
+                    s.string_at(0) == Some(lib_id)
+                        || s.string_at(0).is_some_and(|n| {
+                            n.ends_with(&format!(
+                                ":{}",
+                                lib_id.split(':').next_back().unwrap_or(lib_id)
+                            ))
+                        })
+                })
+            });
+            if !available {
+                bail!("{lib_id} is not embedded in schematic; pass a schematic containing the library symbol")
+            };
+            let reference = opt_optional(&words, "--reference")
+                .map(str::to_owned)
+                .unwrap_or_else(|| next_reference(&d.root, lib_id));
+            let value = opt_optional(&words, "--value")
+                .unwrap_or_else(|| lib_id.split(':').next_back().unwrap_or(lib_id));
+            let footprint = opt_optional(&words, "--footprint").unwrap_or("");
+            let rotation = opt_optional(&words, "--rotation")
+                .unwrap_or("0")
+                .parse::<f64>()?;
+            let node = SExp::list(
+                "symbol",
+                [
+                    SExp::pair("lib_id", lib_id),
+                    SExp::list(
+                        "at",
+                        [SExp::atom(at[0]), SExp::atom(at[1]), SExp::atom(rotation)],
+                    ),
+                    SExp::pair("unit", 1),
+                    SExp::pair("in_bom", "yes"),
+                    SExp::pair("on_board", "yes"),
+                    SExp::pair("uuid", fresh_uuid()),
+                    SExp::list(
+                        "property",
+                        [SExp::quoted("Reference"), SExp::quoted(reference)],
+                    ),
+                    SExp::list("property", [SExp::quoted("Value"), SExp::quoted(value)]),
+                    SExp::list(
+                        "property",
+                        [SExp::quoted("Footprint"), SExp::quoted(footprint)],
+                    ),
+                ],
+            );
+            d.root.push(node);
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                has(&words, "--backup"),
+            )?;
+        }
         "pins" => {
             let reference = words.get(2).context("reference required")?;
             let d = load(&path)?;
@@ -1141,6 +1199,12 @@ fn opt<'a>(words: &'a [String], name: &str) -> Result<&'a str> {
         .map(|w| w[1].as_str())
         .with_context(|| format!("{name} is required"))
 }
+fn opt_optional<'a>(words: &'a [String], name: &str) -> Option<&'a str> {
+    words
+        .windows(2)
+        .find(|w| w[0] == name)
+        .map(|w| w[1].as_str())
+}
 fn multi_f64(words: &[String], name: &str, n: usize) -> Result<Vec<f64>> {
     let i = words
         .iter()
@@ -1164,6 +1228,21 @@ fn passive_footprint(reference: &str, value: &str) -> Option<&'static str> {
         'D' if value.to_ascii_lowercase().contains("led") => Some("LED_SMD:LED_0603_1608Metric"),
         _ => None,
     }
+}
+fn next_reference(root: &SExp, lib_id: &str) -> String {
+    let default = lib_id
+        .split(':')
+        .next_back()
+        .and_then(|n| n.chars().next())
+        .filter(|c| c.is_ascii_alphabetic())
+        .unwrap_or('U')
+        .to_ascii_uppercase()
+        .to_string();
+    let used: BTreeSet<_> = symbols_of(root).into_iter().map(|s| s.reference).collect();
+    (1..)
+        .map(|n| format!("{default}{n}"))
+        .find(|r| !used.contains(r))
+        .unwrap()
 }
 fn duplicate_strings<'a>(it: impl Iterator<Item = &'a str>) -> Vec<String> {
     let mut seen = BTreeSet::new();

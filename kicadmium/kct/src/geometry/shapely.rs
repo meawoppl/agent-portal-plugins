@@ -953,13 +953,25 @@ fn open_ring(r: &[C]) -> Vec<[f64; 2]> {
     r[..n].iter().map(|p| [p.0, p.1]).collect()
 }
 
+/// Overlay input shapes. Shells are normalised counter-clockwise and holes
+/// clockwise: the overlay's winding-number fill would otherwise cancel where
+/// oppositely wound inputs overlap (GEOS overlay is orientation-agnostic).
 fn to_shapes(g: &Geom) -> Shapes {
+    let oriented = |ring: &[C], ccw: bool| {
+        let mut r = open_ring(ring);
+        // `ring_area` is GEOS-signed: positive for clockwise rings.
+        let a = ring_area(ring);
+        if (ccw && a > 0.0) || (!ccw && a < 0.0) {
+            r.reverse();
+        }
+        r
+    };
     g.polys()
         .iter()
         .filter(|p| p.shell.len() >= 3)
         .map(|p| {
-            std::iter::once(open_ring(&p.shell))
-                .chain(p.holes.iter().filter(|h| h.len() >= 3).map(|h| open_ring(h)))
+            std::iter::once(oriented(&p.shell, true))
+                .chain(p.holes.iter().filter(|h| h.len() >= 3).map(|h| oriented(h, false)))
                 .collect()
         })
         .collect()
@@ -1468,6 +1480,12 @@ pub struct Prepared {
     lines: Vec<LineIndex>,
     envs: Vec<Bounds>,
     bounds: Option<Bounds>,
+    /// Polygon-level index (`(first ring index, poly index)` per polygon)
+    /// so point location skips far-away polygons of large multipolygons.
+    poly_rings: Vec<usize>,
+    poly_tree: Option<super::strtree::StrTree>,
+    /// Per-polygon hole index for polygons with many holes.
+    hole_trees: Vec<Option<super::strtree::StrTree>>,
 }
 
 impl Prepared {
@@ -1475,11 +1493,28 @@ impl Prepared {
         let lines = geom.lines().iter().map(|l| LineIndex::new(l)).collect();
         let envs = geom.lines().iter().map(|l| line_env(l)).collect();
         let bounds = geom.bounds();
+        let mut poly_rings = Vec::new();
+        let mut li = 0;
+        let mut penv = Vec::new();
+        let mut hole_trees = Vec::new();
+        for poly in geom.polys() {
+            hole_trees.push((poly.holes.len() > 8).then(|| {
+                let he: Vec<Option<Bounds>> = poly.holes.iter().map(|h| Some(line_env(h))).collect();
+                super::strtree::StrTree::new(&he)
+            }));
+            poly_rings.push(li);
+            li += 1 + poly.holes.len();
+            penv.push(if poly.is_empty() { None } else { Some(line_env(&poly.shell)) });
+        }
+        let poly_tree = (penv.len() > 8).then(|| super::strtree::StrTree::new(&penv));
         Prepared {
             geom,
             lines,
             envs,
             bounds,
+            poly_rings,
+            poly_tree,
+            hole_trees,
         }
     }
 
@@ -1489,7 +1524,7 @@ impl Prepared {
 
     fn locate_ring(&self, li: usize, ring: &[C], p: C, buf: &mut Vec<u32>) -> Location {
         let idx = &self.lines[li];
-        let e = line_env(ring);
+        let e = self.envs[li];
         if p.1 < e.1 || p.1 > e.3 || p.0 > e.2 {
             return Location::Exterior;
         }
@@ -1532,9 +1567,47 @@ impl Prepared {
         }
     }
 
+    fn poly_covers(&self, pi: usize, poly: &Poly, li: usize, p: C, buf: &mut Vec<u32>) -> bool {
+        if poly.is_empty() {
+            return false;
+        }
+        match self.locate_ring(li, &poly.shell, p, buf) {
+            Location::Boundary => true,
+            Location::Exterior => false,
+            Location::Interior => {
+                if let Some(tree) = &self.hole_trees[pi] {
+                    for k in tree.query((p.0, p.1, p.0, p.1)) {
+                        match self.locate_ring(li + 1 + k, &poly.holes[k], p, buf) {
+                            Location::Interior => return false,
+                            Location::Boundary => return true,
+                            Location::Exterior => {}
+                        }
+                    }
+                    return true;
+                }
+                for (k, h) in poly.holes.iter().enumerate() {
+                    match self.locate_ring(li + 1 + k, h, p, buf) {
+                        Location::Interior => return false,
+                        Location::Boundary => return true,
+                        Location::Exterior => {}
+                    }
+                }
+                true
+            }
+        }
+    }
+
     /// Point covered by (interior or boundary of) the polygonal parts.
     pub fn covers_point(&self, p: C) -> bool {
         let mut buf = Vec::new();
+        if let Some(tree) = &self.poly_tree {
+            let polys = self.geom.polys();
+            let mut hits = tree.query((p.0, p.1, p.0, p.1));
+            hits.sort_unstable();
+            return hits
+                .into_iter()
+                .any(|pi| self.poly_covers(pi, polys[pi], self.poly_rings[pi], p, &mut buf));
+        }
         let mut li = 0;
         for poly in self.geom.polys() {
             let n = 1 + poly.holes.len();
@@ -1772,6 +1845,11 @@ pub fn convex_ring_offset(ring: &[C], d: f64, quad: usize) -> Vec<C> {
 /// hole-free polygons, otherwise the union of the polygon with its edge
 /// capsules (same area / distances up to join faceting).
 pub fn buffer_polygon(g: &Geom, d: f64) -> Geom {
+    buffer_polygon_q(g, d, QUAD_SEGS)
+}
+
+/// [`buffer_polygon`] with an explicit `quad_segs`.
+pub fn buffer_polygon_q(g: &Geom, d: f64, quad: usize) -> Geom {
     if d <= 0.0 {
         return g.clone();
     }
@@ -1779,7 +1857,7 @@ pub fn buffer_polygon(g: &Geom, d: f64) -> Geom {
         let pts = dedup_ring(&p.shell);
         if p.holes.is_empty() && ring_is_convex(&pts) {
             return Geom::Poly(Poly {
-                shell: convex_ring_offset(&p.shell, d, QUAD_SEGS),
+                shell: convex_ring_offset(&p.shell, d, quad),
                 holes: vec![],
             });
         }
@@ -1787,7 +1865,7 @@ pub fn buffer_polygon(g: &Geom, d: f64) -> Geom {
     let mut parts = vec![g.clone()];
     for l in g.lines() {
         for w in l.windows(2) {
-            parts.push(segment_buffer(w[0], w[1], d));
+            parts.push(segment_buffer_q(w[0], w[1], d, quad));
         }
     }
     unary_union(&parts)
@@ -1796,17 +1874,22 @@ pub fn buffer_polygon(g: &Geom, d: f64) -> Geom {
 /// `LineString(pts).buffer(d)`: open polylines and closed rings (a closed
 /// convex ring yields the outer offset with the inward offset as a hole).
 pub fn buffer_line(pts: &[C], d: f64) -> Geom {
+    buffer_line_q(pts, d, QUAD_SEGS)
+}
+
+/// [`buffer_line`] with an explicit `quad_segs`.
+pub fn buffer_line_q(pts: &[C], d: f64, quad: usize) -> Geom {
     if d <= 0.0 || pts.is_empty() {
         return Geom::Empty;
     }
     if pts.len() == 2 {
-        return segment_buffer(pts[0], pts[1], d);
+        return segment_buffer_q(pts[0], pts[1], d, quad);
     }
     let closed = pts.len() >= 4 && pts.first() == pts.last();
     if closed {
         let open = dedup_ring(pts);
         if ring_is_convex(&open) {
-            let shell = convex_ring_offset(pts, d, QUAD_SEGS);
+            let shell = convex_ring_offset(pts, d, quad);
             let inner = erode_convex(&Geom::Poly(Poly::new(open)), d);
             let holes = match inner {
                 Geom::Poly(h) => {
@@ -1821,7 +1904,7 @@ pub fn buffer_line(pts: &[C], d: f64) -> Geom {
     }
     let parts: Vec<Geom> = pts
         .windows(2)
-        .map(|w| segment_buffer(w[0], w[1], d))
+        .map(|w| segment_buffer_q(w[0], w[1], d, quad))
         .collect();
     unary_union(&parts)
 }

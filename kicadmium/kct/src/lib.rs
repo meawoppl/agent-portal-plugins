@@ -9,7 +9,10 @@
 pub mod cli;
 pub mod config;
 pub mod core;
+pub mod drc;
+pub mod erc;
 pub mod exceptions;
+pub mod feedback;
 pub mod footprints;
 pub mod fsutil;
 pub mod geometry;
@@ -19,12 +22,14 @@ pub mod parts;
 pub mod physics;
 pub mod progress;
 pub mod project;
+pub mod pyjson;
 pub mod schema;
 pub mod sexp;
 pub mod sidecars;
 pub mod transaction;
 pub mod units;
 pub mod utils;
+pub mod validate;
 
 pub use anyhow::{Error, Result};
 pub use sexp::{parse, parse_file, Document, SExp, Value};

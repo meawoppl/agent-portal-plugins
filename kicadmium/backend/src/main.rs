@@ -221,6 +221,29 @@ struct ProjectContext {
     quality: quality::QualitySettings,
 }
 
+impl ProjectContext {
+    /// Whether `path` belongs to this project: not inside another (nested)
+    /// project and not in scratch/backup directories under this root.
+    fn owns_file(&self, path: &Path) -> bool {
+        if self
+            .excluded_roots
+            .iter()
+            .any(|root| path.starts_with(root))
+        {
+            return false;
+        }
+        let Ok(rel) = path.strip_prefix(&self.root) else {
+            return false;
+        };
+        !rel.components().any(|part| {
+            matches!(
+                part.as_os_str().to_str(),
+                Some("tmp" | "temp" | "backup" | "backups")
+            )
+        })
+    }
+}
+
 #[derive(Debug, Clone)]
 struct ViewerState {
     manifest: ManifestResponse,
@@ -868,13 +891,9 @@ async fn warm_viewer_state(project: &ProjectContext) -> Result<ViewerState> {
     let mut manifest = manifest_for(cwd).await?;
     manifest.revision = now_ms().to_string();
     // Nested boards are their own projects; keep their files out of this one.
-    manifest.files.retain(|file| {
-        let path = cwd.join(&file.path);
-        !project
-            .excluded_roots
-            .iter()
-            .any(|root| path.starts_with(root))
-    });
+    manifest
+        .files
+        .retain(|file| project.owns_file(&cwd.join(&file.path)));
     // The GLB is produced by the build pipeline (jobs::Stage::Glb).
     Ok(ViewerState {
         manifest,

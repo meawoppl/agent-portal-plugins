@@ -202,6 +202,7 @@ pub(crate) fn render(project: &ProjectContext) -> Result<String> {
     files.retain(|f| {
         role(Path::new(&f.path)).is_some()
             && is_project_file(&project.root, &project.root.join(&f.path), true)
+            && project.owns_file(&project.root.join(&f.path))
     });
     files.sort_by_key(|f| {
         (

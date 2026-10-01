@@ -1,6 +1,5 @@
 //! Port of upstream `tests/test_stripline_capacitance.py`.
 
-use crate::assert_approx;
 use kct::physics::stripline::stripline_impedance;
 use kct::physics::CoupledLines;
 

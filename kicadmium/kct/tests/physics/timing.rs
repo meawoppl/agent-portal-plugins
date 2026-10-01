@@ -1,9 +1,6 @@
 //! Port of upstream `tests/test_timing.py`.
 
-use crate::assert_approx;
-use kct::physics::timing::{
-    DifferentialPairSkew, PropagationResult, TimingAnalyzer, TimingBudget,
-};
+use kct::physics::timing::{DifferentialPairSkew, PropagationResult, TimingAnalyzer, TimingBudget};
 use kct::physics::{Stackup, SPEED_OF_LIGHT};
 
 fn jlc() -> TimingAnalyzer {
@@ -23,7 +20,11 @@ fn base_result() -> PropagationResult {
 
 fn err_contains<T: std::fmt::Debug>(r: kct::physics::PhysResult<T>, needle: &str) {
     let e = r.expect_err("expected ValueError");
-    assert!(e.0.contains(needle), "{:?} does not contain {needle:?}", e.0);
+    assert!(
+        e.0.contains(needle),
+        "{:?} does not contain {needle:?}",
+        e.0
+    );
 }
 
 // --- TestPropagationResult ---

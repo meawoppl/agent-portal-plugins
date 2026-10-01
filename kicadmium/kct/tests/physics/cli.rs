@@ -33,8 +33,16 @@ fn impedance_output_matches_upstream_goldens() {
             .map(|a| a.as_str().unwrap())
             .collect();
         let out = run(&args);
-        assert_eq!(out.stdout, case["stdout"].as_str().unwrap(), "stdout of {name}");
-        assert_eq!(out.stderr, case["stderr"].as_str().unwrap(), "stderr of {name}");
+        assert_eq!(
+            out.stdout,
+            case["stdout"].as_str().unwrap(),
+            "stdout of {name}"
+        );
+        assert_eq!(
+            out.stderr,
+            case["stderr"].as_str().unwrap(),
+            "stderr of {name}"
+        );
         assert_eq!(
             i64::from(out.code),
             case["code"].as_i64().unwrap(),

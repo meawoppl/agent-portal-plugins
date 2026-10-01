@@ -1,6 +1,5 @@
 //! Port of upstream `tests/test_coupled_lines.py`.
 
-use crate::assert_approx;
 use kct::physics::{CoupledLines, DifferentialPairResult, Stackup, SPEED_OF_LIGHT};
 
 fn jlc() -> CoupledLines {
@@ -9,7 +8,11 @@ fn jlc() -> CoupledLines {
 
 fn assert_err_contains<T: std::fmt::Debug>(r: kct::physics::PhysResult<T>, needle: &str) {
     let e = r.expect_err("expected ValueError");
-    assert!(e.0.contains(needle), "{:?} does not contain {needle:?}", e.0);
+    assert!(
+        e.0.contains(needle),
+        "{:?} does not contain {needle:?}",
+        e.0
+    );
 }
 
 // --- TestDifferentialPairResult ---

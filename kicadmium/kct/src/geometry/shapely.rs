@@ -937,6 +937,7 @@ pub fn representative_point(g: &Geom) -> Option<C> {
 // ---------------------------------------------------------------- overlay
 
 use i_overlay::core::fill_rule::FillRule;
+use i_overlay::core::overlay::ContourDirection;
 use i_overlay::core::overlay_rule::OverlayRule;
 use i_overlay::core::solver::Solver;
 use i_overlay::float::overlay::{FloatOverlay, OverlayOptions};
@@ -1038,6 +1039,7 @@ fn run_overlay(subj: &Shapes, clip: &Shapes, rule: OverlayRule) -> Geom {
     let opts = OverlayOptions::<f64> {
         preserve_input_collinear: true,
         preserve_output_collinear: true,
+        output_direction: ContourDirection::Clockwise,
         ..Default::default()
     };
     let out = FloatOverlay::with_subj_and_clip_custom(subj, clip, opts, Solver::default())
@@ -1144,10 +1146,17 @@ pub fn unary_union(gs: &[Geom]) -> Geom {
     if all.is_empty() {
         return Geom::Empty;
     }
+    // GEOS UnaryUnionOp returns a lone polygon unchanged (no re-noding).
+    if let [g] = gs {
+        if let Geom::Poly(_) = g {
+            return g.clone();
+        }
+    }
     let snap = Snapper::new(&[&all]);
     let opts = OverlayOptions::<f64> {
         preserve_input_collinear: true,
         preserve_output_collinear: true,
+        output_direction: ContourDirection::Clockwise,
         ..Default::default()
     };
     let out = FloatOverlay::with_subj_custom(&all, opts, Solver::default())
@@ -1207,6 +1216,7 @@ pub fn make_valid(p: &Poly) -> Geom {
     let opts = OverlayOptions::<f64> {
         preserve_input_collinear: true,
         preserve_output_collinear: true,
+        output_direction: ContourDirection::Clockwise,
         ..Default::default()
     };
     let out = FloatOverlay::with_subj_custom(&shapes, opts, Solver::default())

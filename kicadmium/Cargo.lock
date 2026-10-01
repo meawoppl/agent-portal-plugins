@@ -2112,6 +2112,7 @@ dependencies = [
  "anyhow",
  "clap",
  "geo",
+ "i_overlay",
  "nng",
  "num-bigint",
  "num-rational",

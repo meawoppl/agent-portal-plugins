@@ -321,7 +321,7 @@ enum NetlistCmd {
         schematic: PathBuf,
         #[arg(short, long)]
         output: Option<PathBuf>,
-        #[arg(long, default_value = "json")]
+        #[arg(long, value_parser=["kicad","json"], default_value = "kicad")]
         format: String,
     },
 }
@@ -352,6 +352,12 @@ fn net_names(root: &SExp) -> BTreeSet<String> {
         .into_iter()
         .map(|n| n.name)
         .collect()
+}
+fn is_power_net(name: &str) -> bool {
+    matches!(
+        name.trim_start_matches('/').to_ascii_uppercase().as_str(),
+        "GND" | "VCC" | "VDD" | "VSS" | "+3V3" | "+5V" | "+12V"
+    )
 }
 #[derive(Serialize)]
 struct NetlistEntry {
@@ -454,9 +460,25 @@ pub fn netlist(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     match a.cmd {
         NetlistCmd::Analyze(x) => {
             let d = load(&x.schematic)?;
-            json(
-                &serde_json::json!({"symbols":symbols_of(&d).len(),"nets":net_names(&d).len(),"labels":labels_of(&d).len()}),
-            )?
+            let symbols = symbols_of(&d);
+            let nets = electrical_netlist(&d);
+            let mut by_type: BTreeMap<String, usize> = BTreeMap::new();
+            for s in &symbols {
+                *by_type
+                    .entry(
+                        s.reference
+                            .chars()
+                            .take_while(|c| c.is_ascii_alphabetic())
+                            .collect(),
+                    )
+                    .or_default() += 1;
+            }
+            let result = serde_json::json!({"source_file":std::fs::canonicalize(&x.schematic).unwrap_or(x.schematic),"tool":d.child_str("generator").unwrap_or("kicadmium"),"date":"","sheet_count":1,"component_count":symbols.len(),"components_by_type":by_type,"net_count":nets.len(),"power_net_count":nets.iter().filter(|n|is_power_net(&n.name)).count(),"signal_net_count":nets.iter().filter(|n|!is_power_net(&n.name)).count(),"single_pin_net_count":nets.iter().filter(|n|n.connections==1).count()});
+            if x.format == "json" {
+                json(&result)?
+            } else {
+                println!("NETLIST ANALYSIS\n================\nComponents: {}\nNets: {}\nSingle-pin nets: {}",symbols.len(),nets.len(),nets.iter().filter(|n|n.connections==1).count());
+            }
         }
         NetlistCmd::List(x) => {
             let d = load(&x.schematic)?;
@@ -478,15 +500,20 @@ pub fn netlist(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             format,
         } => {
             let d = load(&schematic)?;
-            let rows: Vec<_> = labels_of(&d)
+            let rows: Vec<_> = electrical_netlist(&d)
                 .into_iter()
-                .filter(|n| n.name == net)
+                .filter(|n| n.name == net || n.name.trim_start_matches('/') == net)
                 .collect();
             if format == "json" {
                 json(&rows)?
             } else {
                 for n in rows {
-                    println!("{} {} {},{}", n.name, n.kind, n.x, n.y)
+                    println!(
+                        "Net: {}\nConnections: {}\n{}",
+                        n.name,
+                        n.connections,
+                        n.pins.join("\n")
+                    )
                 }
             }
         }
@@ -519,16 +546,49 @@ pub fn netlist(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         NetlistCmd::Export {
             schematic,
             output,
-            format: _,
+            format,
         } => {
             let d = load(&schematic)?;
-            let data = serde_json::to_string_pretty(
-                &serde_json::json!({"symbols":symbols_of(&d),"nets":net_names(&d)}),
-            )?;
-            if let Some(p) = output {
-                std::fs::write(p, data)?
+            if format == "json" {
+                let data = serde_json::to_string_pretty(
+                    &serde_json::json!({"components":symbols_of(&d),"nets":electrical_netlist(&d)}),
+                )?;
+                if let Some(p) = output {
+                    crate::fsutil::atomic_write(&p, data.as_bytes())?
+                } else {
+                    println!("{data}")
+                }
             } else {
-                println!("{data}")
+                let target = output.unwrap_or_else(|| {
+                    schematic.with_file_name(format!(
+                        "{}-netlist.kicad_net",
+                        schematic.file_stem().unwrap_or_default().to_string_lossy()
+                    ))
+                });
+                let mut text = String::from("(export (version \"E\") (components");
+                for s in symbols_of(&d) {
+                    text.push_str(&format!(
+                        " (comp (ref \"{}\") (value \"{}\") (footprint \"{}\"))",
+                        s.reference, s.value, s.footprint
+                    ));
+                }
+                text.push_str(") (nets");
+                for (code, n) in electrical_netlist(&d).into_iter().enumerate() {
+                    text.push_str(&format!(
+                        " (net (code \"{}\") (name \"{}\")",
+                        code + 1,
+                        n.name
+                    ));
+                    for pin in n.pins {
+                        if let Some((r, p)) = pin.split_once('.') {
+                            text.push_str(&format!(" (node (ref \"{r}\") (pin \"{p}\"))"));
+                        }
+                    }
+                    text.push(')');
+                }
+                text.push_str("))\n");
+                crate::fsutil::atomic_write(&target, text.as_bytes())?;
+                println!("Exported KiCad netlist to: {}", target.display());
             }
         }
     }

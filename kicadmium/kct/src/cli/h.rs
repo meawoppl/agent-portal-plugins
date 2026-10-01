@@ -228,6 +228,17 @@ fn call_tool(params: &Value) -> Result<Value> {
         .get("arguments")
         .cloned()
         .unwrap_or_else(|| json!({}));
+    if name == "board_summary" {
+        let path = Path::new(
+            a.get("pcb_path")
+                .and_then(Value::as_str)
+                .context("pcb_path required")?,
+        );
+        let value = crate::cli::pcb::summary_path(path)?;
+        return Ok(
+            json!({"content":[{"type":"text","text":serde_json::to_string_pretty(&value)?}],"structuredContent":value}),
+        );
+    }
     if matches!(
         name,
         "start_session"
@@ -317,7 +328,7 @@ fn mcp_command(name: &str, args: &Value) -> Option<(&'static str, Vec<String>)> 
             .map(str::to_owned)
     };
     let pair = match name {
-        "board_summary" | "board_inspect" => ("pcb", vec![path(&["pcb_path"])?, "summary".into()]),
+        "board_summary" | "board_inspect" => ("pcb", vec!["summary".into(), path(&["pcb_path"])?]),
         "get_unrouted_nets" => (
             "net-status",
             vec![path(&["pcb_path"])?, "--format".into(), "json".into()],
@@ -1492,6 +1503,15 @@ mod tests {
         assert_eq!(violations.len(), 1);
         assert_eq!(violations[0]["message"], "too close");
         assert_eq!(violations[0]["x"], 1.0);
+    }
+    #[test]
+    fn board_summary_mcp_returns_structured_content() {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/via_under_body.kicad_pcb");
+        let result =
+            call_tool(&json!({"name":"board_summary","arguments":{"pcb_path":path}})).unwrap();
+        assert!(result["structuredContent"]["footprints"].is_number());
+        assert_eq!(result["isError"], Value::Null);
     }
     #[test]
     fn route_items_match_ipc_units_and_filter() {

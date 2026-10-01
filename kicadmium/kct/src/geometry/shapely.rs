@@ -982,29 +982,99 @@ fn to_shapes(g: &Geom) -> Shapes {
 struct Snapper {
     cell: f64,
     grid: std::collections::HashMap<(i64, i64), Vec<C>>,
+    /// Input segments (lazily indexed) for re-deriving crossing vertices.
+    segments: Vec<(C, C)>,
+    seg_grid: std::cell::OnceCell<std::collections::HashMap<(i64, i64), Vec<u32>>>,
 }
+
+const SEG_CELL: f64 = 0.05;
 
 impl Snapper {
     fn new(inputs: &[&Shapes]) -> Self {
         let cell = 1e-6;
         let mut grid: std::collections::HashMap<(i64, i64), Vec<C>> = Default::default();
+        let mut segments = Vec::new();
         for s in inputs {
             for shape in s.iter() {
                 for ring in shape {
-                    for p in ring {
+                    for (i, p) in ring.iter().enumerate() {
                         let k = ((p[0] / cell).floor() as i64, (p[1] / cell).floor() as i64);
                         grid.entry(k).or_default().push((p[0], p[1]));
+                        let q = ring[(i + 1) % ring.len()];
+                        if q != *p {
+                            segments.push(((p[0], p[1]), (q[0], q[1])));
+                        }
                     }
                 }
             }
         }
-        Snapper { cell, grid }
+        Snapper {
+            cell,
+            grid,
+            segments,
+            seg_grid: std::cell::OnceCell::new(),
+        }
+    }
+
+    fn seg_grid(&self) -> &std::collections::HashMap<(i64, i64), Vec<u32>> {
+        self.seg_grid.get_or_init(|| {
+            let mut g: std::collections::HashMap<(i64, i64), Vec<u32>> = Default::default();
+            for (i, (a, b)) in self.segments.iter().enumerate() {
+                let x0 = (a.0.min(b.0) / SEG_CELL).floor() as i64;
+                let x1 = (a.0.max(b.0) / SEG_CELL).floor() as i64;
+                let y0 = (a.1.min(b.1) / SEG_CELL).floor() as i64;
+                let y1 = (a.1.max(b.1) / SEG_CELL).floor() as i64;
+                for x in x0..=x1 {
+                    for y in y0..=y1 {
+                        g.entry((x, y)).or_default().push(i as u32);
+                    }
+                }
+            }
+            g
+        })
+    }
+
+    /// GEOS `LineIntersector` crossing point of the two input segments that
+    /// pass through an overlay vertex not coinciding with an input vertex.
+    fn crossing(&self, p: C) -> Option<C> {
+        let k = ((p.0 / SEG_CELL).floor() as i64, (p.1 / SEG_CELL).floor() as i64);
+        let cands = self.seg_grid().get(&k)?;
+        let near: Vec<(C, C)> = cands
+            .iter()
+            .map(|&i| self.segments[i as usize])
+            .filter(|(a, b)| point_to_segment(p, *a, *b) < self.cell)
+            .collect();
+        let mut best: Option<(f64, C)> = None;
+        for (i, &(a, b)) in near.iter().enumerate() {
+            for &(c, d) in &near[i + 1..] {
+                let o1 = orient(a, b, c);
+                let o2 = orient(a, b, d);
+                if (o1 == 0.0 && o2 == 0.0) || o1 * o2 > 0.0 {
+                    continue;
+                }
+                let Some(x) = line_intersection(a, b, c, d) else {
+                    continue;
+                };
+                let inside = |u: C, v: C| {
+                    x.0 >= u.0.min(v.0) && x.0 <= u.0.max(v.0) && x.1 >= u.1.min(v.1) && x.1 <= u.1.max(v.1)
+                };
+                if !(inside(a, b) && inside(c, d)) {
+                    continue;
+                }
+                let dd = dist(x, p);
+                if dd < self.cell && best.is_none_or(|(bd, _)| dd < bd) {
+                    best = Some((dd, x));
+                }
+            }
+        }
+        best.map(|(_, x)| x)
     }
 
     fn snap(&self, p: [f64; 2]) -> C {
         let (kx, ky) = ((p[0] / self.cell).floor() as i64, (p[1] / self.cell).floor() as i64);
         let mut best = (p[0], p[1]);
         let mut bd = self.cell;
+        let mut found = false;
         for dx in -1..=1 {
             for dy in -1..=1 {
                 if let Some(v) = self.grid.get(&(kx + dx, ky + dy)) {
@@ -1013,12 +1083,16 @@ impl Snapper {
                         if d < bd {
                             bd = d;
                             best = q;
+                            found = true;
                         }
                     }
                 }
             }
         }
-        best
+        if found {
+            return best;
+        }
+        self.crossing((p[0], p[1])).unwrap_or(best)
     }
 }
 

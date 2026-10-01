@@ -560,7 +560,8 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_width_consistency(&self) -> DRCResults {
-        let rule = rules::width_consistency::WidthConsistencyRule;
+        let rule = rules::width_consistency::WidthConsistencyRule::default()
+            .with_options(self.width_consistency_options.as_deref().unwrap_or(&[]));
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 

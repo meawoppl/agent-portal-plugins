@@ -21,6 +21,7 @@ pub mod parts;
 pub mod project;
 pub mod suggest;
 pub mod utility;
+pub mod workflow;
 
 /// Global flags accepted before the command name.
 #[derive(Debug, Clone, Default)]
@@ -94,9 +95,9 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "ipc", about: "Interact with a running KiCad instance via IPC API (KiCad 9.0+)", wave: "H", run: None },
     CommandSpec { name: "init", about: "Initialize a KiCad project with manufacturer design rules", wave: "G", run: Some(project::init) },
     CommandSpec { name: "panel", about: "Create manufacturing panels from board PCBs", wave: "G", run: Some(fabrication::panel) },
-    CommandSpec { name: "pipeline", about: "End-to-end repair pipeline for existing PCBs", wave: "G", run: None },
+    CommandSpec { name: "pipeline", about: "End-to-end repair pipeline for existing PCBs", wave: "G", run: Some(workflow::pipeline) },
     CommandSpec { name: "create-pcb", about: "Create a PCB from a KiCad schematic", wave: "G", run: Some(fabrication::create_pcb) },
-    CommandSpec { name: "build", about: "Build from spec to manufacturable design", wave: "G", run: None },
+    CommandSpec { name: "build", about: "Build from spec to manufacturable design", wave: "G", run: Some(workflow::build) },
     CommandSpec { name: "build-native", about: "Build C++ router backend for 10-100x faster routing", wave: "F", run: None },
     CommandSpec { name: "doctor", about: "Diagnose kicad-tools installation health (version-record drift + environment preflight)", wave: "G", run: Some(utility::doctor) },
     CommandSpec { name: "spec", about: "Project specification (.kct) management", wave: "G", run: Some(project::spec) },

@@ -97,12 +97,18 @@ fn probe(g: &Geom) -> (f64, f64, f64, f64) {
 }
 
 /// `cluster_copper_kinds`: kinds present in each seed's cluster.
-pub fn cluster_copper_kinds(indexes: &LayerIndexes, seeds: &[ClusterSeed]) -> Vec<Vec<&'static str>> {
+pub fn cluster_copper_kinds(
+    indexes: &LayerIndexes,
+    seeds: &[ClusterSeed],
+) -> Vec<Vec<&'static str>> {
     if seeds.is_empty() {
         return vec![];
     }
-    let seed_numbers: std::collections::HashSet<i64> =
-        seeds.iter().filter(|s| s.net_number != 0).map(|s| s.net_number).collect();
+    let seed_numbers: std::collections::HashSet<i64> = seeds
+        .iter()
+        .filter(|s| s.net_number != 0)
+        .map(|s| s.net_number)
+        .collect();
     let seed_names: std::collections::HashSet<&str> = seeds
         .iter()
         .filter(|s| !s.net_name.is_empty())
@@ -163,14 +169,24 @@ pub fn cluster_copper_kinds(indexes: &LayerIndexes, seeds: &[ClusterSeed]) -> Ve
         }
     }
     for (_, idxs) in &by_layer {
-        let tree = StrTree::new(&idxs.iter().map(|&i| nodes[i].geom.bounds()).collect::<Vec<_>>());
+        let tree = StrTree::new(
+            &idxs
+                .iter()
+                .map(|&i| nodes[i].geom.bounds())
+                .collect::<Vec<_>>(),
+        );
         for &i in idxs {
             for pos in tree.query(probe(nodes[i].geom)) {
                 let j = idxs[pos];
                 if j <= i {
                     continue;
                 }
-                if !copper_nets_match(nodes[i].number, nodes[i].name, nodes[j].number, nodes[j].name) {
+                if !copper_nets_match(
+                    nodes[i].number,
+                    nodes[i].name,
+                    nodes[j].number,
+                    nodes[j].name,
+                ) {
                     continue;
                 }
                 let d = match (nodes[i].prep, nodes[j].prep) {
@@ -248,10 +264,11 @@ pub fn build_copper_layer_indexes(
     include_fills: bool,
 ) -> LayerIndexes {
     let mut by_layer: Vec<(String, Vec<CopperItem>)> = Vec::new();
-    let mut add = |layer: &str, item: CopperItem| match by_layer.iter_mut().find(|(l, _)| l == layer) {
-        Some(e) => e.1.push(item),
-        None => by_layer.push((layer.to_string(), vec![item])),
-    };
+    let mut add =
+        |layer: &str, item: CopperItem| match by_layer.iter_mut().find(|(l, _)| l == layer) {
+            Some(e) => e.1.push(item),
+            None => by_layer.push((layer.to_string(), vec![item])),
+        };
     for (i, s) in pcb.segments().iter().enumerate() {
         let Some(geom) = segment_copper(s.start, s.end, s.width) else {
             continue;
@@ -460,7 +477,14 @@ impl DanglingCopperRule {
                 .iter()
                 .copied()
                 .filter(|&p| {
-                    !Self::point_terminated(p, KEY_SEGMENT + i, net, &s.net_name, index, s.width / 2.0)
+                    !Self::point_terminated(
+                        p,
+                        KEY_SEGMENT + i,
+                        net,
+                        &s.net_name,
+                        index,
+                        s.width / 2.0,
+                    )
                 })
                 .collect();
             if dangling.is_empty() {

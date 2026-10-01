@@ -12,7 +12,8 @@ use crate::physics::ampacity::width_for_current;
 use crate::pyjson::py_float_repr;
 use crate::router::rules::NetClassRouting;
 
-pub const DRU_FLOORS_BLOCK_BEGIN: &str = "# BEGIN kct fab floors (Issue #4600) -- managed, do not edit";
+pub const DRU_FLOORS_BLOCK_BEGIN: &str =
+    "# BEGIN kct fab floors (Issue #4600) -- managed, do not edit";
 pub const DRU_FLOORS_BLOCK_END: &str = "# END kct fab floors";
 pub const DRU_VERSION_HEADER: &str = "(version 1)";
 pub const SMD_PAD_CLEARANCE_MIN_KICAD_VERSION: [u64; 3] = [10, 0, 2];
@@ -21,7 +22,13 @@ pub const SMD_PAD_CLEARANCE_MIN_KICAD_VERSION_STR: &str = "10.0.2";
 /// Leading dotted-numeric run of `kicad-cli version` output.
 pub fn parse_kicad_cli_version(raw: Option<&str>) -> Option<Vec<u64>> {
     let first = raw.unwrap_or("").split_whitespace().next()?;
-    let head = first.split('-').next().unwrap_or("").split('~').next().unwrap_or("");
+    let head = first
+        .split('-')
+        .next()
+        .unwrap_or("")
+        .split('~')
+        .next()
+        .unwrap_or("");
     let mut parts = Vec::new();
     for chunk in head.split('.') {
         if chunk.is_empty() || !chunk.chars().all(|c| c.is_ascii_digit()) {
@@ -38,7 +45,10 @@ pub fn smd_pad_clearance_inert_reason(raw: Option<&str>) -> Option<String> {
     if v.as_slice() >= &SMD_PAD_CLEARANCE_MIN_KICAD_VERSION[..] {
         return None;
     }
-    let installed = raw.map(str::trim).filter(|s| !s.is_empty()).unwrap_or("unknown");
+    let installed = raw
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .unwrap_or("unknown");
     let floor = SMD_PAD_CLEARANCE_MIN_KICAD_VERSION_STR;
     Some(format!(
         "the emitted 'SMD Pad Clearance' rule is INERT on the installed kicad-cli {installed}: it \
@@ -57,14 +67,20 @@ static LEGACY_RULE_NAME_RE: LazyLock<Regex> = LazyLock::new(|| {
     )
     .unwrap()
 });
-static LEGACY_VERSION_LINE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\(version \d+\)$").unwrap());
-static LEGACY_RULE_OPEN_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"^\(rule "([^"]+)"$"#).unwrap());
-static LEGACY_CONDITION_LINE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"^  \(condition "[^"]*"\)$"#).unwrap());
+static LEGACY_VERSION_LINE_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^\(version \d+\)$").unwrap());
+static LEGACY_RULE_OPEN_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"^\(rule "([^"]+)"$"#).unwrap());
+static LEGACY_CONDITION_LINE_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"^  \(condition "[^"]*"\)$"#).unwrap());
 static LEGACY_CONSTRAINT_LINE_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^  \(constraint \w+ \(min [0-9.]+mm\)\)\)$").unwrap());
-static VERSION_START_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\s*\(version\b").unwrap());
-static VERSION_HEADER_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\s*\(version[^)]*\)\s*\n?").unwrap());
-static VERSION_ANY_LINE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?m)^\s*\(version\b").unwrap());
+static VERSION_START_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^\s*\(version\b").unwrap());
+static VERSION_HEADER_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^\s*\(version[^)]*\)\s*\n?").unwrap());
+static VERSION_ANY_LINE_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?m)^\s*\(version\b").unwrap());
 
 /// Python `str.splitlines()` for `\n` / `\r\n` / `\r` text.
 fn splitlines(s: &str) -> Vec<&str> {
@@ -125,8 +141,14 @@ pub fn merge_dru_floors(existing: Option<&str>, dru_content: &str, path: Option<
     ))
     .unwrap();
     if pattern.is_match(existing) {
-        let merged = pattern.replace_all(existing, regex::NoExpand(&block)).to_string();
-        return if merged.ends_with('\n') { merged } else { merged + "\n" };
+        let merged = pattern
+            .replace_all(existing, regex::NoExpand(&block))
+            .to_string();
+        return if merged.ends_with('\n') {
+            merged
+        } else {
+            merged + "\n"
+        };
     }
     if is_legacy_generated_dru(existing) {
         let name = path.unwrap_or(".kicad_dru content");
@@ -153,7 +175,11 @@ fn f(v: f64) -> String {
 }
 
 /// `generate_dru(rules, manufacturer_name, net_classes)`.
-pub fn generate_dru(rules: &DesignRules, manufacturer_name: &str, net_classes: &[NetClassRouting]) -> String {
+pub fn generate_dru(
+    rules: &DesignRules,
+    manufacturer_name: &str,
+    net_classes: &[NetClassRouting],
+) -> String {
     let sfx = if manufacturer_name.is_empty() {
         String::new()
     } else {
@@ -189,7 +215,10 @@ pub fn generate_dru(rules: &DesignRules, manufacturer_name: &str, net_classes: &
     if let Some(inner) = rules.min_inner_pth_hole_to_copper_mm {
         // `max(min_pth_hole_to_track_mm or 0, inner)`: Python keeps the int 0
         // only when it is strictly greater, which a non-negative floor never is.
-        let base = rules.min_pth_hole_to_track_mm.filter(|v| *v != 0.0).unwrap_or(0.0);
+        let base = rules
+            .min_pth_hole_to_track_mm
+            .filter(|v| *v != 0.0)
+            .unwrap_or(0.0);
         let min = if base > inner { base } else { inner };
         lines.push(format!(
             "(rule \"Inner PTH Hole to Copper{sfx}\"\n  (layer inner)\n  (condition \"A.Pad_Type == 'Through-hole' || B.Pad_Type == 'Through-hole'\")\n  (constraint hole_clearance (min {}mm)))",
@@ -234,8 +263,10 @@ pub fn generate_dru(rules: &DesignRules, manufacturer_name: &str, net_classes: &
         let Some(amps) = nc.target_ampacity else {
             continue;
         };
-        let ext = width_for_current(amps, rules.outer_copper_oz, 10.0, "external").unwrap_or(f64::NAN);
-        let int = width_for_current(amps, rules.inner_copper_oz, 10.0, "internal").unwrap_or(f64::NAN);
+        let ext =
+            width_for_current(amps, rules.outer_copper_oz, 10.0, "external").unwrap_or(f64::NAN);
+        let int =
+            width_for_current(amps, rules.inner_copper_oz, 10.0, "internal").unwrap_or(f64::NAN);
         let n = &nc.name;
         lines.push(format!(
             "(rule \"Ampacity Min Width ({n}, external){sfx}\"\n  (condition \"A.NetClass == '{n}' && A.Type == 'track' && (A.Layer == 'F.Cu' || A.Layer == 'B.Cu')\")\n  (constraint track_width (min {ext:.4}mm)))"
@@ -253,12 +284,23 @@ mod tests {
 
     #[test]
     fn version_parsing_and_merge() {
-        assert_eq!(parse_kicad_cli_version(Some("10.0.1-1~ubuntu24.04.1 release build")), Some(vec![10, 0, 1]));
+        assert_eq!(
+            parse_kicad_cli_version(Some("10.0.1-1~ubuntu24.04.1 release build")),
+            Some(vec![10, 0, 1])
+        );
         assert_eq!(parse_kicad_cli_version(Some("")), None);
         assert!(smd_pad_clearance_inert_reason(Some("10.0.6")).is_none());
         assert!(smd_pad_clearance_inert_reason(Some("10.0.1")).is_some());
         let merged = merge_dru_floors(None, "(version 1)\n(rule \"X\")\n", None);
-        assert_eq!(merged, format!("(version 1)\n\n{DRU_FLOORS_BLOCK_BEGIN}\n(rule \"X\")\n{DRU_FLOORS_BLOCK_END}\n"));
-        assert_eq!(merge_dru_floors(Some(&merged), "(version 1)\n(rule \"X\")\n", None), merged);
+        assert_eq!(
+            merged,
+            format!(
+                "(version 1)\n\n{DRU_FLOORS_BLOCK_BEGIN}\n(rule \"X\")\n{DRU_FLOORS_BLOCK_END}\n"
+            )
+        );
+        assert_eq!(
+            merge_dru_floors(Some(&merged), "(version 1)\n(rule \"X\")\n", None),
+            merged
+        );
     }
 }

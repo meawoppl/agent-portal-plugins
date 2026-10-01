@@ -85,14 +85,17 @@ impl DiffPairRoutingContinuityRule {
         threshold_map: Vec<((i64, i64), f64)>,
         emit_info: bool,
     ) -> Self {
-        let engaged: Vec<(i64, i64)> = crate::utils::pyset::int_pair_set(
-            engaged_pairs
-                .iter()
-                .map(|&(a, b)| if a <= b { (a, b) } else { (b, a) }),
-        )
-        .iter()
-        .copied()
-        .collect();
+        let engaged: Vec<(i64, i64)> =
+            crate::utils::pyset::int_pair_set(engaged_pairs.iter().map(|&(a, b)| {
+                if a <= b {
+                    (a, b)
+                } else {
+                    (b, a)
+                }
+            }))
+            .iter()
+            .copied()
+            .collect();
         let mut tm: Vec<((i64, i64), f64)> = Vec::new();
         for ((a, b), t) in threshold_map {
             let k = if a <= b { (a, b) } else { (b, a) };
@@ -116,7 +119,8 @@ impl DiffPairRoutingContinuityRule {
         for o in own {
             let mut best = 0.0;
             for p in partner {
-                let ov = coupled_overlap(o, p, self.coupling_window_mm, self.parallel_tolerance_deg);
+                let ov =
+                    coupled_overlap(o, p, self.coupling_window_mm, self.parallel_tolerance_deg);
                 if ov > best {
                     best = ov;
                     if best >= seg_len(o) {
@@ -184,8 +188,16 @@ impl DiffPairRoutingContinuityRule {
                 .unwrap_or(self.default_threshold);
             let (na, nb) = (name_of(a), name_of(b));
             if frac + 1e-9 < threshold {
-                let la = if na.is_empty() { format!("net-{a}") } else { na.clone() };
-                let lb = if nb.is_empty() { format!("net-{b}") } else { nb.clone() };
+                let la = if na.is_empty() {
+                    format!("net-{a}")
+                } else {
+                    na.clone()
+                };
+                let lb = if nb.is_empty() {
+                    format!("net-{b}")
+                } else {
+                    nb.clone()
+                };
                 let (first, second) = if la <= lb { (la, lb) } else { (lb, la) };
                 results.add(
                     DRCViolation::new(

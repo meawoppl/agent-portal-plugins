@@ -142,7 +142,10 @@ impl ConnectivityIssue {
             ("suggestion", Json::Str(self.suggestion.clone())),
             ("connected_pads", strs(&self.connected_pads)),
             ("unconnected_pads", strs(&self.unconnected_pads)),
-            ("islands", Json::Arr(self.islands.iter().map(|i| strs(i)).collect())),
+            (
+                "islands",
+                Json::Arr(self.islands.iter().map(|i| strs(i)).collect()),
+            ),
         ])
     }
 }
@@ -186,11 +189,20 @@ impl ConnectivityResult {
             ("is_fully_routed", Json::Bool(self.is_fully_routed())),
             ("total_nets", Json::Int(self.total_nets as i64)),
             ("connected_nets", Json::Int(self.connected_nets as i64)),
-            ("zone_connected_nets", Json::Int(self.zone_connected_nets as i64)),
+            (
+                "zone_connected_nets",
+                Json::Int(self.zone_connected_nets as i64),
+            ),
             ("error_count", Json::Int(self.error_count() as i64)),
             ("warning_count", Json::Int(self.warning_count() as i64)),
-            ("unconnected_pads", Json::Int(self.unconnected_pad_count() as i64)),
-            ("issues", Json::Arr(self.issues.iter().map(ConnectivityIssue::to_dict).collect())),
+            (
+                "unconnected_pads",
+                Json::Int(self.unconnected_pad_count() as i64),
+            ),
+            (
+                "issues",
+                Json::Arr(self.issues.iter().map(ConnectivityIssue::to_dict).collect()),
+            ),
         ])
     }
 
@@ -206,7 +218,10 @@ impl ConnectivityResult {
                 self.error_count(),
                 self.warning_count()
             ),
-            format!("  Nets: {}/{} fully connected", self.connected_nets, self.total_nets),
+            format!(
+                "  Nets: {}/{} fully connected",
+                self.connected_nets, self.total_nets
+            ),
         ];
         if self.zone_connected_nets > 0 {
             parts.push(format!(
@@ -225,12 +240,21 @@ impl ConnectivityResult {
                 parts.push(format!("  {label}: {n}"));
             }
         }
-        parts.push(format!("  Total unconnected pads: {}", self.unconnected_pad_count()));
+        parts.push(format!(
+            "  Total unconnected pads: {}",
+            self.unconnected_pad_count()
+        ));
         parts.join("\n")
     }
 }
 
 type Graph = HashMap<String, HashSet<String>>;
+/// Occurrence node -> `(ref, pad)`, in pad order.
+pub type PadBindings = Vec<(String, (String, String))>;
+/// Node positions plus node -> layer list.
+type PadNodes = (Vec<(String, (f64, f64))>, HashMap<String, Vec<String>>);
+/// `(stable id, description, [(layer, geometry)], terminal)`.
+type RelationItem = (String, String, Vec<(String, Geom)>, bool);
 type Bridge = ((f64, f64), Option<Vec<String>>);
 
 const POSITION_TOLERANCE: f64 = 0.01;
@@ -241,7 +265,7 @@ pub struct ConnectivityValidator {
     pub pcb_path: Option<PathBuf>,
     pad_ids: HashMap<(usize, usize), String>,
     /// Occurrence node -> `(ref, pad)` in pad order.
-    pub pad_bindings: Vec<(String, (String, String))>,
+    pub pad_bindings: PadBindings,
     last_zone_connected_pads: HashSet<String>,
 }
 
@@ -367,7 +391,12 @@ impl ConnectivityValidator {
     }
 
     fn copper_layer_order(&self) -> Vec<String> {
-        let mut names: Vec<String> = self.pcb.copper_layers().iter().map(|l| l.name.clone()).collect();
+        let mut names: Vec<String> = self
+            .pcb
+            .copper_layers()
+            .iter()
+            .map(|l| l.name.clone())
+            .collect();
         if names.is_empty() {
             names = vec!["F.Cu".into(), "B.Cu".into()];
         }
@@ -394,7 +423,10 @@ impl ConnectivityValidator {
     fn via_bridged_layers(&self, via_layers: &[String]) -> Vec<String> {
         let span: Vec<&String> = via_layers.iter().filter(|l| l.ends_with(".Cu")).collect();
         let order = self.copper_layer_order();
-        let idx: Vec<usize> = span.iter().filter_map(|l| order.iter().position(|o| o == *l)).collect();
+        let idx: Vec<usize> = span
+            .iter()
+            .filter_map(|l| order.iter().position(|o| o == *l))
+            .collect();
         if idx.len() < 2 {
             let mut v: Vec<String> = span.into_iter().cloned().collect();
             v.sort();
@@ -464,7 +496,14 @@ impl ConnectivityValidator {
                 let wildcard = copper.iter().any(|l| l.starts_with("*."));
                 let distinct: HashSet<&&String> = copper.iter().collect();
                 if wildcard || distinct.len() >= 2 {
-                    out.push((*pos, if wildcard { None } else { Some(copper.into_iter().cloned().collect()) }));
+                    out.push((
+                        *pos,
+                        if wildcard {
+                            None
+                        } else {
+                            Some(copper.into_iter().cloned().collect())
+                        },
+                    ));
                 }
             }
         }
@@ -572,7 +611,7 @@ impl ConnectivityValidator {
     }
 
     /// Board-frame pad positions / layers for non-comment, numbered pads.
-    fn pad_nodes(&self, net: Option<i64>) -> (Vec<(String, (f64, f64))>, HashMap<String, Vec<String>>) {
+    fn pad_nodes(&self, net: Option<i64>) -> PadNodes {
         let mut pos = Vec::new();
         let mut layers = HashMap::new();
         for (fi, fp) in self.pcb.footprints().iter().enumerate() {
@@ -586,7 +625,10 @@ impl ConnectivityValidator {
                 if net.is_some_and(|n| pad.net_number != n) {
                     continue;
                 }
-                pos.push((id.clone(), transform_pad_position(pad.position, fp.position, fp.rotation)));
+                pos.push((
+                    id.clone(),
+                    transform_pad_position(pad.position, fp.position, fp.rotation),
+                ));
                 layers.insert(id.clone(), pad.layers.clone());
             }
         }
@@ -616,7 +658,7 @@ impl ConnectivityValidator {
 
     /// Physical pad partition from routed copper (label-free), with the
     /// occurrence -> `(ref, pad)` bindings.
-    pub fn extract_pad_occurrences(&mut self) -> (Vec<Vec<String>>, Vec<(String, (String, String))>) {
+    pub fn extract_pad_occurrences(&mut self) -> (Vec<Vec<String>>, PadBindings) {
         self.refresh_pad_identities();
         let (mut positions, mut layers) = self.pad_nodes(None);
         let mut synthetic: HashSet<String> = HashSet::new();
@@ -626,7 +668,10 @@ impl ConnectivityValidator {
             layers.insert(id.clone(), self.via_bridged_layers(&v.layers));
             synthetic.insert(id);
         }
-        let mut graph: Graph = positions.iter().map(|(id, _)| (id.clone(), HashSet::new())).collect();
+        let mut graph: Graph = positions
+            .iter()
+            .map(|(id, _)| (id.clone(), HashSet::new()))
+            .collect();
         let segs: Vec<&Segment> = self.pcb.segments().iter().collect();
         for s in &segs {
             let sp = self.find_pads_at_point(s.start, &positions, Some(&layers), Some(&s.layer));
@@ -662,8 +707,14 @@ impl ConnectivityValidator {
                 }
                 if point_segment_distance(v.position, s.start, s.end) < reach {
                     extra.entry(si).or_default().insert(node.clone());
-                    let mut hits = self.find_pads_at_point(s.start, &positions, Some(&layers), Some(&s.layer));
-                    hits.extend(self.find_pads_at_point(s.end, &positions, Some(&layers), Some(&s.layer)));
+                    let mut hits =
+                        self.find_pads_at_point(s.start, &positions, Some(&layers), Some(&s.layer));
+                    hits.extend(self.find_pads_at_point(
+                        s.end,
+                        &positions,
+                        Some(&layers),
+                        Some(&s.layer),
+                    ));
                     for h in hits {
                         add_edge(&mut graph, &node, &h);
                     }
@@ -721,7 +772,10 @@ impl ConnectivityValidator {
                 }
                 comp.push(cur);
             }
-            let mut real: Vec<String> = comp.into_iter().filter(|n| !synthetic.contains(n)).collect();
+            let mut real: Vec<String> = comp
+                .into_iter()
+                .filter(|n| !synthetic.contains(n))
+                .collect();
             if !real.is_empty() {
                 real.sort();
                 partition.push(real);
@@ -796,7 +850,8 @@ impl ConnectivityValidator {
                 if point_segment_distance((*cx, *cy), s.start, s.end) > bound + cap {
                     continue;
                 }
-                if !pad_copper_on_layer(layers.get(id).map(Vec::as_slice).unwrap_or(&[]), &s.layer) {
+                if !pad_copper_on_layer(layers.get(id).map(Vec::as_slice).unwrap_or(&[]), &s.layer)
+                {
                     continue;
                 }
                 let poly = &polys.iter().rev().find(|(k, _)| k == id).unwrap().1;
@@ -825,7 +880,8 @@ impl ConnectivityValidator {
                 if pad.number.is_empty() {
                     continue;
                 }
-                if !["rect", "roundrect", "circle", "oval", "obround"].contains(&pad.shape.as_str()) {
+                if !["rect", "roundrect", "circle", "oval", "obround"].contains(&pad.shape.as_str())
+                {
                     continue;
                 }
                 let key = &self.pad_ids[&(fi, pi)];
@@ -890,7 +946,12 @@ impl ConnectivityValidator {
             let key = format!("__via{i}");
             if synthetic.contains(&key) {
                 terminal.push((key.clone(), items.len()));
-                items.push((Some(key), "via", self.via_bridged_layers(&v.layers), physical_via_annulus(v)));
+                items.push((
+                    Some(key),
+                    "via",
+                    self.via_bridged_layers(&v.layers),
+                    physical_via_annulus(v),
+                ));
             }
         }
         let mut seg_index: HashMap<usize, usize> = HashMap::new();
@@ -1057,7 +1118,10 @@ impl ConnectivityValidator {
                     continue;
                 }
                 for (other, opos) in &positions {
-                    if other != id && points_close(*pos, *opos) && self.share_copper(&layers[id], &layers[other]) {
+                    if other != id
+                        && points_close(*pos, *opos)
+                        && self.share_copper(&layers[id], &layers[other])
+                    {
                         add_edge(&mut graph, id, other);
                     }
                 }
@@ -1095,7 +1159,10 @@ impl ConnectivityValidator {
             }
             let mut in_zone: Vec<String> = Vec::new();
             for (id, pos) in &positions {
-                if !pad_layer_matches_zone(layers.get(id).map(Vec::as_slice).unwrap_or(&[]), &z.layer) {
+                if !pad_layer_matches_zone(
+                    layers.get(id).map(Vec::as_slice).unwrap_or(&[]),
+                    &z.layer,
+                ) {
                     continue;
                 }
                 if point_in_polygon(*pos, &z.polygon) {
@@ -1168,7 +1235,10 @@ impl ConnectivityValidator {
             )
         } else {
             (
-                format!("Net '{net_name}' has {} disconnected islands", islands.len()),
+                format!(
+                    "Net '{net_name}' has {} disconnected islands",
+                    islands.len()
+                ),
                 format!("Connect {} islands to complete routing", islands.len()),
             )
         };
@@ -1192,7 +1262,12 @@ impl ConnectivityValidator {
             }
         }
         let copper_layers: Vec<String> = {
-            let v: Vec<String> = self.pcb.copper_layers().iter().map(|l| l.name.clone()).collect();
+            let v: Vec<String> = self
+                .pcb
+                .copper_layers()
+                .iter()
+                .map(|l| l.name.clone())
+                .collect();
             if v.is_empty() {
                 vec!["F.Cu".into(), "B.Cu".into()]
             } else {
@@ -1202,7 +1277,7 @@ impl ConnectivityValidator {
         let mut out = Vec::new();
         for &net in modeled.iter() {
             // (id, desc, {layer: geom}, terminal)
-            let mut items: Vec<(String, String, Vec<(String, Geom)>, bool)> = Vec::new();
+            let mut items: Vec<RelationItem> = Vec::new();
             let mut pad_records: Vec<(usize, Vec<String>, Geom)> = Vec::new();
             let mut zone_records: Vec<(Geom, String, Vec<usize>)> = Vec::new();
             for fp in self.pcb.footprints() {
@@ -1228,7 +1303,11 @@ impl ConnectivityValidator {
                     continue;
                 }
                 let g = via_copper_geom(v.position, v.size.max(0.0) / 2.0);
-                let ls = self.via_bridged_layers(&v.layers).into_iter().map(|l| (l, g.clone())).collect();
+                let ls = self
+                    .via_bridged_layers(&v.layers)
+                    .into_iter()
+                    .map(|l| (l, g.clone()))
+                    .collect();
                 items.push((format!("via:{vi}"), format!("Via {vi}"), ls, false));
             }
             for (si, s) in self.pcb.segments().iter().enumerate() {
@@ -1236,7 +1315,12 @@ impl ConnectivityValidator {
                     continue;
                 }
                 let g = segment_copper_geom(s.start, s.end, s.width);
-                items.push((format!("segment:{si}"), format!("Segment {si}"), vec![(s.layer.clone(), g)], false));
+                items.push((
+                    format!("segment:{si}"),
+                    format!("Segment {si}"),
+                    vec![(s.layer.clone(), g)],
+                    false,
+                ));
             }
             for (zi, z) in self.pcb.zones().iter().enumerate() {
                 if z.net_number != net {
@@ -1249,7 +1333,12 @@ impl ConnectivityValidator {
                     };
                     let layer = z.filled_polygon_layer(fi).to_string();
                     let id = format!("zone[{zi}].fill[{fi}]@{layer}");
-                    items.push((id.clone(), format!("Zone island {id}"), vec![(layer, region)], true));
+                    items.push((
+                        id.clone(),
+                        format!("Zone island {id}"),
+                        vec![(layer, region)],
+                        true,
+                    ));
                     fills.push(items.len() - 1);
                 }
                 if let Some(boundary) = fill_solid_region(&z.polygon) {
@@ -1273,14 +1362,17 @@ impl ConnectivityValidator {
                 }
             }
             let geom_on = |it: &(String, String, Vec<(String, Geom)>, bool), layer: &str| {
-                it.2.iter().rev().find(|(l, _)| l == layer).map(|(_, g)| g.clone())
+                it.2.iter()
+                    .rev()
+                    .find(|(l, _)| l == layer)
+                    .map(|(_, g)| g.clone())
             };
             let item_bounds: Vec<Option<sh::Bounds>> = items
                 .iter()
                 .map(|it| {
-                    it.2.iter().filter_map(|(_, g)| g.bounds()).reduce(|a, b| {
-                        (a.0.min(b.0), a.1.min(b.1), a.2.max(b.2), a.3.max(b.3))
-                    })
+                    it.2.iter()
+                        .filter_map(|(_, g)| g.bounds())
+                        .reduce(|a, b| (a.0.min(b.0), a.1.min(b.1), a.2.max(b.2), a.3.max(b.3)))
                 })
                 .collect();
             for l in 0..items.len() {
@@ -1300,8 +1392,11 @@ impl ConnectivityValidator {
                 }
             }
             for (boundary, layer, fills) in &zone_records {
-                let layer_fills: Vec<usize> =
-                    fills.iter().copied().filter(|i| geom_on(&items[*i], layer).is_some()).collect();
+                let layer_fills: Vec<usize> = fills
+                    .iter()
+                    .copied()
+                    .filter(|i| geom_on(&items[*i], layer).is_some())
+                    .collect();
                 if layer_fills.is_empty() {
                     continue;
                 }
@@ -1353,7 +1448,10 @@ impl ConnectivityValidator {
                         severity: "error".into(),
                         issue_type: "zone_island".into(),
                         net_name: net_name.clone(),
-                        message: format!("Missing connection between {} and {}", items[a].1, items[b].1),
+                        message: format!(
+                            "Missing connection between {} and {}",
+                            items[a].1, items[b].1
+                        ),
                         suggestion: "Connect the same-net copper components".into(),
                         connected_pads: vec![],
                         unconnected_pads: vec![],
@@ -1410,7 +1508,12 @@ impl ConnectivityValidator {
                 v.items.clone()
             };
             let net_name = v.nets.first().cloned().unwrap_or_else(|| "<native>".into());
-            let pads: Vec<String> = v.items.iter().filter(|x| !x.starts_with("Zone ")).cloned().collect();
+            let pads: Vec<String> = v
+                .items
+                .iter()
+                .filter(|x| !x.starts_with("Zone "))
+                .cloned()
+                .collect();
             let issue_type = if pads.is_empty() {
                 "zone_island".to_string()
             } else {
@@ -1500,7 +1603,8 @@ impl ConnectivityValidator {
                     types.push((i.net_name.clone(), i.issue_type.clone()));
                 }
             }
-            if let Some(native) = self.native_unconnected_relationships(&types, result.issues.len()) {
+            if let Some(native) = self.native_unconnected_relationships(&types, result.issues.len())
+            {
                 result.issues = native;
             }
         }

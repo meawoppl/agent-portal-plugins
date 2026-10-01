@@ -49,7 +49,14 @@ pub struct CopperElement<'a> {
 }
 
 impl<'a> CopperElement<'a> {
-    fn base(element_type: &'static str, layer: &str, net: i64, geometry: Vec<f64>, reference: String, net_name: String) -> Self {
+    fn base(
+        element_type: &'static str,
+        layer: &str,
+        net: i64,
+        geometry: Vec<f64>,
+        reference: String,
+        net_name: String,
+    ) -> Self {
         CopperElement {
             element_type,
             layer: layer.to_string(),
@@ -366,7 +373,11 @@ fn pair_is_geometrically_coupled(pcb: &Pcb, net_a: i64, net_b: i64) -> bool {
 
 /// `_build_diff_pair_set`.
 pub fn build_diff_pair_set(pcb: &Pcb) -> Vec<(i64, i64)> {
-    let names: Vec<(i64, String)> = pcb.nets().iter().map(|n| (n.number, n.name.clone())).collect();
+    let names: Vec<(i64, String)> = pcb
+        .nets()
+        .iter()
+        .map(|n| (n.number, n.name.clone()))
+        .collect();
     let mut out = Vec::new();
     for dp in crate::router::diffpair::detect_differential_pairs(&names) {
         let (p, n) = (dp.positive.net_id, dp.negative.net_id);
@@ -534,8 +545,18 @@ fn polygon_pair_clearance(c1: &CopperElement, c2: &CopperElement) -> Option<(f64
 }
 
 fn circle_circle_clearance(c1: &CopperElement, c2: &CopperElement) -> (f64, f64, f64) {
-    let (x1, y1, w1, h1) = (c1.geometry[0], c1.geometry[1], c1.geometry[2], c1.geometry[3]);
-    let (x2, y2, w2, h2) = (c2.geometry[0], c2.geometry[1], c2.geometry[2], c2.geometry[3]);
+    let (x1, y1, w1, h1) = (
+        c1.geometry[0],
+        c1.geometry[1],
+        c1.geometry[2],
+        c1.geometry[3],
+    );
+    let (x2, y2, w2, h2) = (
+        c2.geometry[0],
+        c2.geometry[1],
+        c2.geometry[2],
+        c2.geometry[3],
+    );
     if c1.polygon.is_some() || c2.polygon.is_some() {
         if let Some(r) = polygon_pair_clearance(c1, c2) {
             return r;
@@ -556,7 +577,16 @@ fn circle_circle_clearance(c1: &CopperElement, c2: &CopperElement) -> (f64, f64,
 }
 
 #[allow(clippy::too_many_arguments)]
-fn rect_rect_clearance(cx1: f64, cy1: f64, w1: f64, h1: f64, cx2: f64, cy2: f64, w2: f64, h2: f64) -> f64 {
+fn rect_rect_clearance(
+    cx1: f64,
+    cy1: f64,
+    w1: f64,
+    h1: f64,
+    cx2: f64,
+    cy2: f64,
+    w2: f64,
+    h2: f64,
+) -> f64 {
     let gx = (cx2 - cx1).abs() - (w1 + w2) / 2.0;
     let gy = (cy2 - cy1).abs() - (h1 + h2) / 2.0;
     if gx >= 0.0 && gy >= 0.0 {
@@ -605,7 +635,9 @@ impl ClearanceRule {
                 results.add(v);
             }
         }
-        results.merge(super::factory_clearance::check_pth_hole_clearance(pcb, rules));
+        results.merge(super::factory_clearance::check_pth_hole_clearance(
+            pcb, rules,
+        ));
         results.rules_checked += layers.len() as i64;
         results
     }
@@ -783,7 +815,11 @@ impl ClearanceRule {
                     .layer(layer)
                     .actual(0.0)
                     .required(min)
-                    .items([n0.reference.clone(), a.reference.clone(), b.reference.clone()])
+                    .items([
+                        n0.reference.clone(),
+                        a.reference.clone(),
+                        b.reference.clone(),
+                    ])
                     .nets([na, nb]),
                 );
             }
@@ -816,13 +852,17 @@ fn create_violation(
             e2.element_type
         )
     };
-    DRCViolation::new(format!("clearance_{}_{}", types[0], types[1]), "error", message)
-        .at(py_round(lx, 3), py_round(ly, 3))
-        .layer(layer)
-        .actual(py_round(actual, 4))
-        .required(required)
-        .items([e1.reference.clone(), e2.reference.clone()])
-        .nets([na.clone(), nb.clone()])
+    DRCViolation::new(
+        format!("clearance_{}_{}", types[0], types[1]),
+        "error",
+        message,
+    )
+    .at(py_round(lx, 3), py_round(ly, 3))
+    .layer(layer)
+    .actual(py_round(actual, 4))
+    .required(required)
+    .items([e1.reference.clone(), e2.reference.clone()])
+    .nets([na.clone(), nb.clone()])
 }
 
 // ------------------------------------------------------------- zone fills
@@ -857,7 +897,10 @@ pub fn collect_zone_fills(pcb: &Pcb, include_unassigned: bool) -> Vec<(String, V
     for (zi, zone) in pcb.zones().iter().enumerate() {
         let mut net = zone.net_number;
         if net == 0 && !zone.net_name.is_empty() {
-            net = name_to_number.get(zone.net_name.as_str()).copied().unwrap_or(0);
+            net = name_to_number
+                .get(zone.net_name.as_str())
+                .copied()
+                .unwrap_or(0);
         }
         if net == 0 && !include_unassigned {
             continue;
@@ -1109,8 +1152,18 @@ impl ViaZoneClearanceRule {
                     format!("Via-{}", uuid8(&via.uuid))
                 };
                 query_and_check(
-                    &tree, fills, &shape, r, via.net_number, &via.net_name, &rf, min, layer,
-                    &mut results, "clearance_via_zone", "via",
+                    &tree,
+                    fills,
+                    &shape,
+                    r,
+                    via.net_number,
+                    &via.net_name,
+                    &rf,
+                    min,
+                    layer,
+                    &mut results,
+                    "clearance_via_zone",
+                    "via",
                 );
             }
             for fp in pcb.footprints() {
@@ -1123,8 +1176,18 @@ impl ViaZoneClearanceRule {
                     };
                     let rf = format!("{}-{}", fp.reference, pad.number);
                     query_and_check(
-                        &tree, fills, &shape, 0.0, pad.net_number, &pad.net_name, &rf, min, layer,
-                        &mut results, "clearance_pad_zone", "pad",
+                        &tree,
+                        fills,
+                        &shape,
+                        0.0,
+                        pad.net_number,
+                        &pad.net_name,
+                        &rf,
+                        min,
+                        layer,
+                        &mut results,
+                        "clearance_pad_zone",
+                        "pad",
                     );
                 }
             }
@@ -1157,7 +1220,9 @@ fn query_and_check(
         if fill.net_number == net_number {
             continue;
         }
-        if let Some(v) = check_shape(shape, net_number, net_name, rf, fill, min, layer, rule_id, kind) {
+        if let Some(v) = check_shape(
+            shape, net_number, net_name, rf, fill, min, layer, rule_id, kind,
+        ) {
             results.add(v);
         }
     }

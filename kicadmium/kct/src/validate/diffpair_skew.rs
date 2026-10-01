@@ -83,7 +83,7 @@ pub fn derive_skew_data(
     net_class_map: Option<&NetClassMap>,
     board_thickness_mm: Option<f64>,
     num_copper_layers: i64,
-) -> (SkewData, Vec<((i64, i64), f64)>) {
+) -> (SkewData, crate::validate::diffpair_engagement::ThresholdMap) {
     let Some(map) = net_class_map.filter(|m| !m.is_empty()) else {
         return (vec![], vec![]);
     };
@@ -102,7 +102,10 @@ pub fn derive_skew_data(
         }
         let lp = measure_net_from_pcb(pcb, p, board_thickness_mm, num_copper_layers, true);
         let ln = measure_net_from_pcb(pcb, n, board_thickness_mm, num_copper_layers, true);
-        let names_key = (pair.positive.net_name.clone(), pair.negative.net_name.clone());
+        let names_key = (
+            pair.positive.net_name.clone(),
+            pair.negative.net_name.clone(),
+        );
         let v = (lp - ln).abs();
         match skew.iter_mut().find(|e| e.0 == names_key) {
             Some(e) => e.1 = v,

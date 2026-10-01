@@ -139,9 +139,11 @@ pub fn find_repo_root(start: &Path) -> Option<PathBuf> {
 fn py_int(raw: &Value) -> Option<i64> {
     match raw {
         Value::Bool(b) => Some(*b as i64),
-        Value::Number(n) => n
-            .as_i64()
-            .or_else(|| n.as_f64().filter(|f| f.is_finite()).map(|f| f.trunc() as i64)),
+        Value::Number(n) => n.as_i64().or_else(|| {
+            n.as_f64()
+                .filter(|f| f.is_finite())
+                .map(|f| f.trunc() as i64)
+        }),
         Value::String(s) => {
             let t = s.trim();
             let (neg, digits) = match t.strip_prefix('-') {
@@ -179,9 +181,7 @@ fn resolve_drc_tolerance(repo_root: &Path, key: &str) -> Resolution {
     }
     let data: Value = match std::fs::read_to_string(&tolerance_path)
         .map_err(|e| e.to_string())
-        .and_then(|t| {
-            serde_yaml::from_str::<serde_yaml::Value>(&t).map_err(|e| e.to_string())
-        })
+        .and_then(|t| serde_yaml::from_str::<serde_yaml::Value>(&t).map_err(|e| e.to_string()))
         .and_then(|y| serde_json::to_value(y).map_err(|e| e.to_string()))
     {
         Ok(v) => v,
@@ -192,7 +192,10 @@ fn resolve_drc_tolerance(repo_root: &Path, key: &str) -> Resolution {
         }
     };
     let tolerances = match &data {
-        Value::Object(m) => m.get("tolerances").cloned().unwrap_or(Value::Object(Default::default())),
+        Value::Object(m) => m
+            .get("tolerances")
+            .cloned()
+            .unwrap_or(Value::Object(Default::default())),
         _ => Value::Object(Default::default()),
     };
     let Value::Object(map) = tolerances else {

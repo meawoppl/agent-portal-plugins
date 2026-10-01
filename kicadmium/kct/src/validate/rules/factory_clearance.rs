@@ -80,7 +80,12 @@ pub fn check_pth_hole_clearance(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
         for e in &elems {
             let geom = if e.element_type == "segment" {
                 let g = &e.geometry;
-                Some(sh::segment_buffer_q((g[0], g[1]), (g[2], g[3]), g[4] / 2.0, 64))
+                Some(sh::segment_buffer_q(
+                    (g[0], g[1]),
+                    (g[2], g[3]),
+                    g[4] / 2.0,
+                    64,
+                ))
             } else if inner_min.is_some() {
                 e.copper_geom().cloned()
             } else {
@@ -116,7 +121,8 @@ pub fn check_pth_hole_clearance(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
             };
             for idx in tree.query((x0 - minimum, y0 - minimum, x1 + minimum, y1 + minimum)) {
                 let (net, geom, reference, src) = &copper[idx];
-                if src.is_some_and(|s| std::ptr::eq(s, *pad)) || (*net != 0 && *net == pad.net_number)
+                if src.is_some_and(|s| std::ptr::eq(s, *pad))
+                    || (*net != 0 && *net == pad.net_number)
                 {
                     continue;
                 }
@@ -136,7 +142,10 @@ pub fn check_pth_hole_clearance(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
                         .layer(layer.name.clone())
                         .actual(d)
                         .required(minimum)
-                        .items([format!("{}-{} hole", fp.reference, pad.number), reference.clone()]),
+                        .items([
+                            format!("{}-{} hole", fp.reference, pad.number),
+                            reference.clone(),
+                        ]),
                     );
                 }
             }
@@ -194,10 +203,16 @@ pub fn check_silk_pad_clearance(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
         .iter()
         .map(|(_, e)| StrTree::new(&e.iter().map(|(g, _)| g.bounds()).collect::<Vec<_>>()))
         .collect();
-    let mut strokes: Vec<(SilkGraphic, Option<&Footprint>, String, (f64, f64))> = Vec::new();
+    type Stroke<'a> = (SilkGraphic<'a>, Option<&'a Footprint>, String, (f64, f64));
+    let mut strokes: Vec<Stroke<'_>> = Vec::new();
     for fp in pcb.footprints() {
         for g in &fp.graphics {
-            strokes.push((SilkGraphic::from(g), Some(fp), fp.reference.clone(), fp.position));
+            strokes.push((
+                SilkGraphic::from(g),
+                Some(fp),
+                fp.reference.clone(),
+                fp.position,
+            ));
         }
     }
     for g in pcb.graphics() {
@@ -234,7 +249,10 @@ pub fn check_silk_pad_clearance(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
                     DRCViolation::new(
                         "silk_pad_clearance",
                         "error",
-                        format!("Silk to pad clearance {d:.4}mm < {}mm", py_float_repr(minimum)),
+                        format!(
+                            "Silk to pad clearance {d:.4}mm < {}mm",
+                            py_float_repr(minimum)
+                        ),
                     )
                     .at(location.0, location.1)
                     .layer(g.layer.to_string())

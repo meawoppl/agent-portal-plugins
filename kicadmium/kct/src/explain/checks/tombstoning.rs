@@ -17,12 +17,19 @@ fn is_small_passive(fp: &Footprint) -> bool {
     if !(r.starts_with('R') || r.starts_with('C')) || fp.attr != "smd" || fp.pads.is_empty() {
         return false;
     }
-    py_sum(fp.pads.iter().filter(|p| p.pad_type == "smd").map(|p| p.size.0 * p.size.1))
-        < MAX_PASSIVE_SIZE_FOR_RISK
+    py_sum(
+        fp.pads
+            .iter()
+            .filter(|p| p.pad_type == "smd")
+            .map(|p| p.size.0 * p.size.1),
+    ) < MAX_PASSIVE_SIZE_FOR_RISK
 }
 
 fn zone_count(pcb: &Pcb, pad: &Pad) -> usize {
-    pcb.zones().iter().filter(|z| z.net_number == pad.net_number).count()
+    pcb.zones()
+        .iter()
+        .filter(|z| z.net_number == pad.net_number)
+        .count()
 }
 
 fn zone_net(pcb: &Pcb, pad: &Pad) -> String {
@@ -57,7 +64,11 @@ impl MistakeCheck for TombstoningRiskCheck {
             let (p1, p2) = (&fp.pads[0], &fp.pads[1]);
             let s1 = p1.size.0 * p1.size.1;
             let s2 = p2.size.0 * p2.size.1;
-            let ratio = if s1.min(s2) > 0.0 { s1.max(s2) / s1.min(s2) } else { 1.0 };
+            let ratio = if s1.min(s2) > 0.0 {
+                s1.max(s2) / s1.min(s2)
+            } else {
+                1.0
+            };
             if ratio > 1.2 {
                 out.push(mistake(
                     MistakeCategory::Manufacturability,

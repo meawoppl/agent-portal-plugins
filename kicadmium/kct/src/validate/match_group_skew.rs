@@ -33,7 +33,13 @@ pub fn derive_group_skew_data(
     let routing = SynthRouting::from_net_class_map(map);
     let detected = detect_match_groups(&names, Some(&routing), None, false);
     let measure = |id: i64| {
-        measure_net_from_pcb(pcb, id, board_thickness_mm, num_copper_layers, blind_buried_supported)
+        measure_net_from_pcb(
+            pcb,
+            id,
+            board_thickness_mm,
+            num_copper_layers,
+            blind_buried_supported,
+        )
     };
     let mut skew: Vec<(String, f64)> = Vec::new();
     let mut thresholds: Vec<(String, f64)> = Vec::new();
@@ -74,7 +80,11 @@ pub fn derive_group_skew_data(
         } else {
             g.net_ids[0]
         };
-        let first_name = names.iter().rev().find(|(i, _)| *i == first).map(|(_, n)| n.as_str());
+        let first_name = names
+            .iter()
+            .rev()
+            .find(|(i, _)| *i == first)
+            .map(|(_, n)| n.as_str());
         let nc = first_name.and_then(|n| map.iter().find(|(k, _)| k == n).map(|(_, v)| v));
         let t = nc
             .map(|c| c.effective_length_match_tolerance(DEFAULT_MATCH_GROUP_TOLERANCE_MM))

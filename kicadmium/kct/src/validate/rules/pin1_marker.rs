@@ -72,7 +72,7 @@ fn arc_points(s: (f64, f64), m: (f64, f64), e: (f64, f64)) -> Vec<(f64, f64)> {
 }
 
 /// `_graphic_geometry` (stroke-buffered silk graphic).
-fn graphic_geometry(gr: &SilkGraphic, t: Option<&dyn Fn((f64, f64)) -> (f64, f64)>) -> Option<Geom> {
+fn graphic_geometry(gr: &SilkGraphic, t: super::silkscreen::PointTransform) -> Option<Geom> {
     let xf = |p: (f64, f64)| match t {
         Some(f) => f(p),
         None => p,
@@ -103,7 +103,10 @@ fn graphic_geometry(gr: &SilkGraphic, t: Option<&dyn Fn((f64, f64)) -> (f64, f64
         }
         "arc" => {
             let m = gr.mid?;
-            arc_points(gr.start, m, gr.end).into_iter().map(xf).collect()
+            arc_points(gr.start, m, gr.end)
+                .into_iter()
+                .map(xf)
+                .collect()
         }
         "poly" => {
             if gr.points.len() < 3 {
@@ -198,7 +201,11 @@ impl Pin1MarkerRule {
 
     pub fn check(&self, pcb: &Pcb, _rules: &DesignRules) -> DRCResults {
         let mut results = DRCResults::with_rules_checked(1);
-        let selected: Vec<&Footprint> = pcb.footprints().iter().filter(|f| self.selects(f)).collect();
+        let selected: Vec<&Footprint> = pcb
+            .footprints()
+            .iter()
+            .filter(|f| self.selects(f))
+            .collect();
         if selected.is_empty() {
             return results;
         }
@@ -234,7 +241,10 @@ impl Pin1MarkerRule {
     }
 
     fn check_footprint(&self, fp: &Footprint, board_silk: &[Geom]) -> Option<DRCViolation> {
-        let pin1_numbers: Vec<String> = Self::pin1_pads(fp).iter().map(|p| p.number.clone()).collect();
+        let pin1_numbers: Vec<String> = Self::pin1_pads(fp)
+            .iter()
+            .map(|p| p.number.clone())
+            .collect();
         let mut pin1_geoms = Vec::new();
         let mut other_geoms = Vec::new();
         for pad in &fp.pads {
@@ -323,9 +333,12 @@ impl Pin1MarkerRule {
             if silk_side(&text.layer) != Some(side) {
                 continue;
             }
-            if let Some(g) =
-                text_bbox_geometry(&text.text, text.font_size, text.font_thickness, t(text.position))
-            {
+            if let Some(g) = text_bbox_geometry(
+                &text.text,
+                text.font_size,
+                text.font_thickness,
+                t(text.position),
+            ) {
                 out.push(g);
             }
         }

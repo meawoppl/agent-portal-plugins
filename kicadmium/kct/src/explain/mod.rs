@@ -284,7 +284,10 @@ fn build_context_from_violation(v: &DRCViolation) -> Json {
         ctx.set("net2", n.as_str());
     }
     if let Some(loc) = v.primary_location() {
-        ctx.set("location", Json::Arr(vec![loc.x_mm.into(), loc.y_mm.into()]));
+        ctx.set(
+            "location",
+            Json::Arr(vec![loc.x_mm.into(), loc.y_mm.into()]),
+        );
     }
     ctx
 }

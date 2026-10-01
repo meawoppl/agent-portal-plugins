@@ -23,7 +23,12 @@ pub struct Rectangle {
 
 impl Rectangle {
     pub fn new(min_x: f64, min_y: f64, max_x: f64, max_y: f64) -> Self {
-        Rectangle { min_x, min_y, max_x, max_y }
+        Rectangle {
+            min_x,
+            min_y,
+            max_x,
+            max_y,
+        }
     }
 
     pub fn center_x(&self) -> f64 {
@@ -43,7 +48,12 @@ impl Rectangle {
     }
 
     pub fn translate(&self, dx: f64, dy: f64) -> Self {
-        Rectangle::new(self.min_x + dx, self.min_y + dy, self.max_x + dx, self.max_y + dy)
+        Rectangle::new(
+            self.min_x + dx,
+            self.min_y + dy,
+            self.max_x + dx,
+            self.max_y + dy,
+        )
     }
 
     pub fn union(&self, o: &Rectangle) -> Self {
@@ -56,11 +66,19 @@ impl Rectangle {
     }
 
     pub fn expand(&self, m: f64) -> Self {
-        Rectangle::new(self.min_x - m, self.min_y - m, self.max_x + m, self.max_y + m)
+        Rectangle::new(
+            self.min_x - m,
+            self.min_y - m,
+            self.max_x + m,
+            self.max_y + m,
+        )
     }
 
     pub fn intersects(&self, o: &Rectangle) -> bool {
-        !(self.max_x < o.min_x || self.min_x > o.max_x || self.max_y < o.min_y || self.min_y > o.max_y)
+        !(self.max_x < o.min_x
+            || self.min_x > o.max_x
+            || self.max_y < o.min_y
+            || self.min_y > o.max_y)
     }
 
     pub fn as_tuple(&self) -> (f64, f64, f64, f64) {
@@ -128,9 +146,15 @@ impl SpatialIndex {
     }
 
     pub fn query(&self, b: &Rectangle) -> Vec<String> {
-        let tree = self
-            .tree
-            .get_or_init(|| StrTree::new(&self.items.iter().map(|(_, r)| Some(r.as_tuple())).collect::<Vec<_>>()));
+        let tree = self.tree.get_or_init(|| {
+            StrTree::new(
+                &self
+                    .items
+                    .iter()
+                    .map(|(_, r)| Some(r.as_tuple()))
+                    .collect::<Vec<_>>(),
+            )
+        });
         let mut hits = tree.query(b.as_tuple());
         hits.sort_unstable();
         hits.into_iter().map(|i| self.items[i].0.clone()).collect()
@@ -141,7 +165,10 @@ impl SpatialIndex {
     }
 
     pub fn get_bounds(&self, reference: &str) -> Option<Rectangle> {
-        self.items.iter().find(|(r, _)| r == reference).map(|(_, b)| *b)
+        self.items
+            .iter()
+            .find(|(r, _)| r == reference)
+            .map(|(_, b)| *b)
     }
 
     pub fn len(&self) -> usize {
@@ -163,12 +190,18 @@ pub struct DRCState {
     pub violations: Vec<Violation>,
     pub spatial_index: SpatialIndex,
     pub component_bounds: Vec<(String, Rectangle)>,
-    pub net_segments: Vec<(String, Vec<(f64, f64, f64, f64)>)>,
+    pub net_segments: Vec<(String, SegmentBounds)>,
 }
+
+/// Per-net segment envelopes `(min_x, min_y, max_x, max_y)`.
+pub type SegmentBounds = Vec<(f64, f64, f64, f64)>;
 
 impl DRCState {
     fn bounds(&self, r: &str) -> Option<Rectangle> {
-        self.component_bounds.iter().find(|(k, _)| k == r).map(|(_, b)| *b)
+        self.component_bounds
+            .iter()
+            .find(|(k, _)| k == r)
+            .map(|(_, b)| *b)
     }
 }
 
@@ -239,7 +272,11 @@ impl<'a> IncrementalDRC<'a> {
         for fp in self.pcb.footprints() {
             let b = Self::footprint_bounds(fp, self.position(fp));
             st.spatial_index.insert(&fp.reference, b);
-            match st.component_bounds.iter_mut().find(|(r, _)| *r == fp.reference) {
+            match st
+                .component_bounds
+                .iter_mut()
+                .find(|(r, _)| *r == fp.reference)
+            {
                 Some(e) => e.1 = b,
                 None => st.component_bounds.push((fp.reference.clone(), b)),
             }
@@ -328,7 +365,8 @@ impl<'a> IncrementalDRC<'a> {
         };
         let (dx, dy) = (new_x - old.center_x(), new_y - old.center_y());
         let nb = old.translate(dx, dy);
-        st.violations.retain(|v| !delta.resolved_violations.contains(v));
+        st.violations
+            .retain(|v| !delta.resolved_violations.contains(v));
         st.violations.extend(delta.new_violations.iter().cloned());
         if let Some(e) = st.component_bounds.iter_mut().find(|(r, _)| r == reference) {
             e.1 = nb;
@@ -338,7 +376,10 @@ impl<'a> IncrementalDRC<'a> {
     }
 
     pub fn current_violations(&self) -> Vec<Violation> {
-        self.state.as_ref().map(|s| s.violations.clone()).unwrap_or_default()
+        self.state
+            .as_ref()
+            .map(|s| s.violations.clone())
+            .unwrap_or_default()
     }
 
     /// Footprint bounds over its pads at `position`.
@@ -347,7 +388,12 @@ impl<'a> IncrementalDRC<'a> {
             return Rectangle::from_center(position.0, position.1, 1.0, 1.0);
         }
         let (c, s) = rotate(fp.rotation);
-        let mut r = Rectangle::new(f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
+        let mut r = Rectangle::new(
+            f64::INFINITY,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::NEG_INFINITY,
+        );
         for p in &fp.pads {
             let (lx, ly) = p.position;
             let ax = position.0 + lx * c - ly * s;
@@ -370,7 +416,11 @@ impl<'a> IncrementalDRC<'a> {
                 if other == *r {
                     continue;
                 }
-                let pair = if *r <= other { (r.clone(), other.clone()) } else { (other.clone(), r.clone()) };
+                let pair = if *r <= other {
+                    (r.clone(), other.clone())
+                } else {
+                    (other.clone(), r.clone())
+                };
                 if !checked.insert(pair) {
                     continue;
                 }
@@ -430,14 +480,22 @@ impl<'a> IncrementalDRC<'a> {
         })
     }
 
-    fn component_clearances(&self, reference: &str, bounds: Rectangle, nearby: &[String]) -> Vec<Violation> {
+    fn component_clearances(
+        &self,
+        reference: &str,
+        bounds: Rectangle,
+        nearby: &[String],
+    ) -> Vec<Violation> {
         let Some(fp) = self.pcb.get_footprint(reference) else {
             return vec![];
         };
         let Some(orig) = self.state.as_ref().and_then(|s| s.bounds(reference)) else {
             return vec![];
         };
-        let (dx, dy) = (bounds.center_x() - orig.center_x(), bounds.center_y() - orig.center_y());
+        let (dx, dy) = (
+            bounds.center_x() - orig.center_x(),
+            bounds.center_y() - orig.center_y(),
+        );
         let p = self.position(fp);
         let new_pos = (p.0 + dx, p.1 + dy);
         nearby

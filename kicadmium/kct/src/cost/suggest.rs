@@ -59,8 +59,10 @@ static RESISTOR_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
 static RESISTOR_R_NOTATION_PATTERN: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)^(\d+)([RKM])(\d*)(?:\s+(\d+(?:\.\d+)?%?))?$").unwrap());
 static CAPACITOR_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)^(\d+(?:\.\d+)?)\s*([pnuμmµ]?)[fF]?(?:\s+(\d+[Vv]))?(?:\s+(\d+(?:\.\d+)?%?))?$")
-        .unwrap()
+    Regex::new(
+        r"(?i)^(\d+(?:\.\d+)?)\s*([pnuμmµ]?)[fF]?(?:\s+(\d+[Vv]))?(?:\s+(\d+(?:\.\d+)?%?))?$",
+    )
+    .unwrap()
 });
 static INDUCTOR_PATTERN: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)^(\d+(?:\.\d+)?)\s*([pnuμmµ]?)[hH]?$").unwrap());
@@ -77,7 +79,11 @@ fn pfloat(s: &str) -> f64 {
         // Non-ASCII Unicode digits (Python's `\d`) map to their values.
         let ascii: String = s
             .chars()
-            .map(|c| c.to_digit(10).map(|d| char::from(b'0' + d as u8)).unwrap_or(c))
+            .map(|c| {
+                c.to_digit(10)
+                    .map(|d| char::from(b'0' + d as u8))
+                    .unwrap_or(c)
+            })
             .collect();
         ascii.parse().unwrap_or(f64::NAN)
     })
@@ -193,7 +199,10 @@ pub fn parse_component_value(value: &str, reference: &str) -> ParsedValue {
         ComponentType::Capacitor => {
             if let Some(m) = CAPACITOR_PATTERN.captures(&value) {
                 let mut n = pfloat(&m[1]);
-                let p = m.get(2).map(|x| x.as_str().to_lowercase()).unwrap_or_default();
+                let p = m
+                    .get(2)
+                    .map(|x| x.as_str().to_lowercase())
+                    .unwrap_or_default();
                 if let Some(k) = si_multiplier(&p) {
                     n *= k;
                 }
@@ -217,7 +226,10 @@ pub fn parse_component_value(value: &str, reference: &str) -> ParsedValue {
         ComponentType::Inductor => {
             if let Some(m) = INDUCTOR_PATTERN.captures(&value) {
                 let mut n = pfloat(&m[1]);
-                let p = m.get(2).map(|x| x.as_str().to_lowercase()).unwrap_or_default();
+                let p = m
+                    .get(2)
+                    .map(|x| x.as_str().to_lowercase())
+                    .unwrap_or_default();
                 if let Some(k) = si_multiplier(&p) {
                     n *= k;
                 }
@@ -252,6 +264,9 @@ mod tests {
         let p = parse_component_value("10k 1% thick film", "R2");
         assert_eq!(p.annotations, "thick film");
         assert_eq!(p.tolerance, "1%");
-        assert_eq!(parse_component_value("STM32", "U1").search_terms, vec!["STM32"]);
+        assert_eq!(
+            parse_component_value("STM32", "U1").search_terms,
+            vec!["STM32"]
+        );
     }
 }

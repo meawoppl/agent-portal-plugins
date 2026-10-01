@@ -21,7 +21,13 @@ pub const DEFAULT_FONT_HEIGHT_MM: f64 = 1.27;
 pub const CHAR_WIDTH_FACTOR: f64 = 0.8;
 
 /// Heuristic axis-aligned bbox of a rendered field text.
-pub fn field_text_bbox(text: &str, at: (f64, f64), rotation: f64, font_height_mm: f64, justify: &str) -> BBox {
+pub fn field_text_bbox(
+    text: &str,
+    at: (f64, f64),
+    rotation: f64,
+    font_height_mm: f64,
+    justify: &str,
+) -> BBox {
     let (x, y) = at;
     let length = text.chars().count().max(1) as f64 * CHAR_WIDTH_FACTOR * font_height_mm;
     let h = font_height_mm;
@@ -65,7 +71,9 @@ fn justify(prop: &SExp) -> String {
         .and_then(|e| e.get("justify"))
         .and_then(|j| {
             j.children.iter().find_map(|c| match &c.value {
-                Some(Value::Str(s)) if c.is_atom() && (s == "left" || s == "right") => Some(s.clone()),
+                Some(Value::Str(s)) if c.is_atom() && (s == "left" || s == "right") => {
+                    Some(s.clone())
+                }
                 _ => None,
             })
         })
@@ -80,11 +88,14 @@ struct FieldRecord {
 }
 
 fn resolve(p: &Path) -> PathBuf {
-    std::fs::canonicalize(p).unwrap_or_else(|_| std::path::absolute(p).unwrap_or_else(|_| p.to_path_buf()))
+    std::fs::canonicalize(p)
+        .unwrap_or_else(|_| std::path::absolute(p).unwrap_or_else(|_| p.to_path_buf()))
 }
 
 fn file_name(p: &Path) -> String {
-    p.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()
+    p.file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default()
 }
 
 /// Root sheet plus every reachable sub-sheet file (breadth-first, once each).
@@ -144,7 +155,14 @@ fn lint_sheet(sheet: &Path, threshold_mm: f64) -> Vec<(Key, DRCViolation)> {
     let sheet_name = file_name(sheet);
     let sheet_str = sheet.display().to_string();
     let key = |r: &str, f: &str, rule: &str, m: &str| -> Key {
-        (sheet_name.clone(), sheet_str.clone(), r.into(), f.into(), rule.into(), m.into())
+        (
+            sheet_name.clone(),
+            sheet_str.clone(),
+            r.into(),
+            f.into(),
+            rule.into(),
+            m.into(),
+        )
     };
     let mut findings = Vec::new();
     let mut bodies: Vec<(String, BBox)> = Vec::new();
@@ -166,7 +184,13 @@ fn lint_sheet(sheet: &Path, threshold_mm: f64) -> Vec<(Key, DRCViolation)> {
                 continue;
             }
         };
-        let bbox = placed_body_bbox(&lib, inst.position, inst.rotation, &inst.mirror, Some(inst.unit));
+        let bbox = placed_body_bbox(
+            &lib,
+            inst.position,
+            inst.rotation,
+            &inst.mirror,
+            Some(inst.unit),
+        );
         for prop in sym.children.iter().filter(|c| c.has_tag("property")) {
             let name = prop.text_at(0).unwrap_or_default();
             if !LINT_FIELDS.contains(&name.as_str()) || is_hidden(prop) {

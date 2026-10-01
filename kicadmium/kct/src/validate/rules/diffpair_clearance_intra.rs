@@ -55,7 +55,13 @@ impl DiffPairClearanceIntraRule {
         };
         if !self.overrides.is_empty() {
             // `{net.name: net.number}`: the last net with a name wins.
-            let id = |name: &str| pcb.nets().iter().rev().find(|n| n.name == name).map(|n| n.number);
+            let id = |name: &str| {
+                pcb.nets()
+                    .iter()
+                    .rev()
+                    .find(|n| n.name == name)
+                    .map(|n| n.number)
+            };
             for (p, n) in &self.overrides {
                 let (Some(p), Some(n)) = (id(p), id(n)) else {
                     continue;
@@ -66,7 +72,11 @@ impl DiffPairClearanceIntraRule {
                 add(key(p, n));
             }
         }
-        let names: Vec<(i64, String)> = pcb.nets().iter().map(|n| (n.number, n.name.clone())).collect();
+        let names: Vec<(i64, String)> = pcb
+            .nets()
+            .iter()
+            .map(|n| (n.number, n.name.clone()))
+            .collect();
         for dp in detect_differential_pairs(&names) {
             let (p, n) = (dp.positive.net_id, dp.negative.net_id);
             if p == 0 || n == 0 {

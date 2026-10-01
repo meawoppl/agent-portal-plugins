@@ -51,7 +51,11 @@ fn run_variant(variant: &str, extra: &[&str]) {
         let board = fixtures().join(rel);
         let out = tmp.path().join(format!("{key}.json"));
         let mut args: Vec<String> = vec!["check".into(), board.display().to_string()];
-        args.extend(["--format", "json", "--drc-only"].iter().map(|s| s.to_string()));
+        args.extend(
+            ["--format", "json", "--drc-only"]
+                .iter()
+                .map(|s| s.to_string()),
+        );
         args.extend(extra.iter().map(|s| s.to_string()));
         args.extend(["--output".to_string(), out.display().to_string()]);
         let code = kct::cli::run(args).unwrap();
@@ -62,12 +66,18 @@ fn run_variant(variant: &str, extra: &[&str]) {
         let mut got: Value = serde_json::from_str(&std::fs::read_to_string(&out).unwrap()).unwrap();
         got["file"] = Value::String(format!("<FIXTURES>/{rel}"));
         let gold_path = fixtures().join(format!("check/{key}.{variant}.json"));
-        let want: Value = serde_json::from_str(&std::fs::read_to_string(gold_path).unwrap()).unwrap();
+        let want: Value =
+            serde_json::from_str(&std::fs::read_to_string(gold_path).unwrap()).unwrap();
         if let Some(d) = first_difference("$", &got, &want) {
             failures.push(format!("{rel} [{variant}]: {d}"));
         }
     }
-    assert!(failures.is_empty(), "{} mismatches:\n{}", failures.len(), failures.join("\n"));
+    assert!(
+        failures.is_empty(),
+        "{} mismatches:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
 }
 
 #[test]
@@ -95,18 +105,31 @@ fn detect_mistakes_matches_upstream() {
         let pcb = kct::schema::pcb::Pcb::load(fixtures().join(rel)).unwrap();
         let (mistakes, coverage) = detect_mistakes_with_coverage(&pcb);
         let gold_path = fixtures().join(format!("check/{key}.mistakes.json"));
-        let want: Value = serde_json::from_str(&std::fs::read_to_string(gold_path).unwrap()).unwrap();
-        let got_m: Value =
-            serde_json::from_str(&kct::pyjson::dumps_indent(&kct::pyjson::Json::Arr(mistakes.iter().map(|m| m.to_dict()).collect()), 1))
-                .unwrap();
-        let got_c: Value =
-            serde_json::from_str(&kct::pyjson::dumps_indent(&kct::pyjson::Json::Arr(coverage.iter().map(|c| c.to_dict()).collect()), 1))
-                .unwrap();
-        for (name, got, want) in [("mistakes", &got_m, &want["mistakes"]), ("coverage", &got_c, &want["coverage"])] {
+        let want: Value =
+            serde_json::from_str(&std::fs::read_to_string(gold_path).unwrap()).unwrap();
+        let got_m: Value = serde_json::from_str(&kct::pyjson::dumps_indent(
+            &kct::pyjson::Json::Arr(mistakes.iter().map(|m| m.to_dict()).collect()),
+            1,
+        ))
+        .unwrap();
+        let got_c: Value = serde_json::from_str(&kct::pyjson::dumps_indent(
+            &kct::pyjson::Json::Arr(coverage.iter().map(|c| c.to_dict()).collect()),
+            1,
+        ))
+        .unwrap();
+        for (name, got, want) in [
+            ("mistakes", &got_m, &want["mistakes"]),
+            ("coverage", &got_c, &want["coverage"]),
+        ] {
             if let Some(d) = first_difference(&format!("$.{name}"), got, want) {
                 failures.push(format!("{rel}: {d}"));
             }
         }
     }
-    assert!(failures.is_empty(), "{} mismatches:\n{}", failures.len(), failures.join("\n"));
+    assert!(
+        failures.is_empty(),
+        "{} mismatches:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
 }

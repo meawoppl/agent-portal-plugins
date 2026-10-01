@@ -191,7 +191,9 @@ impl<'a> NetStatusAnalyzer<'a> {
         result.total_nets = nets.len();
         let zone_nets = build_zone_net_map(self.pcb);
         for (number, name) in &nets {
-            result.nets.push(self.analyze_net(*number, name, &zone_nets));
+            result
+                .nets
+                .push(self.analyze_net(*number, name, &zone_nets));
         }
         let order = |s: &str| match s {
             "incomplete" => 0,
@@ -199,9 +201,9 @@ impl<'a> NetStatusAnalyzer<'a> {
             "complete" => 2,
             _ => 3,
         };
-        result
-            .nets
-            .sort_by(|a, b| (order(a.status()), &a.net_name).cmp(&(order(b.status()), &b.net_name)));
+        result.nets.sort_by(|a, b| {
+            (order(a.status()), &a.net_name).cmp(&(order(b.status()), &b.net_name))
+        });
         result
     }
 
@@ -283,7 +285,11 @@ impl<'a> NetStatusAnalyzer<'a> {
                     out.push(PadInfo {
                         reference: fp.reference.clone(),
                         pad_number: pad.number.clone(),
-                        position: cv::transform_pad_position(pad.position, fp.position, fp.rotation),
+                        position: cv::transform_pad_position(
+                            pad.position,
+                            fp.position,
+                            fp.rotation,
+                        ),
                         is_connected: false,
                         layers: pad.layers.clone(),
                         node_id: self.pad_node_id(fi, pi, &fp.reference, &pad.number),
@@ -311,7 +317,9 @@ impl<'a> NetStatusAnalyzer<'a> {
             let radius = a.width / 2.0;
             let step = 4.0 * (error / (2.0 * radius)).min(0.5).sqrt().asin();
             let quad = (std::f64::consts::PI / (2.0 * step)).ceil().max(16.0) as usize;
-            let pts = a.centerline_points(error).unwrap_or_else(|_| vec![a.start, a.end]);
+            let pts = a
+                .centerline_points(error)
+                .unwrap_or_else(|_| vec![a.start, a.end]);
             let poly = Some(polyline_buffer(&pts, radius, quad));
             out.push(Conductor {
                 layer: a.layer.clone(),
@@ -345,12 +353,7 @@ impl<'a> NetStatusAnalyzer<'a> {
         })
     }
 
-    fn pads_touching(
-        &self,
-        geom: &Geom,
-        pads: &[PadInfo],
-        layer: Option<&str>,
-    ) -> Vec<String> {
+    fn pads_touching(&self, geom: &Geom, pads: &[PadInfo], layer: Option<&str>) -> Vec<String> {
         let polys = self.pad_polys();
         let mut out = Vec::new();
         for p in pads {
@@ -655,7 +658,8 @@ impl<'a> NetStatusAnalyzer<'a> {
                 let touched: Vec<usize> = (0..n)
                     .filter(|&i| {
                         regions[i].as_ref().is_some_and(|r| {
-                            via_spans_layer(&vg.layers, layers[i]) && sh::intersects_prep(&vg.annulus, r)
+                            via_spans_layer(&vg.layers, layers[i])
+                                && sh::intersects_prep(&vg.annulus, r)
                         })
                     })
                     .collect();
@@ -680,7 +684,8 @@ impl<'a> NetStatusAnalyzer<'a> {
                             via_spans_layer(std::slice::from_ref(&cs[s].layer), layers[i])
                                 && sh::intersects_prep(&seg_poly(s), r)
                         }) || chain_vias.iter().any(|vg| {
-                            via_spans_layer(&vg.layers, layers[i]) && sh::intersects_prep(&vg.annulus, r)
+                            via_spans_layer(&vg.layers, layers[i])
+                                && sh::intersects_prep(&vg.annulus, r)
                         })
                     })
                     .collect();
@@ -706,12 +711,15 @@ impl<'a> NetStatusAnalyzer<'a> {
                     }
                 };
                 for (id, g) in &pad_polys {
-                    if pad_layer_matches_zone(pad_layers(id), layers[i]) && sh::intersects_prep(g, region) {
+                    if pad_layer_matches_zone(pad_layers(id), layers[i])
+                        && sh::intersects_prep(g, region)
+                    {
                         add(&mut bonded, id);
                     }
                 }
                 for vg in &vgs {
-                    if !via_spans_layer(&vg.layers, layers[i]) || !sh::intersects_prep(&vg.annulus, region)
+                    if !via_spans_layer(&vg.layers, layers[i])
+                        || !sh::intersects_prep(&vg.annulus, region)
                     {
                         continue;
                     }
@@ -806,7 +814,9 @@ fn adjacent_fill_pairs(
     layers: &[&str],
     reach: f64,
 ) -> Vec<(usize, usize)> {
-    let idx: Vec<usize> = (0..regions.len()).filter(|&i| regions[i].is_some()).collect();
+    let idx: Vec<usize> = (0..regions.len())
+        .filter(|&i| regions[i].is_some())
+        .collect();
     if idx.len() < 2 {
         return vec![];
     }
@@ -818,8 +828,10 @@ fn adjacent_fill_pairs(
     for (a, b) in crate::validate::spatial::candidate_pairs(&bounds, reach) {
         let (i, j) = (idx[a], idx[b]);
         if layers[i] == layers[j]
-            && sh::distance_prep(&regions[i].as_ref().unwrap().geom, regions[j].as_ref().unwrap())
-                <= reach
+            && sh::distance_prep(
+                &regions[i].as_ref().unwrap().geom,
+                regions[j].as_ref().unwrap(),
+            ) <= reach
         {
             out.push((i, j));
         }

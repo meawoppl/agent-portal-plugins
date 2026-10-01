@@ -25,6 +25,10 @@ fn connectivity_matches_upstream() {
         let res = v.validate(false);
         let dict: Value = serde_json::from_str(&kct::pyjson::dumps(&res.to_dict())).unwrap();
         assert_eq!(dict, want["validate"], "{board}: validate()");
-        assert_eq!(res.summary(), want["summary"].as_str().unwrap(), "{board}: summary");
+        assert_eq!(
+            res.summary(),
+            want["summary"].as_str().unwrap(),
+            "{board}: summary"
+        );
     }
 }

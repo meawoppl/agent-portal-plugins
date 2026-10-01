@@ -71,7 +71,9 @@ static PN_SUFFIX: LazyLock<Regex> = LazyLock::new(|| ci(r"^(.+)_([PN])$"));
 static DP_DN: LazyLock<Regex> = LazyLock::new(|| ci(r"^(.+)_(D[PN])$"));
 static POS_NEG: LazyLock<Regex> = LazyLock::new(|| ci(r"^(.+)_(POS|NEG)$"));
 static POWER_RAIL: LazyLock<Regex> = LazyLock::new(|| {
-    ci(r"^(VCC|VDD|VBUS|VIN|VOUT|PWR|POWER|AVDD|DVDD|PVDD|PVCC|VBAT|VCORE|VCAP|VIO|VMOTOR|VMOT|VMAIN|VPWR|VDRIVE|VACT|VSRV)(_.*)?$")
+    ci(
+        r"^(VCC|VDD|VBUS|VIN|VOUT|PWR|POWER|AVDD|DVDD|PVDD|PVCC|VBAT|VCORE|VCAP|VIO|VMOTOR|VMOT|VMAIN|VPWR|VDRIVE|VACT|VSRV)(_.*)?$",
+    )
 });
 
 pub use super::net_class::is_single_ended_refused;
@@ -86,7 +88,11 @@ pub fn parse_differential_signal(net: &str) -> Option<(String, &'static str, &'s
         return Some((c[1].to_string(), pol, "plus_minus"));
     }
     if let Some(c) = DP_DN.captures(net) {
-        let pol = if c[2].to_uppercase() == "DP" { "P" } else { "N" };
+        let pol = if c[2].to_uppercase() == "DP" {
+            "P"
+        } else {
+            "N"
+        };
         return Some((format!("{}_D", &c[1]), pol, "pn_suffix"));
     }
     if let Some(c) = PN_SUFFIX.captures(net) {
@@ -97,7 +103,11 @@ pub fn parse_differential_signal(net: &str) -> Option<(String, &'static str, &'s
         if POWER_RAIL.is_match(&c[1]) {
             return None;
         }
-        let pol = if c[2].to_uppercase() == "POS" { "P" } else { "N" };
+        let pol = if c[2].to_uppercase() == "POS" {
+            "P"
+        } else {
+            "N"
+        };
         return Some((c[1].to_string(), pol, "pos_neg"));
     }
     None
@@ -128,7 +138,10 @@ pub fn detect_pair_type(base: &str) -> DifferentialPairType {
 
 /// `detect_differential_pairs(net_names)`; `net_names` is the ordered
 /// `{net_id: name}` dict.
-type SignalGroups = Vec<((String, &'static str), Vec<(&'static str, DifferentialSignal)>)>;
+type SignalGroups = Vec<(
+    (String, &'static str),
+    Vec<(&'static str, DifferentialSignal)>,
+)>;
 
 pub fn detect_differential_pairs(net_names: &[(i64, String)]) -> Vec<DifferentialPair> {
     let mut by_key: SignalGroups = Vec::new();

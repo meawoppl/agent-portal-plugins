@@ -56,7 +56,11 @@ fn prefix20(s: &str) -> String {
     s.chars().take(20).collect()
 }
 
-pub fn check_silkscreen_line_width(pcb: &Pcb, rules: &DesignRules, suppress_library: bool) -> DRCResults {
+pub fn check_silkscreen_line_width(
+    pcb: &Pcb,
+    rules: &DesignRules,
+    suppress_library: bool,
+) -> DRCResults {
     let mut results = DRCResults::with_rules_checked(1);
     let min = rules.min_silkscreen_width_mm;
     for g in pcb.graphics() {
@@ -116,7 +120,11 @@ pub fn check_silkscreen_line_width(pcb: &Pcb, rules: &DesignRules, suppress_libr
     results
 }
 
-pub fn check_silkscreen_text_height(pcb: &Pcb, rules: &DesignRules, suppress_library: bool) -> DRCResults {
+pub fn check_silkscreen_text_height(
+    pcb: &Pcb,
+    rules: &DesignRules,
+    suppress_library: bool,
+) -> DRCResults {
     let mut results = DRCResults::with_rules_checked(1);
     let min = rules.min_silkscreen_height_mm;
     for t in pcb.texts() {
@@ -244,7 +252,12 @@ fn shared_endpoint(a: Ends, b: Ends) -> Option<(f64, f64)> {
 }
 
 /// `_text_bbox_geometry`.
-pub fn text_bbox_geometry(text: &str, font_size: (f64, f64), thickness: f64, center: (f64, f64)) -> Option<Geom> {
+pub fn text_bbox_geometry(
+    text: &str,
+    font_size: (f64, f64),
+    thickness: f64,
+    center: (f64, f64),
+) -> Option<Geom> {
     let n = text.chars().count();
     if n == 0 {
         return None;
@@ -252,7 +265,12 @@ pub fn text_bbox_geometry(text: &str, font_size: (f64, f64), thickness: f64, cen
     let w = font_size.0 * n as f64 * TEXT_CHAR_WIDTH_FACTOR + thickness;
     let h = font_size.1 + thickness;
     let (cx, cy) = center;
-    Some(sh::box_poly(cx - w / 2.0, cy - h / 2.0, cx + w / 2.0, cy + h / 2.0))
+    Some(sh::box_poly(
+        cx - w / 2.0,
+        cy - h / 2.0,
+        cx + w / 2.0,
+        cy + h / 2.0,
+    ))
 }
 
 /// A silk primitive viewed uniformly (footprint or board graphic).
@@ -314,7 +332,11 @@ fn repaired(poly: Poly) -> Geom {
     }
 }
 
-fn poly_geometry(g: &SilkGraphic, xf: &dyn Fn((f64, f64)) -> (f64, f64), width: f64) -> Option<Geom> {
+fn poly_geometry(
+    g: &SilkGraphic,
+    xf: &dyn Fn((f64, f64)) -> (f64, f64),
+    width: f64,
+) -> Option<Geom> {
     let pts: Vec<(f64, f64)> = g.points.iter().map(|&p| xf(p)).collect();
     if pts.len() < 3 {
         return None;
@@ -334,8 +356,11 @@ fn poly_geometry(g: &SilkGraphic, xf: &dyn Fn((f64, f64)) -> (f64, f64), width: 
     Some(sh::buffer_line(&ring, width / 2.0))
 }
 
+/// Optional local -> board point transform.
+pub type PointTransform<'a> = Option<&'a dyn Fn((f64, f64)) -> (f64, f64)>;
+
 /// `_stroke_geometry`.
-pub fn stroke_geometry(g: &SilkGraphic, transform: Option<&dyn Fn((f64, f64)) -> (f64, f64)>) -> Option<Geom> {
+pub fn stroke_geometry(g: &SilkGraphic, transform: PointTransform) -> Option<Geom> {
     if !MODELED_SILK_GRAPHIC_TYPES.contains(&g.graphic_type) {
         return None;
     }
@@ -435,7 +460,8 @@ pub fn iter_silk_geometries(pcb: &Pcb) -> Vec<SilkItem> {
                 continue;
             }
             let center = t(text.position);
-            let Some(g) = text_bbox_geometry(&text.text, text.font_size, text.font_thickness, center)
+            let Some(g) =
+                text_bbox_geometry(&text.text, text.font_size, text.font_thickness, center)
             else {
                 continue;
             };
@@ -457,7 +483,8 @@ pub fn iter_silk_geometries(pcb: &Pcb) -> Vec<SilkItem> {
             let Some(g) = stroke_geometry(&sg, Some(&t)) else {
                 continue;
             };
-            let line = (gr.graphic_type == "line").then(|| ((t(gr.start), t(gr.end)), gr.stroke_width));
+            let line =
+                (gr.graphic_type == "line").then(|| ((t(gr.start), t(gr.end)), gr.stroke_width));
             out.push(SilkItem {
                 side,
                 geom: g,
@@ -476,8 +503,12 @@ pub fn iter_silk_geometries(pcb: &Pcb) -> Vec<SilkItem> {
         if text.hidden {
             continue;
         }
-        let Some(g) = text_bbox_geometry(&text.text, text.font_size, text.font_thickness, text.position)
-        else {
+        let Some(g) = text_bbox_geometry(
+            &text.text,
+            text.font_size,
+            text.font_thickness,
+            text.position,
+        ) else {
             continue;
         };
         out.push(SilkItem {
@@ -516,10 +547,13 @@ pub fn iter_silk_geometries(pcb: &Pcb) -> Vec<SilkItem> {
 
 pub fn check_silk_coverage(pcb: &Pcb) -> DRCResults {
     let mut results = DRCResults::with_rules_checked(1);
-    let mut rows: Vec<(String, String, (f64, f64), String, String)> = Vec::new();
+    type CoverageRow = (String, String, (f64, f64), String, String);
+    let mut rows: Vec<CoverageRow> = Vec::new();
     for fp in pcb.footprints() {
         for g in &fp.graphics {
-            if silk_side(&g.layer).is_none() || MODELED_SILK_GRAPHIC_TYPES.contains(&g.graphic_type.as_str()) {
+            if silk_side(&g.layer).is_none()
+                || MODELED_SILK_GRAPHIC_TYPES.contains(&g.graphic_type.as_str())
+            {
                 continue;
             }
             rows.push((
@@ -532,7 +566,9 @@ pub fn check_silk_coverage(pcb: &Pcb) -> DRCResults {
         }
     }
     for g in pcb.graphics() {
-        if silk_side(&g.layer).is_none() || MODELED_SILK_GRAPHIC_TYPES.contains(&g.graphic_type.as_str()) {
+        if silk_side(&g.layer).is_none()
+            || MODELED_SILK_GRAPHIC_TYPES.contains(&g.graphic_type.as_str())
+        {
             continue;
         }
         rows.push((
@@ -619,7 +655,9 @@ pub fn check_silk_over_copper(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
         let Some(entries) = aps.get(item.side) else {
             continue;
         };
-        let Some(b) = item.geom.bounds() else { continue };
+        let Some(b) = item.geom.bounds() else {
+            continue;
+        };
         for idx in trees[item.side].query(b) {
             let (ag, alabel) = &entries[idx];
             if !sh::intersects(&item.geom, ag) {
@@ -632,7 +670,10 @@ pub fn check_silk_over_copper(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
                 DRCViolation::new(
                     "silk_over_copper",
                     "warning",
-                    format!("Silkscreen {} overlaps exposed copper of {alabel}", item.label),
+                    format!(
+                        "Silkscreen {} overlaps exposed copper of {alabel}",
+                        item.label
+                    ),
                 )
                 .at(item.location.0, item.location.1)
                 .layer(item.layer.clone())
@@ -728,7 +769,9 @@ pub fn check_silk_edge_clearance(pcb: &Pcb) -> DRCResults {
     if segs.is_empty() {
         return results;
     }
-    let outline = sh::Prepared::new(Geom::Lines(segs.iter().map(|(a, b)| vec![*a, *b]).collect()));
+    let outline = sh::Prepared::new(Geom::Lines(
+        segs.iter().map(|(a, b)| vec![*a, *b]).collect(),
+    ));
     for item in iter_silk_geometries(pcb) {
         let d = sh::distance_prep(&item.geom, &outline);
         if d < SILK_EDGE_CLEARANCE_MM - CLEARANCE_EPSILON_MM {
@@ -759,7 +802,9 @@ pub fn check_all_silkscreen(pcb: &Pcb, rules: &DesignRules, suppress_library: bo
     results.merge(check_silkscreen_text_height(pcb, rules, suppress_library));
     results.merge(check_silkscreen_over_pads(pcb));
     results.merge(check_silk_over_copper(pcb, rules));
-    results.merge(super::factory_clearance::check_silk_pad_clearance(pcb, rules));
+    results.merge(super::factory_clearance::check_silk_pad_clearance(
+        pcb, rules,
+    ));
     results.merge(check_silk_overlap(pcb));
     results.merge(check_silk_edge_clearance(pcb));
     results.merge(check_silk_coverage(pcb));

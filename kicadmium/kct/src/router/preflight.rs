@@ -281,7 +281,8 @@ pub fn compute_pad_grid_tolerance(pads: &[AnalysisPad], grid: f64) -> f64 {
         return AUTO_DERIVED_TOLERANCE_FLOOR_MM;
     }
     let offsets: Vec<f64> = pads.iter().map(|p| l2_distance(p.x, p.y, grid)).collect();
-    let raw = percentile(&offsets, AUTO_DERIVED_TOLERANCE_PERCENTILE) + AUTO_DERIVED_TOLERANCE_MARGIN_MM;
+    let raw =
+        percentile(&offsets, AUTO_DERIVED_TOLERANCE_PERCENTILE) + AUTO_DERIVED_TOLERANCE_MARGIN_MM;
     AUTO_DERIVED_TOLERANCE_HARD_CAP_MM.min(AUTO_DERIVED_TOLERANCE_FLOOR_MM.max(raw))
 }
 

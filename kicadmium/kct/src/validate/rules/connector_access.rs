@@ -65,7 +65,10 @@ impl ConnectorEdgeAccessRule {
         if outline.is_empty() {
             return results;
         }
-        let lines: Vec<Geom> = outline.iter().map(|(a, b)| Geom::Line(vec![*a, *b])).collect();
+        let lines: Vec<Geom> = outline
+            .iter()
+            .map(|(a, b)| Geom::Line(vec![*a, *b]))
+            .collect();
         for fp in pcb.footprints() {
             let lib = library_prefix(&fp.name);
             if !lib.starts_with("Connector_") {
@@ -95,7 +98,8 @@ impl ConnectorEdgeAccessRule {
                     .items([fp.reference.clone()]),
                 );
             }
-            if needs_edge_access(lib, &fp.name) && distance > self.max_edge_distance_mm + EPSILON_MM {
+            if needs_edge_access(lib, &fp.name) && distance > self.max_edge_distance_mm + EPSILON_MM
+            {
                 results.add(
                     DRCViolation::new(
                         CONNECTOR_EDGE_ACCESS_RULE_ID,

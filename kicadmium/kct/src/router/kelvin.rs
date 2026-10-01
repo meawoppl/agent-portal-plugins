@@ -47,7 +47,9 @@ pub fn is_sense_net_name(net_name: &str) -> bool {
 
 /// `find_kelvin_root`: the most central shunt pad (lowest index on ties).
 pub fn find_kelvin_root(pads: &[KelvinPad]) -> Option<usize> {
-    let cands: Vec<usize> = (0..pads.len()).filter(|&i| is_shunt_pad(&pads[i])).collect();
+    let cands: Vec<usize> = (0..pads.len())
+        .filter(|&i| is_shunt_pad(&pads[i]))
+        .collect();
     match cands.len() {
         0 => None,
         1 => Some(cands[0]),

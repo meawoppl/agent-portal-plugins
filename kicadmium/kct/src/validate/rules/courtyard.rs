@@ -80,7 +80,11 @@ impl CourtyardOverlapRule {
             self.emit_overlap(&mut results, ra, rb, sa, area);
         }
         if let Some(w) = &self.waivers {
-            let present: Vec<&str> = pcb.footprints().iter().map(|f| f.reference.as_str()).collect();
+            let present: Vec<&str> = pcb
+                .footprints()
+                .iter()
+                .map(|f| f.reference.as_str())
+                .collect();
             for e in &w.entries {
                 let missing: Vec<&str> = [e.refs.0.as_str(), e.refs.1.as_str()]
                     .into_iter()

@@ -120,7 +120,12 @@ fn insertion_sort<T, F: Fn(&T, &T) -> bool>(v: &mut [T], first: usize, last: usi
     }
 }
 
-fn final_insertion_sort<T, F: Fn(&T, &T) -> bool>(v: &mut [T], first: usize, last: usize, less: &F) {
+fn final_insertion_sort<T, F: Fn(&T, &T) -> bool>(
+    v: &mut [T],
+    first: usize,
+    last: usize,
+    less: &F,
+) {
     if last - first > THRESHOLD {
         insertion_sort(v, first, first + THRESHOLD, less);
         for i in first + THRESHOLD..last {
@@ -133,7 +138,13 @@ fn final_insertion_sort<T, F: Fn(&T, &T) -> bool>(v: &mut [T], first: usize, las
 
 // --- heap (std::__partial_sort with middle == last) ---
 
-fn push_heap<T, F: Fn(&T, &T) -> bool>(v: &mut [T], base: usize, mut hole: usize, top: usize, less: &F) {
+fn push_heap<T, F: Fn(&T, &T) -> bool>(
+    v: &mut [T],
+    base: usize,
+    mut hole: usize,
+    top: usize,
+    less: &F,
+) {
     // `v[base + hole]` holds the value being pushed.
     let mut parent = if hole > 0 { (hole - 1) / 2 } else { 0 };
     while hole > top && less(&v[base + parent], &v[base + hole]) {
@@ -146,7 +157,13 @@ fn push_heap<T, F: Fn(&T, &T) -> bool>(v: &mut [T], base: usize, mut hole: usize
     }
 }
 
-fn adjust_heap<T, F: Fn(&T, &T) -> bool>(v: &mut [T], base: usize, mut hole: usize, len: usize, less: &F) {
+fn adjust_heap<T, F: Fn(&T, &T) -> bool>(
+    v: &mut [T],
+    base: usize,
+    mut hole: usize,
+    len: usize,
+    less: &F,
+) {
     let top = hole;
     let mut child = hole;
     while child < (len - 1) / 2 {
@@ -157,7 +174,7 @@ fn adjust_heap<T, F: Fn(&T, &T) -> bool>(v: &mut [T], base: usize, mut hole: usi
         v.swap(base + hole, base + child);
         hole = child;
     }
-    if len % 2 == 0 && child == (len - 2) / 2 {
+    if len.is_multiple_of(2) && child == (len - 2) / 2 {
         child = 2 * (child + 1);
         v.swap(base + hole, base + child - 1);
         hole = child - 1;

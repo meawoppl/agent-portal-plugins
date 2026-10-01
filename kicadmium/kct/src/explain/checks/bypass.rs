@@ -2,8 +2,7 @@
 
 use super::mistake;
 use crate::explain::mistakes::{
-    distance, is_bypass_cap, is_power_net, CheckIncomplete, Mistake, MistakeCategory,
-    MistakeCheck,
+    distance, is_bypass_cap, is_power_net, CheckIncomplete, Mistake, MistakeCategory, MistakeCheck,
 };
 use crate::schema::pcb::{Footprint, Pad, Pcb};
 
@@ -53,7 +52,10 @@ impl MistakeCheck for BypassCapDistanceCheck {
                 let pads: Vec<&Pad> = ic.pads.iter().filter(|p| p.net_name == cap_net).collect();
                 for pad in pads {
                     // TODO upstream: rotation is not handled.
-                    let pad_pos = (ic.position.0 + pad.position.0, ic.position.1 + pad.position.1);
+                    let pad_pos = (
+                        ic.position.0 + pad.position.0,
+                        ic.position.1 + pad.position.1,
+                    );
                     let cap_pos = cap.position;
                     let dist = distance(cap_pos, pad_pos);
                     if dist > BYPASS_WARNING_DISTANCE_MM {

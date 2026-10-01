@@ -50,7 +50,10 @@ impl MistakeCheck for CrystalTraceLengthCheck {
                 let segs: Vec<&Segment> = pcb
                     .segments()
                     .iter()
-                    .filter(|s| pcb.get_net(s.net_number).is_some_and(|n| n.name == net_name))
+                    .filter(|s| {
+                        pcb.get_net(s.net_number)
+                            .is_some_and(|n| n.name == net_name)
+                    })
                     .collect();
                 if segs.is_empty() {
                     continue;

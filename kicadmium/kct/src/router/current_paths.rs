@@ -63,10 +63,16 @@ impl PathEndpoint {
     pub fn from_dict(data: &Json) -> Result<Self, String> {
         let get = |k: &str| data.get(k).and_then(Json::as_str).filter(|s| !s.is_empty());
         let Some(reference) = get("ref") else {
-            return Err(format!("current-path endpoint missing 'ref': {}", data.py_repr()));
+            return Err(format!(
+                "current-path endpoint missing 'ref': {}",
+                data.py_repr()
+            ));
         };
         let Some(pad) = get("pad") else {
-            return Err(format!("current-path endpoint missing 'pad': {}", data.py_repr()));
+            return Err(format!(
+                "current-path endpoint missing 'pad': {}",
+                data.py_repr()
+            ));
         };
         Ok(PathEndpoint {
             reference: reference.to_string(),
@@ -221,17 +227,28 @@ impl CurrentPathSpec {
                 data.py_type_name()
             ));
         }
-        let Some(name) = data.get("name").and_then(Json::as_str).filter(|s| !s.is_empty()) else {
-            return Err(format!("current-path spec missing 'name': {}", data.py_repr()));
+        let Some(name) = data
+            .get("name")
+            .and_then(Json::as_str)
+            .filter(|s| !s.is_empty())
+        else {
+            return Err(format!(
+                "current-path spec missing 'name': {}",
+                data.py_repr()
+            ));
         };
         let net = match data.get("net") {
             Some(v) if v.truthy() => Some(v),
             _ => data.get("net_name"),
         };
         let Some(net_name) = net.and_then(Json::as_str).filter(|s| !s.is_empty()) else {
-            return Err(format!("current-path spec {} missing 'net'", py_repr_str(name)));
+            return Err(format!(
+                "current-path spec {} missing 'net'",
+                py_repr_str(name)
+            ));
         };
-        let (Some(src @ Json::Obj(_)), Some(snk @ Json::Obj(_))) = (data.get("source"), data.get("sink"))
+        let (Some(src @ Json::Obj(_)), Some(snk @ Json::Obj(_))) =
+            (data.get("source"), data.get("sink"))
         else {
             return Err(format!(
                 "current-path spec {} missing 'source'/'sink'",
@@ -406,7 +423,9 @@ fn net_child_matches(node: &SExp, net_number: Option<i64>, net_name: &str) -> bo
         return true;
     }
     let as_int = match net.value_at(0) {
-        Some(v) => v.as_i64().or_else(|| v.as_str().and_then(|s| s.trim().parse().ok())),
+        Some(v) => v
+            .as_i64()
+            .or_else(|| v.as_str().and_then(|s| s.trim().parse().ok())),
         None => None,
     };
     net_number.is_some() && as_int == net_number
@@ -443,7 +462,11 @@ pub fn unmodeled_copper(pcb: &Pcb, net_name: &str) -> Vec<UnmodeledCopper> {
         if zone.keepout.is_some() || !same {
             continue;
         }
-        let layer = zone.layers.first().cloned().unwrap_or_else(|| zone.layer.clone());
+        let layer = zone
+            .layers
+            .first()
+            .cloned()
+            .unwrap_or_else(|| zone.layer.clone());
         let location = zone.polygon.first().copied().unwrap_or((0.0, 0.0));
         found.push(UnmodeledCopper {
             kind: "zone",
@@ -545,13 +568,12 @@ fn build_graph(segs: &[usize], pcb: &Pcb, net_name: &str) -> CopperGraph {
         })
         .collect();
     // Ordered, de-duplicated contact points per layer.
-    let mut contacts: Vec<(String, Vec<(f64, f64)>, HashSet<(u64, u64)>)> = layers
+    type LayerContacts = Vec<(String, Vec<(f64, f64)>, HashSet<(u64, u64)>)>;
+    let mut contacts: LayerContacts = layers
         .iter()
         .map(|l| (l.clone(), Vec::new(), HashSet::new()))
         .collect();
-    let add = |contacts: &mut Vec<(String, Vec<(f64, f64)>, HashSet<(u64, u64)>)>,
-                   layer: &str,
-                   p: (f64, f64)| {
+    let add = |contacts: &mut LayerContacts, layer: &str, p: (f64, f64)| {
         let i = match contacts.iter().position(|c| c.0 == layer) {
             Some(i) => i,
             None => {
@@ -605,14 +627,17 @@ fn build_graph(segs: &[usize], pcb: &Pcb, net_name: &str) -> CopperGraph {
         let Some(c) = contacts.iter().find(|c| c.0 == s.layer) else {
             continue;
         };
-        let mut pts: Vec<(f64, f64)> = c
-            .1
-            .iter()
-            .copied()
-            .filter(|p| point_to_segment_distance(p.0, p.1, s.start.0, s.start.1, s.end.0, s.end.1) <= PAD_EPS)
-            .collect();
+        let mut pts: Vec<(f64, f64)> =
+            c.1.iter()
+                .copied()
+                .filter(|p| {
+                    point_to_segment_distance(p.0, p.1, s.start.0, s.start.1, s.end.0, s.end.1)
+                        <= PAD_EPS
+                })
+                .collect();
         pts.sort_by(|p, q| {
-            crate::utils::pymath::dist(*p, s.start).total_cmp(&crate::utils::pymath::dist(*q, s.start))
+            crate::utils::pymath::dist(*p, s.start)
+                .total_cmp(&crate::utils::pymath::dist(*q, s.start))
         });
         for w in pts.windows(2) {
             let id = g.edge_seg.len();
@@ -682,7 +707,13 @@ fn build_graph(segs: &[usize], pcb: &Pcb, net_name: &str) -> CopperGraph {
             } else {
                 layers
                     .iter()
-                    .map(|l| nodes.iter().copied().filter(|&i| order[i].layer == *l).collect())
+                    .map(|l| {
+                        nodes
+                            .iter()
+                            .copied()
+                            .filter(|&i| order[i].layer == *l)
+                            .collect()
+                    })
                     .collect()
             };
             for group in groups {
@@ -904,7 +935,11 @@ fn array_contacts_modeled(
         let v = &pcb.vias()[vi];
         for l in pcb.copper_layers() {
             if via_spans_layer(&v.layers, &l.name) {
-                pieces.push((l.name.clone(), pt_buf(v.position, v.size / 2.0), v.size / 2.0));
+                pieces.push((
+                    l.name.clone(),
+                    pt_buf(v.position, v.size / 2.0),
+                    v.size / 2.0,
+                ));
             }
         }
     }
@@ -1003,7 +1038,11 @@ fn proved_load_exits(g: &CopperGraph, array_nodes: &HashSet<Node>, exits: &[Exit
     if exits.is_empty() {
         return false;
     }
-    let terminals: HashSet<&Node> = g.pads.values().filter(|n| !array_nodes.contains(*n)).collect();
+    let terminals: HashSet<&Node> = g
+        .pads
+        .values()
+        .filter(|n| !array_nodes.contains(*n))
+        .collect();
     let mut visited: HashSet<Node> = HashSet::new();
     for (_, first, incoming) in exits {
         let mut pending: Vec<(Node, usize)> = vec![(first.clone(), *incoming)];
@@ -1069,7 +1108,11 @@ fn endpoint_via_array(
             return None;
         }
         let anchor = anchors[0];
-        let tip = if anchor == seg.start { seg.end } else { seg.start };
+        let tip = if anchor == seg.start {
+            seg.end
+        } else {
+            seg.start
+        };
         if node_key(tip) != top.xy() || seg_length(seg) > bound + PAD_EPS {
             return None;
         }
@@ -1077,7 +1120,9 @@ fn endpoint_via_array(
         match direction {
             None => direction = Some(delta),
             Some(d) => {
-                if (d.0 * delta.1 - d.1 * delta.0).abs() > PAD_EPS || d.0 * delta.0 + d.1 * delta.1 <= 0.0 {
+                if (d.0 * delta.1 - d.1 * delta.0).abs() > PAD_EPS
+                    || d.0 * delta.0 + d.1 * delta.1 <= 0.0
+                {
                     return None;
                 }
             }
@@ -1103,8 +1148,11 @@ fn endpoint_via_array(
                 return None;
             }
             nodes.insert(current.clone());
-            let onward: Vec<&(Node, usize)> =
-                g.adj(&current).iter().filter(|(_, x)| *x != previous).collect();
+            let onward: Vec<&(Node, usize)> = g
+                .adj(&current)
+                .iter()
+                .filter(|(_, x)| *x != previous)
+                .collect();
             if current.layer == far_layer {
                 far_nodes.push(current.clone());
                 break;
@@ -1135,7 +1183,8 @@ fn endpoint_via_array(
         let s = &all[si];
         (s.layer == far_layer
             && far_nodes.iter().all(|n| {
-                point_to_segment_distance(n.x, n.y, s.start.0, s.start.1, s.end.0, s.end.1) <= PAD_EPS
+                point_to_segment_distance(n.x, n.y, s.start.0, s.start.1, s.end.0, s.end.1)
+                    <= PAD_EPS
             }))
         .then_some(si)
     }));
@@ -1151,7 +1200,8 @@ fn endpoint_via_array(
     let (first, last) = (ordered[0].clone(), ordered[ordered.len() - 1].clone());
     for node in g.adjacency.keys() {
         if node.layer == far_layer
-            && point_to_segment_distance(node.x, node.y, first.x, first.y, last.x, last.y) <= PAD_EPS
+            && point_to_segment_distance(node.x, node.y, first.x, first.y, last.x, last.y)
+                <= PAD_EPS
         {
             nodes.insert(node.clone());
         }
@@ -1206,7 +1256,13 @@ fn endpoint_via_array(
     })
 }
 
-fn candidate_via_array_leg_count(g: &CopperGraph, pcb: &Pcb, hub: &Node, pad: &Pad, net_name: &str) -> usize {
+fn candidate_via_array_leg_count(
+    g: &CopperGraph,
+    pcb: &Pcb,
+    hub: &Node,
+    pad: &Pad,
+    net_name: &str,
+) -> usize {
     let bound = crate::utils::pymath::hypot(pad.size.0, pad.size.1);
     let all = pcb.segments();
     let mut count = 0;
@@ -1254,7 +1310,10 @@ fn component_has_cycle(g: &CopperGraph, start: &Node, arrays: &[ViaArray]) -> bo
         Some(i) => Root::Array(*i),
         None => Root::Node(start),
     });
-    let contracted: HashSet<usize> = arrays.iter().flat_map(|a| a.edges.iter().copied()).collect();
+    let contracted: HashSet<usize> = arrays
+        .iter()
+        .flat_map(|a| a.edges.iter().copied())
+        .collect();
     let mut seen_edges: HashSet<usize> = HashSet::new();
     let mut stack: Vec<&Node> = vec![start];
     while let Some(cur) = stack.pop() {
@@ -1275,11 +1334,19 @@ fn component_has_cycle(g: &CopperGraph, start: &Node, arrays: &[ViaArray]) -> bo
 }
 
 fn pad_covers(pcb: &Pcb, reference: &str, pad_number: &str, p: (f64, f64)) -> bool {
-    let fps: Vec<&Footprint> = pcb.footprints().iter().filter(|f| f.reference == reference).collect();
+    let fps: Vec<&Footprint> = pcb
+        .footprints()
+        .iter()
+        .filter(|f| f.reference == reference)
+        .collect();
     if fps.len() != 1 {
         return false;
     }
-    let pads: Vec<&Pad> = fps[0].pads.iter().filter(|x| x.number == pad_number).collect();
+    let pads: Vec<&Pad> = fps[0]
+        .pads
+        .iter()
+        .filter(|x| x.number == pad_number)
+        .collect();
     pads.len() == 1 && physical_pad_covers(fps[0], pads[0], p)
 }
 
@@ -1320,8 +1387,16 @@ pub fn physical_pad_covers(fp: &Footprint, pad: &Pad, p: (f64, f64)) -> bool {
     }
 }
 
-fn resolve_endpoint(pcb: &Pcb, ep: &PathEndpoint, expected_net: &str) -> Result<ResolvedEndpoint, String> {
-    let fps: Vec<&Footprint> = pcb.footprints().iter().filter(|f| f.reference == ep.reference).collect();
+fn resolve_endpoint(
+    pcb: &Pcb,
+    ep: &PathEndpoint,
+    expected_net: &str,
+) -> Result<ResolvedEndpoint, String> {
+    let fps: Vec<&Footprint> = pcb
+        .footprints()
+        .iter()
+        .filter(|f| f.reference == ep.reference)
+        .collect();
     if fps.len() > 1 {
         return Err(format!(
             "component {} is ambiguous: multiple physical footprints",
@@ -1329,7 +1404,10 @@ fn resolve_endpoint(pcb: &Pcb, ep: &PathEndpoint, expected_net: &str) -> Result<
         ));
     }
     let Some(fp) = fps.first() else {
-        return Err(format!("component {} not found on board", py_repr_str(&ep.reference)));
+        return Err(format!(
+            "component {} not found on board",
+            py_repr_str(&ep.reference)
+        ));
     };
     let matches: Vec<&Pad> = fp.pads.iter().filter(|p| p.number == ep.pad).collect();
     if matches.len() > 1 {
@@ -1354,7 +1432,10 @@ fn resolve_endpoint(pcb: &Pcb, ep: &PathEndpoint, expected_net: &str) -> Result<
         ));
     }
     let Some(pos) = pcb.get_pad_position(&ep.reference, &ep.pad) else {
-        return Err(format!("could not compute board position for pad {}", ep.label()));
+        return Err(format!(
+            "could not compute board position for pad {}",
+            ep.label()
+        ));
     };
     Ok(ResolvedEndpoint {
         reference: ep.reference.clone(),
@@ -1432,19 +1513,28 @@ pub fn resolve_current_path(pcb: &Pcb, spec: &CurrentPathSpec) -> PathResolution
         .pads
         .get(&(source.reference.clone(), source.pad.clone(), 0))
         .cloned();
-    let goal = g.pads.get(&(sink.reference.clone(), sink.pad.clone(), 0)).cloned();
+    let goal = g
+        .pads
+        .get(&(sink.reference.clone(), sink.pad.clone(), 0))
+        .cloned();
     let Some(start) = start else {
         return both(PathResolution::new(
             spec,
             STATUS_UNRESOLVED,
-            format!("source pad {} has no routed copper touching it", spec.source.label()),
+            format!(
+                "source pad {} has no routed copper touching it",
+                spec.source.label()
+            ),
         ));
     };
     let Some(goal) = goal else {
         return both(PathResolution::new(
             spec,
             STATUS_UNRESOLVED,
-            format!("sink pad {} has no routed copper touching it", spec.sink.label()),
+            format!(
+                "sink pad {} has no routed copper touching it",
+                spec.sink.label()
+            ),
         ));
     };
     let Some(path) = bfs_path(&g, &start, &goal) else {
@@ -1477,7 +1567,8 @@ pub fn resolve_current_path(pcb: &Pcb, spec: &CurrentPathSpec) -> PathResolution
                     if ep_pad.pad_type == "smd"
                         && arms.len() >= 2
                         && via_arm
-                        && (candidate_via_array_leg_count(&g, pcb, hub, ep_pad, &spec.net_name) >= 2
+                        && (candidate_via_array_leg_count(&g, pcb, hub, ep_pad, &spec.net_name)
+                            >= 2
                             || !proved_load_exits(
                                 &g,
                                 &HashSet::from([hub.clone()]),
@@ -1559,7 +1650,8 @@ impl CurrentPathAudit {
 /// Upstream iterates the declared nets as a Python `set` (hash order); the
 /// port uses first-declaration order, which is deterministic.
 pub fn audit_current_paths(pcb: &Pcb, specs: &[CurrentPathSpec]) -> CurrentPathAudit {
-    let resolutions: Vec<PathResolution> = specs.iter().map(|s| resolve_current_path(pcb, s)).collect();
+    let resolutions: Vec<PathResolution> =
+        specs.iter().map(|s| resolve_current_path(pcb, s)).collect();
     let mut covered: HashMap<&str, HashSet<usize>> = HashMap::new();
     for r in &resolutions {
         if r.ok() {

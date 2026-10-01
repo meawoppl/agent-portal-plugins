@@ -152,7 +152,8 @@ impl Reconciler {
     }
 
     fn schematic_components(&self) -> Result<HashMap<String, Comp>, String> {
-        let bom = extract_bom(&self.schematic_path.to_string_lossy(), true).map_err(|e| e.to_string())?;
+        let bom =
+            extract_bom(&self.schematic_path.to_string_lossy(), true).map_err(|e| e.to_string())?;
         let mut out = HashMap::new();
         for item in bom.items {
             if item.is_power_symbol() || !item.on_board {
@@ -249,8 +250,14 @@ impl Reconciler {
                 actions,
             });
         }
-        let sch_orphans: Vec<String> = sch_refs.difference(&pcb_refs).map(|s| (*s).clone()).collect();
-        let pcb_orphans: Vec<String> = pcb_refs.difference(&sch_refs).map(|s| (*s).clone()).collect();
+        let sch_orphans: Vec<String> = sch_refs
+            .difference(&pcb_refs)
+            .map(|s| (*s).clone())
+            .collect();
+        let pcb_orphans: Vec<String> = pcb_refs
+            .difference(&sch_refs)
+            .map(|s| (*s).clone())
+            .collect();
         let mut matched_sch: BTreeSet<String> = BTreeSet::new();
         let mut matched_pcb: BTreeSet<String> = BTreeSet::new();
 
@@ -264,7 +271,8 @@ impl Reconciler {
                 .filter(|pr| !matched_pcb.contains(*pr))
                 .filter(|pr| {
                     let p = &pcbc[*pr];
-                    values_equivalent(&s.value, &p.value, sr) && fp_name(&s.footprint) == fp_name(&p.footprint)
+                    values_equivalent(&s.value, &p.value, sr)
+                        && fp_name(&s.footprint) == fp_name(&p.footprint)
                 })
                 .collect();
             if let [pr] = cands[..] {
@@ -305,7 +313,10 @@ impl Reconciler {
                     new_value: sr.clone(),
                 }];
                 let p = &pcbc[pr];
-                if !s.value.is_empty() && !p.value.is_empty() && !values_equivalent(&s.value, &p.value, sr) {
+                if !s.value.is_empty()
+                    && !p.value.is_empty()
+                    && !values_equivalent(&s.value, &p.value, sr)
+                {
                     actions.push(SyncAction {
                         action_type: "update_value",
                         reference: sr.clone(),
@@ -324,8 +335,14 @@ impl Reconciler {
                 matched_pcb.insert(pr.clone());
             }
         }
-        a.schematic_orphans = sch_orphans.into_iter().filter(|r| !matched_sch.contains(r)).collect();
-        a.pcb_orphans = pcb_orphans.into_iter().filter(|r| !matched_pcb.contains(r)).collect();
+        a.schematic_orphans = sch_orphans
+            .into_iter()
+            .filter(|r| !matched_sch.contains(r))
+            .collect();
+        a.pcb_orphans = pcb_orphans
+            .into_iter()
+            .filter(|r| !matched_pcb.contains(r))
+            .collect();
         for r in &a.schematic_orphans {
             let s = &sch[r];
             if !s.footprint.is_empty() {

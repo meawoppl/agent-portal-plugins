@@ -435,7 +435,11 @@ pub fn locate_in_ring(p: C, ring: &[C]) -> Location {
             return Location::Boundary;
         }
         if p1.1 == p.1 && p2.1 == p.1 {
-            let (mn, mx) = if p1.0 < p2.0 { (p1.0, p2.0) } else { (p2.0, p1.0) };
+            let (mn, mx) = if p1.0 < p2.0 {
+                (p1.0, p2.0)
+            } else {
+                (p2.0, p1.0)
+            };
             if p.0 >= mn && p.0 <= mx {
                 return Location::Boundary;
             }
@@ -693,7 +697,10 @@ pub fn distance_points(g1: &Geom, g2: &Geom) -> Option<(f64, C, C)> {
     let polys2 = g2.polys();
     if !polys2.is_empty() {
         for p in g1.element_locations() {
-            if polys2.iter().any(|poly| locate_in_poly(p, poly) != Location::Exterior) {
+            if polys2
+                .iter()
+                .any(|poly| locate_in_poly(p, poly) != Location::Exterior)
+            {
                 return Some((0.0, p, p));
             }
         }
@@ -701,7 +708,10 @@ pub fn distance_points(g1: &Geom, g2: &Geom) -> Option<(f64, C, C)> {
     let polys1 = g1.polys();
     if !polys1.is_empty() {
         for p in g2.element_locations() {
-            if polys1.iter().any(|poly| locate_in_poly(p, poly) != Location::Exterior) {
+            if polys1
+                .iter()
+                .any(|poly| locate_in_poly(p, poly) != Location::Exterior)
+            {
                 return Some((0.0, p, p));
             }
         }
@@ -906,7 +916,11 @@ pub fn representative_point(g: &Geom) -> Option<C> {
                 tl += len;
             }
         }
-        let c = if tl > 0.0 { (cx / tl, cy / tl) } else { lines[0][0] };
+        let c = if tl > 0.0 {
+            (cx / tl, cy / tl)
+        } else {
+            lines[0][0]
+        };
         let mut best = None;
         let mut bd = f64::INFINITY;
         for l in &lines {
@@ -971,7 +985,12 @@ fn to_shapes(g: &Geom) -> Shapes {
         .filter(|p| p.shell.len() >= 3)
         .map(|p| {
             std::iter::once(oriented(&p.shell, true))
-                .chain(p.holes.iter().filter(|h| h.len() >= 3).map(|h| oriented(h, false)))
+                .chain(
+                    p.holes
+                        .iter()
+                        .filter(|h| h.len() >= 3)
+                        .map(|h| oriented(h, false)),
+                )
                 .collect()
         })
         .collect()
@@ -1037,7 +1056,10 @@ impl Snapper {
     /// GEOS `LineIntersector` crossing point of the two input segments that
     /// pass through an overlay vertex not coinciding with an input vertex.
     fn crossing(&self, p: C) -> Option<C> {
-        let k = ((p.0 / SEG_CELL).floor() as i64, (p.1 / SEG_CELL).floor() as i64);
+        let k = (
+            (p.0 / SEG_CELL).floor() as i64,
+            (p.1 / SEG_CELL).floor() as i64,
+        );
         let cands = self.seg_grid().get(&k)?;
         let near: Vec<(C, C)> = cands
             .iter()
@@ -1056,7 +1078,10 @@ impl Snapper {
                     continue;
                 };
                 let inside = |u: C, v: C| {
-                    x.0 >= u.0.min(v.0) && x.0 <= u.0.max(v.0) && x.1 >= u.1.min(v.1) && x.1 <= u.1.max(v.1)
+                    x.0 >= u.0.min(v.0)
+                        && x.0 <= u.0.max(v.0)
+                        && x.1 >= u.1.min(v.1)
+                        && x.1 <= u.1.max(v.1)
                 };
                 if !(inside(a, b) && inside(c, d)) {
                     continue;
@@ -1071,7 +1096,10 @@ impl Snapper {
     }
 
     fn snap(&self, p: [f64; 2]) -> C {
-        let (kx, ky) = ((p[0] / self.cell).floor() as i64, (p[1] / self.cell).floor() as i64);
+        let (kx, ky) = (
+            (p[0] / self.cell).floor() as i64,
+            (p[1] / self.cell).floor() as i64,
+        );
         let mut best = (p[0], p[1]);
         let mut bd = self.cell;
         let mut found = false;
@@ -1204,7 +1232,12 @@ pub fn intersection(a: &Geom, b: &Geom) -> Geom {
     if a.polys().is_empty() || b.polys().is_empty() {
         return Geom::Empty;
     }
-    let bx = (ba.0.max(bb.0), ba.1.max(bb.1), ba.2.min(bb.2), ba.3.min(bb.3));
+    let bx = (
+        ba.0.max(bb.0),
+        ba.1.max(bb.1),
+        ba.2.min(bb.2),
+        ba.3.min(bb.3),
+    );
     if bx.0 > bx.2 || bx.1 > bx.3 {
         return Geom::Empty;
     }
@@ -1324,7 +1357,11 @@ pub fn ring_is_ccw(ring: &[C]) -> bool {
         }
     }
     let down_low = ring[i_down_low];
-    let i_down_hi = if i_down_low > 0 { i_down_low - 1 } else { n_pts - 1 };
+    let i_down_hi = if i_down_low > 0 {
+        i_down_low - 1
+    } else {
+        n_pts - 1
+    };
     let down_hi = ring[i_down_hi];
     if up_hi == down_hi {
         let ul = up_low.unwrap_or(up_hi);
@@ -1365,7 +1402,8 @@ pub fn buffer0(p: &Poly) -> Geom {
     } else {
         FillRule::Negative
     };
-    let out = FloatOverlay::with_subj_custom(&shapes, opts, Solver::default()).overlay(OverlayRule::Subject, rule);
+    let out = FloatOverlay::with_subj_custom(&shapes, opts, Solver::default())
+        .overlay(OverlayRule::Subject, rule);
     from_shapes(out, &snap)
 }
 
@@ -1599,12 +1637,14 @@ impl LineIndex {
     }
 
     fn col_range(&self, lo: f64, hi: f64) -> (usize, usize) {
-        let f = |v: f64| (((v - self.min.0) / self.cell).floor().max(0.0) as usize).min(self.nx - 1);
+        let f =
+            |v: f64| (((v - self.min.0) / self.cell).floor().max(0.0) as usize).min(self.nx - 1);
         (f(lo), f(hi))
     }
 
     fn row_range(&self, lo: f64, hi: f64) -> (usize, usize) {
-        let f = |v: f64| (((v - self.min.1) / self.cell).floor().max(0.0) as usize).min(self.ny - 1);
+        let f =
+            |v: f64| (((v - self.min.1) / self.cell).floor().max(0.0) as usize).min(self.ny - 1);
         (f(lo), f(hi))
     }
 
@@ -1651,12 +1691,17 @@ impl Prepared {
         let mut hole_trees = Vec::new();
         for poly in geom.polys() {
             hole_trees.push((poly.holes.len() > 8).then(|| {
-                let he: Vec<Option<Bounds>> = poly.holes.iter().map(|h| Some(line_env(h))).collect();
+                let he: Vec<Option<Bounds>> =
+                    poly.holes.iter().map(|h| Some(line_env(h))).collect();
                 super::strtree::StrTree::new(&he)
             }));
             poly_rings.push(li);
             li += 1 + poly.holes.len();
-            penv.push(if poly.is_empty() { None } else { Some(line_env(&poly.shell)) });
+            penv.push(if poly.is_empty() {
+                None
+            } else {
+                Some(line_env(&poly.shell))
+            });
         }
         let poly_tree = (penv.len() > 8).then(|| super::strtree::StrTree::new(&penv));
         Prepared {
@@ -1693,7 +1738,11 @@ impl Prepared {
                 return Location::Boundary;
             }
             if p1.1 == p.1 && p2.1 == p.1 {
-                let (mn, mx) = if p1.0 < p2.0 { (p1.0, p2.0) } else { (p2.0, p1.0) };
+                let (mn, mx) = if p1.0 < p2.0 {
+                    (p1.0, p2.0)
+                } else {
+                    (p2.0, p1.0)
+                };
                 if p.0 >= mn && p.0 <= mx {
                     return Location::Boundary;
                 }
@@ -2141,8 +2190,35 @@ mod tests {
         let cases: [(&[(f64, f64)], f64); 4] = [
             (&[(0.0, 0.0), (2.0, 2.0), (2.0, 0.0), (0.0, 2.0)], 1.0),
             (&[(0.0, 0.0), (2.0, 0.0), (0.0, 2.0), (2.0, 2.0)], 1.0),
-            (&[(0.0, 0.0), (4.0, 0.0), (4.0, 1.0), (1.0, 1.0), (1.0, 3.0), (4.0, 3.0), (4.0, 1.0), (4.0, 4.0), (0.0, 4.0)], 10.0),
-            (&[(0.0, 0.0), (3.0, 0.0), (3.0, 3.0), (0.0, 3.0), (0.0, 0.0), (1.0, 1.0), (2.0, 1.0), (2.0, 2.0), (1.0, 2.0), (1.0, 1.0)], 9.0),
+            (
+                &[
+                    (0.0, 0.0),
+                    (4.0, 0.0),
+                    (4.0, 1.0),
+                    (1.0, 1.0),
+                    (1.0, 3.0),
+                    (4.0, 3.0),
+                    (4.0, 1.0),
+                    (4.0, 4.0),
+                    (0.0, 4.0),
+                ],
+                10.0,
+            ),
+            (
+                &[
+                    (0.0, 0.0),
+                    (3.0, 0.0),
+                    (3.0, 3.0),
+                    (0.0, 3.0),
+                    (0.0, 0.0),
+                    (1.0, 1.0),
+                    (2.0, 1.0),
+                    (2.0, 2.0),
+                    (1.0, 2.0),
+                    (1.0, 1.0),
+                ],
+                9.0,
+            ),
         ];
         for (pts, area) in cases {
             let g = buffer0(&Poly::new(pts.to_vec()));

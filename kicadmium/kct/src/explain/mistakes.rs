@@ -93,11 +93,7 @@ impl Mistake {
     }
 
     pub fn format_tree(&self) -> String {
-        let mut lines = vec![format!(
-            "[{}] {}",
-            self.severity.to_uppercase(),
-            self.title
-        )];
+        let mut lines = vec![format!("[{}] {}", self.severity.to_uppercase(), self.title)];
         lines.push(format!("├─ Components: {}", self.components.join(", ")));
         if let Some((x, y)) = self.location {
             lines.push(format!("├─ Location: ({x:.2}, {y:.2}) mm"));
@@ -318,7 +314,7 @@ pub fn is_bypass_cap(reference: &str, value: &str) -> bool {
         return false;
     }
     const VALUES: &[&str] = &["100n", "0.1u", "10n", "1u", "4.7u", "10u"];
-    let lower = value.to_lowercase().replace(' ', "").replace('f', "");
+    let lower = value.to_lowercase().replace([' ', 'f'], "");
     VALUES.iter().any(|v| lower.contains(v))
 }
 

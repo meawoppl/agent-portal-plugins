@@ -70,7 +70,8 @@ impl MistakeCheck for AcidTrapCheck {
                     let Some(j) = find_junction(a, b) else {
                         continue;
                     };
-                    let Some(angle) = calculate_angle(a, b, j).filter(|a| *a < MIN_TRACE_ANGLE_DEG) else {
+                    let Some(angle) = calculate_angle(a, b, j).filter(|a| *a < MIN_TRACE_ANGLE_DEG)
+                    else {
                         continue;
                     };
                     let net_name = pcb

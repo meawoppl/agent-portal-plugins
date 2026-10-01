@@ -3,8 +3,7 @@
 
 use super::mistake;
 use crate::explain::mistakes::{
-    is_differential_pair_net, trace_length, CheckIncomplete, Mistake, MistakeCategory,
-    MistakeCheck,
+    is_differential_pair_net, trace_length, CheckIncomplete, Mistake, MistakeCategory, MistakeCheck,
 };
 use crate::pyjson::{py_float_repr, py_title};
 use crate::schema::pcb::{Pcb, Segment};
@@ -83,8 +82,16 @@ impl MistakeCheck for DifferentialPairSkewCheck {
             let skew = (pos_len - neg_len).abs();
 
             let is_usb = base.to_uppercase().contains("USB");
-            let max_skew = if is_usb { MAX_USB_SKEW_MM } else { MAX_GENERAL_SKEW_MM };
-            let interface = if is_usb { "USB 2.0 high-speed" } else { "differential" };
+            let max_skew = if is_usb {
+                MAX_USB_SKEW_MM
+            } else {
+                MAX_GENERAL_SKEW_MM
+            };
+            let interface = if is_usb {
+                "USB 2.0 high-speed"
+            } else {
+                "differential"
+            };
             let max_skew_s = py_float_repr(max_skew);
 
             if skew > max_skew {

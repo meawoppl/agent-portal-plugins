@@ -33,7 +33,10 @@ fn summary_parts(a: &SyncAnalysis) -> Vec<String> {
         parts.push(format!("{} value mismatch(es)", a.value_mismatches.len()));
     }
     if !a.footprint_mismatches.is_empty() {
-        parts.push(format!("{} footprint mismatch(es)", a.footprint_mismatches.len()));
+        parts.push(format!(
+            "{} footprint mismatch(es)",
+            a.footprint_mismatches.len()
+        ));
     }
     parts
 }
@@ -137,7 +140,10 @@ pub fn render_drift_report(a: &SyncAnalysis, pcb_path: &Path, schematic_path: &P
     }
     if !a.footprint_mismatches.is_empty() {
         lines.push(String::new());
-        lines.push(format!("Footprint mismatches [{}]:", a.footprint_mismatches.len()));
+        lines.push(format!(
+            "Footprint mismatches [{}]:",
+            a.footprint_mismatches.len()
+        ));
         for m in &a.footprint_mismatches {
             lines.push(format!(
                 "  - {}: schematic={} pcb={}",
@@ -169,7 +175,11 @@ pub fn emit_drift_banner(pcb_path: &Path, schematic: Option<&str>) {
 }
 
 /// `run_netlist_sync_gate`: 0 in sync / advisory, 1 no schematic, 2 drift.
-pub fn run_netlist_sync_gate(pcb_path: &Path, schematic: Option<&str>, strict: bool) -> anyhow::Result<i32> {
+pub fn run_netlist_sync_gate(
+    pcb_path: &Path,
+    schematic: Option<&str>,
+    strict: bool,
+) -> anyhow::Result<i32> {
     let Some((a, resolved)) = analyze_drift(pcb_path, schematic) else {
         eprintln!(
             "Error: --netlist-sync requires a schematic, but none was found for {}.",
@@ -182,7 +192,10 @@ pub fn run_netlist_sync_gate(pcb_path: &Path, schematic: Option<&str>, strict: b
         return Ok(1);
     };
     println!("{}", render_drift_report(&a, pcb_path, &resolved));
-    if !a.schematic_orphans.is_empty() || !a.value_mismatches.is_empty() || !a.footprint_mismatches.is_empty() {
+    if !a.schematic_orphans.is_empty()
+        || !a.value_mismatches.is_empty()
+        || !a.footprint_mismatches.is_empty()
+    {
         return Ok(2);
     }
     if strict && has_drift(&a) {

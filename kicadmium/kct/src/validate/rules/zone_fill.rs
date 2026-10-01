@@ -15,8 +15,10 @@ fn zone_bbox(z: &Zone) -> String {
     }
     let xs = z.polygon.iter().map(|p| p.0);
     let ys = z.polygon.iter().map(|p| p.1);
-    let min = |it: &mut dyn Iterator<Item = f64>| it.reduce(|a, b| if b < a { b } else { a }).unwrap();
-    let max = |it: &mut dyn Iterator<Item = f64>| it.reduce(|a, b| if b > a { b } else { a }).unwrap();
+    let min =
+        |it: &mut dyn Iterator<Item = f64>| it.reduce(|a, b| if b < a { b } else { a }).unwrap();
+    let max =
+        |it: &mut dyn Iterator<Item = f64>| it.reduce(|a, b| if b > a { b } else { a }).unwrap();
     format!(
         "({:.2}, {:.2}) to ({:.2}, {:.2}) mm",
         min(&mut xs.clone()),
@@ -54,7 +56,11 @@ impl ZoneFillRule {
             } else {
                 &z.net_name
             };
-            let layer = if z.layer.is_empty() { "unknown" } else { &z.layer };
+            let layer = if z.layer.is_empty() {
+                "unknown"
+            } else {
+                &z.layer
+            };
             let bbox = zone_bbox(z);
             let center = zone_center(z);
             if !z.is_filled {

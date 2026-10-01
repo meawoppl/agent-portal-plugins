@@ -19,7 +19,8 @@ fn sha256_hex(bytes: &[u8]) -> String {
 }
 
 fn resolve(p: &Path) -> PathBuf {
-    std::fs::canonicalize(p).unwrap_or_else(|_| std::path::absolute(p).unwrap_or_else(|_| p.to_path_buf()))
+    std::fs::canonicalize(p)
+        .unwrap_or_else(|_| std::path::absolute(p).unwrap_or_else(|_| p.to_path_buf()))
 }
 
 fn rglob(dir: &Path, name: &str, out: &mut Vec<PathBuf>) {
@@ -44,7 +45,10 @@ pub fn verify_manifest(manifest_path: &Path) -> Result<Vec<String>, String> {
     let manifest = pyjson::loads(&text).map_err(|e| {
         crate::utils::pyjsondecode::json_decode_error(&text).unwrap_or_else(|| e.to_string())
     })?;
-    let own = manifest_path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+    let own = manifest_path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("");
     let mut problems = Vec::new();
     let Some(Json::Obj(files)) = manifest.get("files") else {
         return Ok(problems);
@@ -134,7 +138,11 @@ pub fn verify_bundle(manifest_path: &Path, pcb_path: &Path) -> Result<(), String
     if !problems.is_empty() {
         return Err(problems.join("; "));
     }
-    let pcb_name = pcb_path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
+    let pcb_name = pcb_path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("")
+        .to_string();
     let file = std::fs::File::open(&archive_path).map_err(|e| e.to_string())?;
     let mut zip = zip::ZipArchive::new(file).map_err(|e| e.to_string())?;
     let names: Vec<String> = (0..zip.len())

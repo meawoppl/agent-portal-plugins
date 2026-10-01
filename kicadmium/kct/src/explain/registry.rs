@@ -25,10 +25,7 @@ pub const BUILTIN_SPECS: &[(&str, &str)] = &[
 
 /// Normalize a manufacturer name/id to a stable lookup key.
 pub fn normalize_manufacturer(name: &str) -> String {
-    name.to_lowercase()
-        .replace(' ', "")
-        .replace('-', "")
-        .replace('_', "")
+    name.to_lowercase().replace([' ', '-', '_'], "")
 }
 
 /// Registry of rule explanations and interface specs (insertion ordered,

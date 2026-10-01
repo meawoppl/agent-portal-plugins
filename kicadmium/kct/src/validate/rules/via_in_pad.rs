@@ -44,7 +44,11 @@ fn max3(a: f64, b: f64, c: f64) -> f64 {
 }
 
 /// `via_inside_pad`.
-pub fn via_inside_pad(via: &Via, bbox: (f64, f64, f64, f64), pad: Option<(&Pad, &Footprint)>) -> bool {
+pub fn via_inside_pad(
+    via: &Via,
+    bbox: (f64, f64, f64, f64),
+    pad: Option<(&Pad, &Footprint)>,
+) -> bool {
     let (cx, cy) = via.position;
     let r = via.drill / 2.0;
     if r <= DRC_TOLERANCE {
@@ -128,7 +132,9 @@ impl ViaInPadRule {
                     holes.as_deref(),
                 );
                 let reasons = if !ctx.known {
-                    vec!["component-hole census has unknown or invalid drilled geometry".to_string()]
+                    vec![
+                        "component-hole census has unknown or invalid drilled geometry".to_string(),
+                    ]
                 } else {
                     process.eligibility_reasons(
                         Some(layer_count),
@@ -181,7 +187,13 @@ impl ViaInPadRule {
         self.base("via_in_pad", via, fp, pad, msg)
     }
 
-    fn missing(&self, via: &Via, fp: &Footprint, pad: &Pad, process_id: Option<&str>) -> DRCViolation {
+    fn missing(
+        &self,
+        via: &Via,
+        fp: &Footprint,
+        pad: &Pad,
+        process_id: Option<&str>,
+    ) -> DRCViolation {
         let detail = match process_id.filter(|s| !s.is_empty()) {
             Some(p) => format!("unrecognized via_in_pad_process_id {}", py_repr_str(p)),
             None => "via_in_pad_process_id is unset".to_string(),

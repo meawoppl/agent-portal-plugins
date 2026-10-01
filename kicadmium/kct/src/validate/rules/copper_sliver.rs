@@ -27,7 +27,12 @@ impl CopperSliverRule {
         let mut results = DRCResults::with_rules_checked(1);
         results.set_rule("copper_sliver", 1);
         for (layer, geoms) in collect_copper_by_layer(pcb) {
-            check_layer(&layer, &geoms, KICAD_SLIVER_WIDTH_TOLERANCE_MM, &mut results);
+            check_layer(
+                &layer,
+                &geoms,
+                KICAD_SLIVER_WIDTH_TOLERANCE_MM,
+                &mut results,
+            );
         }
         results
     }
@@ -57,7 +62,9 @@ fn collect_copper_by_layer(pcb: &Pcb) -> Vec<(String, Vec<Geom>)> {
             if s.width <= 0.0 {
                 continue;
             }
-            by[i].1.push(sh::segment_buffer(s.start, s.end, s.width / 2.0));
+            by[i]
+                .1
+                .push(sh::segment_buffer(s.start, s.end, s.width / 2.0));
         }
     }
     for fp in pcb.footprints() {
@@ -230,7 +237,9 @@ fn chord_locally_inside(coords: &[(f64, f64)], a: usize, tip: usize, b: usize) -
 type Tip = ((f64, f64), f64, f64);
 
 fn sliver_tips(comp: &Poly, tol: f64) -> Vec<Tip> {
-    let rings: Vec<&Vec<(f64, f64)>> = std::iter::once(&comp.shell).chain(comp.holes.iter()).collect();
+    let rings: Vec<&Vec<(f64, f64)>> = std::iter::once(&comp.shell)
+        .chain(comp.holes.iter())
+        .collect();
     let open = |r: &Vec<(f64, f64)>| -> Vec<(f64, f64)> { r[..r.len().saturating_sub(1)].to_vec() };
     let key = |p: (f64, f64)| (p.0.to_bits(), p.1.to_bits());
     let mut membership: HashMap<(u64, u64), usize> = HashMap::new();
@@ -250,7 +259,8 @@ fn sliver_tips(comp: &Poly, tol: f64) -> Vec<Tip> {
         }
         let mut seen_arms: std::collections::HashSet<(usize, usize)> = Default::default();
         for (i, &cur) in coords.iter().enumerate() {
-            let (Some(pi), Some(ni)) = (resolve_arm(&coords, i, -1), resolve_arm(&coords, i, 1)) else {
+            let (Some(pi), Some(ni)) = (resolve_arm(&coords, i, -1), resolve_arm(&coords, i, 1))
+            else {
                 continue;
             };
             if seen_arms.contains(&(pi, ni)) {
@@ -273,7 +283,9 @@ fn sliver_tips(comp: &Poly, tol: f64) -> Vec<Tip> {
             let angle = cosine.acos().to_degrees();
             let width = hypot(next.0 - prev.0, next.1 - prev.1);
             if angle < KICAD_SLIVER_ANGLE_TOLERANCE_DEG && width > tol {
-                let cross = ((next.0 - prev.0) * (cur.1 - prev.1) - (next.1 - prev.1) * (cur.0 - prev.0)).abs();
+                let cross = ((next.0 - prev.0) * (cur.1 - prev.1)
+                    - (next.1 - prev.1) * (cur.0 - prev.0))
+                    .abs();
                 if cross / width <= tol {
                     continue;
                 }

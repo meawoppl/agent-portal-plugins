@@ -45,7 +45,7 @@ impl GeometricDRCResult {
     /// The `n` most frequent error types (stable descending by count).
     pub fn top_types(&self, n: usize) -> Vec<(String, usize)> {
         let mut v = self.by_type.clone();
-        v.sort_by(|a, b| b.1.cmp(&a.1));
+        v.sort_by_key(|e| std::cmp::Reverse(e.1));
         v.truncate(n);
         v
     }
@@ -93,14 +93,23 @@ pub fn run_geometric_drc(
     if refill_zones {
         cmd.arg("--refill-zones");
     }
-    cmd.args(["--format", "json", "--severity-all", "--units", "mm", "--output"])
-        .arg(&report_path)
-        .arg(pcb_path)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
+    cmd.args([
+        "--format",
+        "json",
+        "--severity-all",
+        "--units",
+        "mm",
+        "--output",
+    ])
+    .arg(&report_path)
+    .arg(pcb_path)
+    .stdout(Stdio::null())
+    .stderr(Stdio::null());
     let mut child = match cmd.spawn() {
         Ok(c) => c,
-        Err(e) => return GeometricDRCResult::skipped(format!("geometric DRC failed: {e}"), REASON_CRASH),
+        Err(e) => {
+            return GeometricDRCResult::skipped(format!("geometric DRC failed: {e}"), REASON_CRASH)
+        }
     };
     let start = Instant::now();
     loop {
@@ -117,7 +126,12 @@ pub fn run_geometric_drc(
                 }
                 std::thread::sleep(Duration::from_millis(50));
             }
-            Err(e) => return GeometricDRCResult::skipped(format!("geometric DRC failed: {e}"), REASON_CRASH),
+            Err(e) => {
+                return GeometricDRCResult::skipped(
+                    format!("geometric DRC failed: {e}"),
+                    REASON_CRASH,
+                )
+            }
         }
     }
     let present = report_path.exists();
@@ -129,7 +143,9 @@ pub fn run_geometric_drc(
     }
     let parsed = match DRCReport::load(&report_path) {
         Ok(r) => r,
-        Err(e) => return GeometricDRCResult::skipped(format!("geometric DRC failed: {e}"), REASON_CRASH),
+        Err(e) => {
+            return GeometricDRCResult::skipped(format!("geometric DRC failed: {e}"), REASON_CRASH)
+        }
     };
     let mut out = GeometricDRCResult {
         ran: true,

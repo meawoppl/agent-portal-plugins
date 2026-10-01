@@ -19,7 +19,9 @@ fn copper_ordinal(name: &str) -> Option<i64> {
     match name {
         "F.Cu" => Some(0),
         "B.Cu" => Some(BOTTOM_ORDINAL),
-        n if n.starts_with("In") && n.ends_with(".Cu") && n.len() >= 5 => n[2..n.len() - 3].trim().parse().ok(),
+        n if n.starts_with("In") && n.ends_with(".Cu") && n.len() >= 5 => {
+            n[2..n.len() - 3].trim().parse().ok()
+        }
         _ => None,
     }
 }
@@ -122,8 +124,14 @@ pub fn find_different_net_shorts(pcb: &Pcb, clearance: f64) -> Vec<ShortItem> {
     let threshold = clearance - EPS;
     let vias = pcb.vias();
     let segs = pcb.segments();
-    let vid: Vec<_> = vias.iter().map(|v| net_identity(pcb, v.net_number, &v.net_name)).collect();
-    let sid: Vec<_> = segs.iter().map(|s| net_identity(pcb, s.net_number, &s.net_name)).collect();
+    let vid: Vec<_> = vias
+        .iter()
+        .map(|v| net_identity(pcb, v.net_number, &v.net_name))
+        .collect();
+    let sid: Vec<_> = segs
+        .iter()
+        .map(|s| net_identity(pcb, s.net_number, &s.net_name))
+        .collect();
     let mut out = Vec::new();
     for i in 0..vias.len() {
         let Some(a) = &vid[i] else {
@@ -166,7 +174,14 @@ pub fn find_different_net_shorts(pcb: &Pcb, clearance: f64) -> Vec<ShortItem> {
             if a.0 == b.0 || !via_spans_layer(v, &s.layer) {
                 continue;
             }
-            let d = point_to_segment_distance(v.position.0, v.position.1, s.start.0, s.start.1, s.end.0, s.end.1);
+            let d = point_to_segment_distance(
+                v.position.0,
+                v.position.1,
+                s.start.0,
+                s.start.1,
+                s.end.0,
+                s.end.1,
+            );
             let gap = d - v.size / 2.0 - s.width / 2.0;
             if gap < threshold {
                 out.push(ShortItem {
@@ -204,7 +219,8 @@ pub fn find_different_net_shorts(pcb: &Pcb, clearance: f64) -> Vec<ShortItem> {
                 continue;
             }
             let d = segment_to_segment_distance(
-                sa.start.0, sa.start.1, sa.end.0, sa.end.1, sb.start.0, sb.start.1, sb.end.0, sb.end.1,
+                sa.start.0, sa.start.1, sa.end.0, sa.end.1, sb.start.0, sb.start.1, sb.end.0,
+                sb.end.1,
             );
             let gap = d - sa.width / 2.0 - sb.width / 2.0;
             if gap < threshold {

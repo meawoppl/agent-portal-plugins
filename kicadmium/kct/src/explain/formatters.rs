@@ -53,7 +53,10 @@ pub fn format_text(result: &ExplanationResult) -> String {
     }
 
     if !result.related_rules.is_empty() {
-        lines.push(format!("Related Rules: {}", result.related_rules.join(", ")));
+        lines.push(format!(
+            "Related Rules: {}",
+            result.related_rules.join(", ")
+        ));
     }
     lines.join("\n")
 }
@@ -108,7 +111,11 @@ pub fn format_markdown(result: &ExplanationResult) -> String {
             lines.push(format!("| Current | {}{} |", py_float_repr(c), result.unit));
         }
         if let Some(r) = result.required_value {
-            lines.push(format!("| Required | {}{} |", py_float_repr(r), result.unit));
+            lines.push(format!(
+                "| Required | {}{} |",
+                py_float_repr(r),
+                result.unit
+            ));
         }
         lines.push(String::new());
     }

@@ -51,11 +51,10 @@ impl FootprintGeometry for Footprint {
 /// `geo` multipolygon -> kernel geometry (rings kept as given).
 pub fn from_geo_multi(mp: &geo::MultiPolygon<f64>) -> Geom {
     let ring = |r: &geo::LineString<f64>| r.0.iter().map(|c| (c.x, c.y)).collect::<Vec<_>>();
-    let polys: Vec<Poly> = mp
-        .0
-        .iter()
-        .map(|p| Poly::with_holes(ring(p.exterior()), p.interiors().iter().map(ring).collect()))
-        .collect();
+    let polys: Vec<Poly> =
+        mp.0.iter()
+            .map(|p| Poly::with_holes(ring(p.exterior()), p.interiors().iter().map(ring).collect()))
+            .collect();
     match polys.len() {
         0 => Geom::Empty,
         1 => Geom::Poly(polys.into_iter().next().unwrap()),

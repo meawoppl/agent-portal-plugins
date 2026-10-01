@@ -82,10 +82,14 @@ impl MatchGroupLengthSkewRule {
                 continue;
             };
             results.add(
-                DRCViolation::new("match_group_length_skew", severity, format!("{head} {tail}"))
-                    .actual(py_round(skew, 4))
-                    .required(py_round(tol, 4))
-                    .items([g.name.clone()]),
+                DRCViolation::new(
+                    "match_group_length_skew",
+                    severity,
+                    format!("{head} {tail}"),
+                )
+                .actual(py_round(skew, 4))
+                .required(py_round(tol, 4))
+                .items([g.name.clone()]),
             );
         }
         results

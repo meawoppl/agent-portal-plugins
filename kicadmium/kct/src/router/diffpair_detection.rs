@@ -48,8 +48,11 @@ impl<'a> SynthRouting<'a> {
     /// `synth = dict(net_class_map); synth.setdefault(nc.name, nc)` plus
     /// `net_to_class[net] = nc.name`.
     pub fn from_net_class_map(map: &'a NetClassMap) -> Self {
-        let mut keys: Vec<(String, usize)> =
-            map.iter().enumerate().map(|(i, (k, _))| (k.clone(), i)).collect();
+        let mut keys: Vec<(String, usize)> = map
+            .iter()
+            .enumerate()
+            .map(|(i, (k, _))| (k.clone(), i))
+            .collect();
         let mut net_to_class = Vec::new();
         for (i, (net, nc)) in map.iter().enumerate() {
             net_to_class.push((net.clone(), nc.name.clone()));
@@ -104,11 +107,19 @@ fn common_prefix(a: &str, b: &str) -> String {
     prefix.trim_end_matches(['_', '-', '+']).to_string()
 }
 
-fn make_pair_from_names(p_name: &str, n_name: &str, net_names: &[(i64, String)]) -> Option<DifferentialPair> {
+fn make_pair_from_names(
+    p_name: &str,
+    n_name: &str,
+    net_names: &[(i64, String)],
+) -> Option<DifferentialPair> {
     let p_id = name_to_id(net_names, p_name)?;
     let n_id = name_to_id(net_names, n_name)?;
     let cp = common_prefix(p_name, n_name);
-    let base = if cp.is_empty() { p_name.to_string() } else { cp };
+    let base = if cp.is_empty() {
+        p_name.to_string()
+    } else {
+        cp
+    };
     let sig = |name: &str, id: i64, pol: &'static str| DifferentialSignal {
         net_name: name.to_string(),
         net_id: id,
@@ -191,7 +202,10 @@ fn declared_partner_for_net(
     (!rivals).then(|| partner.to_string())
 }
 
-fn gather_explicit_pairs(net_names: &[(i64, String)], routing: Option<&SynthRouting>) -> Vec<DifferentialPair> {
+fn gather_explicit_pairs(
+    net_names: &[(i64, String)],
+    routing: Option<&SynthRouting>,
+) -> Vec<DifferentialPair> {
     let Some(routing) = routing.filter(|r| !r.keys.is_empty() && !r.net_to_class.is_empty()) else {
         return vec![];
     };

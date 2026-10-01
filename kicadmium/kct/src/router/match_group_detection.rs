@@ -55,10 +55,17 @@ static CLOCK_REGEXES: LazyLock<Vec<Regex>> = LazyLock::new(|| {
 
 fn name_of(net_names: &[(i64, String)], id: i64) -> Option<&str> {
     // `{net_id: name}` dict: the last entry per id wins.
-    net_names.iter().rev().find(|(i, _)| *i == id).map(|(_, n)| n.as_str())
+    net_names
+        .iter()
+        .rev()
+        .find(|(i, _)| *i == id)
+        .map(|(_, n)| n.as_str())
 }
 
-fn gather_explicit_groups(net_names: &[(i64, String)], routing: Option<&SynthRouting>) -> Vec<MatchGroup> {
+fn gather_explicit_groups(
+    net_names: &[(i64, String)],
+    routing: Option<&SynthRouting>,
+) -> Vec<MatchGroup> {
     let Some(r) = routing.filter(|r| !r.keys.is_empty() && !r.net_to_class.is_empty()) else {
         return vec![];
     };
@@ -123,7 +130,11 @@ fn infer_suffix_groups(net_names: &[(i64, String)]) -> Vec<MatchGroup> {
         .collect()
 }
 
-fn resolve_reference(group: &MatchGroup, net_names: &[(i64, String)], routing: Option<&SynthRouting>) -> Option<i64> {
+fn resolve_reference(
+    group: &MatchGroup,
+    net_names: &[(i64, String)],
+    routing: Option<&SynthRouting>,
+) -> Option<i64> {
     let r = routing.filter(|r| !r.keys.is_empty() && !r.net_to_class.is_empty())?;
     let mut keys: Vec<&String> = r.keys.iter().map(|(k, _)| k).collect();
     keys.sort();
@@ -139,21 +150,27 @@ fn resolve_reference(group: &MatchGroup, net_names: &[(i64, String)], routing: O
     }
     let policy = policy?;
     if policy != "clock" {
-        let id = net_names.iter().find(|(_, n)| *n == policy).map(|(i, _)| *i)?;
+        let id = net_names
+            .iter()
+            .find(|(_, n)| *n == policy)
+            .map(|(i, _)| *i)?;
         return group.net_ids.contains(&id).then_some(id);
     }
     let mut matches: Vec<i64> = group
         .net_ids
         .iter()
         .copied()
-        .filter(|id| name_of(net_names, *id).is_some_and(|n| CLOCK_REGEXES.iter().any(|re| re.is_match(n))))
+        .filter(|id| {
+            name_of(net_names, *id).is_some_and(|n| CLOCK_REGEXES.iter().any(|re| re.is_match(n)))
+        })
         .collect();
     matches.sort();
     matches.first().copied()
 }
 
 fn extract_pair_ids(group: &mut MatchGroup, net_names: &[(i64, String)]) {
-    let mut by_key: Vec<((String, &'static str), Vec<(&'static str, i64)>)> = Vec::new();
+    type PairBuckets = Vec<((String, &'static str), Vec<(&'static str, i64)>)>;
+    let mut by_key: PairBuckets = Vec::new();
     let mut new_ids: Vec<i64> = Vec::new();
     for &id in &group.net_ids {
         let Some(parsed) = name_of(net_names, id).and_then(parse_differential_signal) else {

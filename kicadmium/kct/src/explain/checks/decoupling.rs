@@ -12,8 +12,9 @@ use crate::pyjson::py_repr_str;
 use crate::schema::pcb::{Footprint, Pcb};
 
 const MIN_IC_PADS: usize = 4;
-const NON_IC_REFERENCE_PREFIXES: [&str; 12] =
-    ["R", "C", "L", "D", "Y", "X", "J", "SW", "TP", "FB", "MH", "FID"];
+const NON_IC_REFERENCE_PREFIXES: [&str; 12] = [
+    "R", "C", "L", "D", "Y", "X", "J", "SW", "TP", "FB", "MH", "FID",
+];
 
 /// Every IC power net must carry at least one bypass capacitor to ground.
 #[derive(Debug, Default, Clone, Copy)]
@@ -50,7 +51,12 @@ fn bypass_cap_nets(pcb: &Pcb) -> BTreeSet<String> {
         if pad_nets.len() != 2 || !pad_nets.iter().any(|n| is_ground_net(n)) {
             continue;
         }
-        nets.extend(pad_nets.iter().filter(|n| is_power_net(n)).map(|n| n.to_string()));
+        nets.extend(
+            pad_nets
+                .iter()
+                .filter(|n| is_power_net(n))
+                .map(|n| n.to_string()),
+        );
     }
     nets
 }

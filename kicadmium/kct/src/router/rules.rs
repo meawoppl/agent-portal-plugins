@@ -136,7 +136,8 @@ pub fn net_class_map_from_path(
     }
     let text = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
     let data = pyjson::loads(&text).map_err(|e| {
-        let msg = crate::utils::pyjsondecode::json_decode_error(&text).unwrap_or_else(|| e.to_string());
+        let msg =
+            crate::utils::pyjsondecode::json_decode_error(&text).unwrap_or_else(|| e.to_string());
         format!("parsing net-class-map JSON: {msg}")
     })?;
     net_class_map_from_json(&data).map_err(|e| format!("invalid net-class-map structure: {e}"))

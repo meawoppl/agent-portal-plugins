@@ -86,7 +86,11 @@ impl<K: PartialEq + Clone> PySetOrder<K> {
                 }
             }
             perturb >>= PERTURB_SHIFT;
-            i = (i.wrapping_mul(5).wrapping_add(1).wrapping_add(perturb as usize)) & mask;
+            i = (i
+                .wrapping_mul(5)
+                .wrapping_add(1)
+                .wrapping_add(perturb as usize))
+                & mask;
         }
     }
 
@@ -108,7 +112,11 @@ impl<K: PartialEq + Clone> PySetOrder<K> {
         let mut perturb = hash as u64;
         let mut i = (hash as u64 as usize) & mask;
         loop {
-            let probes = if i + LINEAR_PROBES <= mask { LINEAR_PROBES } else { 0 };
+            let probes = if i + LINEAR_PROBES <= mask {
+                LINEAR_PROBES
+            } else {
+                0
+            };
             for j in 0..=probes {
                 match &self.table[i + j] {
                     None => {
@@ -116,7 +124,11 @@ impl<K: PartialEq + Clone> PySetOrder<K> {
                         self.fill += 1;
                         self.used += 1;
                         if self.fill * 5 >= mask * 3 {
-                            let n = if self.used > 50000 { self.used * 2 } else { self.used * 4 };
+                            let n = if self.used > 50000 {
+                                self.used * 2
+                            } else {
+                                self.used * 4
+                            };
                             self.resize(n);
                         }
                         return;
@@ -126,7 +138,11 @@ impl<K: PartialEq + Clone> PySetOrder<K> {
                 }
             }
             perturb >>= PERTURB_SHIFT;
-            i = (i.wrapping_mul(5).wrapping_add(1).wrapping_add(perturb as usize)) & mask;
+            i = (i
+                .wrapping_mul(5)
+                .wrapping_add(1)
+                .wrapping_add(perturb as usize))
+                & mask;
         }
     }
 
@@ -166,11 +182,31 @@ mod tests {
         // python3.12 -c "print(hash((1, 2)), hash((3, 7)), hash(()))"
         assert_eq!(hash_int_tuple(&[1, 2]), -3550055125485641917);
         assert_eq!(hash_int_tuple(&[]), 5740354900026072187);
-        let keys = [(5, 6), (1, 2), (30, 31), (12, 13), (7, 8), (100, 3), (9, 10), (2, 40), (11, 1)];
+        let keys = [
+            (5, 6),
+            (1, 2),
+            (30, 31),
+            (12, 13),
+            (7, 8),
+            (100, 3),
+            (9, 10),
+            (2, 40),
+            (11, 1),
+        ];
         let order: Vec<(i64, i64)> = int_pair_set(keys).iter().copied().collect();
         assert_eq!(
             order,
-            vec![(9, 10), (11, 1), (1, 2), (12, 13), (100, 3), (5, 6), (30, 31), (2, 40), (7, 8)]
+            vec![
+                (9, 10),
+                (11, 1),
+                (1, 2),
+                (12, 13),
+                (100, 3),
+                (5, 6),
+                (30, 31),
+                (2, 40),
+                (7, 8)
+            ]
         );
     }
 }

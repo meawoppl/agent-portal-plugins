@@ -25,11 +25,14 @@ pub fn key(a: i64, b: i64) -> (i64, i64) {
     }
 }
 
+/// Pair -> engagement threshold.
+pub type ThresholdMap = Vec<((i64, i64), f64)>;
+
 /// `(engaged_pairs, threshold_map)`; the set keeps CPython iteration order.
 pub fn derive_engagement_state(
     pcb: &Pcb,
     net_class_map: Option<&NetClassMap>,
-) -> (PySetOrder<(i64, i64)>, Vec<((i64, i64), f64)>) {
+) -> (PySetOrder<(i64, i64)>, ThresholdMap) {
     let Some(map) = net_class_map.filter(|m| !m.is_empty()) else {
         return (PySetOrder::new(), vec![]);
     };

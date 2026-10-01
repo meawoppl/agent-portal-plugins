@@ -102,9 +102,7 @@ impl Scan<'_> {
                     };
                     if e == 'u' {
                         let hex: String = s.iter().skip(j + 2).take(4).collect();
-                        if hex.chars().count() != 4
-                            || !hex.chars().all(|h| h.is_ascii_hexdigit())
-                        {
+                        if hex.chars().count() != 4 || !hex.chars().all(|h| h.is_ascii_hexdigit()) {
                             return err("Invalid \\uXXXX escape", j + 1);
                         }
                         j += 6;
@@ -225,12 +223,27 @@ mod tests {
     #[test]
     fn cpython_messages() {
         assert_eq!(e("").unwrap(), "Expecting value: line 1 column 1 (char 0)");
-        assert_eq!(e("{\"a\": 1,}").unwrap(), "Expecting property name enclosed in double quotes: line 1 column 9 (char 8)");
-        assert_eq!(e("[1 2]").unwrap(), "Expecting ',' delimiter: line 1 column 4 (char 3)");
-        assert_eq!(e("{\"a\" 1}").unwrap(), "Expecting ':' delimiter: line 1 column 6 (char 5)");
+        assert_eq!(
+            e("{\"a\": 1,}").unwrap(),
+            "Expecting property name enclosed in double quotes: line 1 column 9 (char 8)"
+        );
+        assert_eq!(
+            e("[1 2]").unwrap(),
+            "Expecting ',' delimiter: line 1 column 4 (char 3)"
+        );
+        assert_eq!(
+            e("{\"a\" 1}").unwrap(),
+            "Expecting ':' delimiter: line 1 column 6 (char 5)"
+        );
         assert_eq!(e("{}\n x").unwrap(), "Extra data: line 2 column 2 (char 4)");
-        assert_eq!(e("\"abc").unwrap(), "Unterminated string starting at: line 1 column 1 (char 0)");
-        assert_eq!(e("[\"\\q\"]").unwrap(), "Invalid \\escape: line 1 column 3 (char 2)");
+        assert_eq!(
+            e("\"abc").unwrap(),
+            "Unterminated string starting at: line 1 column 1 (char 0)"
+        );
+        assert_eq!(
+            e("[\"\\q\"]").unwrap(),
+            "Invalid \\escape: line 1 column 3 (char 2)"
+        );
         assert!(e("{\"a\": [1, 2.5e3, null, true, \"x\"]}").is_none());
     }
 }

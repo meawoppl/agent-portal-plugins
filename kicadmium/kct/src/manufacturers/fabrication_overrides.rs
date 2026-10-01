@@ -53,8 +53,10 @@ pub fn fabrication_overrides_sidecar_candidates(pcb_path: &Path) -> Vec<PathBuf>
     let up = dir.parent().map(Path::to_path_buf).unwrap_or_default();
     vec![
         dir.join(FABRICATION_OVERRIDES_SIDECAR_BASENAME),
-        dir.join("output").join(FABRICATION_OVERRIDES_SIDECAR_BASENAME),
-        up.join("output").join(FABRICATION_OVERRIDES_SIDECAR_BASENAME),
+        dir.join("output")
+            .join(FABRICATION_OVERRIDES_SIDECAR_BASENAME),
+        up.join("output")
+            .join(FABRICATION_OVERRIDES_SIDECAR_BASENAME),
     ]
 }
 
@@ -90,11 +92,18 @@ fn py_float(v: &Json) -> Result<f64, String> {
                 let v = match lower.trim_start_matches(['+', '-']) {
                     "inf" | "infinity" => f64::INFINITY,
                     "nan" => f64::NAN,
-                    _ => lower.trim_start_matches('+').parse::<f64>().unwrap_or(f64::NAN).abs(),
+                    _ => lower
+                        .trim_start_matches('+')
+                        .parse::<f64>()
+                        .unwrap_or(f64::NAN)
+                        .abs(),
                 };
                 return Ok(if lower.starts_with('-') { -v } else { v });
             }
-            Err(format!("could not convert string to float: {}", py_repr_str(s)))
+            Err(format!(
+                "could not convert string to float: {}",
+                py_repr_str(s)
+            ))
         }
         other => Err(format!(
             "float() argument must be a string or a real number, not '{}'",
@@ -125,9 +134,17 @@ pub fn load_fabrication_overrides(path: &Path) -> Result<Vec<FabricationOverride
         _ => None,
     };
     let Some(Json::Obj(entries)) = entries else {
-        return Err(format!("{p}: missing top-level 'fabrication_overrides' object"));
+        return Err(format!(
+            "{p}: missing top-level 'fabrication_overrides' object"
+        ));
     };
-    let required = ["value", "manufacturer", "source", "reason", "tracking_issue"];
+    let required = [
+        "value",
+        "manufacturer",
+        "source",
+        "reason",
+        "tracking_issue",
+    ];
     let mut out = Vec::new();
     for (field, entry) in entries {
         let ok = matches!(entry, Json::Obj(_)) && required.iter().all(|k| entry.get(k).is_some());
@@ -158,7 +175,10 @@ pub fn load_fabrication_overrides(path: &Path) -> Result<Vec<FabricationOverride
 }
 
 /// Validate one override against the verified-floor registry.
-pub fn validate_fabrication_override(o: &FabricationOverride, manufacturer_id: &str) -> Result<(), String> {
+pub fn validate_fabrication_override(
+    o: &FabricationOverride,
+    manufacturer_id: &str,
+) -> Result<(), String> {
     let f = &o.field;
     if !OVERRIDABLE_FIELDS.contains(&f.as_str()) {
         let allowed: Vec<String> = OVERRIDABLE_FIELDS.iter().map(|s| py_repr_str(s)).collect();
@@ -256,8 +276,9 @@ pub fn resolve_pcb_fabrication_overrides(
         Ok(p) => p.id.to_string(),
         Err(_) => manufacturer_id.to_string(),
     };
-    let result = load_fabrication_overrides(&sidecar)
-        .and_then(|ovs| apply_fabrication_overrides(rules.clone(), &ovs, &canonical).map(|r| (r, ovs)));
+    let result = load_fabrication_overrides(&sidecar).and_then(|ovs| {
+        apply_fabrication_overrides(rules.clone(), &ovs, &canonical).map(|r| (r, ovs))
+    });
     match result {
         Err(e) => (
             rules,

@@ -269,7 +269,11 @@ impl ImpedanceRule {
                 results.add(
                     DRCViolation::new(
                         "impedance",
-                        if r.deviation_percent > 20.0 { "error" } else { "warning" },
+                        if r.deviation_percent > 20.0 {
+                            "error"
+                        } else {
+                            "warning"
+                        },
                         format!(
                             "Trace impedance mismatch on {}: width {:.3}mm gives {:.1}Ω, target \
                              is {:.1}Ω ({:.1}% deviation){hint}",

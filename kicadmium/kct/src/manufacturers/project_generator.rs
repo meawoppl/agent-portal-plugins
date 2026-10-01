@@ -11,8 +11,10 @@ use crate::jobj;
 use crate::pyjson::{self, dumps_indent, Json};
 use crate::router::rules::NetClassRouting;
 
-const NON_BLOCKING_SEVERITIES: [(&str, &str); 2] =
-    [("lib_footprint_mismatch", "ignore"), ("isolated_copper", "warning")];
+const NON_BLOCKING_SEVERITIES: [(&str, &str); 2] = [
+    ("lib_footprint_mismatch", "ignore"),
+    ("isolated_copper", "warning"),
+];
 const MICRO_VIA_FLOOR_DIAMETER_MM: f64 = 0.2;
 const MICRO_VIA_FLOOR_ANNULAR_MM: f64 = 0.05;
 const MICRO_VIA_FLOOR_HOLE_MM: f64 = 0.1;
@@ -86,7 +88,8 @@ pub fn build_project_data(
     layers: Option<i64>,
     copper_oz: Option<f64>,
 ) -> Json {
-    let mut meta = jobj! { "filename" => format!("{project_name}.kicad_pro"), "version" => Json::Int(1) };
+    let mut meta =
+        jobj! { "filename" => format!("{project_name}.kicad_pro"), "version" => Json::Int(1) };
     if !manufacturer_id.is_empty() {
         meta.set("manufacturer", manufacturer_id);
     }
@@ -139,7 +142,10 @@ fn is_number(v: &Json) -> bool {
 
 /// Python `max(previous, value)`: the first argument wins ties.
 fn py_max(prev: &Json, value: &Json) -> Json {
-    let (a, b) = (prev.as_f64().unwrap_or(f64::NAN), value.as_f64().unwrap_or(f64::NAN));
+    let (a, b) = (
+        prev.as_f64().unwrap_or(f64::NAN),
+        value.as_f64().unwrap_or(f64::NAN),
+    );
     if b > a {
         value.clone()
     } else {
@@ -173,7 +179,11 @@ pub fn merge_project_rules(project: &mut Json, r: &DesignRules) {
     {
         let board = setdefault_obj(project, "board");
         let settings = setdefault_obj(board, "design_settings");
-        apply_minima(setdefault_obj(settings, "rules"), &build_project_rules(r), preserve);
+        apply_minima(
+            setdefault_obj(settings, "rules"),
+            &build_project_rules(r),
+            preserve,
+        );
         let sev = setdefault_obj(settings, "rule_severities");
         for (k, v) in NON_BLOCKING_SEVERITIES {
             if !preserve || sev.get(k).is_none() {
@@ -226,7 +236,12 @@ pub fn generate_project_dru(
             .get("board")
             .and_then(|b| b.get("design_settings"))
             .and_then(|d| d.get("rules"));
-        let nat = |k: &str| native.and_then(|n| n.get(k)).and_then(Json::as_f64).unwrap_or(0.0);
+        let nat = |k: &str| {
+            native
+                .and_then(|n| n.get(k))
+                .and_then(Json::as_f64)
+                .unwrap_or(0.0)
+        };
         let m = |cur: f64, k: &str| if nat(k) > cur { nat(k) } else { cur };
         rules.min_trace_width_mm = m(r.min_trace_width_mm, "min_track_width");
         rules.min_clearance_mm = m(r.min_clearance_mm, "min_clearance");
@@ -243,7 +258,11 @@ pub fn generate_project_dru(
         let clr = |c: &Json| c.get("clearance").and_then(Json::as_f64).unwrap_or(0.0);
         classes.sort_by(|a, b| clr(a).total_cmp(&clr(b)));
         for c in classes {
-            let cl = if clr(c) > rules.min_clearance_mm { clr(c) } else { rules.min_clearance_mm };
+            let cl = if clr(c) > rules.min_clearance_mm {
+                clr(c)
+            } else {
+                rules.min_clearance_mm
+            };
             let raw = c.get("name").and_then(Json::as_str).unwrap_or("");
             let name = raw.replace('\\', "\\\\").replace('\'', "\\'");
             let cond = format!("A.NetClass == '{name}' || B.NetClass == '{name}'");
@@ -263,7 +282,10 @@ fn installed_kicad_cli_version() -> Option<String> {
     static V: OnceLock<Option<String>> = OnceLock::new();
     V.get_or_init(|| {
         let cli = crate::cli::runner::find_kicad_cli()?;
-        let out = std::process::Command::new(cli).arg("version").output().ok()?;
+        let out = std::process::Command::new(cli)
+            .arg("version")
+            .output()
+            .ok()?;
         out.status
             .success()
             .then(|| String::from_utf8_lossy(&out.stdout).trim().to_string())
@@ -296,11 +318,17 @@ pub fn write_drc_constraints(
     write_dru: bool,
     net_classes: &[NetClassRouting],
 ) -> std::io::Result<Vec<PathBuf>> {
-    let stem = pcb_path.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
+    let stem = pcb_path
+        .file_stem()
+        .map(|s| s.to_string_lossy().into_owned())
+        .unwrap_or_default();
     let pro = pcb_path.with_extension("kicad_pro");
     let fresh = || build_project_data(r, &stem, manufacturer_id, layers, copper_oz);
     let project = if pro.exists() {
-        match std::fs::read_to_string(&pro).ok().and_then(|t| pyjson::loads(&t).ok()) {
+        match std::fs::read_to_string(&pro)
+            .ok()
+            .and_then(|t| pyjson::loads(&t).ok())
+        {
             Some(mut p @ Json::Obj(_)) => {
                 merge_project_rules(&mut p, r);
                 if !manufacturer_id.is_empty() {

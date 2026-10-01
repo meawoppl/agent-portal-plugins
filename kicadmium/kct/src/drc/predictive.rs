@@ -124,7 +124,14 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
     fn connected_nets(&self, reference: &str) -> Vec<String> {
         self.view
             .get_component(reference)
-            .map(|c| uniq(c.pins.iter().filter(|p| !p.2.is_empty()).map(|p| p.2.clone())))
+            .map(|c| {
+                uniq(
+                    c.pins
+                        .iter()
+                        .filter(|p| !p.2.is_empty())
+                        .map(|p| p.2.clone()),
+                )
+            })
             .unwrap_or_default()
     }
 
@@ -134,7 +141,9 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
             for p in &c.pins {
                 if p.2 == net {
                     let pos = (c.x + p.0, c.y + p.1);
-                    if exclude.is_none_or(|e| (pos.0 - e.0).abs() > 0.1 || (pos.1 - e.1).abs() > 0.1) {
+                    if exclude
+                        .is_none_or(|e| (pos.0 - e.0).abs() > 0.1 || (pos.1 - e.1).abs() > 0.1)
+                    {
                         out.push(pos);
                     }
                 }
@@ -145,7 +154,12 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
 
     fn routing_bounds(a: (f64, f64), b: (f64, f64)) -> Rectangle {
         let m = 2.0;
-        Rectangle::new(a.0.min(b.0) - m, a.1.min(b.1) - m, a.0.max(b.0) + m, a.1.max(b.1) + m)
+        Rectangle::new(
+            a.0.min(b.0) - m,
+            a.1.min(b.1) - m,
+            a.0.max(b.0) + m,
+            a.1.max(b.1) + m,
+        )
     }
 
     fn pin_count(&self, refs: &[String]) -> usize {
@@ -169,7 +183,10 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
         if eps.is_empty() {
             return 0.0;
         }
-        let dist = crate::utils::pymath::py_sum(eps.iter().map(|e| (pos.0 - e.0).abs() + (pos.1 - e.1).abs()));
+        let dist = crate::utils::pymath::py_sum(
+            eps.iter()
+                .map(|e| (pos.0 - e.0).abs() + (pos.1 - e.1).abs()),
+        );
         let mut obstacle = 0.0;
         for e in &eps {
             obstacle += self.view.query(&Self::routing_bounds(pos, *e)).len() as f64 * 0.5;
@@ -181,7 +198,12 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
         dist + obstacle + cong
     }
 
-    fn routing_difficulty(&self, reference: &str, current: (f64, f64), new_pos: (f64, f64)) -> Vec<PredictiveWarning> {
+    fn routing_difficulty(
+        &self,
+        reference: &str,
+        current: (f64, f64),
+        new_pos: (f64, f64),
+    ) -> Vec<PredictiveWarning> {
         let mut out = Vec::new();
         for net in self.connected_nets(reference) {
             let old = self.route_difficulty(&net, current);
@@ -193,7 +215,11 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
             if ratio > DIFFICULTY_INCREASE_THRESHOLD {
                 let (dx, dy) = (new_pos.0 - current.0, new_pos.1 - current.1);
                 let dir = if dx.abs() > dy.abs() {
-                    if dx < 0.0 { "left" } else { "right" }
+                    if dx < 0.0 {
+                        "left"
+                    } else {
+                        "right"
+                    }
                 } else if dy > 0.0 {
                     "up"
                 } else {
@@ -201,7 +227,9 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
                 };
                 out.push(PredictiveWarning {
                     warning_type: "routing_difficulty".into(),
-                    message: format!("Routing {net} will be significantly harder from this position"),
+                    message: format!(
+                        "Routing {net} will be significantly harder from this position"
+                    ),
                     confidence: (0.5 + (ratio - 1.5) * 0.2).min(0.9),
                     suggestion: Some(format!(
                         "Consider moving less far {dir} to maintain clear routing channel"
@@ -218,7 +246,12 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
         let mut nets = Vec::new();
         for r in self.view.query(b) {
             if let Some(c) = self.view.get_component(&r) {
-                nets.extend(c.pins.iter().filter(|p| !p.2.is_empty()).map(|p| p.2.clone()));
+                nets.extend(
+                    c.pins
+                        .iter()
+                        .filter(|p| !p.2.is_empty())
+                        .map(|p| p.2.clone()),
+                );
             }
         }
         uniq(nets)
@@ -227,7 +260,12 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
     fn congestion(&self, reference: &str, new_pos: (f64, f64)) -> Vec<PredictiveWarning> {
         let h = CONGESTION_AREA_SIZE / 2.0;
         let area = Rectangle::new(new_pos.0 - h, new_pos.1 - h, new_pos.0 + h, new_pos.1 + h);
-        let nearby: Vec<String> = self.view.query(&area).into_iter().filter(|r| r != reference).collect();
+        let nearby: Vec<String> = self
+            .view
+            .query(&area)
+            .into_iter()
+            .filter(|r| r != reference)
+            .collect();
         let mut pins = self.pin_count(&nearby);
         if let Some(c) = self.view.get_component(reference) {
             pins += c.pins.len();
@@ -302,7 +340,11 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
         let connected = self.connected_nets(reference);
         let mut out = Vec::new();
         for intent in &self.intents {
-            let overlap: Vec<String> = connected.iter().filter(|n| intent.nets.contains(n)).cloned().collect();
+            let overlap: Vec<String> = connected
+                .iter()
+                .filter(|n| intent.nets.contains(n))
+                .cloned()
+                .collect();
             if overlap.is_empty() {
                 continue;
             }
@@ -346,7 +388,10 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
         if lengths.len() < 2 {
             return None;
         }
-        let max = lengths.iter().map(|e| e.1).fold(f64::NEG_INFINITY, f64::max);
+        let max = lengths
+            .iter()
+            .map(|e| e.1)
+            .fold(f64::NEG_INFINITY, f64::max);
         let min = lengths.iter().map(|e| e.1).fold(f64::INFINITY, f64::min);
         if min <= 0.0 {
             return None;
@@ -366,7 +411,11 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
         })
     }
 
-    fn diff_pair_risk(&self, intent: &IntentDeclaration, new_pos: (f64, f64)) -> Option<PredictiveWarning> {
+    fn diff_pair_risk(
+        &self,
+        intent: &IntentDeclaration,
+        new_pos: (f64, f64),
+    ) -> Option<PredictiveWarning> {
         if intent.nets.len() < 2 {
             return None;
         }
@@ -375,9 +424,10 @@ impl<'a, V: PlacementView> PredictiveAnalyzer<'a, V> {
         if e1.is_empty() || e2.is_empty() {
             return None;
         }
-        let spread = e1
-            .iter()
-            .any(|a| e2.iter().any(|b| ((a.0 - b.0).powi(2) + (a.1 - b.1).powi(2)).sqrt() > 5.0));
+        let spread = e1.iter().any(|a| {
+            e2.iter()
+                .any(|b| ((a.0 - b.0).powi(2) + (a.1 - b.1).powi(2)).sqrt() > 5.0)
+        });
         spread.then(|| PredictiveWarning {
             warning_type: "intent_risk".into(),
             message: format!(

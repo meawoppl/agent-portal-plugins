@@ -9,7 +9,9 @@ use anyhow::Result;
 use clap::Parser;
 
 use super::Globals;
-use crate::explain::mistakes::{get_default_checks, severity_rank, CheckCoverage, Mistake, MistakeCategory, MistakeDetector};
+use crate::explain::mistakes::{
+    get_default_checks, severity_rank, CheckCoverage, Mistake, MistakeCategory, MistakeDetector,
+};
 use crate::pyjson::{dumps_indent, Json};
 use crate::schema::pcb::Pcb;
 
@@ -141,7 +143,10 @@ fn output_table(mistakes: &[Mistake], verbose: bool) {
         println!("  {cat}: {n} issue(s)");
     }
     let errors: Vec<&Mistake> = mistakes.iter().filter(|m| m.severity == "error").collect();
-    let warnings: Vec<&Mistake> = mistakes.iter().filter(|m| m.severity == "warning").collect();
+    let warnings: Vec<&Mistake> = mistakes
+        .iter()
+        .filter(|m| m.severity == "warning")
+        .collect();
     let infos: Vec<&Mistake> = mistakes.iter().filter(|m| m.severity == "info").collect();
     if !errors.is_empty() {
         println!("\n{dash60}");
@@ -153,12 +158,19 @@ fn output_table(mistakes: &[Mistake], verbose: bool) {
     if !warnings.is_empty() {
         println!("\n{dash60}");
         println!("WARNINGS (should review):");
-        let shown = if verbose { warnings.len() } else { warnings.len().min(10) };
+        let shown = if verbose {
+            warnings.len()
+        } else {
+            warnings.len().min(10)
+        };
         for m in &warnings[..shown] {
             print_mistake(m, verbose);
         }
         if warnings.len() > 10 && !verbose {
-            println!("\n  ... and {} more warnings (use --verbose)", warnings.len() - 10);
+            println!(
+                "\n  ... and {} more warnings (use --verbose)",
+                warnings.len() - 10
+            );
         }
     }
     if !infos.is_empty() && verbose {
@@ -252,7 +264,9 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
     }
     println!(
         "Analyzing: {}",
-        path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()
+        path.file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default()
     );
     let pcb = match Pcb::load(path) {
         Ok(p) => p,
@@ -262,7 +276,8 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
         }
     };
     let detector = MistakeDetector::default();
-    let (mut mistakes, coverage) = match a.category.as_deref().and_then(MistakeCategory::from_value) {
+    let (mut mistakes, coverage) = match a.category.as_deref().and_then(MistakeCategory::from_value)
+    {
         Some(cat) => detector.detect_by_category_with_coverage(&pcb, cat),
         None => detector.detect_with_coverage(&pcb),
     };
@@ -276,7 +291,10 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
         "summary" => output_summary(&mistakes),
         _ => output_table(&mistakes, a.verbose),
     }
-    let incomplete: Vec<&CheckCoverage> = coverage.iter().filter(|c| c.status == "incomplete").collect();
+    let incomplete: Vec<&CheckCoverage> = coverage
+        .iter()
+        .filter(|c| c.status == "incomplete")
+        .collect();
     if !incomplete.is_empty() && a.format != "json" {
         println!("\n{}", "-".repeat(60));
         println!(

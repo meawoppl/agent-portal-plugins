@@ -608,23 +608,24 @@ impl<'a> DRCChecker<'a> {
             auto_derive_threshold,
         );
         results.rules_checked += 1;
-        let per_pad = |results: &mut DRCResults, pads: &[&crate::router::preflight::PreflightOffGridPad]| {
-            for pad in pads {
-                let label = pad.label();
-                let mut v = DRCViolation::new(
-                    "pad_grid",
-                    "warning",
-                    pad.message(report.grid_resolution, report.suggested_grid),
-                )
-                .at(pad.x, pad.y)
-                .actual(pad.offset_mm)
-                .required(report.threshold);
-                if !label.is_empty() {
-                    v = v.items([label]);
+        let per_pad =
+            |results: &mut DRCResults, pads: &[&crate::router::preflight::PreflightOffGridPad]| {
+                for pad in pads {
+                    let label = pad.label();
+                    let mut v = DRCViolation::new(
+                        "pad_grid",
+                        "warning",
+                        pad.message(report.grid_resolution, report.suggested_grid),
+                    )
+                    .at(pad.x, pad.y)
+                    .actual(pad.offset_mm)
+                    .required(report.threshold);
+                    if !label.is_empty() {
+                        v = v.items([label]);
+                    }
+                    results.add(v);
                 }
-                results.add(v);
-            }
-        };
+            };
         if !aggregate {
             let all: Vec<_> = report.off_grid_pads.iter().collect();
             per_pad(&mut results, &all);

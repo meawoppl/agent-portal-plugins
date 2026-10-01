@@ -147,7 +147,12 @@ impl WidthConsistencyRule {
         (number != 0).then(|| format!("#{number}"))
     }
 
-    fn tracks_by_net(&self, pcb: &Pcb, names: &[(i64, String)], layer: &str) -> Vec<(String, Vec<Track>)> {
+    fn tracks_by_net(
+        &self,
+        pcb: &Pcb,
+        names: &[(i64, String)],
+        layer: &str,
+    ) -> Vec<(String, Vec<Track>)> {
         let mut by: Vec<(String, Vec<Track>)> = Vec::new();
         let mut push = |key: String, t: Track| match by.iter_mut().find(|(k, _)| *k == key) {
             Some(e) => e.1.push(t),
@@ -211,7 +216,12 @@ impl WidthConsistencyRule {
         by
     }
 
-    fn layer_copper(&self, pcb: &Pcb, names: &[(i64, String)], layer: &str) -> (Vec<Terminal>, Vec<Obstacle>) {
+    fn layer_copper(
+        &self,
+        pcb: &Pcb,
+        names: &[(i64, String)],
+        layer: &str,
+    ) -> (Vec<Terminal>, Vec<Obstacle>) {
         let mut terms = Vec::new();
         let mut obs = Vec::new();
         let (ox, oy) = pcb.board_origin();
@@ -263,25 +273,26 @@ impl WidthConsistencyRule {
                 label,
             });
         }
-        let mut track_obstacle = |pts: Vec<C>, width: f64, uuid: &str, net_name: &str, number: i64| {
-            let label = if uuid.is_empty() {
-                format!("track on {net_name}")
-            } else {
-                format!("track {uuid}")
+        let mut track_obstacle =
+            |pts: Vec<C>, width: f64, uuid: &str, net_name: &str, number: i64| {
+                let label = if uuid.is_empty() {
+                    format!("track on {net_name}")
+                } else {
+                    format!("track {uuid}")
+                };
+                let key = Self::net_key(names, number, net_name);
+                let geom = if pts.len() == 1 {
+                    sh::point_buffer(pts[0], width / 2.0)
+                } else {
+                    sh::buffer_line(&pts, width / 2.0)
+                };
+                obs.push(Obstacle {
+                    net_key: key.unwrap_or_else(|| format!("<unassigned {label}>")),
+                    bounds: geom.bounds(),
+                    geometry: vec![geom],
+                    label,
+                });
             };
-            let key = Self::net_key(names, number, net_name);
-            let geom = if pts.len() == 1 {
-                sh::point_buffer(pts[0], width / 2.0)
-            } else {
-                sh::buffer_line(&pts, width / 2.0)
-            };
-            obs.push(Obstacle {
-                net_key: key.unwrap_or_else(|| format!("<unassigned {label}>")),
-                bounds: geom.bounds(),
-                geometry: vec![geom],
-                label,
-            });
-        };
         for s in pcb.segments_on_layer(layer) {
             if s.width <= 0.0 {
                 continue;
@@ -306,7 +317,10 @@ impl WidthConsistencyRule {
 
     fn node(&self, p: C) -> NodeKey {
         let q = self.node_tolerance_mm;
-        ((p.0 / q).round_ties_even() as i64, (p.1 / q).round_ties_even() as i64)
+        (
+            (p.0 / q).round_ties_even() as i64,
+            (p.1 / q).round_ties_even() as i64,
+        )
     }
 
     fn end_nodes(&self, tracks: &[Track]) -> Vec<(NodeKey, NodeKey)> {
@@ -338,7 +352,8 @@ impl WidthConsistencyRule {
                         continue;
                     };
                     for &j in js {
-                        if j <= i || ((dx != 0 || dy != 0) && sh::dist(points[i], points[j]) > tol) {
+                        if j <= i || ((dx != 0 || dy != 0) && sh::dist(points[i], points[j]) > tol)
+                        {
                             continue;
                         }
                         let (ri, rj) = (find(&mut parent, i), find(&mut parent, j));
@@ -362,7 +377,9 @@ impl WidthConsistencyRule {
         let keys: Vec<NodeKey> = (0..points.len())
             .map(|i| canonical[&find(&mut parent, i)])
             .collect();
-        (0..tracks.len()).map(|t| (keys[2 * t], keys[2 * t + 1])).collect()
+        (0..tracks.len())
+            .map(|t| (keys[2 * t], keys[2 * t + 1]))
+            .collect()
     }
 
     fn chains(&self, tracks: &[Track], terminals: &[&Terminal]) -> (Vec<Chain>, Vec<NodeKey>) {
@@ -381,7 +398,8 @@ impl WidthConsistencyRule {
                 }
             }
         }
-        let inc = |k: &NodeKey| -> &Vec<usize> { &incident.iter().find(|(x, _)| x == k).unwrap().1 };
+        let inc =
+            |k: &NodeKey| -> &Vec<usize> { &incident.iter().find(|(x, _)| x == k).unwrap().1 };
         let at_terminal: Vec<NodeKey> = coords
             .iter()
             .filter(|(_, xy)| {
@@ -420,7 +438,8 @@ impl WidthConsistencyRule {
                     if stops.binary_search(&nxt).is_ok() {
                         break nxt;
                     }
-                    let cands: Vec<usize> = inc(&nxt).iter().copied().filter(|&j| j != idx).collect();
+                    let cands: Vec<usize> =
+                        inc(&nxt).iter().copied().filter(|&j| j != idx).collect();
                     if cands.is_empty() || used[cands[0]] {
                         break nxt;
                     }
@@ -441,7 +460,9 @@ impl WidthConsistencyRule {
         let mut runs: Vec<Run> = Vec::new();
         for t in &chain.tracks {
             match runs.last_mut() {
-                Some(r) if (r.width - t.width).abs() <= self.width_tolerance_mm => r.tracks.push(t.clone()),
+                Some(r) if (r.width - t.width).abs() <= self.width_tolerance_mm => {
+                    r.tracks.push(t.clone())
+                }
                 _ => runs.push(Run {
                     tracks: vec![t.clone()],
                     width: t.width,
@@ -455,7 +476,11 @@ impl WidthConsistencyRule {
         let mut results = DRCResults::with_rules_checked(1);
         results.set_rule("width_consistency", 1);
         let clearance = self.clearance_mm.unwrap_or(design_rules.min_clearance_mm);
-        let names: Vec<(i64, String)> = pcb.nets().iter().map(|n| (n.number, n.name.clone())).collect();
+        let names: Vec<(i64, String)> = pcb
+            .nets()
+            .iter()
+            .map(|n| (n.number, n.name.clone()))
+            .collect();
         for layer in pcb.copper_layers() {
             let by_net = self.tracks_by_net(pcb, &names, &layer.name);
             if by_net.is_empty() {
@@ -464,7 +489,8 @@ impl WidthConsistencyRule {
             let (terms, obs) = self.layer_copper(pcb, &names, &layer.name);
             let tree = StrTree::new(&obs.iter().map(|o| o.bounds).collect::<Vec<_>>());
             for (net_key, tracks) in &by_net {
-                let net_terms: Vec<&Terminal> = terms.iter().filter(|t| t.net_key == *net_key).collect();
+                let net_terms: Vec<&Terminal> =
+                    terms.iter().filter(|t| t.net_key == *net_key).collect();
                 let (chains, terminal_nodes) = self.chains(tracks, &net_terms);
                 for chain in &chains {
                     self.audit_chain(
@@ -542,14 +568,27 @@ impl WidthConsistencyRule {
         }
         necks.sort_by_key(|(k, _)| *k);
         for (narrow, (wide, at)) in necks {
-            if let Some(v) = self.transition_finding(&runs[narrow], wide, at, layer, net_key, terminals, index, clearance) {
+            if let Some(v) = self.transition_finding(
+                &runs[narrow],
+                wide,
+                at,
+                layer,
+                net_key,
+                terminals,
+                index,
+                clearance,
+            ) {
                 results.add(v);
             }
         }
     }
 
     fn island_violation(&self, run: &Run, before: &Run, after: &Run, layer: &str) -> DRCViolation {
-        let line: Vec<C> = run.tracks.iter().flat_map(|t| t.points.iter().copied()).collect();
+        let line: Vec<C> = run
+            .tracks
+            .iter()
+            .flat_map(|t| t.points.iter().copied())
+            .collect();
         let mid = interpolate_half(&line);
         let net = run.tracks[0].net_label.clone();
         DRCViolation::new(
@@ -570,7 +609,12 @@ impl WidthConsistencyRule {
         .layer(layer)
         .actual(py_round(run.length(), 4))
         .required(self.max_island_length_mm)
-        .items(run.tracks.iter().filter(|t| !t.uuid.is_empty()).map(|t| t.uuid.clone()))
+        .items(
+            run.tracks
+                .iter()
+                .filter(|t| !t.uuid.is_empty())
+                .map(|t| t.uuid.clone()),
+        )
         .nets([net])
     }
 
@@ -628,9 +672,9 @@ impl WidthConsistencyRule {
             let last = lt.points[lt.points.len() - 1];
             for t in terminals {
                 if t.min_dimension < wide_width
-                    && [first, last]
-                        .iter()
-                        .any(|e| sh::distance(&t.geometry, &Geom::Point(*e)) <= self.node_tolerance_mm)
+                    && [first, last].iter().any(|e| {
+                        sh::distance(&t.geometry, &Geom::Point(*e)) <= self.node_tolerance_mm
+                    })
                 {
                     reason = format!("pad escape into {} ({:.3} mm)", t.label, t.min_dimension);
                     break;
@@ -647,10 +691,16 @@ impl WidthConsistencyRule {
             if !self.report_justified {
                 return None;
             }
-            ("info".to_string(), format!("{head}; neck-down justified: {reason}"))
+            (
+                "info".to_string(),
+                format!("{head}; neck-down justified: {reason}"),
+            )
         } else {
             let context = match &nearest {
-                None => format!("no other-net copper within {:.3} mm", clearance + self.obstacle_search_mm),
+                None => format!(
+                    "no other-net copper within {:.3} mm",
+                    clearance + self.obstacle_search_mm
+                ),
                 Some(n) => format!(
                     "nearest other-net copper {} is {:.3} mm away ({:.3} mm if widened; clearance \
                      {clearance:.3} mm)",
@@ -671,7 +721,13 @@ impl WidthConsistencyRule {
                 .layer(layer)
                 .actual_opt(nearest.as_ref().map(|n| py_round(n.1, 4)))
                 .required(clearance)
-                .items(narrow.tracks.iter().filter(|t| !t.uuid.is_empty()).map(|t| t.uuid.clone()))
+                .items(
+                    narrow
+                        .tracks
+                        .iter()
+                        .filter(|t| !t.uuid.is_empty())
+                        .map(|t| t.uuid.clone()),
+                )
                 .nets([net]),
         )
     }

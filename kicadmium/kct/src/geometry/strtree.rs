@@ -70,14 +70,18 @@ impl StrTree {
         let end = begin + number;
         let cx = |n: &Node| n.bounds.0 + n.bounds.2;
         let cy = |n: &Node| n.bounds.1 + n.bounds.3;
-        crate::utils::stdsort::std_sort(&mut nodes[begin..end], &|a: &Node, b: &Node| cx(a) < cx(b));
+        crate::utils::stdsort::std_sort(&mut nodes[begin..end], &|a: &Node, b: &Node| {
+            cx(a) < cx(b)
+        });
         let mut start = begin;
         for _ in 0..slices {
             if start >= end {
                 break;
             }
             let stop = (start + per_slice).min(end);
-            crate::utils::stdsort::std_sort(&mut nodes[start..stop], &|a: &Node, b: &Node| cy(a) < cy(b));
+            crate::utils::stdsort::std_sort(&mut nodes[start..stop], &|a: &Node, b: &Node| {
+                cy(a) < cy(b)
+            });
             let mut first = start;
             while first < stop {
                 let last = (first + NODE_CAPACITY).min(stop);

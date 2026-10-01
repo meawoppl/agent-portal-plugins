@@ -47,7 +47,9 @@ impl MistakeCheck for PullUpResistorCheck {
         for fp in pcb.footprints() {
             for pad in &fp.pads {
                 if !pad.net_name.is_empty() && needs_pullup(&pad.net_name) {
-                    nets.entry(pad.net_name.as_str()).or_default().insert(fp.reference.as_str());
+                    nets.entry(pad.net_name.as_str())
+                        .or_default()
+                        .insert(fp.reference.as_str());
                 }
             }
         }
@@ -96,7 +98,9 @@ fn is_led(fp: &Footprint) -> bool {
     if !r.starts_with('D') {
         return false;
     }
-    format!("{} {}", fp.value, fp.name).to_uppercase().contains("LED")
+    format!("{} {}", fp.value, fp.name)
+        .to_uppercase()
+        .contains("LED")
 }
 
 /// LEDs need a series current-limiting resistor.
@@ -108,7 +112,10 @@ fn has_series_resistor(pcb: &Pcb, led: &Footprint, led_nets: &BTreeSet<&str>) ->
         return false;
     }
     for fp in pcb.footprints() {
-        if std::ptr::eq(fp, led) || !fp.reference.to_uppercase().starts_with('R') || fp.pads.len() != 2 {
+        if std::ptr::eq(fp, led)
+            || !fp.reference.to_uppercase().starts_with('R')
+            || fp.pads.len() != 2
+        {
             continue;
         }
         let pn = pad_nets(fp);

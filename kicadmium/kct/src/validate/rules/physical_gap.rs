@@ -98,7 +98,10 @@ fn fp_poly_geometry(g: &FootprintGraphic, t: &dyn Fn(C) -> C) -> Option<Geom> {
 }
 
 fn floats(node: &SExp) -> Vec<Option<f64>> {
-    node.children.iter().map(|c| c.value.as_ref().and_then(Value::as_f64)).collect()
+    node.children
+        .iter()
+        .map(|c| c.value.as_ref().and_then(Value::as_f64))
+        .collect()
 }
 
 fn fp_poly_issues(node: &SExp, layers: &[String]) -> Vec<String> {
@@ -144,7 +147,13 @@ fn fp_poly_issues(node: &SExp, layers: &[String]) -> Vec<String> {
 }
 
 fn raw_copper_graphic_issues(pcb: &Pcb) -> Vec<String> {
-    const TEXT: [&str; 5] = ["gr_text", "fp_text", "property", "gr_text_box", "fp_text_box"];
+    const TEXT: [&str; 5] = [
+        "gr_text",
+        "fp_text",
+        "property",
+        "gr_text_box",
+        "fp_text_box",
+    ];
     let hidden = |node: &SExp| -> bool {
         let mut containers = vec![(node, true)];
         if let Some(e) = node.get("effects") {
@@ -189,7 +198,9 @@ fn raw_copper_graphic_issues(pcb: &Pcb) -> Vec<String> {
                 .iter()
                 .filter(|c| c.has_tag("layer") || c.has_tag("layers"))
                 .flat_map(|l| l.children.iter())
-                .any(|a| a.is_atom() && matches!(&a.value, Some(Value::Str(s)) if s.ends_with(".Cu")));
+                .any(|a| {
+                    a.is_atom() && matches!(&a.value, Some(Value::Str(s)) if s.ends_with(".Cu"))
+                });
             if !copper {
                 continue;
             }
@@ -201,7 +212,10 @@ fn raw_copper_graphic_issues(pcb: &Pcb) -> Vec<String> {
         }
     };
     let root = pcb.sexp();
-    inspect(root, &["segment", "arc", "via", "zone", "footprint", "module"]);
+    inspect(
+        root,
+        &["segment", "arc", "via", "zone", "footprint", "module"],
+    );
     for node in &root.children {
         if node.has_tag("footprint") || node.has_tag("module") {
             inspect(node, &["pad", "zone", "fp_poly"]);
@@ -213,7 +227,12 @@ fn raw_copper_graphic_issues(pcb: &Pcb) -> Vec<String> {
 fn raw_geometry_issues(pcb: &Pcb) -> Vec<String> {
     let layers: Vec<String> = pcb.copper_layers().iter().map(|l| l.name.clone()).collect();
     let mut issues: Vec<String> = Vec::new();
-    let numeric = |issues: &mut Vec<String>, node: &SExp, tag: &str, lengths: &[usize], required: bool, positive: bool| {
+    let numeric = |issues: &mut Vec<String>,
+                   node: &SExp,
+                   tag: &str,
+                   lengths: &[usize],
+                   required: bool,
+                   positive: bool| {
         let fields: Vec<&SExp> = node.children.iter().filter(|c| c.has_tag(tag)).collect();
         if fields.is_empty() && !required {
             return;
@@ -230,7 +249,9 @@ fn raw_geometry_issues(pcb: &Pcb) -> Vec<String> {
                 !c.is_atom() || !v.is_some_and(|v| v.is_finite() && !(positive && v <= 0.0))
             });
         if bad {
-            issues.push(format!("invalid {nname} {tag}: finite numeric geometry required"));
+            issues.push(format!(
+                "invalid {nname} {tag}: finite numeric geometry required"
+            ));
         }
     };
     for node in &pcb.sexp().children {
@@ -252,15 +273,16 @@ fn raw_geometry_issues(pcb: &Pcb) -> Vec<String> {
             }
             Some("via") => {
                 if node.get("padstack").is_some() {
-                    issues.push("unsupported via padstack: layer-specific copper unresolved".into());
+                    issues
+                        .push("unsupported via padstack: layer-specific copper unresolved".into());
                 }
                 numeric(&mut issues, node, "at", &[2], true, false);
                 numeric(&mut issues, node, "size", &[1], true, true);
                 let span_ok = node.get("layers").is_some_and(|s| {
                     s.children.len() == 2
-                        && s.children.iter().all(|c| {
-                            matches!(&c.value, Some(Value::Str(v)) if layers.contains(v))
-                        })
+                        && s.children
+                            .iter()
+                            .all(|c| matches!(&c.value, Some(Value::Str(v)) if layers.contains(v)))
                 });
                 if !span_ok {
                     issues.push("unresolved via layer span".into());
@@ -273,7 +295,9 @@ fn raw_geometry_issues(pcb: &Pcb) -> Vec<String> {
                         continue;
                     }
                     if pad.get("padstack").is_some() {
-                        issues.push("unsupported pad padstack: layer-specific copper unresolved".into());
+                        issues.push(
+                            "unsupported pad padstack: layer-specific copper unresolved".into(),
+                        );
                     }
                     numeric(&mut issues, pad, "at", &[2, 3], true, false);
                     numeric(&mut issues, pad, "size", &[2], true, true);
@@ -298,7 +322,8 @@ fn raw_geometry_issues(pcb: &Pcb) -> Vec<String> {
                         Some(pts) => {
                             for xy in pts.children.iter().filter(|c| c.has_tag("xy")) {
                                 let v = floats(xy);
-                                if v.len() != 2 || v.iter().any(|x| !x.is_some_and(f64::is_finite)) {
+                                if v.len() != 2 || v.iter().any(|x| !x.is_some_and(f64::is_finite))
+                                {
                                     issues.push("invalid filled polygon coordinates".into());
                                 }
                             }
@@ -334,7 +359,11 @@ pub fn collect(pcb: &Pcb) -> (Vec<CopperSource>, Vec<String>) {
             geometry: sh::segment_buffer_q(s.start, s.end, s.width / 2.0, 64),
             layer: s.layer.clone(),
             net: net_name(s.net_number),
-            identity: if s.uuid.is_empty() { format!("segment:{i}") } else { s.uuid.clone() },
+            identity: if s.uuid.is_empty() {
+                format!("segment:{i}")
+            } else {
+                s.uuid.clone()
+            },
         });
     }
     for fp in pcb.footprints() {
@@ -363,7 +392,10 @@ pub fn collect(pcb: &Pcb) -> (Vec<CopperSource>, Vec<String>) {
                 continue;
             }
             if !["circle", "rect", "oval", "obround", "roundrect"].contains(&pad.shape.as_str()) {
-                unsupported.push(format!("unsupported pad shape: {}:{}", fp.reference, pad.number));
+                unsupported.push(format!(
+                    "unsupported pad shape: {}:{}",
+                    fp.reference, pad.number
+                ));
                 continue;
             }
             let Some(geom) = pad_polygon(pad, fp) else {
@@ -403,7 +435,11 @@ pub fn collect(pcb: &Pcb) -> (Vec<CopperSource>, Vec<String>) {
                 geometry: sh::point_buffer_q(v.position, v.size / 2.0, 64),
                 layer: l.clone(),
                 net: net_name(v.net_number),
-                identity: if v.uuid.is_empty() { format!("via:{i}") } else { v.uuid.clone() },
+                identity: if v.uuid.is_empty() {
+                    format!("via:{i}")
+                } else {
+                    v.uuid.clone()
+                },
             });
         }
     }
@@ -411,7 +447,11 @@ pub fn collect(pcb: &Pcb) -> (Vec<CopperSource>, Vec<String>) {
         if z.filled_polygons.is_empty() && z.keepout.is_none() {
             unsupported.push(format!(
                 "unfilled zone: {}",
-                if z.uuid.is_empty() { i.to_string() } else { z.uuid.clone() }
+                if z.uuid.is_empty() {
+                    i.to_string()
+                } else {
+                    z.uuid.clone()
+                }
             ));
         }
         for (fi, pts) in z.filled_polygons.iter().enumerate() {
@@ -419,8 +459,16 @@ pub fn collect(pcb: &Pcb) -> (Vec<CopperSource>, Vec<String>) {
                 sources.push(CopperSource {
                     geometry: repair_fill_polygon(&Poly::new(pts.clone())),
                     layer: z.filled_polygon_layer(fi).to_string(),
-                    net: if z.net_name.is_empty() { net_name(z.net_number) } else { z.net_name.clone() },
-                    identity: if z.uuid.is_empty() { format!("zone:{i}") } else { z.uuid.clone() },
+                    net: if z.net_name.is_empty() {
+                        net_name(z.net_number)
+                    } else {
+                        z.net_name.clone()
+                    },
+                    identity: if z.uuid.is_empty() {
+                        format!("zone:{i}")
+                    } else {
+                        z.uuid.clone()
+                    },
                 });
             }
         }
@@ -429,7 +477,10 @@ pub fn collect(pcb: &Pcb) -> (Vec<CopperSource>, Vec<String>) {
         if !node.has_tag("arc") {
             continue;
         }
-        let layer = node.get("layer").and_then(|l| l.text_at(0)).unwrap_or_default();
+        let layer = node
+            .get("layer")
+            .and_then(|l| l.text_at(0))
+            .unwrap_or_default();
         if !layer_names.contains(&layer) {
             continue;
         }
@@ -510,7 +561,11 @@ fn inside_length(a: C, b: C, edges: &[(C, C)], tree: &StrTree, union: &sh::Prepa
 }
 
 /// `check_physical_copper_gap(pcb, minimum_mm)`.
-pub fn check_physical_copper_gap(pcb: &Pcb, _design_rules: &DesignRules, minimum_mm: f64) -> DRCResults {
+pub fn check_physical_copper_gap(
+    pcb: &Pcb,
+    _design_rules: &DesignRules,
+    minimum_mm: f64,
+) -> DRCResults {
     let mut results = DRCResults::with_rules_checked(1);
     if !minimum_mm.is_finite() || minimum_mm <= 0.0 {
         return results;
@@ -554,22 +609,33 @@ pub fn check_physical_copper_gap(pcb: &Pcb, _design_rules: &DesignRules, minimum
             }
         }
         // shapely `STRtree` over sources and boundary edges (GEOS query order).
-        let src_bounds: Vec<Option<sh::Bounds>> = local.iter().map(|s| s.geometry.bounds()).collect();
+        let src_bounds: Vec<Option<sh::Bounds>> =
+            local.iter().map(|s| s.geometry.bounds()).collect();
         let source_tree = StrTree::new(&src_bounds);
         // `dwithin(p, geom, TOL) and geom.boundary.distance(p) <= TOL`: the
         // boundary test implies the first, so only it is evaluated (on a
         // lazily prepared boundary index per source).
-        let boundaries: Vec<std::cell::OnceCell<sh::Prepared>> =
-            (0..local.len()).map(|_| std::cell::OnceCell::new()).collect();
+        let boundaries: Vec<std::cell::OnceCell<sh::Prepared>> = (0..local.len())
+            .map(|_| std::cell::OnceCell::new())
+            .collect();
         let owners_at = |p: C| -> Vec<usize> {
-            let q = (p.0 - TOLERANCE, p.1 - TOLERANCE, p.0 + TOLERANCE, p.1 + TOLERANCE);
+            let q = (
+                p.0 - TOLERANCE,
+                p.1 - TOLERANCE,
+                p.0 + TOLERANCE,
+                p.1 + TOLERANCE,
+            );
             source_tree
                 .query(q)
                 .into_iter()
                 .filter(|&k| {
                     let prep = boundaries[k].get_or_init(|| {
-                        let rings: Vec<Vec<C>> =
-                            local[k].geometry.lines().iter().map(|l| l.to_vec()).collect();
+                        let rings: Vec<Vec<C>> = local[k]
+                            .geometry
+                            .lines()
+                            .iter()
+                            .map(|l| l.to_vec())
+                            .collect();
                         sh::Prepared::new(Geom::Lines(rings))
                     });
                     sh::distance_prep(&Geom::Point(p), prep) <= TOLERANCE
@@ -583,11 +649,17 @@ pub fn check_physical_copper_gap(pcb: &Pcb, _design_rules: &DesignRules, minimum
         let eb: Vec<(f64, f64, f64, f64)> = edges.iter().map(|(a, b)| seg_bounds(*a, *b)).collect();
         let edge_tree = StrTree::new(&eb.iter().copied().map(Some).collect::<Vec<_>>());
         let prep_union = sh::Prepared::new(union.clone());
-        let mut findings: Vec<((Vec<String>, Vec<String>), DRCViolation)> = Vec::new();
+        type Finding = ((Vec<String>, Vec<String>), DRCViolation);
+        let mut findings: Vec<Finding> = Vec::new();
         for i in 0..edges.len() {
             let (ea, eb_) = edges[i];
             let bi = eb[i];
-            let q = (bi.0 - minimum_mm, bi.1 - minimum_mm, bi.2 + minimum_mm, bi.3 + minimum_mm);
+            let q = (
+                bi.0 - minimum_mm,
+                bi.1 - minimum_mm,
+                bi.2 + minimum_mm,
+                bi.3 + minimum_mm,
+            );
             let js: Vec<usize> = edge_tree.query(q);
             for j in js {
                 if j <= i {

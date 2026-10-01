@@ -135,7 +135,10 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
     }
     if let Some(net) = &a.net {
         let r = explain_net_constraints(net, a.interface.as_deref());
-        println!("{}", format_result(&r, &a.format).map_err(anyhow::Error::msg)?);
+        println!(
+            "{}",
+            format_result(&r, &a.format).map_err(anyhow::Error::msg)?
+        );
         return Ok(0);
     }
     let Some(rule) = &a.rule else {
@@ -162,7 +165,10 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
     let has_ctx = matches!(&ctx, Json::Obj(items) if !items.is_empty());
     match explain(rule, has_ctx.then_some(ctx)) {
         Ok(r) => {
-            println!("{}", format_result(&r, &a.format).map_err(anyhow::Error::msg)?);
+            println!(
+                "{}",
+                format_result(&r, &a.format).map_err(anyhow::Error::msg)?
+            );
             Ok(0)
         }
         Err(e) => {

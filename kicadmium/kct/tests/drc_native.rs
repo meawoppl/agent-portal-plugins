@@ -43,13 +43,29 @@ fn shorts_and_incremental_match_upstream() {
         let mut got: Vec<_> = drc
             .full_check()
             .into_iter()
-            .map(|v| (v.items.clone(), v.location, v.message.clone(), v.actual_value))
+            .map(|v| {
+                (
+                    v.items.clone(),
+                    v.location,
+                    v.message.clone(),
+                    v.actual_value,
+                )
+            })
             .collect();
-        got.sort_by(|a, b| a.0.cmp(&b.0).then(a.1 .0.total_cmp(&b.1 .0)).then(a.1 .1.total_cmp(&b.1 .1)));
+        got.sort_by(|a, b| {
+            a.0.cmp(&b.0)
+                .then(a.1 .0.total_cmp(&b.1 .0))
+                .then(a.1 .1.total_cmp(&b.1 .1))
+        });
         let want = case["incremental"].as_array().unwrap();
         assert_eq!(got.len(), want.len(), "{board}: incremental count");
         for (g, w) in got.iter().zip(want) {
-            let items: Vec<String> = w["items"].as_array().unwrap().iter().map(|i| i.as_str().unwrap().to_string()).collect();
+            let items: Vec<String> = w["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|i| i.as_str().unwrap().to_string())
+                .collect();
             assert_eq!(g.0, items, "{board}");
             assert_eq!(g.1 .0, w["location"][0].as_f64().unwrap(), "{board}");
             assert_eq!(g.1 .1, w["location"][1].as_f64().unwrap(), "{board}");
@@ -61,8 +77,16 @@ fn shorts_and_incremental_match_upstream() {
             let reference = d["ref"].as_str().unwrap();
             let fp = pcb.get_footprint(reference).unwrap();
             let delta = drc.check_move(reference, fp.position.0 + 1.5, fp.position.1 - 0.75);
-            assert_eq!(delta.new_violations.len() as u64, d["new"].as_u64().unwrap(), "{board}");
-            assert_eq!(delta.resolved_violations.len() as u64, d["resolved"].as_u64().unwrap(), "{board}");
+            assert_eq!(
+                delta.new_violations.len() as u64,
+                d["new"].as_u64().unwrap(),
+                "{board}"
+            );
+            assert_eq!(
+                delta.resolved_violations.len() as u64,
+                d["resolved"].as_u64().unwrap(),
+                "{board}"
+            );
             assert_eq!(delta.summary(), d["summary"].as_str().unwrap(), "{board}");
         }
     }

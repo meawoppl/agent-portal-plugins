@@ -1,11 +1,11 @@
-//! Standalone `kct` entry point for parity runs:
-//! `cargo run --release -p kct --example kct -- route board.kicad_pcb ...`.
+//! Standalone `kct` driver for parity checks without building the kicadmium
+//! backend (which embeds the frontend): `cargo run -p kct --example kct -- <args>`.
 
 fn main() {
     match kct::cli::run(std::env::args_os().skip(1)) {
         Ok(code) => std::process::exit(code),
-        Err(e) => {
-            eprintln!("Error: {e:#}");
+        Err(err) => {
+            eprintln!("Error: {err:?}");
             std::process::exit(1);
         }
     }

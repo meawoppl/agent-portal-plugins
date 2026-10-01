@@ -104,3 +104,65 @@ mod tests {
         assert_eq!(py_path_str("."), ".");
     }
 }
+
+/// `manufacturers.base.load_design_rules_from_yaml(id)`: the YAML file named
+/// exactly `<id>.yaml` (no alias resolution), configs in file order. `None`
+/// is upstream's `FileNotFoundError`.
+pub fn load_design_rules_from_yaml(
+    manufacturer_id: &str,
+) -> Option<Vec<(String, crate::manufacturers::DesignRules)>> {
+    let text = match manufacturer_id {
+        "flashpcb" => include_str!("../manufacturers/data/flashpcb.yaml"),
+        "jlcpcb" => include_str!("../manufacturers/data/jlcpcb.yaml"),
+        "jlcpcb_tier1" => include_str!("../manufacturers/data/jlcpcb_tier1.yaml"),
+        "oshpark" => include_str!("../manufacturers/data/oshpark.yaml"),
+        "pcbway" => include_str!("../manufacturers/data/pcbway.yaml"),
+        "seeed" => include_str!("../manufacturers/data/seeed.yaml"),
+        _ => return None,
+    };
+    let doc: serde_yaml::Value = serde_yaml::from_str(text).ok()?;
+    let rules = doc.get("design_rules")?.as_mapping()?;
+    let mut out = Vec::new();
+    for (k, v) in rules {
+        let name = k.as_str()?.to_string();
+        let r: crate::manufacturers::DesignRules = serde_yaml::from_value(v.clone()).ok()?;
+        out.push((name, r));
+    }
+    Some(out)
+}
+
+/// Pick `"{layers}layer_{int(copper)}oz"`, then `"{layers}layer_1oz"`, then
+/// the first config (upstream fix-vias / fix-silkscreen lookup).
+pub fn pick_rules(
+    rules: &[(String, crate::manufacturers::DesignRules)],
+    layers: i64,
+    copper: f64,
+) -> Option<crate::manufacturers::DesignRules> {
+    let key = format!("{layers}layer_{}oz", copper.trunc() as i64);
+    let one = format!("{layers}layer_1oz");
+    rules
+        .iter()
+        .find(|(k, _)| *k == key)
+        .or_else(|| rules.iter().find(|(k, _)| *k == one))
+        .or_else(|| rules.first())
+        .map(|(_, r)| r.clone())
+}
+
+/// Numeric atoms of a node's direct children (Python `float(atom)`).
+pub fn atoms_f64(node: &crate::sexp::SExp) -> Vec<f64> {
+    node.atoms()
+        .map(|v| v.as_f64().unwrap_or(0.0))
+        .collect()
+}
+
+/// First atom as `f64` (0 when absent).
+pub fn first_f64(node: Option<&crate::sexp::SExp>) -> f64 {
+    node.and_then(|n| n.first_atom())
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0)
+}
+
+/// First atom rendered as Python `str()` (empty when absent).
+pub fn first_str(node: Option<&crate::sexp::SExp>) -> String {
+    node.and_then(|n| n.text_at(0)).unwrap_or_default()
+}

@@ -28,6 +28,8 @@ pub mod erc;
 pub mod estimate;
 pub mod explain;
 pub mod fabrication;
+pub mod fix_silkscreen;
+pub mod fix_vias;
 pub mod fleet;
 pub mod footprint;
 pub mod footprint_validation;
@@ -44,6 +46,7 @@ pub mod place_silk_refs;
 pub mod pcb;
 pub mod placement;
 pub mod project;
+pub mod relocate_in_pad_vias;
 pub mod render;
 pub mod repair_common;
 pub mod report;
@@ -100,8 +103,8 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "optimize-traces", about: "Optimize PCB traces", wave: "D", run: Some(optimize_traces::run) },
     CommandSpec { name: "validate-footprints", about: "Validate footprints for pad spacing issues", wave: "D", run: Some(footprint_validation::validate) },
     CommandSpec { name: "fix-footprints", about: "Fix footprint pad spacing issues", wave: "D", run: Some(footprint_validation::fix) },
-    CommandSpec { name: "fix-vias", about: "Fix vias to meet manufacturer specifications", wave: "D", run: None },
-    CommandSpec { name: "fix-silkscreen", about: "Fix silkscreen line widths to meet manufacturer specifications", wave: "D", run: None },
+    CommandSpec { name: "fix-vias", about: "Fix vias to meet manufacturer specifications", wave: "D", run: Some(fix_vias::run) },
+    CommandSpec { name: "fix-silkscreen", about: "Fix silkscreen line widths to meet manufacturer specifications", wave: "D", run: Some(fix_silkscreen::run) },
     CommandSpec { name: "place-silk-refs", about: "Move readable silkscreen reference designators to clear collisions", wave: "D", run: Some(place_silk_refs::run) },
     CommandSpec { name: "repair-clearance", about: "Repair clearance violations by nudging traces", wave: "D", run: None },
     CommandSpec { name: "fix-drc", about: "Automated DRC violation repair (clearance + drill)", wave: "D", run: None },

@@ -13,6 +13,7 @@ pub mod geometric;
 pub mod incremental;
 pub mod net_compat;
 pub mod predictive;
+pub mod repair_silkscreen;
 pub mod report;
 pub mod severity;
 pub mod suggestions;

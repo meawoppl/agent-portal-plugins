@@ -145,12 +145,12 @@ const PROFILES: &[ManufacturerProfile] = &[
     ManufacturerProfile {
         id: "seeed",
         name: "Seeed Fusion",
-        website: "https://www.seeedstudio.com/prototype-pcb-assembly.html",
+        website: "https://www.seeedstudio.com/fusion.html",
         supported_layers: &[1, 2, 4, 6],
         bom_format: "seeed",
         pricing_model: "per_pcb",
         supports_assembly: true,
-        parts_library: Some("OPL"),
+        parts_library: Some("Seeed OPL"),
     },
     ManufacturerProfile {
         id: "pcbway",
@@ -160,11 +160,11 @@ const PROFILES: &[ManufacturerProfile] = &[
         bom_format: "pcbway",
         pricing_model: "per_pcb",
         supports_assembly: true,
-        parts_library: Some("PCBWay Parts"),
+        parts_library: Some("Global Sourcing"),
     },
     ManufacturerProfile {
         id: "oshpark",
-        name: "OSH Park",
+        name: "OSHPark",
         website: "https://oshpark.com",
         supported_layers: &[2, 4],
         bom_format: "generic",

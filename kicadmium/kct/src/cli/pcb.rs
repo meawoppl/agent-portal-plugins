@@ -135,6 +135,18 @@ fn nodes<'a>(r: &'a SExp, name: &'a str) -> impl Iterator<Item = &'a SExp> + 'a 
 fn layer(n: &SExp) -> String {
     n.child_str("layer").unwrap_or("").to_string()
 }
+fn zone_layers(zone: &SExp) -> Vec<String> {
+    if let Some(layer) = zone.child_str("layer") {
+        return vec![layer.to_owned()];
+    }
+    zone.get("layers")
+        .map(|layers| {
+            (0..layers.children.len())
+                .filter_map(|i| layers.string_at(i).map(str::to_owned))
+                .collect()
+        })
+        .unwrap_or_default()
+}
 fn property<'a>(n: &'a SExp, k: &str) -> &'a str {
     n.property(k)
         .or_else(|| {
@@ -187,7 +199,7 @@ fn query_nets(r: &SExp) -> Value {
             .count();
         let zl: Vec<_> = nodes(r, "zone")
             .filter(|z| z.get("net").and_then(|x| x.int_at(0)) == Some(no))
-            .map(layer)
+            .flat_map(zone_layers)
             .collect();
         out.push(json!({"number":no,"name":n.string_at(1).unwrap_or(""),"segments":seg,"vias":vias,"zone_connected":!zl.is_empty(),"zone_layers":zl}));
     }

@@ -154,9 +154,9 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a = parse_args::<Args>("analyze", args);
     match a.command {
         Command::TraceLengths(a) => {
-            let r = load(&a.pcb)?;
+            let pcb = Pcb::load(&a.pcb)?;
             emit(
-                trace_lengths(&r, &a.nets, a.all, a.diff_pairs || !a.no_diff_pairs),
+                trace_lengths_pcb(&pcb, &a.nets, a.all, a.diff_pairs || !a.no_diff_pairs),
                 &a.format,
             )
         }
@@ -734,6 +734,7 @@ fn net_names(r: &SExp) -> BTreeMap<i64, String> {
         .filter_map(|n| Some((n.int_at(0)?, n.string_at(1)?.into())))
         .collect()
 }
+#[cfg(test)]
 fn trace_lengths(r: &SExp, wanted: &[String], all: bool, pairs: bool) -> Value {
     let names = net_names(r);
     let mut m: BTreeMap<i64, (f64, usize, BTreeSet<String>)> = BTreeMap::new();
@@ -765,6 +766,7 @@ fn trace_lengths(r: &SExp, wanted: &[String], all: bool, pairs: bool) -> Value {
         .sum::<f64>();
     json!({"nets":nets,"differential_pairs":diff,"summary":{"total_nets":nets.len(),"differential_pairs":diff.len(),"total_length_mm":round3(total)}})
 }
+#[cfg(test)]
 fn detect_pairs<'a>(names: impl Iterator<Item = &'a String>) -> Vec<Value> {
     let s: BTreeSet<_> = names.cloned().collect();
     let mut o = Vec::new();
@@ -777,6 +779,152 @@ fn detect_pairs<'a>(names: impl Iterator<Item = &'a String>) -> Vec<Value> {
         }
     }
     o
+}
+fn trace_lengths_pcb(pcb: &Pcb, wanted: &[String], all: bool, pairs: bool) -> Value {
+    let names = pcb
+        .nets()
+        .iter()
+        .filter(|net| !net.name.is_empty())
+        .map(|net| net.name.clone())
+        .collect::<Vec<_>>();
+    let partner = |name: &str| -> Option<String> {
+        for (suffix, replacement) in [("_P", "_N"), ("_N", "_P"), ("+", "-"), ("-", "+")] {
+            if let Some(base) = name.strip_suffix(suffix) {
+                let candidate = format!("{base}{replacement}");
+                if names.contains(&candidate) {
+                    return Some(candidate);
+                }
+            }
+        }
+        None
+    };
+    let mut diff_pairs = Vec::new();
+    let mut seen = BTreeSet::new();
+    for name in {
+        let mut n = names.clone();
+        n.sort();
+        n
+    } {
+        if seen.contains(&name) {
+            continue;
+        }
+        if let Some(other) = partner(&name) {
+            let positive = if name.ends_with("_P") || name.ends_with('+') {
+                name.clone()
+            } else {
+                other.clone()
+            };
+            let negative = if positive == name {
+                other.clone()
+            } else {
+                name.clone()
+            };
+            diff_pairs.push(json!({"positive":positive,"negative":negative}));
+            seen.insert(name);
+            seen.insert(other);
+        }
+    }
+    let critical = |name: &str| {
+        let u = name.to_ascii_uppercase();
+        u.starts_with("CLK")
+            || u.ends_with("CLK")
+            || u.contains("CLOCK")
+            || u.contains("_CLK_")
+            || u.contains("USB")
+            || u == "D+"
+            || u == "D-"
+            || [
+                "LVDS", "MIPI", "HDMI", "DP_", "PCIE", "SATA", "DDR", "DQS", "RGMII", "RMII",
+            ]
+            .iter()
+            .any(|x| u.contains(x))
+            || u.starts_with("DQ") && u[2..].chars().next().is_some_and(|c| c.is_ascii_digit())
+            || u.starts_with("DM") && u[2..].chars().next().is_some_and(|c| c.is_ascii_digit())
+            || u.starts_with('A') && u[1..].chars().all(|c| c.is_ascii_digit())
+            || u.starts_with("ETH")
+            || u.starts_with("CAN") && matches!(u.chars().last(), Some('H' | 'L'))
+    };
+    let mut selected = if !wanted.is_empty() {
+        wanted.to_vec()
+    } else if all {
+        names.clone()
+    } else {
+        names
+            .iter()
+            .filter(|name| critical(name))
+            .cloned()
+            .collect()
+    };
+    if !wanted.is_empty() {
+    } else if pairs {
+        for pair in &diff_pairs {
+            for key in ["positive", "negative"] {
+                let name = pair[key].as_str().unwrap().to_owned();
+                if critical(&name) && !selected.contains(&name) {
+                    selected.push(name)
+                }
+            }
+        }
+    }
+    let mut reports = Vec::new();
+    for name in selected {
+        let Some(net) = pcb.nets().iter().find(|net| net.name == name) else {
+            reports.push(json!({"net_name":name,"total_length_mm":0.0,"segment_count":0,"arc_count":0,"via_count":0,"layers_used":[]}));
+            continue;
+        };
+        let segs = pcb.segments_in_net(net.number).collect::<Vec<_>>();
+        let arcs = pcb.arcs_in_net(net.number).collect::<Vec<_>>();
+        let vias = pcb.vias_in_net(net.number).count();
+        let mut layers = BTreeSet::new();
+        let mut ordered = Vec::new();
+        for layer in segs
+            .iter()
+            .map(|s| s.layer.as_str())
+            .chain(arcs.iter().map(|a| a.layer.as_str()))
+        {
+            layers.insert(layer.to_owned());
+            if ordered.last().is_none_or(|last: &String| last != layer) {
+                ordered.push(layer.to_owned())
+            }
+        }
+        let length = segs.iter().map(|s| s.length()).sum::<f64>()
+            + arcs.iter().map(|a| a.length()).sum::<f64>();
+        if all && length <= 0.0 {
+            continue;
+        }
+        let mut row = json!({"net_name":name,"total_length_mm":round3(length),"segment_count":segs.len(),"arc_count":arcs.len(),"via_count":vias,"layers_used":layers});
+        if ordered.len() > 1 {
+            row["layer_changes"] = json!(ordered
+                .windows(2)
+                .map(|x| format!("{} → {}", x[0], x[1]))
+                .collect::<Vec<_>>())
+        }
+        if pairs {
+            if let Some(other) = partner(row["net_name"].as_str().unwrap()) {
+                let Some(onet) = pcb.nets().iter().find(|net| net.name == other) else {
+                    continue;
+                };
+                let other_length = pcb
+                    .segments_in_net(onet.number)
+                    .map(|s| s.length())
+                    .sum::<f64>()
+                    + pcb
+                        .arcs_in_net(onet.number)
+                        .map(|a| a.length())
+                        .sum::<f64>();
+                row["differential_pair"] = json!({"pair_net":other,"pair_length_mm":round3(other_length),"skew_mm":round3((length-other_length).abs())});
+            }
+        }
+        reports.push(row)
+    }
+    reports.sort_by(|a, b| a["net_name"].as_str().cmp(&b["net_name"].as_str()));
+    let total = reports
+        .iter()
+        .filter_map(|r| r["total_length_mm"].as_f64())
+        .sum::<f64>();
+    let report_count = reports.len();
+    let pair_count = if pairs { diff_pairs.len() } else { 0 };
+    json!({"nets":reports,"differential_pairs":if pairs{diff_pairs}else{vec![]},"summary":{"total_nets":report_count,"differential_pairs":pair_count,"total_length_mm":round3(total)}})
 }
 fn complexity(pcb: &Pcb, grid_size: f64) -> Value {
     let mut edge_points = Vec::new();

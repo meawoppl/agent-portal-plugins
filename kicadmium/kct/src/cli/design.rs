@@ -1182,6 +1182,71 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
                 has(&words, "--backup"),
             )?;
         }
+        "tidy" => {
+            let mut d = crate::Document::load(&path)?;
+            for s in d.root.children.iter_mut().filter(|n| n.has_tag("symbol")) {
+                let Some((x, y, r)) = s.at() else { continue };
+                for (key, dy) in [("Reference", -2.54), ("Value", 2.54)] {
+                    if let Some(p) = s
+                        .children
+                        .iter_mut()
+                        .find(|n| n.has_tag("property") && n.string_at(0) == Some(key))
+                    {
+                        set_at(p, x, y + dy, r)
+                    }
+                }
+            }
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                has(&words, "--backup"),
+            )?;
+        }
+        "repair-instances" => {
+            let project = path
+                .file_stem()
+                .and_then(|x| x.to_str())
+                .context("invalid schematic name")?
+                .to_owned();
+            let mut d = crate::Document::load(&path)?;
+            let mut count = 0;
+            for s in d.root.children.iter_mut().filter(|n| n.has_tag("symbol")) {
+                if s.get("instances").is_some() {
+                    continue;
+                }
+                let reference = s.property("Reference").unwrap_or("").to_owned();
+                if reference.is_empty() {
+                    continue;
+                }
+                let unit = s.get("unit").and_then(|u| u.int_at(0)).unwrap_or(1);
+                s.push(SExp::list(
+                    "instances",
+                    [SExp::list(
+                        "project",
+                        [
+                            SExp::quoted(project.clone()),
+                            SExp::list(
+                                "path",
+                                [
+                                    SExp::quoted("/"),
+                                    SExp::list("reference", [SExp::quoted(reference)]),
+                                    SExp::pair("unit", unit),
+                                ],
+                            ),
+                        ],
+                    )],
+                ));
+                count += 1
+            }
+            save_edit(
+                &d,
+                &path,
+                has(&words, "--dry-run") || has(&words, "-n"),
+                has(&words, "--backup"),
+            )?;
+            println!("repaired {count} symbol instance blocks");
+        }
         _ => bail!("unsupported sch subcommand {cmd}"),
     }
     Ok(0)
@@ -1219,6 +1284,18 @@ fn multi_f64(words: &[String], name: &str, n: usize) -> Result<Vec<f64>> {
 }
 fn near(a: (f64, f64), b: (f64, f64)) -> bool {
     (a.0 - b.0).abs() < 1e-6 && (a.1 - b.1).abs() < 1e-6
+}
+fn set_at(node: &mut SExp, x: f64, y: f64, r: f64) {
+    if let Some(at) = node.get_mut("at") {
+        at.set_value(0, x);
+        at.set_value(1, y);
+        at.set_value(2, r)
+    } else {
+        node.push(SExp::list(
+            "at",
+            [SExp::atom(x), SExp::atom(y), SExp::atom(r)],
+        ));
+    }
 }
 fn passive_footprint(reference: &str, value: &str) -> Option<&'static str> {
     match reference.chars().next()? {

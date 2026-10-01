@@ -30,6 +30,7 @@ pub mod explain;
 pub mod fabrication;
 pub mod fleet;
 pub mod footprint;
+pub mod footprint_validation;
 pub mod h;
 pub mod impedance;
 pub mod mfr;
@@ -92,8 +93,8 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "route-auto", about: "Route a net using RoutingOrchestrator smart strategy selection", wave: "F", run: None },
     CommandSpec { name: "reason", about: "LLM-driven PCB layout reasoning", wave: "H", run: Some(h::reason) },
     CommandSpec { name: "optimize-traces", about: "Optimize PCB traces", wave: "D", run: Some(optimize_traces::run) },
-    CommandSpec { name: "validate-footprints", about: "Validate footprints for pad spacing issues", wave: "D", run: None },
-    CommandSpec { name: "fix-footprints", about: "Fix footprint pad spacing issues", wave: "D", run: None },
+    CommandSpec { name: "validate-footprints", about: "Validate footprints for pad spacing issues", wave: "D", run: Some(footprint_validation::validate) },
+    CommandSpec { name: "fix-footprints", about: "Fix footprint pad spacing issues", wave: "D", run: Some(footprint_validation::fix) },
     CommandSpec { name: "fix-vias", about: "Fix vias to meet manufacturer specifications", wave: "D", run: None },
     CommandSpec { name: "fix-silkscreen", about: "Fix silkscreen line widths to meet manufacturer specifications", wave: "D", run: None },
     CommandSpec { name: "place-silk-refs", about: "Move readable silkscreen reference designators to clear collisions", wave: "D", run: None },

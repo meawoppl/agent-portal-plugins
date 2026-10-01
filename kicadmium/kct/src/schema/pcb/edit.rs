@@ -17,9 +17,7 @@ use super::util::{
     at_path_mut, atom, descendant_paths, fnmatch, for_each_named_mut, gf, gs, list, new_uuid,
     pair_xy, string_atoms, Untracked,
 };
-use super::{
-    is_footprint_tag, quant, segment_dedup_key, via_dedup_key, Pcb, COORD_MATCH_QUANT,
-};
+use super::{is_footprint_tag, quant, segment_dedup_key, via_dedup_key, Pcb, COORD_MATCH_QUANT};
 
 // ================================================================ handles
 
@@ -429,7 +427,9 @@ fn set_text_font(text: &mut SExp, size: Point, thickness: f64) {
             s.set_value(0, size.0);
             s.set_value(1, size.1);
         }
-        None => font.children.push(list("size", vec![atom(size.0), atom(size.1)])),
+        None => font
+            .children
+            .push(list("size", vec![atom(size.0), atom(size.1)])),
     }
     match first_named_mut(font, "thickness") {
         Some(t) => t.set_value(0, thickness),
@@ -602,7 +602,11 @@ impl Pcb {
             break;
         }
         if done {
-            if let Some(fp) = self.footprints.iter_mut().find(|f| f.reference == reference) {
+            if let Some(fp) = self
+                .footprints
+                .iter_mut()
+                .find(|f| f.reference == reference)
+            {
                 fp.value = value.to_string();
                 for t in fp.texts.iter_mut().filter(|t| t.text_type == "value") {
                     t.text = value.to_string();
@@ -621,7 +625,11 @@ impl Pcb {
                 .filter(|f| fnmatch(&f.reference, p))
                 .map(|f| f.reference.clone())
                 .collect(),
-            (None, None) => self.footprints.iter().map(|f| f.reference.clone()).collect(),
+            (None, None) => self
+                .footprints
+                .iter()
+                .map(|f| f.reference.clone())
+                .collect(),
         }
     }
 
@@ -652,7 +660,11 @@ impl Pcb {
                 }
             });
         }
-        for fp in self.footprints.iter_mut().filter(|f| refs.contains(&f.reference)) {
+        for fp in self
+            .footprints
+            .iter_mut()
+            .filter(|f| refs.contains(&f.reference))
+        {
             for t in fp.texts.iter_mut().filter(|t| t.text_type == "reference") {
                 t.hidden = !visible;
             }
@@ -694,7 +706,11 @@ impl Pcb {
             return false;
         }
         if updated {
-            if let Some(fp) = self.footprints.iter_mut().find(|f| f.reference == reference) {
+            if let Some(fp) = self
+                .footprints
+                .iter_mut()
+                .find(|f| f.reference == reference)
+            {
                 for t in fp.texts.iter_mut().filter(|t| t.text_type == "reference") {
                     t.position = match absolute {
                         Some(p) => p,
@@ -740,7 +756,11 @@ impl Pcb {
                 }
             });
         }
-        for fp in self.footprints.iter_mut().filter(|f| refs.contains(&f.reference)) {
+        for fp in self
+            .footprints
+            .iter_mut()
+            .filter(|f| refs.contains(&f.reference))
+        {
             for t in fp
                 .texts
                 .iter_mut()
@@ -774,7 +794,11 @@ impl Pcb {
                 }
             });
         }
-        for fp in self.footprints.iter_mut().filter(|f| refs.contains(&f.reference)) {
+        for fp in self
+            .footprints
+            .iter_mut()
+            .filter(|f| refs.contains(&f.reference))
+        {
             for t in fp.texts.iter_mut().filter(|t| t.text_type == "reference") {
                 t.layer = layer.to_string();
             }
@@ -840,7 +864,11 @@ impl Pcb {
         if rotation != 0.0 {
             at.push(atom(rotation));
         }
-        match fp.children.iter().position(|c| c.is_list() && c.has_tag("layer")) {
+        match fp
+            .children
+            .iter()
+            .position(|c| c.is_list() && c.has_tag("layer"))
+        {
             Some(i) => fp.children.insert(i + 1, at),
             None => fp.children.push(at),
         }
@@ -957,11 +985,7 @@ impl Pcb {
         let root = &mut self.doc.root;
         if let Some(i) = root.children.iter().rposition(|c| c.has_tag("net")) {
             root.children.insert(i + 1, node);
-        } else if let Some(i) = root
-            .children
-            .iter()
-            .position(|c| is_footprint_tag(c.tag()))
-        {
+        } else if let Some(i) = root.children.iter().position(|c| is_footprint_tag(c.tag())) {
             root.children.insert(i, node);
         } else {
             root.push(node);
@@ -1062,8 +1086,10 @@ impl Pcb {
                     .ok_or_else(|| anyhow!("Cannot find pad {p} on footprint {r}"))?;
                 if net.is_none() {
                     if let Some(fp) = self.get_footprint(r) {
-                        if let Some(pad) =
-                            fp.pads.iter().find(|x| x.number == *p && !x.net_name.is_empty())
+                        if let Some(pad) = fp
+                            .pads
+                            .iter()
+                            .find(|x| x.number == *p && !x.net_name.is_empty())
                         {
                             *net = Some(pad.net_name.clone());
                         }
@@ -1175,7 +1201,10 @@ impl Pcb {
                 continue;
             };
             if !target.is_empty() {
-                let uuid = child.find("uuid").and_then(|u| gs(u, 0)).unwrap_or_default();
+                let uuid = child
+                    .find("uuid")
+                    .and_then(|u| gs(u, 0))
+                    .unwrap_or_default();
                 if uuid != target {
                     continue;
                 }
@@ -1215,7 +1244,11 @@ impl Pcb {
         let mut coords = HashSet::new();
         for s in segments {
             if s.uuid.is_empty() {
-                coords.insert((self.coord_key(s.start), self.coord_key(s.end), s.layer.clone()));
+                coords.insert((
+                    self.coord_key(s.start),
+                    self.coord_key(s.end),
+                    s.layer.clone(),
+                ));
             } else {
                 uuids.insert(s.uuid.clone());
             }
@@ -1234,7 +1267,11 @@ impl Pcb {
             if let (Some(s), Some(e), Some(l)) =
                 (child.find("start"), child.find("end"), child.find("layer"))
             {
-                let key = (q(super::util::xy(s)), q(super::util::xy(e)), gs(l, 0).unwrap_or_default());
+                let key = (
+                    q(super::util::xy(s)),
+                    q(super::util::xy(e)),
+                    gs(l, 0).unwrap_or_default(),
+                );
                 if coords.contains(&key) {
                     return false;
                 }
@@ -1339,12 +1376,15 @@ impl Pcb {
         let (ox, oy) = self.board_origin;
         let tol_sq = tolerance * tolerance;
         let mut by_uuid: HashMap<String, usize> = HashMap::new();
-        let mut by_coord: Vec<((f64, f64, f64, f64, String), usize)> = Vec::new();
+        let mut by_coord: Vec<(CoordKey, usize)> = Vec::new();
         for (i, child) in self.doc.root.children.iter().enumerate() {
             if !(child.is_list() && child.has_tag("segment")) {
                 continue;
             }
-            let uuid = child.find("uuid").and_then(|u| gs(u, 0)).unwrap_or_default();
+            let uuid = child
+                .find("uuid")
+                .and_then(|u| gs(u, 0))
+                .unwrap_or_default();
             if !uuid.is_empty() {
                 by_uuid.insert(uuid, i);
                 continue;
@@ -1387,7 +1427,11 @@ impl Pcb {
                 if !is_hit {
                     continue;
                 }
-                let p = if tag == "start" { &mut seg.start } else { &mut seg.end };
+                let p = if tag == "start" {
+                    &mut seg.start
+                } else {
+                    &mut seg.end
+                };
                 *p = (p.0 + delta.0, p.1 + delta.1);
                 let np = *p;
                 if let Some(i) = node_idx {
@@ -1457,6 +1501,9 @@ impl Pcb {
         }
     }
 }
+
+/// Sheet-absolute `(sx, sy, ex, ey, layer)` of a UUID-less segment.
+type CoordKey = (f64, f64, f64, f64, String);
 
 /// Python `SExp.set_atom(i, v)`: replace the `i`-th atom child.
 fn set_atom(node: &mut SExp, index: usize, value: f64) {

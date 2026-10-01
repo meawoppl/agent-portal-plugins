@@ -8,7 +8,10 @@ use anyhow::{Context, Result};
 /// Write via a sibling temp file + rename so readers (and KiCad) never see a
 /// half-written design file.
 pub fn atomic_write(path: &Path, bytes: &[u8]) -> Result<()> {
-    let dir = path.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
+    let dir = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
     let name = path
         .file_name()
         .with_context(|| format!("{} has no file name", path.display()))?

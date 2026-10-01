@@ -204,26 +204,25 @@ pub fn board_outline_bounds(root: &SExp) -> Result<Option<Bounds>, String> {
             "gr_arc" => {
                 let mut start = point(node, "start")?;
                 let mut end = point(node, "end")?;
-                let mid = if node.find_child("mid").is_some() {
-                    point(node, "mid")?
-                } else {
-                    let angle = node.find_child("angle");
-                    let sweep = angle.and_then(|a| a.float_at(0));
-                    match (angle, sweep) {
-                        (Some(a), Some(s)) if a.children.len() == 1 && s.is_finite() => {
-                            let (s0, m, e) = legacy_arc_points(end, start, s);
-                            start = s0;
-                            end = e;
-                            m
-                        }
-                        _ => {
-                            return Err(
+                let mid =
+                    if node.find_child("mid").is_some() {
+                        point(node, "mid")?
+                    } else {
+                        let angle = node.find_child("angle");
+                        let sweep = angle.and_then(|a| a.float_at(0));
+                        match (angle, sweep) {
+                            (Some(a), Some(s)) if a.children.len() == 1 && s.is_finite() => {
+                                let (s0, m, e) = legacy_arc_points(end, start, s);
+                                start = s0;
+                                end = e;
+                                m
+                            }
+                            _ => return Err(
                                 "Malformed Edge.Cuts gr_arc: missing mid or invalid legacy angle"
                                     .into(),
-                            )
+                            ),
                         }
-                    }
-                };
+                    };
                 points.extend(arc_points(start, mid, end)?);
             }
             "gr_circle" => {
@@ -258,7 +257,12 @@ pub fn board_outline_bounds(root: &SExp) -> Result<Option<Bounds>, String> {
     if points.is_empty() {
         return Ok(None);
     }
-    let mut b = (f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
+    let mut b = (
+        f64::INFINITY,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+        f64::NEG_INFINITY,
+    );
     for (x, y) in points {
         b.0 = b.0.min(x);
         b.1 = b.1.min(y);
@@ -321,8 +325,8 @@ mod exact {
         fn sub_mag(a: &[u32], b: &[u32]) -> Vec<u32> {
             let mut out = Vec::with_capacity(a.len());
             let mut borrow = 0i64;
-            for i in 0..a.len() {
-                let mut d = a[i] as i64 - *b.get(i).unwrap_or(&0) as i64 - borrow;
+            for (i, &ai) in a.iter().enumerate() {
+                let mut d = ai as i64 - *b.get(i).unwrap_or(&0) as i64 - borrow;
                 borrow = 0;
                 if d < 0 {
                     d += 1 << 32;
@@ -445,7 +449,12 @@ mod tests {
         assert!(!is_degenerate_closed_curve(&loop_));
         let open = [(0.0, 0.0), (1.0, 1.0), (2.0, 2.0), (3.0, 3.0)];
         assert!(!is_degenerate_closed_curve(&open));
-        let far = [(1e6 + 0.1, 0.3), (1e6 + 0.2, 0.6), (1e6 + 0.3, 0.9), (1e6 + 0.1, 0.3)];
+        let far = [
+            (1e6 + 0.1, 0.3),
+            (1e6 + 0.2, 0.6),
+            (1e6 + 0.3, 0.9),
+            (1e6 + 0.1, 0.3),
+        ];
         // 0.1/0.2/0.3 are not exactly collinear in binary.
         let _ = is_degenerate_closed_curve(&far);
     }

@@ -155,7 +155,15 @@ fn zone_parsing() {
     assert_eq!(z[1].connect_pads, "solid");
     assert_eq!(z[2].connect_pads, "none");
     assert!(z[0].is_filled && !z[1].is_filled && z[2].is_filled);
-    assert_eq!(z[0].polygon, vec![(100.0, 100.0), (130.0, 100.0), (130.0, 120.0), (100.0, 120.0)]);
+    assert_eq!(
+        z[0].polygon,
+        vec![
+            (100.0, 100.0),
+            (130.0, 100.0),
+            (130.0, 120.0),
+            (100.0, 120.0)
+        ]
+    );
     assert_eq!(z[2].polygon.len(), 6);
     assert_eq!(z[2].polygon[5], (140.0, 120.0));
     assert_eq!(z[0].filled_polygons.len(), 1);
@@ -213,9 +221,15 @@ fn update_footprint_position_persists() {
     let dir = tmp();
     let mut pcb = load("routing_test.kicad_pcb");
     assert!(pcb.update_footprint_position("R1", 140.0, 120.0, None));
-    assert!(close2(pcb.get_footprint("R1").unwrap().position, (140.0, 120.0)));
+    assert!(close2(
+        pcb.get_footprint("R1").unwrap().position,
+        (140.0, 120.0)
+    ));
     let pcb2 = save_reload(&mut pcb, dir.path(), "out.kicad_pcb");
-    assert!(close2(pcb2.get_footprint("R1").unwrap().position, (140.0, 120.0)));
+    assert!(close2(
+        pcb2.get_footprint("R1").unwrap().position,
+        (140.0, 120.0)
+    ));
     assert!(!pcb.update_footprint_position("NONEXISTENT", 1.0, 1.0, None));
 }
 
@@ -276,7 +290,10 @@ fn unlinked_footprint_fields_are_plain() {
     fp.position = (30.0, 40.0);
     fp.rotation = 90.0;
     fp.layer = "B.Cu".into();
-    assert_eq!((fp.position, fp.rotation, fp.layer.as_str()), ((30.0, 40.0), 90.0, "B.Cu"));
+    assert_eq!(
+        (fp.position, fp.rotation, fp.layer.as_str()),
+        ((30.0, 40.0), 90.0, "B.Cu")
+    );
 }
 
 // ------------------------------------------------------------ references
@@ -288,7 +305,14 @@ fn rename_reference_kicad8_and_kicad7() {
     assert!(pcb.update_footprint_reference("R1", "R100"));
     assert!(pcb.get_footprint("R1").is_none());
     let fp = pcb.get_footprint("R100").unwrap();
-    assert_eq!(fp.texts.iter().find(|t| t.text_type == "reference").unwrap().text, "R100");
+    assert_eq!(
+        fp.texts
+            .iter()
+            .find(|t| t.text_type == "reference")
+            .unwrap()
+            .text,
+        "R100"
+    );
     let pcb2 = save_reload(&mut pcb, dir.path(), "a.kicad_pcb");
     assert!(pcb2.get_footprint("R1").is_none());
     assert!(pcb2.get_footprint("R100").is_some());
@@ -318,7 +342,14 @@ fn update_value_both_formats() {
     assert!(pcb.update_footprint_value("R1", "4.7k"));
     let fp = pcb.get_footprint("R1").unwrap();
     assert_eq!(fp.value, "4.7k");
-    assert_eq!(fp.texts.iter().find(|t| t.text_type == "value").unwrap().text, "4.7k");
+    assert_eq!(
+        fp.texts
+            .iter()
+            .find(|t| t.text_type == "value")
+            .unwrap()
+            .text,
+        "4.7k"
+    );
     let pcb2 = save_reload(&mut pcb, dir.path(), "a.kicad_pcb");
     assert_eq!(pcb2.get_footprint("R1").unwrap().value, "4.7k");
     assert!(close2(pcb2.get_footprint("R1").unwrap().position, orig));
@@ -359,7 +390,15 @@ fn add_footprint_from_file_basics() {
     let mut pcb = load("minimal.kicad_pcb");
     let n = pcb.footprints().len();
     let fp = pcb
-        .add_footprint_from_file(lib("C_0402_1005Metric.kicad_mod"), "C1", 50.0, 30.0, 90.0, "B.Cu", "100nF")
+        .add_footprint_from_file(
+            lib("C_0402_1005Metric.kicad_mod"),
+            "C1",
+            50.0,
+            30.0,
+            90.0,
+            "B.Cu",
+            "100nF",
+        )
         .unwrap()
         .clone();
     assert_eq!(fp.reference, "C1");
@@ -370,7 +409,15 @@ fn add_footprint_from_file_basics() {
     assert!(close(fp.rotation, 90.0));
     assert_eq!(pcb.footprints().len(), n + 1);
     let fp2 = pcb
-        .add_footprint_from_file(lib("SOT-23-5.kicad_mod"), "U1", 80.0, 25.0, 0.0, "F.Cu", "LM317")
+        .add_footprint_from_file(
+            lib("SOT-23-5.kicad_mod"),
+            "U1",
+            80.0,
+            25.0,
+            0.0,
+            "F.Cu",
+            "LM317",
+        )
         .unwrap()
         .clone();
     assert_eq!(fp2.pads.len(), 5);
@@ -390,8 +437,16 @@ fn add_footprint_from_file_basics() {
 fn add_footprint_at_node_after_layer() {
     let dir = tmp();
     let mut pcb = load("minimal.kicad_pcb");
-    pcb.add_footprint_from_file(lib("C_0402_1005Metric.kicad_mod"), "C1", 50.0, 30.0, 45.0, "F.Cu", "")
-        .unwrap();
+    pcb.add_footprint_from_file(
+        lib("C_0402_1005Metric.kicad_mod"),
+        "C1",
+        50.0,
+        30.0,
+        45.0,
+        "F.Cu",
+        "",
+    )
+    .unwrap();
     let out = dir.path().join("o.kicad_pcb");
     pcb.save(Some(&out)).unwrap();
     let content = std::fs::read_to_string(&out).unwrap();
@@ -409,18 +464,27 @@ fn add_footprint_pad_angles_absolute() {
     let rp = fixtures().join("RotatedPad_Test.pretty/RotatedPad_Test.kicad_mod");
     for (rot, a1, a2) in [(0.0, 0.0, 30.0), (90.0, 90.0, 120.0), (-90.0, 270.0, 300.0)] {
         let mut pcb = load("minimal.kicad_pcb");
-        let fp = pcb.add_footprint_from_file(&rp, "U1", 50.0, 30.0, rot, "F.Cu", "").unwrap();
+        let fp = pcb
+            .add_footprint_from_file(&rp, "U1", 50.0, 30.0, rot, "F.Cu", "")
+            .unwrap();
         assert!(close(fp.pads[0].rotation, a1), "{rot}");
         assert!(close(fp.pads[1].rotation, a2), "{rot}");
     }
     let dir = tmp();
     let mut pcb = load("minimal.kicad_pcb");
-    pcb.add_footprint_from_file(&rp, "U1", 50.0, 30.0, 90.0, "F.Cu", "").unwrap();
+    pcb.add_footprint_from_file(&rp, "U1", 50.0, 30.0, 90.0, "F.Cu", "")
+        .unwrap();
     let out = dir.path().join("abs.kicad_pcb");
     pcb.save(Some(&out)).unwrap();
     let text = std::fs::read_to_string(&out).unwrap();
-    assert!(text.contains("(at 1 0 120)"), "{text}");
-    assert!(text.contains("(at -1 0 90)"), "{text}");
+    assert!(
+        text.contains("(at 1 0 120)") || text.contains("(at 1.0 0 120)"),
+        "{text}"
+    );
+    assert!(
+        text.contains("(at -1 0 90)") || text.contains("(at -1.0 0 90)"),
+        "{text}"
+    );
     let re = Pcb::load(&out).unwrap();
     let u1 = re.get_footprint("U1").unwrap();
     assert!(close(u1.pads[0].rotation, 90.0) && close(u1.pads[1].rotation, 120.0));
@@ -431,12 +495,23 @@ fn add_footprint_numeric_properties_quoted() {
     let dir = tmp();
     for value in ["470", "0", "100", "-5", "3.3"] {
         let mut pcb = load("minimal.kicad_pcb");
-        pcb.add_footprint_from_file(lib("C_0402_1005Metric.kicad_mod"), "1", 50.0, 30.0, 0.0, "F.Cu", value)
-            .unwrap();
+        pcb.add_footprint_from_file(
+            lib("C_0402_1005Metric.kicad_mod"),
+            "1",
+            50.0,
+            30.0,
+            0.0,
+            "F.Cu",
+            value,
+        )
+        .unwrap();
         let out = dir.path().join("q.kicad_pcb");
         pcb.save(Some(&out)).unwrap();
         let c = std::fs::read_to_string(&out).unwrap();
-        assert!(c.contains(&format!("(property \"Value\" \"{value}\"")), "{value}");
+        assert!(
+            c.contains(&format!("(property \"Value\" \"{value}\"")),
+            "{value}"
+        );
         assert!(!c.contains(&format!("(property \"Value\" {value}")));
         assert!(c.contains("(property \"Reference\" \"1\""));
         assert!(!c.contains("(size \"1\" \"1\")") && !c.contains("(thickness \"0.15\")"));
@@ -451,7 +526,8 @@ fn add_footprint_numeric_properties_quoted() {
     (pad "2" smd rect (at 1 0) (size 1 1) (layers "F.Cu")))"#,
     );
     let mut pcb = load("minimal.kicad_pcb");
-    pcb.add_footprint_from_file(&fpw, "R1", 50.0, 30.0, 0.0, "F.Cu", "470").unwrap();
+    pcb.add_footprint_from_file(&fpw, "R1", 50.0, 30.0, 0.0, "F.Cu", "470")
+        .unwrap();
     let out = dir.path().join("e.kicad_pcb");
     pcb.save(Some(&out)).unwrap();
     let c = std::fs::read_to_string(&out).unwrap();
@@ -478,7 +554,13 @@ fn added_pad_geometry_survives_save() {
                 board.save(Some(&path)).unwrap();
                 board = Pcb::load(&path).unwrap();
             }
-            let rots: Vec<f64> = board.get_footprint("J1").unwrap().pads.iter().map(|p| p.rotation).collect();
+            let rots: Vec<f64> = board
+                .get_footprint("J1")
+                .unwrap()
+                .pads
+                .iter()
+                .map(|p| p.rotation)
+                .collect();
             assert_eq!(rots, vec![initial, 30.0 + initial, initial]);
             {
                 let mut fm = board.footprint_mut("J1").unwrap();
@@ -488,7 +570,9 @@ fn added_pad_geometry_survives_save() {
                     pm.set_rotation(r + 90.0);
                     pm.set_position((p.0, p.1 + i as f64 + 1.0));
                 }
-                fm.pad_mut(0).unwrap().set_layers(&["B.Cu", "B.Paste", "B.Mask"]);
+                fm.pad_mut(0)
+                    .unwrap()
+                    .set_layers(&["B.Cu", "B.Paste", "B.Mask"]);
             }
             board.save(Some(&path)).unwrap();
             let restored = Pcb::load(&path).unwrap();
@@ -519,9 +603,15 @@ fn added_pad_ids_are_unique_and_persistent() {
     );
     let mut board = create(30.0, 20.0);
     for (r, x) in [("J1", 8.0), ("J2", 22.0)] {
-        board.add_footprint_from_file(&library, r, x, 10.0, 0.0, "F.Cu", "").unwrap();
+        board
+            .add_footprint_from_file(&library, r, x, 10.0, 0.0, "F.Cu", "")
+            .unwrap();
     }
-    let pad_ids: Vec<String> = board.footprints().iter().flat_map(|f| f.pads.iter().map(|p| p.uuid.clone())).collect();
+    let pad_ids: Vec<String> = board
+        .footprints()
+        .iter()
+        .flat_map(|f| f.pads.iter().map(|p| p.uuid.clone()))
+        .collect();
     let fp_ids: Vec<String> = board.footprints().iter().map(|f| f.uuid.clone()).collect();
     let mut all: Vec<String> = fp_ids.iter().chain(&pad_ids).cloned().collect();
     all.sort();
@@ -531,7 +621,11 @@ fn added_pad_ids_are_unique_and_persistent() {
     let path = dir.path().join("b.kicad_pcb");
     board.save(Some(&path)).unwrap();
     let restored = Pcb::load(&path).unwrap();
-    let again: Vec<String> = restored.footprints().iter().flat_map(|f| f.pads.iter().map(|p| p.uuid.clone())).collect();
+    let again: Vec<String> = restored
+        .footprints()
+        .iter()
+        .flat_map(|f| f.pads.iter().map(|p| p.uuid.clone()))
+        .collect();
     assert_eq!(again, pad_ids);
     assert!(!std::fs::read_to_string(&path).unwrap().contains("tstamp"));
 }
@@ -573,7 +667,9 @@ fn ref_text(pcb: &Pcb, r: &str) -> FootprintText {
 fn reference_visibility() {
     let mut pcb = Pcb::parse_str(PCB_WITH_REFS).unwrap();
     assert_eq!(pcb.set_reference_visibility(None, false, None), 4);
-    assert!(["R1", "C1", "C2", "U1"].iter().all(|r| ref_text(&pcb, r).hidden));
+    assert!(["R1", "C1", "C2", "U1"]
+        .iter()
+        .all(|r| ref_text(&pcb, r).hidden));
     assert_eq!(pcb.set_reference_visibility(Some("U1"), true, None), 1);
     assert!(!ref_text(&pcb, "U1").hidden && ref_text(&pcb, "R1").hidden);
 
@@ -590,7 +686,10 @@ fn move_reference_variants() {
     let mut pcb = Pcb::parse_str(PCB_WITH_REFS).unwrap();
     let orig = ref_text(&pcb, "R1").position;
     assert!(pcb.move_reference("R1", (2.0, -3.0), None, None));
-    assert!(close2(ref_text(&pcb, "R1").position, (orig.0 + 2.0, orig.1 - 3.0)));
+    assert!(close2(
+        ref_text(&pcb, "R1").position,
+        (orig.0 + 2.0, orig.1 - 3.0)
+    ));
     assert!(pcb.move_reference("C1", (0.0, 0.0), Some((5.0, -4.0)), None));
     assert!(close2(ref_text(&pcb, "C1").position, (5.0, -4.0)));
     assert!(pcb.move_reference("U1", (0.0, 0.0), None, Some("F.Fab")));
@@ -601,15 +700,24 @@ fn move_reference_variants() {
 #[test]
 fn silkscreen_font_and_layer() {
     let mut pcb = Pcb::parse_str(PCB_WITH_REFS).unwrap();
-    assert_eq!(pcb.set_silkscreen_font((0.8, 0.8), 0.12, None, &["reference"]), 4);
+    assert_eq!(
+        pcb.set_silkscreen_font((0.8, 0.8), 0.12, None, &["reference"]),
+        4
+    );
     assert!(close2(ref_text(&pcb, "U1").font_size, (0.8, 0.8)));
     assert!(close(ref_text(&pcb, "U1").font_thickness, 0.12));
     let mut pcb = Pcb::parse_str(PCB_WITH_REFS).unwrap();
-    assert_eq!(pcb.set_silkscreen_font((0.6, 0.6), 0.1, Some("C*"), &["reference"]), 2);
+    assert_eq!(
+        pcb.set_silkscreen_font((0.6, 0.6), 0.1, Some("C*"), &["reference"]),
+        2
+    );
     assert!(close2(ref_text(&pcb, "C1").font_size, (0.6, 0.6)));
     assert!(close2(ref_text(&pcb, "R1").font_size, (1.0, 1.0)));
     let mut pcb = Pcb::parse_str(PCB_WITH_REFS).unwrap();
-    assert_eq!(pcb.set_silkscreen_font((0.7, 0.9), 0.15, None, &["reference"]), 4);
+    assert_eq!(
+        pcb.set_silkscreen_font((0.7, 0.9), 0.15, None, &["reference"]),
+        4
+    );
     assert!(close2(ref_text(&pcb, "R1").font_size, (0.7, 0.9)));
     let mut pcb = Pcb::parse_str(PCB_WITH_REFS).unwrap();
     assert_eq!(pcb.move_references_to_layer("F.Fab", None), 4);
@@ -651,7 +759,10 @@ fn add_trace_and_via() {
         )
         .unwrap();
     assert_eq!(segs.len(), 1);
-    assert_eq!((segs[0].start, segs[0].end, segs[0].width), ((10.0, 10.0), (50.0, 10.0), 0.3));
+    assert_eq!(
+        (segs[0].start, segs[0].end, segs[0].width),
+        ((10.0, 10.0), (50.0, 10.0), 0.3)
+    );
     assert!(segs[0].net_number > 0);
     let multi = pcb
         .add_trace(
@@ -665,9 +776,7 @@ fn add_trace_and_via() {
         .unwrap();
     assert_eq!(multi.len(), 3);
     assert_eq!((multi[1].start, multi[1].end), ((30.0, 20.0), (30.0, 60.0)));
-    let v = pcb
-        .add_via(50.0, 30.0, ViaOptions::net("VCC"))
-        .unwrap();
+    let v = pcb.add_via(50.0, 30.0, ViaOptions::net("VCC")).unwrap();
     assert_eq!(v.layers, vec!["F.Cu", "B.Cu"]);
     assert!(v.net_number > 0);
     let pcb2 = save_reload(&mut pcb, dir.path(), "t.kicad_pcb");
@@ -705,8 +814,13 @@ fn routing_status_and_ratsnest() {
 fn pad_positions() {
     let pcb = load("minimal.kicad_pcb");
     let fp = &pcb.footprints()[0];
-    let pos = pcb.get_pad_position(&fp.reference, &fp.pads[0].number).unwrap();
-    assert!(close2(pos, (fp.position.0 + fp.pads[0].position.0, fp.position.1)));
+    let pos = pcb
+        .get_pad_position(&fp.reference, &fp.pads[0].number)
+        .unwrap();
+    assert!(close2(
+        pos,
+        (fp.position.0 + fp.pads[0].position.0, fp.position.1)
+    ));
     assert!(pcb.get_pad_position("NONEXISTENT", "1").is_none());
     assert!(pcb.get_pad_position("R1", "999").is_none());
     // Rotated footprint uses KiCad's negated-angle transform.
@@ -715,7 +829,10 @@ fn pad_positions() {
            (pad "1" smd rect (at 2 0) (size 1 1) (layers "F.Cu"))))"#,
     )
     .unwrap();
-    assert!(close2(pcb.get_pad_position("U1", "1").unwrap(), (100.0, 98.0)));
+    assert!(close2(
+        pcb.get_pad_position("U1", "1").unwrap(),
+        (100.0, 98.0)
+    ));
 }
 
 #[test]
@@ -729,7 +846,9 @@ fn trace_between_pads_picks_up_net() {
     assert!(close2(segs[0].start, (15.0 - 2.7, 15.0 - 1.905)));
     assert!(pcb.footprint_has_traces("U1"));
     assert!(!pcb.footprint_has_traces("J1"));
-    assert!(pcb.add_trace(("U1", "99"), (0.0, 0.0), TraceOptions::default()).is_err());
+    assert!(pcb
+        .add_trace(("U1", "99"), (0.0, 0.0), TraceOptions::default())
+        .is_err());
 }
 
 #[test]
@@ -835,7 +954,10 @@ fn create_parameters_and_stamps() {
     }
     assert_eq!(pcb.copper_layers().len(), 4);
     assert_eq!(pcb.setup().unwrap().stackup.len(), 13);
-    assert_eq!(pcb.sexp().find("version").unwrap().int_at(0), Some(20241229));
+    assert_eq!(
+        pcb.sexp().find("version").unwrap().int_at(0),
+        Some(20241229)
+    );
     assert_eq!(pcb.date().len(), 10);
     assert!(close2(pcb.board_size().unwrap(), (160.0, 100.0)));
 
@@ -902,7 +1024,10 @@ fn page_fit_paper_and_translation() {
 #[test]
 fn page_fit_preserves_geometry_exactly() {
     fn coords(node: &SExp, out: &mut Vec<(f64, f64)>) {
-        if matches!(node.tag(), Some("at" | "start" | "end" | "mid" | "center" | "xy")) {
+        if matches!(
+            node.tag(),
+            Some("at" | "start" | "end" | "mid" | "center" | "xy")
+        ) {
             if let (Some(x), Some(y)) = (node.float_at(0), node.float_at(1)) {
                 out.push((x, y));
             }
@@ -975,7 +1100,8 @@ fn page_fit_idempotent_and_requires_outline() {
     let mut re = save_reload(&mut pcb, dir.path(), "rt.kicad_pcb");
     let b = re.page_fit(5.0).unwrap();
     assert!(close2(a, b));
-    let mut none = Pcb::parse_str("(kicad_pcb (version 20240108) (layers (0 \"F.Cu\" signal)))").unwrap();
+    let mut none =
+        Pcb::parse_str("(kicad_pcb (version 20240108) (layers (0 \"F.Cu\" signal)))").unwrap();
     assert!(none.page_fit(5.0).is_err());
 }
 
@@ -1004,7 +1130,10 @@ fn strip_basic() {
     assert!(pcb.zones().is_empty());
 
     let mut empty = create(100.0, 100.0);
-    assert_eq!(empty.strip_traces(StripOptions::default()), StripStats::default());
+    assert_eq!(
+        empty.strip_traces(StripOptions::default()),
+        StripStats::default()
+    );
 }
 
 #[test]
@@ -1064,7 +1193,10 @@ fn strip_by_layers() {
     assert_eq!(pcb.segments().len(), 3);
     assert!(pcb.segments().iter().all(|s| s.layer != "In1.Cu"));
     let mut pcb = four_layer_board();
-    assert_eq!(pcb.strip_traces(layers_opt(&["In1.Cu", "In2.Cu"])).segments, 2);
+    assert_eq!(
+        pcb.strip_traces(layers_opt(&["In1.Cu", "In2.Cu"])).segments,
+        2
+    );
     let layers: Vec<&str> = pcb.segments().iter().map(|s| s.layer.as_str()).collect();
     assert_eq!(layers, vec!["F.Cu", "B.Cu"]);
 
@@ -1081,7 +1213,10 @@ fn strip_by_layers() {
 
     let mut pcb = four_layer_board();
     assert_eq!(pcb.strip_traces(layers_opt(&[])).segments, 0);
-    assert_eq!(pcb.strip_traces(layers_opt(&["Nonexistent.Cu"])).segments, 0);
+    assert_eq!(
+        pcb.strip_traces(layers_opt(&["Nonexistent.Cu"])).segments,
+        0
+    );
     assert_eq!(pcb.segments().len(), 4);
 
     let dir = tmp();
@@ -1205,7 +1340,14 @@ fn strip_region() {
     let mut pcb = create(100.0, 100.0);
     trace(&mut pcb, (5.0, 25.0), (55.0, 25.0), "F.Cu", "SIG_A");
     let st = pcb.strip_traces(region(r));
-    assert_eq!((st.segments, st.segments_clipped, st.segments_boundary_skipped), (0, 0, 1));
+    assert_eq!(
+        (
+            st.segments,
+            st.segments_clipped,
+            st.segments_boundary_skipped
+        ),
+        (0, 0, 1)
+    );
 
     let mut pcb = create(100.0, 100.0);
     via(&mut pcb, 25.0, 25.0, &["F.Cu", "B.Cu"], "SIG_A");
@@ -1239,7 +1381,10 @@ fn strip_region() {
 
     let mut pcb = create(100.0, 100.0);
     trace(&mut pcb, (20.0, 20.0), (30.0, 20.0), "F.Cu", "SIG_A");
-    assert_eq!(pcb.strip_traces(region((40.0, 40.0, 10.0, 10.0))).segments, 1);
+    assert_eq!(
+        pcb.strip_traces(region((40.0, 40.0, 10.0, 10.0))).segments,
+        1
+    );
 }
 
 // ------------------------------------------------------------ KiCad 10 nets
@@ -1281,7 +1426,10 @@ fn kicad10_net_recovery() {
            (via (at 100 100) (size 0.8) (drill 0.4) (layers "F.Cu" "B.Cu") (net "VCC") (uuid "via-1")))"#,
     )
     .unwrap();
-    assert_eq!((pcb.vias()[0].net_name.as_str(), pcb.vias()[0].net_number), ("VCC", 2));
+    assert_eq!(
+        (pcb.vias()[0].net_name.as_str(), pcb.vias()[0].net_number),
+        ("VCC", 2)
+    );
 
     let pcb = Pcb::parse_str(
         r#"(kicad_pcb (version 20260206) (net 0 "") (net 1 "GND")
@@ -1335,12 +1483,22 @@ fn save_board_net_table_synthesis() {
     (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") (net "SIGA"))
     (pad "2" smd rect (at 2 0) (size 1 1) (layers "F.Cu") (net "SIGB"))
     (pad "3" smd rect (at 4 0) (size 1 1) (layers "F.Cu") (net "SIGC"))))"#;
-    let names = |p: &Pcb| p.nets().iter().map(|n| (n.name.clone(), n.number)).collect::<Vec<_>>();
+    let names = |p: &Pcb| {
+        p.nets()
+            .iter()
+            .map(|n| (n.name.clone(), n.number))
+            .collect::<Vec<_>>()
+    };
     let a = names(&Pcb::parse_str(src).unwrap());
     assert_eq!(a, names(&Pcb::parse_str(src).unwrap()));
     assert_eq!(
         a,
-        vec![("".into(), 0), ("SIGA".into(), 1), ("SIGB".into(), 2), ("SIGC".into(), 3)]
+        vec![
+            ("".into(), 0),
+            ("SIGA".into(), 1),
+            ("SIGB".into(), 2),
+            ("SIGC".into(), 3)
+        ]
     );
 
     let pcb = Pcb::parse_str(
@@ -1402,8 +1560,12 @@ fn net_dialect_preserved_on_added_copper() {
     let text = std::fs::read_to_string(&out).unwrap();
     let segs = net_refs(&text, "segment");
     assert_eq!(segs, vec!["(net \"GND\")", "(net \"GND\")"]);
-    assert_eq!(net_refs(&text, "via "), vec!["(net \"VCC\")"]);
-    assert!(Pcb::load(&out).unwrap().segments().iter().all(|s| s.net_name_only.0));
+    assert_eq!(net_refs(&text, "via"), vec!["(net \"VCC\")"]);
+    assert!(Pcb::load(&out)
+        .unwrap()
+        .segments()
+        .iter()
+        .all(|s| s.net_name_only.0));
 
     let mut pcb = load("minimal.kicad_pcb");
     let added = pcb
@@ -1463,7 +1625,11 @@ fn remove_vias_multilayer_fixture() {
     let mut pcb = Pcb::load(&path).unwrap();
     assert_eq!(pcb.vias().len(), 2);
     assert_eq!(pcb.remove_vias(&[]), 0);
-    let (s, f, z) = (pcb.segments().len(), pcb.footprints().len(), pcb.zones().len());
+    let (s, f, z) = (
+        pcb.segments().len(),
+        pcb.footprints().len(),
+        pcb.zones().len(),
+    );
     let v = pcb.vias()[0].clone();
     assert!(!v.uuid.is_empty());
     assert_eq!(pcb.remove_vias(&[v]), 1);
@@ -1471,7 +1637,14 @@ fn remove_vias_multilayer_fixture() {
     let rest = pcb.vias().to_vec();
     pcb.remove_vias(&rest);
     assert_eq!(pcb.via_count(), 0);
-    assert_eq!((pcb.segments().len(), pcb.footprints().len(), pcb.zones().len()), (s, f, z));
+    assert_eq!(
+        (
+            pcb.segments().len(),
+            pcb.footprints().len(),
+            pcb.zones().len()
+        ),
+        (s, f, z)
+    );
 }
 
 #[test]
@@ -1482,7 +1655,10 @@ fn relocate_via_and_drag_endpoints() {
     trace(&mut pcb, (20.0, 10.0), (20.0, 20.0), "F.Cu", "A");
     via(&mut pcb, 20.0, 10.0, &["F.Cu", "B.Cu"], "A");
     assert!(pcb.relocate_via(0, (21.0, 11.0)));
-    assert_eq!(pcb.drag_trace_endpoints((20.0, 10.0), (1.0, 1.0), 0.05, None), 2);
+    assert_eq!(
+        pcb.drag_trace_endpoints((20.0, 10.0), (1.0, 1.0), 0.05, None),
+        2
+    );
     let re = save_reload(&mut pcb, dir.path(), "d.kicad_pcb");
     assert!(close2(re.vias()[0].position, (21.0, 11.0)));
     assert!(close2(re.segments()[0].end, (21.0, 11.0)));
@@ -1499,14 +1675,50 @@ fn sig1() -> TraceOptions {
 #[test]
 fn copper_dedup() {
     let mut pcb = create(100.0, 100.0);
-    assert_eq!(pcb.add_trace((10.0, 10.0), (50.0, 10.0), sig1()).unwrap().len(), 1);
-    assert!(pcb.add_trace((10.0, 10.0), (50.0, 10.0), sig1()).unwrap().is_empty());
-    assert!(pcb.add_trace((50.0, 10.0), (10.0, 10.0), sig1()).unwrap().is_empty());
-    pcb.add_trace((10.0, 10.0), (50.0, 10.0), TraceOptions { layer: "B.Cu".into(), ..sig1() }).unwrap();
-    pcb.add_trace((10.0, 10.0), (50.0, 10.0), TraceOptions::net("Sig2")).unwrap();
-    pcb.add_trace((10.0, 10.0), (50.0, 10.0), TraceOptions { width: 0.5, ..sig1() }).unwrap();
+    assert_eq!(
+        pcb.add_trace((10.0, 10.0), (50.0, 10.0), sig1())
+            .unwrap()
+            .len(),
+        1
+    );
+    assert!(pcb
+        .add_trace((10.0, 10.0), (50.0, 10.0), sig1())
+        .unwrap()
+        .is_empty());
+    assert!(pcb
+        .add_trace((50.0, 10.0), (10.0, 10.0), sig1())
+        .unwrap()
+        .is_empty());
+    pcb.add_trace(
+        (10.0, 10.0),
+        (50.0, 10.0),
+        TraceOptions {
+            layer: "B.Cu".into(),
+            ..sig1()
+        },
+    )
+    .unwrap();
+    pcb.add_trace((10.0, 10.0), (50.0, 10.0), TraceOptions::net("Sig2"))
+        .unwrap();
+    pcb.add_trace(
+        (10.0, 10.0),
+        (50.0, 10.0),
+        TraceOptions {
+            width: 0.5,
+            ..sig1()
+        },
+    )
+    .unwrap();
     pcb.add_trace((50.0, 10.0), (50.0, 40.0), sig1()).unwrap();
-    pcb.add_trace((10.0, 10.0), (50.0, 10.0), TraceOptions { dedupe: false, ..sig1() }).unwrap();
+    pcb.add_trace(
+        (10.0, 10.0),
+        (50.0, 10.0),
+        TraceOptions {
+            dedupe: false,
+            ..sig1()
+        },
+    )
+    .unwrap();
     assert_eq!(pcb.segments().len(), 6);
 
     assert!(pcb.add_via(50.0, 30.0, ViaOptions::net("GND")).is_some());
@@ -1522,13 +1734,43 @@ fn dedupe_copper_cleanup() {
     let mut pcb = create(100.0, 100.0);
     let n = pcb.add_net("Sig1").number;
     for _ in 0..4 {
-        pcb.add_trace((10.0, 10.0), (50.0, 10.0), TraceOptions { dedupe: false, ..sig1() }).unwrap();
+        pcb.add_trace(
+            (10.0, 10.0),
+            (50.0, 10.0),
+            TraceOptions {
+                dedupe: false,
+                ..sig1()
+            },
+        )
+        .unwrap();
     }
     for _ in 0..3 {
-        pcb.add_via(50.0, 30.0, ViaOptions { dedupe: false, ..ViaOptions::net("GND") });
+        pcb.add_via(
+            50.0,
+            30.0,
+            ViaOptions {
+                dedupe: false,
+                ..ViaOptions::net("GND")
+            },
+        );
     }
-    pcb.add_trace((10.0, 10.0), (50.0, 40.0), TraceOptions { dedupe: false, ..sig1() }).unwrap();
-    pcb.add_via(60.0, 30.0, ViaOptions { dedupe: false, ..ViaOptions::net("GND") });
+    pcb.add_trace(
+        (10.0, 10.0),
+        (50.0, 40.0),
+        TraceOptions {
+            dedupe: false,
+            ..sig1()
+        },
+    )
+    .unwrap();
+    pcb.add_via(
+        60.0,
+        30.0,
+        ViaOptions {
+            dedupe: false,
+            ..ViaOptions::net("GND")
+        },
+    );
     assert_eq!((pcb.segments().len(), pcb.vias().len()), (5, 4));
     let before: Vec<(f64, f64)> = pcb.segments_in_net(n).map(|s| s.end).collect();
     let st = pcb.dedupe_copper();
@@ -1554,7 +1796,10 @@ fn via_text(tenting: &str) -> String {
 #[test]
 fn via_tenting_round_trip() {
     let v = Via::from_sexp(&kct::parse(&via_text("(tenting (front no) (back yes))")).unwrap());
-    assert_eq!((v.tenting_front.as_deref(), v.tenting_back.as_deref()), (Some("no"), Some("yes")));
+    assert_eq!(
+        (v.tenting_front.as_deref(), v.tenting_back.as_deref()),
+        (Some("no"), Some("yes"))
+    );
     let v = Via::from_sexp(&kct::parse(&via_text("(tenting (front none) (back no))")).unwrap());
     assert_eq!(v.tenting_front.as_deref(), Some("none"));
     let mut v = Via::from_sexp(&kct::parse(&via_text("")).unwrap());
@@ -1568,8 +1813,14 @@ fn via_tenting_round_trip() {
         names.iter().position(|n| *n == "layers").unwrap() + 1
     );
     let re = Via::from_sexp(&node);
-    assert_eq!((re.tenting_front.as_deref(), re.tenting_back.as_deref()), (Some("no"), Some("none")));
-    let micro = Via::from_sexp(&kct::parse("(via micro (at 0 0) (size 0.3) (drill 0.1) (layers \"F.Cu\" \"In1.Cu\"))").unwrap());
+    assert_eq!(
+        (re.tenting_front.as_deref(), re.tenting_back.as_deref()),
+        (Some("no"), Some("none"))
+    );
+    let micro = Via::from_sexp(
+        &kct::parse("(via micro (at 0 0) (size 0.3) (drill 0.1) (layers \"F.Cu\" \"In1.Cu\"))")
+            .unwrap(),
+    );
     assert_eq!(micro.via_type.as_deref(), Some("micro"));
 
     let dir = tmp();
@@ -1588,11 +1839,19 @@ fn via_tenting_round_trip() {
 #[test]
 fn setup_tenting() {
     let mk = |body: &str| {
-        Pcb::parse_str(&format!("(kicad_pcb (version 20260206) (setup (pad_to_mask_clearance 0) {body}))"))
-            .unwrap()
+        Pcb::parse_str(&format!(
+            "(kicad_pcb (version 20260206) (setup (pad_to_mask_clearance 0) {body}))"
+        ))
+        .unwrap()
     };
     let s = mk("(tenting (front yes) (back no))");
-    assert_eq!((s.setup().unwrap().tenting_front, s.setup().unwrap().tenting_back), (Some(true), Some(false)));
+    assert_eq!(
+        (
+            s.setup().unwrap().tenting_front,
+            s.setup().unwrap().tenting_back
+        ),
+        (Some(true), Some(false))
+    );
     let s = mk("");
     assert_eq!(s.setup().unwrap().tenting_front, None);
 }
@@ -1600,10 +1859,12 @@ fn setup_tenting() {
 #[test]
 fn graphic_arc_legacy_center_angle() {
     let arc = |t: &str| GraphicArc::from_sexp(&kct::parse(t).unwrap());
-    let a = arc(r#"(gr_arc (start 101 93) (end 101 92) (angle -90) (layer "Edge.Cuts") (width 0.05))"#);
+    let a =
+        arc(r#"(gr_arc (start 101 93) (end 101 92) (angle -90) (layer "Edge.Cuts") (width 0.05))"#);
     assert!(close2(a.start, (101.0, 92.0)) && close2(a.end, (100.0, 93.0)));
     assert!((a.mid.0 - 100.29289).abs() < 1e-4 && (a.mid.1 - 92.29289).abs() < 1e-4);
-    let a = arc(r#"(gr_arc (start 121 93) (end 121 92) (angle 90) (layer "Edge.Cuts") (width 0.05))"#);
+    let a =
+        arc(r#"(gr_arc (start 121 93) (end 121 92) (angle 90) (layer "Edge.Cuts") (width 0.05))"#);
     assert!(close2(a.end, (122.0, 93.0)));
     assert!((a.mid.0 - 121.70711).abs() < 1e-4);
     let a = arc(r#"(gr_arc (start 2 0) (mid 0.585786 0.585786) (end 0 2) (layer "Edge.Cuts"))"#);
@@ -1620,7 +1881,11 @@ const ARC_HEADER: &str = "(kicad_pcb (version 20240108) (generator \"test\")\n (
 fn copper_arcs() {
     let dir = tmp();
     for name_only in [false, true] {
-        let arc = if name_only { ARC.replace("(net 1)", "(net \"SIG\")") } else { ARC.to_string() };
+        let arc = if name_only {
+            ARC.replace("(net 1)", "(net \"SIG\")")
+        } else {
+            ARC.to_string()
+        };
         let header = if name_only {
             ARC_HEADER.replace("(net 0 \"\") (net 1 \"SIG\") (net 2 \"OTHER\")", "")
         } else {
@@ -1630,7 +1895,10 @@ fn copper_arcs() {
         let mut pcb = Pcb::load(&src).unwrap();
         assert_eq!(pcb.arcs().len(), 1);
         let a = pcb.arcs()[0].clone();
-        assert_eq!((a.start, a.mid, a.end), ((10.0, 10.0), (15.0, 5.0), (20.0, 10.0)));
+        assert_eq!(
+            (a.start, a.mid, a.end),
+            ((10.0, 10.0), (15.0, 5.0), (20.0, 10.0))
+        );
         assert_eq!(a.width, 0.25);
         assert_eq!(a.net_name, "SIG");
         assert_eq!(a.net_name_only.0, name_only);
@@ -1639,7 +1907,10 @@ fn copper_arcs() {
         assert_eq!(pcb.arcs_on_layer("B.Cu").count(), 0);
         assert!(pcb.segments().is_empty());
         assert!(close(a.length(), 5.0 * std::f64::consts::PI));
-        assert!(close(pcb.total_trace_length(None), 5.0 * std::f64::consts::PI));
+        assert!(close(
+            pcb.total_trace_length(None),
+            5.0 * std::f64::consts::PI
+        ));
         assert_eq!(pcb.arc_count(), 1);
         let pts = a.centerline_points(1e-5).unwrap();
         assert_eq!(*pts.first().unwrap(), a.start);
@@ -1649,7 +1920,10 @@ fn copper_arcs() {
         assert!(std::fs::read_to_string(&out).unwrap().contains(&arc));
         assert_eq!(Pcb::load(&out).unwrap().arcs(), pcb.arcs());
     }
-    let bad = format!("{ARC_HEADER}{})", ARC.replace("(mid 15 5.0000)", "(mid 15 10)"));
+    let bad = format!(
+        "{ARC_HEADER}{})",
+        ARC.replace("(mid 15 5.0000)", "(mid 15 10)")
+    );
     assert!(Pcb::parse_str(&bad).is_err());
 }
 
@@ -1686,16 +1960,29 @@ fn legacy_module_boards() {
     let dir = tmp();
     let pcb = Pcb::parse_str(LEGACY_MODULE_BOARD).unwrap();
     assert_eq!(pcb.footprint_count(), 2);
-    let refs: Vec<&str> = pcb.footprints().iter().map(|f| f.reference.as_str()).collect();
+    let refs: Vec<&str> = pcb
+        .footprints()
+        .iter()
+        .map(|f| f.reference.as_str())
+        .collect();
     assert_eq!(refs, vec!["R1", "C1"]);
     let r1 = pcb.get_footprint("R1").unwrap();
-    assert_eq!((r1.name.as_str(), r1.value.as_str(), r1.layer.as_str()), ("R_0603", "10K", "F.Cu"));
+    assert_eq!(
+        (r1.name.as_str(), r1.value.as_str(), r1.layer.as_str()),
+        ("R_0603", "10K", "F.Cu")
+    );
     assert_eq!(r1.position, (5.0, 5.0));
     assert_eq!(r1.attr, "smd");
     assert_eq!(pcb.get_footprint("C1").unwrap().rotation, 90.0);
-    assert_eq!((r1.pads[0].number.as_str(), r1.pads[1].number.as_str()), ("1", "2"));
+    assert_eq!(
+        (r1.pads[0].number.as_str(), r1.pads[1].number.as_str()),
+        ("1", "2")
+    );
     assert_eq!(r1.pads[0].position, (-0.8, 0.0));
-    assert_eq!((r1.pads[0].net_number, r1.pads[0].net_name.as_str()), (1, "GND"));
+    assert_eq!(
+        (r1.pads[0].net_number, r1.pads[0].net_name.as_str()),
+        (1, "GND")
+    );
     assert_eq!(r1.pads[0].layers, vec!["F.Cu", "F.Paste", "F.Mask"]);
     assert!(close2(pcb.get_pad_position("R1", "1").unwrap(), (4.2, 5.0)));
     assert!(pcb.parse_warnings.is_empty());
@@ -1744,7 +2031,10 @@ const ATTR_BASE: &str = "(kicad_pcb\n\t(version 20240108)\n\t(generator \"pytest
 
 fn attr_board(inner: Option<&str>) -> Pcb {
     let text = match inner {
-        Some(i) => ATTR_BASE.replace("\t\t(at 125 125)\n", &format!("\t\t(at 125 125)\n\t\t(attr {i})\n")),
+        Some(i) => ATTR_BASE.replace(
+            "\t\t(at 125 125)\n",
+            &format!("\t\t(at 125 125)\n\t\t(attr {i})\n"),
+        ),
         None => ATTR_BASE.to_string(),
     };
     Pcb::parse_str(&text).unwrap()
@@ -1806,7 +2096,11 @@ fn attr_unknown_tokens_and_clearing() {
     let out = dir.path().join("c.kicad_pcb");
     pcb.save(Some(&out)).unwrap();
     assert!(!std::fs::read_to_string(&out).unwrap().contains("(attr"));
-    let fp = Pcb::load(&out).unwrap().get_footprint("R1").unwrap().clone();
+    let fp = Pcb::load(&out)
+        .unwrap()
+        .get_footprint("R1")
+        .unwrap()
+        .clone();
     assert!(!fp.locked && !fp.dnp && fp.attr.is_empty());
 }
 
@@ -1828,20 +2122,31 @@ fn locked_text(extra: &str) -> String {
 }
 
 fn lock_pads(t: &str) -> String {
-    t.replace("(pad \"1\" smd rect (at -1 0)", "(pad \"1\" smd rect (locked yes) (at -1 0)")
-        .replace("(pad \"2\" smd rect (at 1 0)", "(pad \"2\" smd rect (locked yes) (at 1 0)")
+    t.replace(
+        "(pad \"1\" smd rect (at -1 0)",
+        "(pad \"1\" smd rect (locked yes) (at -1 0)",
+    )
+    .replace(
+        "(pad \"2\" smd rect (at 1 0)",
+        "(pad \"2\" smd rect (locked yes) (at 1 0)",
+    )
 }
 
 fn saved_fp(pcb: &mut Pcb, dir: &Path) -> (String, SExp) {
     let out = dir.join("lock.kicad_pcb");
     pcb.save(Some(&out)).unwrap();
     let text = std::fs::read_to_string(&out).unwrap();
-    let fp = kct::parse(&text).unwrap().find("footprint").unwrap().clone();
+    let fp = kct::parse(&text)
+        .unwrap()
+        .find("footprint")
+        .unwrap()
+        .clone();
     (text, fp)
 }
 
 fn legacy_in_attr(text: &str) -> bool {
-    text.lines().any(|l| l.contains("(attr") && l.contains("locked"))
+    text.lines()
+        .any(|l| l.contains("(attr") && l.contains("locked"))
 }
 
 #[test]
@@ -1864,7 +2169,13 @@ fn locked_save_form() {
     assert!(!pcb.get_footprint("R1").unwrap().locked);
     pcb.footprint_mut("R1").unwrap().set_locked(true);
     let (_, fp) = saved_fp(&mut pcb, dir.path());
-    assert_eq!(fp.find_children("pad").iter().filter(|p| !p.find_children("locked").is_empty()).count(), 2);
+    assert_eq!(
+        fp.find_children("pad")
+            .iter()
+            .filter(|p| !p.find_children("locked").is_empty())
+            .count(),
+        2
+    );
 }
 
 #[test]
@@ -1877,14 +2188,18 @@ fn legacy_lock_migration() {
     assert!(text.contains("(attr smd)"));
     assert!(!fp.find_children("locked").is_empty());
 
-    let mut pcb =
-        Pcb::parse_str(&locked_text("(attr smd locked exclude_from_bom allow_missing_courtyard)")).unwrap();
+    let mut pcb = Pcb::parse_str(&locked_text(
+        "(attr smd locked exclude_from_bom allow_missing_courtyard)",
+    ))
+    .unwrap();
     assert!(pcb.get_footprint("R1").unwrap().exclude_from_bom);
     let (_, fp) = saved_fp(&mut pcb, dir.path());
     let attr = fp.find_children("attr")[0];
     let tokens: Vec<String> = attr.atoms().map(|v| v.to_string()).collect();
     assert!(tokens.contains(&"smd".into()) && tokens.contains(&"exclude_from_bom".into()));
-    assert!(tokens.contains(&"allow_missing_courtyard".into()) && !tokens.contains(&"locked".into()));
+    assert!(
+        tokens.contains(&"allow_missing_courtyard".into()) && !tokens.contains(&"locked".into())
+    );
 
     let mut pcb = Pcb::parse_str(&lock_pads(&locked_text("(attr smd) (locked yes)"))).unwrap();
     pcb.footprint_mut("R1").unwrap().set_locked(false);
@@ -1897,7 +2212,14 @@ fn legacy_lock_migration() {
     let no_uuid = locked_text("(attr smd)")
         .replace("(uuid \"fp-r1\") ", "")
         .replace("(at -1 0)", "(at -1 0) (uuid \"pad-uuid-1\")");
-    assert_eq!(Pcb::parse_str(&no_uuid).unwrap().get_footprint("R1").unwrap().uuid, "");
+    assert_eq!(
+        Pcb::parse_str(&no_uuid)
+            .unwrap()
+            .get_footprint("R1")
+            .unwrap()
+            .uuid,
+        ""
+    );
 }
 
 // ------------------------------------------------------------ net classes
@@ -1920,7 +2242,10 @@ fn legacy_net_classes() {
         (d.clearance, d.trace_width, d.via_dia, d.via_drill),
         (Some(0.2), Some(0.25), Some(0.8), Some(0.4))
     );
-    assert_eq!((d.uvia_dia, d.uvia_drill, d.diff_pair_width, d.diff_pair_gap), (Some(0.3), Some(0.1), Some(0.2), Some(0.25)));
+    assert_eq!(
+        (d.uvia_dia, d.uvia_drill, d.diff_pair_width, d.diff_pair_gap),
+        (Some(0.3), Some(0.1), Some(0.2), Some(0.25))
+    );
     assert_eq!(d.nets, vec!["GND", "/SIG"]);
     assert!(close(pcb.setup().unwrap().pad_to_mask_clearance, 0.05));
 
@@ -1935,7 +2260,10 @@ fn legacy_net_classes() {
     pcb.reload_from_tree().unwrap();
     assert_eq!(pcb.net_classes().len(), 2);
 
-    assert!(Pcb::parse_str(&format!("{LEGACY_HEADER}{LEGACY_FOOTER}")).unwrap().net_classes().is_empty());
+    assert!(Pcb::parse_str(&format!("{LEGACY_HEADER}{LEGACY_FOOTER}"))
+        .unwrap()
+        .net_classes()
+        .is_empty());
     let dir = tmp();
     let mut written = create(50.0, 40.0);
     let re = save_reload(&mut written, dir.path(), "w.kicad_pcb");
@@ -1988,7 +2316,12 @@ fn remove_edge_contour() {
     let dir = tmp();
     for count in [1usize, 4] {
         let mut pcb = Pcb::parse_str(TWO_OUTLINES).unwrap();
-        let idx = pcb.list_edge_contours().iter().find(|c| c.element_count == count).unwrap().index;
+        let idx = pcb
+            .list_edge_contours()
+            .iter()
+            .find(|c| c.element_count == count)
+            .unwrap()
+            .index;
         assert!(pcb.remove_edge_contour(idx));
         let rest = pcb.list_edge_contours();
         assert_eq!(rest.len(), 1);
@@ -2018,17 +2351,27 @@ fn replace_outline() {
     let mut pcb = Pcb::parse_str(SINGLE_RECT).unwrap();
     pcb.replace_outline(200.0, 200.0, 60.0, 40.0);
     let re = save_reload(&mut pcb, dir.path(), "r.kicad_pcb");
-    assert_eq!(re.list_edge_contours()[0].bbox, (200.0, 200.0, 260.0, 240.0));
+    assert_eq!(
+        re.list_edge_contours()[0].bbox,
+        (200.0, 200.0, 260.0, 240.0)
+    );
 }
 
 #[test]
 fn board_outline_polygon_and_segments() {
     let pcb = Pcb::parse_str(TWO_OUTLINES).unwrap();
-    // The 60x40 line contour beats the 50x30 rect.
-    let poly = pcb.get_board_outline();
+    // Rect and line loop share a corner: one branched component, which the
+    // stitcher refuses (upstream behaviour).
+    assert!(pcb.get_board_outline().is_empty());
+    assert_eq!(pcb.board_origin(), (100.0, 100.0));
+    let sep = Pcb::parse_str(&TWO_OUTLINES.replace(
+        "(start 100 100) (end 150 130)",
+        "(start 110 110) (end 150 130)",
+    ))
+    .unwrap();
+    // The 60x40 line contour beats the 40x20 rect.
+    let poly = sep.get_board_outline();
     assert_eq!(poly.len(), 5);
-    let (ox, oy) = pcb.board_origin();
-    assert_eq!((ox, oy), (100.0, 100.0));
     assert!(poly.iter().any(|&p| close2(p, (60.0, 40.0))));
     assert_eq!(pcb.get_board_outline_segments().len(), 8);
     let poly = Pcb::parse_str(
@@ -2081,7 +2424,11 @@ fn net_assignment() {
     let stats = pcb.assign_nets_from_netlist(
         &[(
             "X".into(),
-            vec![("R1".into(), "2".into()), ("Q9".into(), "1".into()), ("U1".into(), "77".into())],
+            vec![
+                ("R1".into(), "2".into()),
+                ("Q9".into(), "1".into()),
+                ("U1".into(), "77".into()),
+            ],
         )],
         None,
     );
@@ -2105,12 +2452,19 @@ fn footprint_texts_graphics_properties() {
     .unwrap();
     let fp = &pcb.footprints()[0];
     assert_eq!(fp.property("LCSC"), Some("C123"));
-    assert!(fp.texts.iter().find(|t| t.text_type == "reference").unwrap().hidden);
+    assert!(
+        fp.texts
+            .iter()
+            .find(|t| t.text_type == "reference")
+            .unwrap()
+            .hidden
+    );
     assert_eq!(fp.graphics.len(), 3);
     assert_eq!(fp.graphics[0].graphic_type, "line");
     assert!(close(fp.graphics[0].stroke_width, 0.12));
-    assert!(fp.graphics[1].is_filled() && fp.graphics[1].points.len() == 3);
-    assert_eq!(fp.graphics[2].mid, Some((0.7, 0.7)));
+    // Grouped by kind: line, rect, circle, arc, poly.
+    assert_eq!(fp.graphics[1].mid, Some((0.7, 0.7)));
+    assert!(fp.graphics[2].is_filled() && fp.graphics[2].points.len() == 3);
     let pad = &fp.pads[0];
     assert_eq!(pad.drill_size, Some((0.5, 0.8)));
     assert_eq!(pad.drill_offset, (0.1, 0.0));

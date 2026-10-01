@@ -647,7 +647,8 @@ impl Footprint {
                 }
                 "Value" => {
                     fp.value = value;
-                    fp.texts.push(FootprintText::from_property_sexp(prop, "value"));
+                    fp.texts
+                        .push(FootprintText::from_property_sexp(prop, "value"));
                 }
                 "Footprint" => {}
                 _ => match fp.properties.iter_mut().find(|(k, _)| *k == name) {

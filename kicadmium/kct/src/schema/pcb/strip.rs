@@ -112,7 +112,9 @@ impl Pcb {
             .collect();
         let layer_set: Option<HashSet<String>> =
             opts.layers.as_ref().map(|l| l.iter().cloned().collect());
-        let region = opts.region.map(|(a, b, c, d)| (a.min(c), b.min(d), a.max(c), b.max(d)));
+        let region = opts
+            .region
+            .map(|(a, b, c, d)| (a.min(c), b.min(d), a.max(c), b.max(d)));
         let (ox, oy) = self.board_origin;
         let in_region = |x: f64, y: f64| match region {
             None => true,
@@ -177,45 +179,52 @@ impl Pcb {
                 let pn = passes_net(net_of(&child));
                 let pl = !pn
                     || layer_set.as_ref().is_none_or(|ls| {
-                        ls.contains(&child.find("layer").and_then(|l| gs(l, 0)).unwrap_or_default())
+                        ls.contains(
+                            &child
+                                .find("layer")
+                                .and_then(|l| gs(l, 0))
+                                .unwrap_or_default(),
+                        )
                     });
                 if pn && pl {
-                    if region.is_none() {
-                        remove = true;
-                    } else if let (Some(s), Some(e)) =
-                        (child.find("start").map(xy), child.find("end").map(xy))
-                    {
-                        let (si, ei) = (in_region(s.0, s.1), in_region(e.0, e.1));
-                        if si && ei {
-                            remove = true;
-                        } else if si != ei {
-                            let (inside, outside) = if si { (s, e) } else { (e, s) };
-                            let c = clip(inside, outside);
-                            let tag = if si { "start" } else { "end" };
-                            if let Some(n) = child.get_mut(tag) {
-                                n.set_value(0, c.0);
-                                n.set_value(1, c.1);
-                            }
-                            let (abs_s, abs_e) = if si { (c, e) } else { (s, c) };
-                            stats.segments_clipped += 1;
-                            if let Some(u) = child.find("uuid").and_then(|u| gs(u, 0)) {
-                                if !u.is_empty() {
-                                    clipped.insert(
-                                        u,
-                                        (
-                                            (abs_s.0 - ox, abs_s.1 - oy),
-                                            (abs_e.0 - ox, abs_e.1 - oy),
-                                        ),
-                                    );
+                    if let Some(rbox) = region {
+                        if let (Some(s), Some(e)) =
+                            (child.find("start").map(xy), child.find("end").map(xy))
+                        {
+                            let (si, ei) = (in_region(s.0, s.1), in_region(e.0, e.1));
+                            if si && ei {
+                                remove = true;
+                            } else if si != ei {
+                                let (inside, outside) = if si { (s, e) } else { (e, s) };
+                                let c = clip(inside, outside);
+                                let tag = if si { "start" } else { "end" };
+                                if let Some(n) = child.get_mut(tag) {
+                                    n.set_value(0, c.0);
+                                    n.set_value(1, c.1);
                                 }
+                                let (abs_s, abs_e) = if si { (c, e) } else { (s, c) };
+                                stats.segments_clipped += 1;
+                                if let Some(u) = child.find("uuid").and_then(|u| gs(u, 0)) {
+                                    if !u.is_empty() {
+                                        clipped.insert(
+                                            u,
+                                            (
+                                                (abs_s.0 - ox, abs_s.1 - oy),
+                                                (abs_e.0 - ox, abs_e.1 - oy),
+                                            ),
+                                        );
+                                    }
+                                }
+                            } else if segment_span_intersects_region(
+                                (s.0 - ox, s.1 - oy),
+                                (e.0 - ox, e.1 - oy),
+                                rbox,
+                            ) {
+                                stats.segments_boundary_skipped += 1;
                             }
-                        } else if segment_span_intersects_region(
-                            (s.0 - ox, s.1 - oy),
-                            (e.0 - ox, e.1 - oy),
-                            region.unwrap(),
-                        ) {
-                            stats.segments_boundary_skipped += 1;
                         }
+                    } else {
+                        remove = true;
                     }
                 }
                 if remove {
@@ -272,7 +281,13 @@ impl Pcb {
         let mut removed_orphans = 0;
         if opts.remove_orphan_vias && layer_set.is_some() {
             let mut endpoints: HashSet<(i64, i64, String)> = HashSet::new();
-            for c in self.doc.root.children.iter().filter(|c| c.has_tag("segment")) {
+            for c in self
+                .doc
+                .root
+                .children
+                .iter()
+                .filter(|c| c.has_tag("segment"))
+            {
                 let layer = c.find("layer").and_then(|l| gs(l, 0)).unwrap_or_default();
                 for tag in ["start", "end"] {
                     if let Some(n) = c.find(tag) {
@@ -307,10 +322,8 @@ impl Pcb {
                 seg.end = e;
             }
         }
-        let has_filter = net_numbers.is_some()
-            || layer_set.is_some()
-            || opts.exclude_power
-            || region.is_some();
+        let has_filter =
+            net_numbers.is_some() || layer_set.is_some() || opts.exclude_power || region.is_some();
         let inside = |p: Point| match region {
             Some((x1, y1, x2, y2)) => x1 <= p.0 && p.0 <= x2 && y1 <= p.1 && p.1 <= y2,
             None => true,

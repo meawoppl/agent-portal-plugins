@@ -60,10 +60,7 @@ pub(crate) fn gi(node: &SExp, index: usize) -> Option<i64> {
 
 /// `(x y)` pair of a coordinate node, missing values as 0.
 pub(crate) fn xy(node: &SExp) -> (f64, f64) {
-    (
-        gf(node, 0).unwrap_or(0.0),
-        gf(node, 1).unwrap_or(0.0),
-    )
+    (gf(node, 0).unwrap_or(0.0), gf(node, 1).unwrap_or(0.0))
 }
 
 /// String-typed atom children (`layers.values[i]` that are `str`).

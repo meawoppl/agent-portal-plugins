@@ -46,9 +46,7 @@ pub use edit::{
 };
 pub use models::*;
 pub use strip::{StripOptions, StripStats};
-pub use util::{
-    canonicalize_power_net, canonicalize_power_nets, fnmatch, is_power_net, new_uuid,
-};
+pub use util::{canonicalize_power_net, canonicalize_power_nets, fnmatch, is_power_net, new_uuid};
 
 use util::{gf, gi, gs, gs_or, has_atom};
 
@@ -84,12 +82,7 @@ pub(crate) fn segment_dedup_key(
     let p1 = (quant(start.0, DEDUP_QUANT), quant(start.1, DEDUP_QUANT));
     let p2 = (quant(end.0, DEDUP_QUANT), quant(end.1, DEDUP_QUANT));
     let endpoints = if p1 <= p2 { (p1, p2) } else { (p2, p1) };
-    (
-        net,
-        layer.to_string(),
-        endpoints,
-        quant(width, DEDUP_QUANT),
-    )
+    (net, layer.to_string(), endpoints, quant(width, DEDUP_QUANT))
 }
 
 /// Via dedup key: net, rounded position, order-insensitive layers.
@@ -312,7 +305,8 @@ impl Pcb {
                 }
                 "gr_text" => self.texts.push(GraphicText::from_sexp(child)),
                 "gr_rect" | "gr_circle" | "gr_poly" => {
-                    self.graphics.push(BoardGraphic::from_sexp(child, &tag[3..]));
+                    self.graphics
+                        .push(BoardGraphic::from_sexp(child, &tag[3..]));
                 }
                 "net_class" => {
                     let nc = parse_net_class(child);
@@ -762,7 +756,10 @@ impl Pcb {
         self.footprints.iter().find(|f| f.reference == reference)
     }
 
-    pub fn footprints_on_layer<'a>(&'a self, layer: &'a str) -> impl Iterator<Item = &'a Footprint> {
+    pub fn footprints_on_layer<'a>(
+        &'a self,
+        layer: &'a str,
+    ) -> impl Iterator<Item = &'a Footprint> {
         self.footprints.iter().filter(move |f| f.layer == layer)
     }
 
@@ -1120,7 +1117,8 @@ fn parse_stackup(sexp: &SExp) -> Vec<StackupLayer> {
         };
         let mut sub = 1;
         for item in &child.children {
-            if item.is_atom() && item.value.as_ref().and_then(|v| v.as_str()) == Some("addsublayer") {
+            if item.is_atom() && item.value.as_ref().and_then(|v| v.as_str()) == Some("addsublayer")
+            {
                 layers.push(std::mem::take(&mut layer));
                 sub += 1;
                 layer = StackupLayer {

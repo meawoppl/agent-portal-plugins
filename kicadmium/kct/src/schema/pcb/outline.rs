@@ -62,8 +62,7 @@ fn group_segments_by_connectivity(segments: &[Seg], tol: f64) -> Vec<Vec<usize>>
     let mut uf = UnionFind::new(n);
     for i in 0..n {
         let (si, ei) = segments[i];
-        for j in i + 1..n {
-            let (sj, ej) = segments[j];
+        for (j, &(sj, ej)) in segments.iter().enumerate().skip(i + 1) {
             if points_close(si, sj, tol)
                 || points_close(si, ej, tol)
                 || points_close(ei, sj, tol)
@@ -459,7 +458,11 @@ impl Pcb {
         let uuids: BTreeSet<String> = target
             .node_indices
             .iter()
-            .filter_map(|&i| self.doc.root.children[i].find("uuid").and_then(|u| gs(u, 0)))
+            .filter_map(|&i| {
+                self.doc.root.children[i]
+                    .find("uuid")
+                    .and_then(|u| gs(u, 0))
+            })
             .filter(|u| !u.is_empty())
             .collect();
         self.remove_root_children(&target.node_indices);
@@ -475,7 +478,13 @@ impl Pcb {
 
     /// Replace every non-mounting-hole contour with a `gr_line` rectangle at
     /// sheet-absolute `(origin_x, origin_y)`. Returns contours removed.
-    pub fn replace_outline(&mut self, origin_x: f64, origin_y: f64, width: f64, height: f64) -> usize {
+    pub fn replace_outline(
+        &mut self,
+        origin_x: f64,
+        origin_y: f64,
+        width: f64,
+        height: f64,
+    ) -> usize {
         let contours = self.list_edge_contours();
         let mut doomed = Vec::new();
         let mut removed = 0;
@@ -497,7 +506,9 @@ impl Pcb {
     pub fn page_fit(&mut self, margin: f64) -> Result<Point> {
         let bbox = board_outline_bounds(&self.doc.root)
             .map_err(|e| anyhow!(e))?
-            .ok_or_else(|| anyhow!("page_fit() requires an Edge.Cuts board outline; none found."))?;
+            .ok_or_else(|| {
+                anyhow!("page_fit() requires an Edge.Cuts board outline; none found.")
+            })?;
         let (min_x, min_y, max_x, max_y) = bbox;
         let dx_nm = ((margin - min_x) * 1e6).round() as i64;
         let dy_nm = ((margin - min_y) * 1e6).round() as i64;
@@ -534,7 +545,10 @@ impl Pcb {
         let new_h = round6(max_y - min_y + 2.0 * margin);
         let root = &mut self.doc.root;
         root.remove_child("paper");
-        let paper = list("paper", vec![SExp::quoted("User"), atom(new_w), atom(new_h)]);
+        let paper = list(
+            "paper",
+            vec![SExp::quoted("User"), atom(new_w), atom(new_h)],
+        );
         match root.children.iter().position(|c| c.has_tag("version")) {
             Some(i) => root.children.insert(i + 1, paper),
             None => root.insert(0, paper),

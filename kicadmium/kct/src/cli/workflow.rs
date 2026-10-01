@@ -248,9 +248,25 @@ pub fn build(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         })
         .or_else(|| find_ext(base, "kicad_pcb"))
         .context("spec does not identify a PCB")?;
-    let selected = parsed.step.map_or_else(|| vec!["pipeline"], |s| vec![s]);
+    // Upstream's `all` build runs content generation before routing and
+    // manufacturing checks. Keep that ordering here: `fix-silkscreen` in the
+    // repair pipeline enforces fabrication dimensions, while this distinct
+    // step unhides references and adds project markings.
+    let selected = match parsed.step {
+        None | Some("all") => vec!["silkscreen", "pipeline"],
+        Some(step) => vec![step],
+    };
     let mut results = vec![];
     for step in selected {
+        if step == "silkscreen" {
+            let result = run_build_silkscreen(&spec, &board, &parsed.output, parsed.dry_run)?;
+            let failed = result.exit_code != 0;
+            results.push(result);
+            if failed {
+                break;
+            }
+            continue;
+        }
         let command = if step == "pipeline" {
             vec![
                 "pipeline".into(),
@@ -300,6 +316,72 @@ pub fn build(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     } else {
         0
     })
+}
+
+fn run_build_silkscreen(
+    spec: &serde_yaml::Value,
+    board: &Path,
+    output_dir: &Path,
+    dry_run: bool,
+) -> Result<StepResult> {
+    let output = output_dir.join("silkscreen.kicad_pcb");
+    let args = vec![
+        board.display().to_string(),
+        "--output".into(),
+        output.display().to_string(),
+    ];
+    if dry_run {
+        return Ok(StepResult {
+            name: "silkscreen".into(),
+            args,
+            exit_code: 0,
+            skipped: true,
+            reason: Some("dry run".into()),
+        });
+    }
+
+    std::fs::create_dir_all(output_dir)?;
+    std::fs::copy(board, &output).with_context(|| {
+        format!(
+            "failed to stage {} for silkscreen generation",
+            board.display()
+        )
+    })?;
+    let mut generator = crate::silkscreen::generator::SilkscreenGenerator::new(&output)?;
+    let refs = generator.ensure_ref_des_visible();
+    let project = spec.get("project");
+    let name = project
+        .and_then(|p| p.get("name"))
+        .and_then(serde_yaml::Value::as_str);
+    let revision = project
+        .and_then(|p| p.get("revision"))
+        .and_then(serde_yaml::Value::as_str);
+    let created = project
+        .and_then(|p| p.get("created"))
+        .and_then(yaml_scalar_text);
+    let markings =
+        generator.add_board_markings(name, revision, created.as_deref(), "F.SilkS", 1.0, 0.15);
+    generator.save(Some(&output))?;
+
+    let changes = refs.total_changes() + markings.total_changes();
+    Ok(StepResult {
+        name: "silkscreen".into(),
+        args,
+        exit_code: 0,
+        skipped: false,
+        reason: Some(format!(
+            "{changes} change(s): {} reference(s) unhidden, {} marking(s) added, {} already present",
+            refs.refs_unhidden, markings.markings_added, markings.markings_skipped
+        )),
+    })
+}
+
+fn yaml_scalar_text(value: &serde_yaml::Value) -> Option<String> {
+    match value {
+        serde_yaml::Value::String(s) => Some(s.clone()),
+        serde_yaml::Value::Number(n) => Some(n.to_string()),
+        _ => None,
+    }
 }
 struct BuildArgs {
     spec: PathBuf,
@@ -412,6 +494,17 @@ fn emit_results(format: &str, r: &[StepResult]) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn silkscreen_fixture() -> &'static str {
+        r#"(kicad_pcb (version 20240108) (generator "test")
+  (general (thickness 1.6))
+  (layers (0 "F.Cu" signal) (37 "F.SilkS" user "f.silkscreen"))
+  (footprint "R:0805" (at 10 10) (layer "F.Cu")
+    (fp_text reference "R1" (at 0 -2) (layer "F.SilkS") hide
+      (effects (font (size 1 1) (thickness 0.15)))))
+)"#
+    }
+
     #[test]
     fn parses_pipeline() {
         let a = PipelineArgs::parse(
@@ -449,5 +542,42 @@ mod tests {
         assert!(sync.contains(&"--analyze".to_string()));
         assert!(sync.contains(&"--schematic".to_string()));
         assert!(sync.contains(&"--pcb".to_string()));
+    }
+
+    #[test]
+    fn build_silkscreen_stages_output_and_preserves_source() {
+        let dir = tempfile::tempdir().unwrap();
+        let board = dir.path().join("source.kicad_pcb");
+        let output = dir.path().join("artifacts");
+        std::fs::write(&board, silkscreen_fixture()).unwrap();
+        let original = std::fs::read(&board).unwrap();
+        let spec: serde_yaml::Value = serde_yaml::from_str(
+            "project:\n  name: Toxic Uncle\n  revision: A\n  created: 2026-10-01\n",
+        )
+        .unwrap();
+
+        let result = run_build_silkscreen(&spec, &board, &output, false).unwrap();
+
+        assert_eq!(result.exit_code, 0);
+        assert!(!result.skipped);
+        assert_eq!(std::fs::read(&board).unwrap(), original);
+        let generated = std::fs::read_to_string(output.join("silkscreen.kicad_pcb")).unwrap();
+        assert!(generated.contains("Toxic Uncle Rev A"), "{generated}");
+        assert!(!generated.contains("F.SilkS\") hide"), "{generated}");
+        assert!(output.join("silkscreen.kicad_pcb.kct.json").exists());
+    }
+
+    #[test]
+    fn build_silkscreen_dry_run_writes_nothing() {
+        let dir = tempfile::tempdir().unwrap();
+        let board = dir.path().join("source.kicad_pcb");
+        let output = dir.path().join("artifacts");
+        std::fs::write(&board, silkscreen_fixture()).unwrap();
+        let spec: serde_yaml::Value = serde_yaml::from_str("project:\n  name: Preview\n").unwrap();
+
+        let result = run_build_silkscreen(&spec, &board, &output, true).unwrap();
+
+        assert!(result.skipped);
+        assert!(!output.exists());
     }
 }

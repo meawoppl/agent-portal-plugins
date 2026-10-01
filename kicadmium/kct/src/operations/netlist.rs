@@ -6,9 +6,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
-use crate::pyjson::{Json, py_round};
+use crate::pyjson::{py_round, Json};
 use crate::sexp::SExp;
 
 pub use crate::cli::runner::find_kicad_cli;
@@ -517,9 +517,9 @@ fn extract_native_sheet(path: &Path, sheet_path: &str) -> Result<NativeSheet> {
     }
     // KiCad connects a wire end to any segment it touches. A crossing in the
     // middle connects only when KiCad emitted a junction there.
-    for i in 0..wires.len() {
+    for (i, wire) in wires.iter().enumerate() {
         for j in i + 1..wires.len() {
-            let endpoint_touch = [wires[i].start, wires[i].end]
+            let endpoint_touch = [wire.start, wire.end]
                 .into_iter()
                 .any(|p| point_on_segment(p, wires[j].start, wires[j].end))
                 || [wires[j].start, wires[j].end]
@@ -617,14 +617,14 @@ fn extract_native_sheet(path: &Path, sheet_path: &str) -> Result<NativeSheet> {
             }
         }
     }
-    for i in 0..wires.len() {
+    for (i, wire) in wires.iter().enumerate() {
         let r = root(&mut parent, i);
         let name = names
             .get(&r)
             .cloned()
             .unwrap_or_else(|| format!("Net_{r:04X}"));
-        out.point_nets.push((wires[i].start, name.clone()));
-        out.point_nets.push((wires[i].end, name.clone()));
+        out.point_nets.push((wire.start, name.clone()));
+        out.point_nets.push((wire.end, name.clone()));
         if let Some(nodes) = component_nodes.remove(&r) {
             out.nets.entry(name).or_default().extend(nodes);
         } else {
@@ -886,11 +886,9 @@ mod tests {
             .map(|component| component.reference.as_str())
             .collect();
         assert_eq!(refs, BTreeSet::from(["R1", "R2"]));
-        assert!(
-            netlist
-                .components
-                .iter()
-                .all(|component| component.sheet_path.starts_with('/'))
-        );
+        assert!(netlist
+            .components
+            .iter()
+            .all(|component| component.sheet_path.starts_with('/')));
     }
 }

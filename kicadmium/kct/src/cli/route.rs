@@ -589,8 +589,11 @@ fn summarize_drc(report: &Json) -> (usize, usize, Vec<String>, usize) {
             }
         }
     }
-    let _ = (errors, warnings);
-    (errors, warnings, lines, routing)
+    let unconnected = report
+        .get("unconnected_items")
+        .and_then(Json::as_array)
+        .map_or(0, Vec::len);
+    (errors, warnings, lines, routing + unconnected)
 }
 
 fn print_results(stats: &RoutingStats) {

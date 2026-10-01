@@ -447,7 +447,52 @@ fn execute_reason_command(board: &mut String, command: &Value) -> Result<Value> 
             )
         }
         "route_net" | "route_direct" | "route_escape" | "reroute_net" => {
-            bail!("native routing command is not yet available")
+            let net = command
+                .get("net")
+                .and_then(Value::as_str)
+                .context("net required")?;
+            if kind == "reroute_net" {
+                execute_reason_command(board, &json!({"type":"delete_net_routing","net":net}))?;
+            }
+            let nonce = uuid::Uuid::new_v4();
+            let input = std::env::temp_dir().join(format!("kct-reason-{nonce}.kicad_pcb"));
+            let output = std::env::temp_dir().join(format!("kct-reason-{nonce}-routed.kicad_pcb"));
+            let result = (|| -> Result<i32> {
+                crate::fsutil::atomic_write(&input, board.as_bytes())?;
+                let strategy = if kind == "route_escape" {
+                    "escape"
+                } else {
+                    "global"
+                };
+                super::route::run_auto(
+                    vec![
+                        input.clone().into_os_string(),
+                        OsString::from("--net"),
+                        OsString::from(net),
+                        OsString::from("--strategy"),
+                        OsString::from(strategy),
+                        OsString::from("--output"),
+                        output.clone().into_os_string(),
+                    ],
+                    &Globals::default(),
+                )
+            })();
+            let routed_board = output.is_file().then(|| fs::read_to_string(&output));
+            let _ = fs::remove_file(&input);
+            let _ = fs::remove_file(&output);
+            let code = result?;
+            if let Some(routed_board) = routed_board {
+                *board = routed_board?;
+            }
+            if code != 0 {
+                bail!("native router could not complete {net} (exit {code})")
+            }
+            Ok(json!({
+                "success": true,
+                "command_type": kind,
+                "message": format!("Routed {net} with the native autorouter"),
+                "net": net,
+            }))
         }
         _ => bail!("unknown command type: {kind}"),
     }

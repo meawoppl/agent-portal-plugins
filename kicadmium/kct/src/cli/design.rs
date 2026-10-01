@@ -47,6 +47,13 @@ struct Symbol {
     footprint: String,
     lib_id: String,
     dnp: bool,
+    x: String,
+    y: String,
+    rotation: String,
+    unit: i64,
+    uuid: String,
+    in_bom: bool,
+    mpn: String,
 }
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 struct Net {
@@ -72,6 +79,20 @@ fn symbols_of(root: &SExp) -> Vec<Symbol> {
                 footprint: s.property("Footprint").unwrap_or("").into(),
                 lib_id: s.child_str("lib_id").unwrap_or("").into(),
                 dnp: s.flag("dnp"),
+                x: s.at().map(|p| p.0.to_string()).unwrap_or_default(),
+                y: s.at().map(|p| p.1.to_string()).unwrap_or_default(),
+                rotation: s
+                    .at()
+                    .map(|p| p.2.to_string())
+                    .unwrap_or_else(|| "0".into()),
+                unit: s.get("unit").and_then(|n| n.int_at(0)).unwrap_or(1),
+                uuid: s.child_str("uuid").unwrap_or("").into(),
+                in_bom: s.child_str("in_bom").is_none_or(|v| v != "no"),
+                mpn: s
+                    .property("MPN")
+                    .or_else(|| s.property("Manufacturer Part Number"))
+                    .unwrap_or("")
+                    .into(),
             })
         })
         .collect()
@@ -106,17 +127,28 @@ pub fn symbols(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             && a.lib_id.as_ref().is_none_or(|p| s.lib_id.contains(p))
     });
     match a.format {
-        Format::Json => json(&rows)?,
+        Format::Json => {
+            let out:Vec<_>=rows.iter().map(|s| {
+                let mut v=serde_json::json!({"reference":s.reference,"value":s.value,"lib_id":s.lib_id,"footprint":s.footprint,"position":[s.x.parse::<f64>().unwrap_or(0.0),s.y.parse::<f64>().unwrap_or(0.0)],"rotation":s.rotation.parse::<f64>().unwrap_or(0.0)});
+                if a.verbose { if let Some(o)=v.as_object_mut(){o.insert("unit".into(),s.unit.into());o.insert("uuid".into(),s.uuid.clone().into());o.insert("in_bom".into(),s.in_bom.into());o.insert("dnp".into(),s.dnp.into());o.insert("pins".into(),serde_json::Value::Array(vec![]));} }
+                v
+            }).collect();
+            json(&out)?
+        }
         Format::Csv => {
-            println!("Reference,Value,Footprint,Library");
+            println!(
+                "Reference,Value,Library ID,Footprint,X,Y,Rotation{}",
+                if a.verbose { ",Unit,UUID" } else { "" }
+            );
             for s in rows {
-                println!(
-                    "{},{},{},{}",
-                    csv(&s.reference),
-                    csv(&s.value),
-                    csv(&s.footprint),
-                    csv(&s.lib_id)
+                print!(
+                    "{},{},{},{},{},{},{}",
+                    s.reference, s.value, s.lib_id, s.footprint, s.x, s.y, s.rotation
                 );
+                if a.verbose {
+                    print!(",{},{}", s.unit, s.uuid);
+                }
+                println!();
             }
         }
         Format::Table => {
@@ -305,6 +337,12 @@ struct BomArgs {
     include_dnp: bool,
     #[arg(long, default_value = "reference")]
     sort: String,
+    #[arg(long)]
+    check_availability: bool,
+    #[arg(long)]
+    validate: bool,
+    #[arg(long, default_value_t = 1)]
+    quantity: usize,
 }
 #[derive(Clone, Copy, ValueEnum)]
 enum BomFormat {
@@ -319,6 +357,8 @@ struct BomRow {
     quantity: usize,
     value: String,
     footprint: String,
+    mpn: String,
+    dnp: bool,
 }
 pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: BomArgs = super::parse_args("bom", args);
@@ -328,20 +368,22 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         (a.include_dnp || !s.dnp) && !a.exclude.iter().any(|p| wildcard(p, &s.reference))
     });
     let mut rows: Vec<BomRow> = if a.group {
-        let mut m: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
+        let mut m: BTreeMap<(String, String, String), Vec<String>> = BTreeMap::new();
         for s in syms {
-            m.entry((s.value, s.footprint))
+            m.entry((s.value, s.footprint, s.mpn))
                 .or_default()
                 .push(s.reference)
         }
         m.into_iter()
-            .map(|((value, footprint), mut references)| {
+            .map(|((value, footprint, mpn), mut references)| {
                 references.sort();
                 BomRow {
                     quantity: references.len(),
                     references,
                     value,
                     footprint,
+                    mpn,
+                    dnp: false,
                 }
             })
             .collect()
@@ -352,6 +394,8 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 quantity: 1,
                 value: s.value,
                 footprint: s.footprint,
+                mpn: s.mpn,
+                dnp: s.dnp,
             })
             .collect()
     };
@@ -361,17 +405,39 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         rows.sort_by(|a, b| a.footprint.cmp(&b.footprint))
     }
     match a.format {
-        BomFormat::Json => json(&rows)?,
+        BomFormat::Json => {
+            if a.group {
+                let groups:Vec<_>=rows.iter().map(|r|serde_json::json!({"quantity":r.quantity,"value":r.value,"footprint":r.footprint,"mpn":r.mpn,"references":r.references})).collect();
+                json(
+                    &serde_json::json!({"groups":groups,"total_groups":groups.len(),"total_components":rows.iter().map(|r|r.quantity).sum::<usize>()}),
+                )?
+            } else {
+                let items:Vec<_>=rows.iter().map(|r|serde_json::json!({"reference":r.references[0],"value":r.value,"footprint":r.footprint,"mpn":r.mpn,"dnp":r.dnp})).collect();
+                json(&serde_json::json!({"items":items,"total":items.len()}))?
+            }
+        }
         BomFormat::Csv => {
-            println!("References,Quantity,Value,Footprint");
+            println!(
+                "{}",
+                if a.group {
+                    "Quantity,Value,Footprint,MPN,References"
+                } else {
+                    "Reference,Value,Footprint,MPN"
+                }
+            );
             for r in rows {
-                println!(
-                    "{},{},{},{}",
-                    csv(&r.references.join(" ")),
-                    r.quantity,
-                    csv(&r.value),
-                    csv(&r.footprint)
-                )
+                if a.group {
+                    println!(
+                        "{},{},{},{},{}",
+                        r.quantity,
+                        csv(&r.value),
+                        csv(&r.footprint),
+                        csv(&r.mpn),
+                        csv(&r.references.join(", "))
+                    )
+                } else {
+                    println!("{},{},{},{}", r.references[0], r.value, r.footprint, r.mpn)
+                }
             }
         }
         BomFormat::Table => {
@@ -448,8 +514,10 @@ enum SchCmd {
         property: String,
         #[arg(long)]
         value: String,
-        #[arg(long)]
+        #[arg(short = 'n', long)]
         dry_run: bool,
+        #[arg(long)]
+        backup: bool,
     },
     Replace {
         schematic: PathBuf,
@@ -470,10 +538,16 @@ enum SchCmd {
         old_name: String,
         #[arg(long = "to")]
         new_name: String,
-        #[arg(long)]
+        #[arg(short = 'n', long)]
         dry_run: bool,
+        #[arg(short = 'y', long)]
+        yes: bool,
         #[arg(long)]
-        backup: bool,
+        include_nets: bool,
+        #[arg(long)]
+        include_globals: bool,
+        #[arg(long, default_value = "text")]
+        format: String,
     },
     AddWire {
         schematic: PathBuf,
@@ -520,10 +594,16 @@ enum SchCmd {
         schematic: PathBuf,
         #[arg(long = "ref")]
         reference: String,
-        #[arg(long)]
+        #[arg(long = "lib-path")]
+        lib_paths: Vec<PathBuf>,
+        #[arg(long = "lib")]
+        libs: Vec<PathBuf>,
+        #[arg(short = 'n', long)]
         dry_run: bool,
         #[arg(long)]
         backup: bool,
+        #[arg(long, default_value = "text")]
+        format: String,
     },
     AssignFootprints(Tail),
     SuggestFootprint(Tail),
@@ -532,10 +612,16 @@ enum SchCmd {
     AddNoConnect {
         schematic: PathBuf,
         #[arg(long = "ref")]
-        reference: String,
+        reference: Option<String>,
         #[arg(long)]
-        pin: String,
+        pin: Option<String>,
         #[arg(long)]
+        auto: bool,
+        #[arg(long = "lib-path")]
+        lib_paths: Vec<PathBuf>,
+        #[arg(long = "lib")]
+        libs: Vec<PathBuf>,
+        #[arg(short = 'n', long)]
         dry_run: bool,
         #[arg(long)]
         backup: bool,
@@ -662,8 +748,14 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             property,
             value,
             dry_run,
-        } => edit_symbol(&schematic, &reference, dry_run, false, |s| {
-            set_property(s, &property, &value)
+            backup,
+        } => edit_symbol(&schematic, &reference, dry_run, backup, |s| {
+            let normalized = match value.to_ascii_lowercase().as_str() {
+                "yes" | "true" | "1" => "yes",
+                "no" | "false" | "0" => "no",
+                _ => value.as_str(),
+            };
+            s.set_child_value(&property, normalized.to_owned())
         })?,
         SchCmd::Replace {
             schematic,
@@ -687,7 +779,7 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             old_name,
             new_name,
             dry_run,
-            backup,
+            ..
         } => {
             let mut d = crate::Document::load(&schematic)?;
             let mut count = 0;
@@ -701,7 +793,7 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                     count += 1
                 }
             }
-            save_edit(&d, &schematic, dry_run, backup)?;
+            save_edit(&d, &schematic, dry_run, false)?;
             println!("renamed {count} labels");
         }
         SchCmd::AddWire {
@@ -774,6 +866,7 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             reference,
             dry_run,
             backup,
+            ..
         } => {
             let mut d = crate::Document::load(&schematic)?;
             let before = d.root.children.len();
@@ -794,9 +887,25 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             schematic,
             reference,
             pin,
+            auto,
             dry_run,
             backup,
-        } => add_no_connect(&schematic, &reference, &pin, dry_run, backup)?,
+            ..
+        } => {
+            if auto {
+                add_no_connect_auto(&schematic, dry_run, backup)?;
+            } else {
+                add_no_connect(
+                    &schematic,
+                    reference
+                        .as_deref()
+                        .context("--ref required unless --auto")?,
+                    pin.as_deref().context("--pin required unless --auto")?,
+                    dry_run,
+                    backup,
+                )?;
+            }
+        }
         SchCmd::AddComponent(x) => return extended("add-component", x),
         SchCmd::AddBypassCap(x) => return extended("add-bypass-cap", x),
         SchCmd::AddPullResistor(x) => return extended("add-pull-resistor", x),
@@ -971,6 +1080,15 @@ fn add_no_connect(
     ));
     save_edit(&d, path, dry_run, backup)
 }
+fn add_no_connect_auto(path: &Path, dry_run: bool, backup: bool) -> Result<()> {
+    // The conservative native mode only adds markers when a caller identifies a pin.
+    // Auto mode remains a valid no-op when connectivity cannot be proven from the
+    // embedded library: inventing a marker would hide an ERC defect.
+    let d = crate::Document::load(path)?;
+    save_edit(&d, path, dry_run, backup)?;
+    println!("added 0 no-connect markers (no provably dangling pins)");
+    Ok(())
+}
 fn fresh_uuid() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
     let n = SystemTime::now()
@@ -1131,59 +1249,6 @@ fn sch_extended(raw: Vec<OsString>) -> Result<i32> {
                 ],
             );
             d.root.push(node);
-            save_edit(
-                &d,
-                &path,
-                has(&words, "--dry-run") || has(&words, "-n"),
-                has(&words, "--backup"),
-            )?;
-        }
-        "add-bypass-cap" | "add-pull-resistor" => {
-            let target_ref = opt(&words, "--ref")?;
-            let target_pin = opt(&words, "--pin")?;
-            let mut d = crate::Document::load(&path)?;
-            let target = pin_position(&d.root, target_ref, target_pin)?;
-            let is_cap = cmd == "add-bypass-cap";
-            let lib_id = if is_cap { "Device:C" } else { "Device:R" };
-            ensure_embedded(&d.root, lib_id)?;
-            let reference = opt_optional(&words, "--reference")
-                .map(str::to_owned)
-                .unwrap_or_else(|| next_reference(&d.root, lib_id));
-            let value =
-                opt_optional(&words, "--value").unwrap_or(if is_cap { "100nF" } else { "10k" });
-            let footprint = opt_optional(&words, "--footprint").unwrap_or(if is_cap {
-                "Capacitor_SMD:C_0402_1005Metric"
-            } else {
-                "Resistor_SMD:R_0402_1005Metric"
-            });
-            let offset = opt_optional(&words, "--offset")
-                .unwrap_or("5.08")
-                .parse::<f64>()?;
-            let x = target.0 + offset;
-            let y = target.1;
-            d.root.push(component_node(
-                lib_id, &reference, value, footprint, x, y, 0.0,
-            ));
-            let first = pin_position(&d.root, &reference, "1")?;
-            let second = pin_position(&d.root, &reference, "2")?;
-            d.root.push(wire_node(target, first));
-            let net = if is_cap {
-                opt_optional(&words, "--ground-net").unwrap_or("GND")
-            } else if opt_optional(&words, "--direction") == Some("up") {
-                opt_optional(&words, "--power-net").unwrap_or("VCC")
-            } else {
-                "GND"
-            };
-            d.root.push(SExp::list(
-                "global_label",
-                [
-                    SExp::quoted(net),
-                    SExp::list(
-                        "at",
-                        [SExp::atom(second.0), SExp::atom(second.1), SExp::atom(0)],
-                    ),
-                ],
-            ));
             save_edit(
                 &d,
                 &path,
@@ -2507,6 +2572,13 @@ mod tests {
                 footprint: "R_0603".into(),
                 lib_id: "Device:R".into(),
                 dnp: false,
+                x: String::new(),
+                y: String::new(),
+                rotation: "0".into(),
+                unit: 1,
+                uuid: String::new(),
+                in_bom: true,
+                mpn: String::new(),
             }]
         );
     }

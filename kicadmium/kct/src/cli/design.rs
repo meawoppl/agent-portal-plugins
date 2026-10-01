@@ -776,6 +776,8 @@ enum SchCmd {
         dry_run: bool,
         #[arg(long)]
         backup: bool,
+        #[arg(long, default_value = "text")]
+        format: String,
     },
     SetSymbolProperty {
         schematic: PathBuf,
@@ -789,6 +791,8 @@ enum SchCmd {
         dry_run: bool,
         #[arg(long)]
         backup: bool,
+        #[arg(long, default_value = "text")]
+        format: String,
     },
     Replace {
         schematic: PathBuf,
@@ -802,6 +806,8 @@ enum SchCmd {
         dry_run: bool,
         #[arg(long)]
         backup: bool,
+        #[arg(long, default_value = "text")]
+        format: String,
     },
     RenameSignal {
         schematic: PathBuf,
@@ -932,6 +938,12 @@ struct PropertyEdit {
     dry_run: bool,
     #[arg(long)]
     backup: bool,
+    #[arg(long = "no-validate")]
+    no_validate: bool,
+    #[arg(long)]
+    strict: bool,
+    #[arg(long, default_value = "text")]
+    format: String,
 }
 pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: SchArgs = super::parse_args("sch", args);
@@ -1068,6 +1080,7 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             map_file,
             dry_run,
             backup,
+            ..
         } => edit_property(
             PropertyEdit {
                 schematic,
@@ -1076,6 +1089,9 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 map_file,
                 dry_run,
                 backup,
+                no_validate: false,
+                strict: false,
+                format: "text".into(),
             },
             "Reference",
         )?,
@@ -1086,6 +1102,7 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             value,
             dry_run,
             backup,
+            ..
         } => edit_symbol(&schematic, &reference, dry_run, backup, |s| {
             let normalized = match value.to_ascii_lowercase().as_str() {
                 "yes" | "true" | "1" => "yes",
@@ -1102,6 +1119,7 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             footprint,
             dry_run,
             backup,
+            ..
         } => edit_symbol(&schematic, &reference, dry_run, backup, |s| {
             s.set_child_value("lib_id", new_lib_id);
             if let Some(v) = value {
@@ -1272,6 +1290,7 @@ fn edit_property(e: PropertyEdit, key: &str) -> Result<()> {
         dry_run,
         backup,
         map_file,
+        ..
     } = e;
     let mut edits: BTreeMap<String, String> = BTreeMap::new();
     if let (Some(r), Some(v)) = (reference, value) {
@@ -2370,9 +2389,13 @@ enum LibCmd {
     },
     CreateSymbolLib {
         path: PathBuf,
+        #[arg(long, default_value = "text")]
+        format: String,
     },
     CreateFootprintLib {
         path: PathBuf,
+        #[arg(long, default_value = "text")]
+        format: String,
     },
     GenerateFootprint {
         library: PathBuf,
@@ -2537,7 +2560,7 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             };
             print_footprint_info(&path, &format, pads)?;
         }
-        LibCmd::CreateSymbolLib { path } => {
+        LibCmd::CreateSymbolLib { path, .. } => {
             if path.exists() {
                 bail!("{} already exists", path.display())
             }
@@ -2546,7 +2569,7 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 b"(kicad_symbol_lib (version 20231120) (generator kicadmium))\n",
             )?;
         }
-        LibCmd::CreateFootprintLib { path } => {
+        LibCmd::CreateFootprintLib { path, .. } => {
             if path.exists() {
                 bail!("{} already exists", path.display())
             }

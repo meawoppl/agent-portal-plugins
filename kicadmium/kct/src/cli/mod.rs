@@ -47,6 +47,7 @@ pub mod project;
 pub mod render;
 pub mod repair_common;
 pub mod report;
+pub mod router_support;
 pub mod runner;
 pub mod screenshot;
 pub mod stitch;
@@ -131,13 +132,13 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "build", about: "Build from spec to manufacturable design", wave: "G", run: Some(workflow::build) },
     CommandSpec { name: "doctor", about: "Diagnose kicad-tools installation health (version-record drift + environment preflight)", wave: "G", run: Some(utility::doctor) },
     CommandSpec { name: "spec", about: "Project specification (.kct) management", wave: "G", run: Some(project::spec) },
-    CommandSpec { name: "benchmark", about: "Run routing benchmarks and regression tests", wave: "F", run: None },
-    CommandSpec { name: "bench", about: "Run external DeepPCB-comparable board benchmarks", wave: "F", run: None },
+    CommandSpec { name: "benchmark", about: "Run routing benchmarks and regression tests", wave: "F", run: Some(router_support::benchmark) },
+    CommandSpec { name: "bench", about: "Run external DeepPCB-comparable board benchmarks", wave: "F", run: Some(router_support::bench) },
     CommandSpec { name: "sync", about: "Reconcile schematic and PCB references", wave: "B", run: Some(design::sync) },
     CommandSpec { name: "run", about: "Run a native kct JSON/YAML automation workflow", wave: "H", run: Some(h::run) },
     CommandSpec { name: "explain", about: "Explain design rules and DRC violations", wave: "A", run: Some(explain::run) },
     CommandSpec { name: "detect-mistakes", about: "Detect common PCB design mistakes with educational explanations", wave: "A", run: Some(detect_mistakes::run) },
-    CommandSpec { name: "calibrate", about: "Calibrate routing performance settings for your machine", wave: "F", run: None },
+    CommandSpec { name: "calibrate", about: "Calibrate routing performance settings for your machine", wave: "F", run: Some(router_support::calibrate) },
     CommandSpec { name: "screenshot", about: "Capture a PNG screenshot of a KiCad board or schematic", wave: "C", run: Some(screenshot::run) },
     CommandSpec { name: "report", about: "Generate a Markdown design report", wave: "C", run: Some(report::run) },
     CommandSpec { name: "export", about: "Generate a complete manufacturing package (BOM, CPL, Gerbers, project ZIP, manifest)", wave: "G", run: Some(fabrication::export) },

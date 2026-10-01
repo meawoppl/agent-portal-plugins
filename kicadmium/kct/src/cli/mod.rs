@@ -17,6 +17,7 @@ pub mod design;
 pub mod fabrication;
 pub mod footprint;
 pub mod h;
+pub mod impedance;
 pub mod mfr;
 pub mod parts;
 pub mod project;
@@ -91,7 +92,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "board-metrics", about: "Emit a normalized board.json per board from existing artifacts", wave: "C", run: None },
     CommandSpec { name: "readiness", about: "Run the manufacturing-readiness gates and write output/readiness.json", wave: "C", run: None },
     CommandSpec { name: "clean", about: "Clean up old/orphaned files from KiCad projects", wave: "G", run: Some(utility::clean) },
-    CommandSpec { name: "impedance", about: "Transmission line impedance calculations", wave: "E", run: None },
+    CommandSpec { name: "impedance", about: "Transmission line impedance calculations", wave: "E", run: Some(impedance::run) },
     CommandSpec { name: "mcp", about: "MCP (Model Context Protocol) server for AI agents", wave: "H", run: Some(h::mcp) },
     CommandSpec { name: "ipc", about: "Interact with a running KiCad instance via IPC API (KiCad 9.0+)", wave: "H", run: Some(h::ipc) },
     CommandSpec { name: "init", about: "Initialize a KiCad project with manufacturer design rules", wave: "G", run: Some(project::init) },

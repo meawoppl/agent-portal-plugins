@@ -6,7 +6,9 @@
 
 pub mod ampacity_specs;
 pub mod checker;
+pub mod doc_drift;
 pub mod filters;
+pub mod manifest;
 pub mod mask_copper;
 pub mod rules;
 pub mod spatial;

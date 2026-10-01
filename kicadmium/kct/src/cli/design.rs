@@ -2645,6 +2645,9 @@ struct SyncArgs {
 }
 pub fn sync(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: SyncArgs = super::parse_args("sync", args);
+    if a.analyze == a.apply {
+        bail!("exactly one of --analyze or --apply is required")
+    }
     if a.apply && !a.dry_run && !a.confirm {
         bail!("--apply requires --dry-run or --confirm")
     }
@@ -2698,6 +2701,17 @@ pub fn sync(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 set_property(f, "Reference", new)
             }
         }
+        if a.remove_orphans {
+            if !a.force && should_write {
+                bail!("--remove-orphans requires --force when applying")
+            }
+            if a.force {
+                pd.root.children.retain(|f| {
+                    !f.has_tag("footprint")
+                        || !orphaned.iter().any(|r| f.property("Reference") == Some(r))
+                });
+            }
+        }
         if should_write {
             if let Some(output) = &a.output {
                 crate::fsutil::atomic_write(
@@ -2709,7 +2723,9 @@ pub fn sync(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             }
         }
     }
-    let result = serde_json::json!({"schematic":s,"pcb":p,"missing_on_pcb":missing,"orphaned_on_pcb":orphaned,"reference_mapping":mapping,"applied":should_write,"min_confidence":a.min_confidence,"remove_orphans":a.remove_orphans,"force":a.force});
+    let matches:Vec<_>=sr.intersection(&pr).map(|r|serde_json::json!({"schematic_ref":r,"pcb_ref":r,"confidence":"high","reason":"exact"})).collect();
+    let changes:Vec<_>=mapping.iter().map(|(old,new)|serde_json::json!({"reference":new,"action":"rename","old_value":old,"new_value":new,"applied":should_write})).collect();
+    let result = serde_json::json!({"schematic":s,"pcb":p,"matches":matches,"schematic_orphans":missing,"pcb_orphans":orphaned,"missing_on_pcb":missing,"orphaned_on_pcb":orphaned,"reference_mapping":mapping,"changes":changes,"dry_run":a.dry_run,"applied":should_write,"min_confidence":a.min_confidence,"remove_orphans":a.remove_orphans,"force":a.force});
     if let Some(path) = a.output_mapping {
         crate::fsutil::atomic_write(&path, serde_json::to_string_pretty(&result)?.as_bytes())?;
     }
@@ -2718,7 +2734,11 @@ pub fn sync(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     } else {
         println!("{}", serde_json::to_string_pretty(&result)?)
     }
-    Ok(0)
+    if a.analyze && (!missing.is_empty() || !orphaned.is_empty()) {
+        Ok(2)
+    } else {
+        Ok(0)
+    }
 }
 
 fn resolve_pair(

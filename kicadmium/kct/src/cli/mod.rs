@@ -113,7 +113,6 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "pipeline", about: "End-to-end repair pipeline for existing PCBs", wave: "G", run: Some(workflow::pipeline) },
     CommandSpec { name: "create-pcb", about: "Create a PCB from a KiCad schematic", wave: "G", run: Some(fabrication::create_pcb) },
     CommandSpec { name: "build", about: "Build from spec to manufacturable design", wave: "G", run: Some(workflow::build) },
-    CommandSpec { name: "build-native", about: "Build C++ router backend for 10-100x faster routing", wave: "F", run: None },
     CommandSpec { name: "doctor", about: "Diagnose kicad-tools installation health (version-record drift + environment preflight)", wave: "G", run: Some(utility::doctor) },
     CommandSpec { name: "spec", about: "Project specification (.kct) management", wave: "G", run: Some(project::spec) },
     CommandSpec { name: "benchmark", about: "Run routing benchmarks and regression tests", wave: "F", run: None },

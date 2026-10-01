@@ -32,7 +32,7 @@ Upstream reference: https://github.com/rjwalters/kicad-tools (MIT, see
 | C | pcb, analyze, net-status, board-metrics, audit, readiness, report, estimate, fleet, render, screenshot | kc-claude (subagent) |
 | D | optimize-traces, validate-footprints, fix-footprints, fix-vias, fix-silkscreen, place-silk-refs, repair-clearance, fix-drc, fix-erc | kc-claude |
 | E | zones, stitch, creepage, creepage-export-rules, impedance, constraints, placement, optimize-placement, decisions, optim | kc-claude (subagent) |
-| F | route, route-auto, benchmark, bench, calibrate, build-native | kc-claude (subagent) |
+| F | native Rust route, route-auto, benchmark, bench, calibrate | kc-claude (subagent) |
 | G | parts, datasheet, suggest, mfr (+ `manufacturers`), init, footprint, panel, export, create-pcb, build, spec, pipeline, config, doctor, clean | kc-codex |
 | H | ipc, reason, interactive, run | shell-native agent workflows |
 

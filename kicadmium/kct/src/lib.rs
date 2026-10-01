@@ -19,6 +19,7 @@ pub mod parts;
 pub mod physics;
 pub mod progress;
 pub mod project;
+pub mod router;
 pub mod schema;
 pub mod sexp;
 pub mod sidecars;

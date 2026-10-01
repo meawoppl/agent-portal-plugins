@@ -169,20 +169,129 @@ pub fn symbols(args: Vec<OsString>, _: &Globals) -> Result<i32> {
 pub fn nets(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: NetsArgs = super::parse_args("nets", args);
     let doc = load(&a.schematic)?;
-    let mut rows = labels_of(&doc);
+    let mut rows = trace_nets(&doc);
     rows.retain(|n| a.net.as_ref().is_none_or(|x| x == &n.name));
+    if a.net.is_some() && rows.is_empty() {
+        return Ok(1);
+    }
     if a.stats {
-        let unique: BTreeSet<_> = rows.iter().map(|n| &n.name).collect();
-        println!("labels: {}\nunique_nets: {}", rows.len(), unique.len());
+        let labeled = rows.iter().filter(|n| n.has_label).count();
+        println!("Net Statistics\n========================================\nTotal nets:         {}\n  Labeled:          {}\n  Unlabeled:        {}\nTotal wires:        {}\nTotal wire length:  {:.2} mm\nTotal connections:  {}",rows.len(),labeled,rows.len()-labeled,rows.iter().map(|n|n.wire_count).sum::<usize>(),rows.iter().map(|n|n.total_length).sum::<f64>(),rows.iter().map(|n|n.connection_count).sum::<usize>());
     } else if matches!(a.format, Format::Json) {
         json(&rows)?
     } else {
-        println!("{:<32} {:<20} POSITION", "NET", "TYPE");
+        println!(
+            "{:<25}  {:<5}  {:<6}  {:<10}  Connections",
+            "Name", "Label", "Wires", "Length"
+        );
+        println!("{}", "-".repeat(70));
         for n in rows {
-            println!("{:<32} {:<20} {},{}", n.name, n.kind, n.x, n.y)
+            println!(
+                "{:<25}  {:<5}  {:<6}  {:>7.2} mm",
+                n.name,
+                if n.has_label { "Y" } else { "" },
+                n.wire_count,
+                n.total_length
+            )
         }
     }
     Ok(0)
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct TracedNet {
+    name: String,
+    has_label: bool,
+    wire_count: usize,
+    total_length: f64,
+    connection_count: usize,
+}
+fn point_key(p: (f64, f64)) -> (i64, i64) {
+    ((p.0 * 10.0).round() as i64, (p.1 * 10.0).round() as i64)
+}
+fn trace_nets(root: &SExp) -> Vec<TracedNet> {
+    let wires: Vec<_> = root
+        .children_named("wire")
+        .filter_map(|w| {
+            let p = w.points();
+            (p.len() >= 2).then(|| (p[0], p[p.len() - 1]))
+        })
+        .collect();
+    let mut parent: Vec<usize> = (0..wires.len()).collect();
+    fn find(p: &mut [usize], x: usize) -> usize {
+        if p[x] != x {
+            p[x] = find(p, p[x]);
+        }
+        p[x]
+    }
+    for i in 0..wires.len() {
+        for j in i + 1..wires.len() {
+            if [wires[i].0, wires[i].1].into_iter().any(|a| {
+                [wires[j].0, wires[j].1]
+                    .into_iter()
+                    .any(|b| point_key(a) == point_key(b))
+            }) {
+                let a = find(&mut parent, i);
+                let b = find(&mut parent, j);
+                parent[b] = a;
+            }
+        }
+    }
+    let labels = labels_of(root);
+    let mut groups: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+    for i in 0..wires.len() {
+        let k = find(&mut parent, i);
+        groups.entry(k).or_default().push(i);
+    }
+    let mut out = vec![];
+    let mut used = BTreeSet::new();
+    for ids in groups.values() {
+        let pts: BTreeSet<_> = ids
+            .iter()
+            .flat_map(|&i| [point_key(wires[i].0), point_key(wires[i].1)])
+            .collect();
+        let label = labels.iter().enumerate().find(|(_, l)| {
+            pts.contains(&point_key((
+                l.x.parse().unwrap_or(0.0),
+                l.y.parse().unwrap_or(0.0),
+            )))
+        });
+        if let Some((i, _)) = label {
+            used.insert(i);
+        }
+        let name = label.map(|(_, l)| l.name.clone()).unwrap_or_else(|| {
+            let h = pts.iter().fold(0u64, |h, (x, y)| {
+                h.wrapping_mul(1099511628211) ^ (*x as u64).wrapping_mul(31) ^ (*y as u64)
+            });
+            format!("Net_{:04X}", h & 0xffff)
+        });
+        out.push(TracedNet {
+            name,
+            has_label: label.is_some(),
+            wire_count: ids.len(),
+            total_length: ids
+                .iter()
+                .map(|&i| {
+                    ((wires[i].1 .0 - wires[i].0 .0).powi(2)
+                        + (wires[i].1 .1 - wires[i].0 .1).powi(2))
+                    .sqrt()
+                })
+                .sum(),
+            connection_count: usize::from(label.is_some()),
+        });
+    }
+    for (i, l) in labels.iter().enumerate() {
+        if !used.contains(&i) {
+            out.push(TracedNet {
+                name: l.name.clone(),
+                has_label: true,
+                wire_count: 0,
+                total_length: 0.0,
+                connection_count: 1,
+            });
+        }
+    }
+    out
 }
 
 #[derive(Parser)]
@@ -239,7 +348,106 @@ struct FileFmt {
     pattern: Option<String>,
 }
 fn net_names(root: &SExp) -> BTreeSet<String> {
-    labels_of(root).into_iter().map(|n| n.name).collect()
+    electrical_netlist(root)
+        .into_iter()
+        .map(|n| n.name)
+        .collect()
+}
+#[derive(Serialize)]
+struct NetlistEntry {
+    name: String,
+    connections: usize,
+    r#type: String,
+    pins: Vec<String>,
+}
+fn electrical_netlist(root: &SExp) -> Vec<NetlistEntry> {
+    let wires: Vec<_> = root
+        .children_named("wire")
+        .filter_map(|w| {
+            let p = w.points();
+            (p.len() >= 2).then(|| (p[0], p[p.len() - 1]))
+        })
+        .collect();
+    let labels = labels_of(root);
+    let mut out = vec![];
+    for label in labels {
+        let lp = (
+            label.x.parse().unwrap_or(0.0),
+            label.y.parse().unwrap_or(0.0),
+        );
+        let mut pins = vec![];
+        for s in root.children_named("symbol") {
+            let reference = s.property("Reference").unwrap_or("");
+            if reference.starts_with('#') {
+                continue;
+            }
+            for p in s.children_named("pin").filter_map(|p| p.string_at(0)) {
+                if let Ok(pp) = pin_position(root, reference, p) {
+                    if wires
+                        .iter()
+                        .any(|&(a, b)| point_segment_distance(pp, a, b) < 0.1)
+                    {
+                        // A pin belongs to this label only when both touch the same connected wire component.
+                        let pin_wires: Vec<_> = wires
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, w)| point_segment_distance(pp, w.0, w.1) < 0.1)
+                            .map(|(i, _)| i)
+                            .collect();
+                        let label_wires: Vec<_> = wires
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, w)| point_segment_distance(lp, w.0, w.1) < 0.1)
+                            .map(|(i, _)| i)
+                            .collect();
+                        if pin_wires.iter().any(|i| label_wires.contains(i))
+                            || connected_by_wires(&wires, &pin_wires, &label_wires)
+                        {
+                            pins.push(format!("{reference}.{p}"));
+                        }
+                    }
+                }
+            }
+        }
+        pins.sort();
+        pins.dedup();
+        out.push(NetlistEntry {
+            name: format!("/{}", label.name),
+            connections: pins.len(),
+            r#type: "signal".into(),
+            pins,
+        });
+    }
+    out.sort_by(|a, b| {
+        b.connections
+            .cmp(&a.connections)
+            .then_with(|| a.name.cmp(&b.name))
+    });
+    out
+}
+fn connected_by_wires(
+    wires: &[((f64, f64), (f64, f64))],
+    starts: &[usize],
+    goals: &[usize],
+) -> bool {
+    let mut seen: BTreeSet<usize> = starts.iter().copied().collect();
+    let mut stack = starts.to_vec();
+    while let Some(i) = stack.pop() {
+        if goals.contains(&i) {
+            return true;
+        }
+        for j in 0..wires.len() {
+            if !seen.contains(&j)
+                && [wires[i].0, wires[i].1]
+                    .into_iter()
+                    .any(|a| [wires[j].0, wires[j].1].into_iter().any(|b| near(a, b)))
+            {
+                seen.insert(j);
+                stack.push(j);
+            }
+        }
+    }
+    false
 }
 pub fn netlist(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: NetlistArgs = super::parse_args("netlist", args);
@@ -252,12 +460,15 @@ pub fn netlist(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         }
         NetlistCmd::List(x) => {
             let d = load(&x.schematic)?;
-            let n = net_names(&d);
+            let mut n = electrical_netlist(&d);
+            if x.sort == "name" {
+                n.sort_by(|a, b| a.name.cmp(&b.name));
+            }
             if x.format == "json" {
                 json(&n)?
             } else {
                 for v in n {
-                    println!("{v}")
+                    println!("{:<32} {:>4}  {}", v.name, v.connections, v.pins.join(", "))
                 }
             }
         }
@@ -1064,7 +1275,7 @@ fn add_no_connect(
     let (px, py, _) = p.at().context("pin has no position")?;
     let a = rot.to_radians();
     let x = sx + px * a.cos() + py * a.sin();
-    let y = sy - px * a.sin() + py * a.cos();
+    let y = sy + px * a.sin() - py * a.cos();
     if d.root
         .children_named("no_connect")
         .any(|n| n.at().is_some_and(|q| near((q.0, q.1), (x, y))))
@@ -1842,7 +2053,7 @@ fn pin_position(root: &SExp, reference: &str, pin: &str) -> Result<(f64, f64)> {
     let a = rot.to_radians();
     Ok((
         sx + px * a.cos() + py * a.sin(),
-        sy - px * a.sin() + py * a.cos(),
+        sy + px * a.sin() - py * a.cos(),
     ))
 }
 fn multi_f64(words: &[String], name: &str, n: usize) -> Result<Vec<f64>> {
@@ -2593,6 +2804,21 @@ mod tests {
         .unwrap();
         let names: Vec<_> = labels_of(&root).into_iter().map(|n| n.name).collect();
         assert_eq!(names, ["LOCAL", "GND", "BUS"]);
+    }
+
+    #[test]
+    fn netlist_matches_simple_rc_fixture_connections() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/simple_rc.kicad_sch");
+        let root = load(&path).unwrap();
+        let nets = electrical_netlist(&root);
+        assert_eq!(
+            nets.iter()
+                .map(|n| (n.name.as_str(), n.connections))
+                .collect::<Vec<_>>(),
+            vec![("/GND", 2), ("/VIN", 2)]
+        );
+        assert_eq!(nets[0].pins, vec!["C1.2", "R1.2"]);
+        assert_eq!(nets[1].pins, vec!["C1.1", "R1.1"]);
     }
 
     #[test]

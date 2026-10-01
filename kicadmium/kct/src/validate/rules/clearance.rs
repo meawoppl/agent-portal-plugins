@@ -563,9 +563,7 @@ fn rect_rect_clearance(cx1: f64, cy1: f64, w1: f64, h1: f64, cx2: f64, cy2: f64,
         (gx * gx + gy * gy).sqrt()
     } else if gx >= 0.0 {
         gx
-    } else if gy >= 0.0 {
-        gy
-    } else if gy > gx {
+    } else if gy >= 0.0 || gy > gx {
         gy
     } else {
         gx

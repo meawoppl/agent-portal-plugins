@@ -64,6 +64,8 @@ pub fn via_inside_pad(via: &Via, bbox: (f64, f64, f64, f64), pad: Option<(&Pad, 
     true
 }
 
+type PadsByNet<'a> = Vec<(i64, Vec<(&'a Footprint, &'a Pad, (f64, f64, f64, f64))>)>;
+
 #[derive(Debug, Clone, Default)]
 pub struct ViaInPadRule;
 
@@ -85,7 +87,7 @@ impl ViaInPadRule {
         } else {
             None
         };
-        let mut by_net: Vec<(i64, Vec<(&Footprint, &Pad, (f64, f64, f64, f64))>)> = Vec::new();
+        let mut by_net: PadsByNet = Vec::new();
         let holes = component_holes_from_document(pcb);
         for fp in pcb.footprints() {
             for pad in &fp.pads {

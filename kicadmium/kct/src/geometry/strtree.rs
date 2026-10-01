@@ -103,9 +103,9 @@ impl StrTree {
             return out;
         };
         let r = &self.nodes[root];
-        if r.item.is_some() {
+        if let Some(item) = r.item {
             if intersects(&r.bounds, &q) {
-                out.push(r.item.unwrap());
+                out.push(item);
             }
             return out;
         }

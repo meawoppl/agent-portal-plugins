@@ -353,22 +353,22 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_clearances(&self) -> DRCResults {
-        let rule = rules::clearance::ClearanceRule::default();
+        let rule = rules::clearance::ClearanceRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_segment_zone_clearances(&self) -> DRCResults {
-        let rule = rules::clearance::SegmentZoneClearanceRule::default();
+        let rule = rules::clearance::SegmentZoneClearanceRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_via_zone_clearances(&self) -> DRCResults {
-        let rule = rules::clearance::ViaZoneClearanceRule::default();
+        let rule = rules::clearance::ViaZoneClearanceRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_copper_slivers(&self) -> DRCResults {
-        let rule = rules::copper_sliver::CopperSliverRule::default();
+        let rule = rules::copper_sliver::CopperSliverRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -383,12 +383,12 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_dangling_copper(&self) -> DRCResults {
-        let rule = rules::dangling_copper::DanglingCopperRule::default();
+        let rule = rules::dangling_copper::DanglingCopperRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_diffpair_clearance_intra(&self) -> DRCResults {
-        let rule = rules::diffpair_clearance_intra::DiffPairClearanceIntraRule::default();
+        let rule = rules::diffpair_clearance_intra::DiffPairClearanceIntraRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -416,7 +416,7 @@ impl<'a> DRCChecker<'a> {
         if self.net_class_map.is_none() {
             self.warn_inactive_skew_rule("diffpair_length_skew");
         }
-        let rule = rules::diffpair_length_skew::DiffPairLengthSkewRule::default();
+        let rule = rules::diffpair_length_skew::DiffPairLengthSkewRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -424,17 +424,17 @@ impl<'a> DRCChecker<'a> {
         if self.net_class_map.is_none() {
             self.warn_inactive_skew_rule("diffpair_routing_continuity");
         }
-        let rule = rules::diffpair_routing_continuity::DiffPairRoutingContinuityRule::default();
+        let rule = rules::diffpair_routing_continuity::DiffPairRoutingContinuityRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_dimensions(&self) -> DRCResults {
-        let rule = rules::dimensions::DimensionRules::default();
+        let rule = rules::dimensions::DimensionRules;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_edge_clearances(&self) -> DRCResults {
-        let rule = rules::edge::EdgeClearanceRule::default();
+        let rule = rules::edge::EdgeClearanceRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -459,7 +459,7 @@ impl<'a> DRCChecker<'a> {
         if self.net_class_map.is_none() {
             self.warn_inactive_skew_rule("match_group_length_skew");
         }
-        let rule = rules::match_group_length_skew::MatchGroupLengthSkewRule::default();
+        let rule = rules::match_group_length_skew::MatchGroupLengthSkewRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -472,7 +472,7 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_pin1_markers(&self) -> DRCResults {
-        let rule = rules::pin1_marker::Pin1MarkerRule::default();
+        let rule = rules::pin1_marker::Pin1MarkerRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -481,12 +481,12 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_solder_mask_pads(&self) -> DRCResults {
-        let rule = rules::solder_mask::SolderMaskPadRules::default();
+        let rule = rules::solder_mask::SolderMaskPadRules;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_footprint_placement(&self) -> DRCResults {
-        let rule = rules::placement::FootprintOutsideBoardRule::default();
+        let rule = rules::placement::FootprintOutsideBoardRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -498,42 +498,42 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_netlist(&self) -> DRCResults {
-        let rule = rules::netlist::NetlistRule::default();
+        let rule = rules::netlist::NetlistRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_single_pad_nets(&self) -> DRCResults {
-        let rule = rules::single_pad_net::SinglePadNetRule::default();
+        let rule = rules::single_pad_net::SinglePadNetRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_via_in_pad(&self) -> DRCResults {
-        let rule = rules::via_in_pad::ViaInPadRule::default();
+        let rule = rules::via_in_pad::ViaInPadRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_width_consistency(&self) -> DRCResults {
-        let rule = rules::width_consistency::WidthConsistencyRule::default();
+        let rule = rules::width_consistency::WidthConsistencyRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_via_under_body(&self) -> DRCResults {
-        let rule = rules::via_under_body::ViaUnderBodyRule::default();
+        let rule = rules::via_under_body::ViaUnderBodyRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_zero_length_segments(&self) -> DRCResults {
-        let rule = rules::zero_length_segment::ZeroLengthSegmentRule::default();
+        let rule = rules::zero_length_segment::ZeroLengthSegmentRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_zones(&self) -> DRCResults {
-        let rule = rules::zone_fill::ZoneFillRule::default();
+        let rule = rules::zone_fill::ZoneFillRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_isolated_copper(&self) -> DRCResults {
-        let rule = rules::zone_fill::IsolatedCopperRule::default();
+        let rule = rules::zone_fill::IsolatedCopperRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 

@@ -128,9 +128,10 @@ fn detect_pair_type(base: &str) -> DifferentialPairType {
 
 /// `detect_differential_pairs(net_names)`; `net_names` is the ordered
 /// `{net_id: name}` dict.
+type SignalGroups = Vec<((String, &'static str), Vec<(&'static str, DifferentialSignal)>)>;
+
 pub fn detect_differential_pairs(net_names: &[(i64, String)]) -> Vec<DifferentialPair> {
-    let mut by_key: Vec<((String, &'static str), Vec<(&'static str, DifferentialSignal)>)> =
-        Vec::new();
+    let mut by_key: SignalGroups = Vec::new();
     for (id, name) in net_names {
         let Some((base, pol, notation)) = parse_differential_signal(name) else {
             continue;

@@ -202,11 +202,11 @@ pub fn cluster_copper_kinds(indexes: &LayerIndexes, seeds: &[ClusterSeed]) -> Ve
         }
     }
     let mut kinds: HashMap<usize, Vec<&'static str>> = HashMap::new();
-    for i in 0..nodes.len() {
+    for (i, node) in nodes.iter().enumerate() {
         let r = find(&mut parent, i);
         let e = kinds.entry(r).or_default();
-        if !e.contains(&nodes[i].kind) {
-            e.push(nodes[i].kind);
+        if !e.contains(&node.kind) {
+            e.push(node.kind);
         }
     }
     (0..seeds.len())

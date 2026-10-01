@@ -12,12 +12,11 @@ and the files themselves).
   `91ee2d7c9bad66bf85bec006f63d95d0f26c11c2` (branch
   `meawoppl/gerber-view-embeddable`).
 - Author: meawoppl, the same author as kicadmium.
-- **License: none.** The pastebom repository has no LICENSE file and its
-  `Cargo.toml` declares no license. No license is claimed for the derived
-  code below, and it is **not** covered by kicadmium's MIT license unless and
-  until the author explicitly relicenses it. That decision belongs to the
-  author. Do not merge or redistribute these parts as MIT without that
-  authorization.
+- The pastebom repository has no LICENSE file and its `Cargo.toml` declares
+  no license. On 2026-10-01, its author and rightsholder explicitly authorized
+  incorporating the derived items listed below into kicadmium under
+  kicadmium's MIT license. This authorization applies to these derived items;
+  it does not assert a license for the pastebom repository as a whole.
 
 Nothing was copied verbatim. The items below were written while working from
 the pastebom code: same algorithms, data layout and conventions, adapted to
@@ -48,7 +47,8 @@ text layout), the properties/layers panels in `mod.rs`, and the toggle in
 
 ## Fonts
 
-No KiCad font data ships with the Rust PCB view. KiCad's newstroke font
-(`common/newstroke_font.cpp`, GPL-2.0-or-later) is not used. Text is drawn
-with the browser's system monospace font (see `docs/javascript-triage.md`,
-T2).
+No KiCad font data ships with the Rust PCB view. Newstroke is not used. Text
+is drawn with the browser's system monospace font (see
+`docs/javascript-triage.md`, T2). Before any future Rust port of Newstroke,
+the original upstream source, license, and required notice must be recorded;
+KiCad's downstream file labels alone are not the provenance record.

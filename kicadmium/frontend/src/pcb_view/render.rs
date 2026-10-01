@@ -6,9 +6,9 @@
 //!
 //! THIRD-PARTY PROVENANCE: parts of this module are derived from pastebom's
 //! viewer (github.com/meawoppl/pastebom.com, `crates/viewer`), same author.
-//! That repository has NO license file; no license is claimed here for the
-//! derived parts, and relicensing them under kicadmium's MIT is the author's
-//! decision. Items are listed in `docs/third-party.md`.
+//! Its author explicitly authorized the listed derived parts under
+//! kicadmium's MIT license. Items and provenance are recorded in
+//! `docs/third-party.md`.
 
 use std::collections::{HashMap, HashSet};
 use std::f64::consts::TAU;

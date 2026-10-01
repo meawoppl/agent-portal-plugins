@@ -77,14 +77,15 @@ Status: implemented behind the PCB tab's "Rust renderer" switch
   justification, mirror, italic/bold, line spacing, layer and visibility.
 - View: `frontend/src/pcb_view/` (Canvas2D, Yew). Pad shapes, hit testing,
   pointer handling and settings persistence are derived from pastebom's
-  viewer, which has no license; see `docs/third-party.md` before merging.
+  viewer. Its author explicitly authorized the listed derived items under
+  kicadmium's MIT license; see `docs/third-party.md` for exact provenance.
   They were copied in with attribution rather than taken as a crate
   dependency: pastebom's viewer is a binary built around the iBOM `PcbData`
   model, which merges KiCad layers into front/back silkscreen/fab and
   cannot express per-layer visibility. Layer order, palette and blending
   follow the KiCanvas view (bundled theme JSON).
-- **Visual-metric divergence (text):** no KiCad font data is shipped (KiCad's
-  newstroke font is GPL-2.0-or-later). The view draws text with Canvas2D
+- **Visual-metric divergence (text):** no KiCad font data is shipped. The view
+  draws text with Canvas2D
   `fillText` in the system monospace font, scaled so the cap height equals
   the KiCad text height and stretched to the KiCad width/height ratio, with
   stems thickened to the KiCad stroke width. It honours anchor, rotation,
@@ -99,8 +100,10 @@ Status: implemented behind the PCB tab's "Rust renderer" switch
 
 ## T3: schematic view on Rust (later)
 
-A Rust schematic renderer over `kct::schema::{schematic,symbol,library,hierarchy}`,
-with KiCad's newstroke font as Rust static data instead of `glyph-full.js`.
+A Rust schematic renderer over `kct::schema::{schematic,symbol,library,hierarchy}`.
+Before moving Newstroke glyphs into Rust, record the font's original upstream
+source, license, and required notice; do not infer provenance from KiCad's
+downstream file labels. A system-font fallback remains acceptable meanwhile.
 Required parity: hierarchy navigation, symbol graphics, text and fields, and
-selection. Then `ecad-viewer.js`, `parser.worker.js` and `glyph-full.js` can
-all be deleted.
+selection. Once the renderer and font path are provenance-clean,
+`ecad-viewer.js`, `parser.worker.js` and `glyph-full.js` can all be deleted.

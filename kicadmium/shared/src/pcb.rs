@@ -8,9 +8,8 @@
 //!
 //! THIRD-PARTY PROVENANCE: the shape/pad/track/zone model is derived from
 //! pastebom's `crates/viewer/src/pcbdata.rs` (github.com/meawoppl/pastebom.com,
-//! same author). That repository has NO license file; no license is claimed
-//! for the derived parts, and relicensing them under kicadmium's MIT is the
-//! author's decision. See `docs/third-party.md`.
+//! same author). Its author explicitly authorized the listed derived parts
+//! under kicadmium's MIT license. See `docs/third-party.md` for provenance.
 
 use serde::{Deserialize, Serialize};
 

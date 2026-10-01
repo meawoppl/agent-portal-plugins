@@ -40,6 +40,7 @@ pub mod optim;
 pub mod optimize_placement;
 pub mod optimize_traces;
 pub mod parts;
+pub mod place_silk_refs;
 pub mod pcb;
 pub mod placement;
 pub mod project;
@@ -98,7 +99,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "fix-footprints", about: "Fix footprint pad spacing issues", wave: "D", run: Some(footprint_validation::fix) },
     CommandSpec { name: "fix-vias", about: "Fix vias to meet manufacturer specifications", wave: "D", run: None },
     CommandSpec { name: "fix-silkscreen", about: "Fix silkscreen line widths to meet manufacturer specifications", wave: "D", run: None },
-    CommandSpec { name: "place-silk-refs", about: "Move readable silkscreen reference designators to clear collisions", wave: "D", run: None },
+    CommandSpec { name: "place-silk-refs", about: "Move readable silkscreen reference designators to clear collisions", wave: "D", run: Some(place_silk_refs::run) },
     CommandSpec { name: "repair-clearance", about: "Repair clearance violations by nudging traces", wave: "D", run: None },
     CommandSpec { name: "fix-drc", about: "Automated DRC violation repair (clearance + drill)", wave: "D", run: None },
     CommandSpec { name: "fix-erc", about: "Automated ERC violation repair (PWR_FLAG + no-connect)", wave: "D", run: Some(fix_erc::run) },

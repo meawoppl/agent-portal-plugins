@@ -6,17 +6,28 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{HtmlIFrameElement, MessageEvent};
 use yew::prelude::*;
 
+use crate::pcb_view::PcbView;
+
+/// `localStorage` key choosing the PCB renderer (`rust` or `kicanvas`).
+const RENDERER_KEY: &str = "kicadmium:pcb-renderer";
+
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub project: AttrValue,
     pub kind: AttrValue,
     #[prop_or(true)]
     pub active: bool,
+    /// Workbench revision (drives the Rust PCB view's refresh).
+    #[prop_or_default]
+    pub revision: AttrValue,
+}
+
+fn local_storage() -> Option<web_sys::Storage> {
+    web_sys::window().and_then(|w| w.local_storage().ok().flatten())
 }
 
 fn stored(kind: &str) -> Value {
-    web_sys::window()
-        .and_then(|w| w.local_storage().ok().flatten())
+    local_storage()
         .and_then(|s| {
             s.get_item(&format!("kicadmium:viewer:{kind}"))
                 .ok()
@@ -24,6 +35,12 @@ fn stored(kind: &str) -> Value {
         })
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or_else(|| json!({}))
+}
+
+fn rust_renderer_saved() -> bool {
+    local_storage()
+        .and_then(|s| s.get_item(RENDERER_KEY).ok().flatten())
+        .is_some_and(|v| v == "rust")
 }
 
 async fn send_snapshot(
@@ -65,69 +82,104 @@ async fn send_snapshot(
 pub fn viewer(props: &Props) -> Html {
     let node = use_node_ref();
     let pours = use_state(|| true);
+    let is_pcb = props.kind.as_str() == "pcb";
+    let rust = use_state(rust_renderer_saved);
+    let use_rust = is_pcb && *rust;
     {
         let node = node.clone();
         let project = props.project.to_string();
         let kind = props.kind.to_string();
         let active = props.active;
         let pours = *pours;
-        use_effect_with((project.clone(), kind.clone(), active, pours), move |_| {
-            let frame = node
-                .cast::<HtmlIFrameElement>()
-                .expect("viewer iframe mounted");
-            spawn_local(send_snapshot(
-                frame.clone(),
-                project.clone(),
-                kind.clone(),
-                active,
-                pours,
-            ));
-            let frame_for_event = frame.clone();
-            let project_for_event = project.clone();
-            let kind_for_event = kind.clone();
-            let callback = Closure::<dyn Fn(MessageEvent)>::new(move |event: MessageEvent| {
-                let Ok(value) = serde_wasm_bindgen::from_value::<Value>(event.data()) else {
-                    return;
-                };
-                match value.get("type").and_then(Value::as_str) {
-                    Some("kicad-pcb-runtime-ready") => spawn_local(send_snapshot(
-                        frame_for_event.clone(),
-                        project_for_event.clone(),
-                        kind_for_event.clone(),
+        use_effect_with(
+            (project.clone(), kind.clone(), active, pours, use_rust),
+            move |_| {
+                // The Rust PCB view renders no iframe.
+                let frame = node.cast::<HtmlIFrameElement>();
+                let listener = frame.map(|frame| {
+                    spawn_local(send_snapshot(
+                        frame.clone(),
+                        project.clone(),
+                        kind.clone(),
                         active,
                         pours,
-                    )),
-                    Some("kicad-pcb-view-state")
-                        if value.get("context").and_then(Value::as_str)
-                            == Some(&kind_for_event) =>
-                    {
-                        if let Some(storage) =
-                            web_sys::window().and_then(|w| w.local_storage().ok().flatten())
-                        {
-                            let _ = storage.set_item(
-                                &format!("kicadmium:viewer:{kind_for_event}"),
-                                &value.to_string(),
-                            );
-                        }
+                    ));
+                    let frame_for_event = frame.clone();
+                    let project_for_event = project.clone();
+                    let kind_for_event = kind.clone();
+                    let callback =
+                        Closure::<dyn Fn(MessageEvent)>::new(move |event: MessageEvent| {
+                            let Ok(value) = serde_wasm_bindgen::from_value::<Value>(event.data())
+                            else {
+                                return;
+                            };
+                            match value.get("type").and_then(Value::as_str) {
+                                Some("kicad-pcb-runtime-ready") => spawn_local(send_snapshot(
+                                    frame_for_event.clone(),
+                                    project_for_event.clone(),
+                                    kind_for_event.clone(),
+                                    active,
+                                    pours,
+                                )),
+                                Some("kicad-pcb-view-state")
+                                    if value.get("context").and_then(Value::as_str)
+                                        == Some(&kind_for_event) =>
+                                {
+                                    if let Some(storage) = local_storage() {
+                                        let _ = storage.set_item(
+                                            &format!("kicadmium:viewer:{kind_for_event}"),
+                                            &value.to_string(),
+                                        );
+                                    }
+                                }
+                                _ => {}
+                            }
+                        });
+                    let window = web_sys::window().unwrap();
+                    let _ = window.add_event_listener_with_callback(
+                        "message",
+                        callback.as_ref().unchecked_ref(),
+                    );
+                    (window, callback)
+                });
+                move || {
+                    if let Some((window, callback)) = listener {
+                        let _ = window.remove_event_listener_with_callback(
+                            "message",
+                            callback.as_ref().unchecked_ref(),
+                        );
+                        drop(callback)
                     }
-                    _ => {}
                 }
-            });
-            let window = web_sys::window().unwrap();
-            let _ = window
-                .add_event_listener_with_callback("message", callback.as_ref().unchecked_ref());
-            move || {
-                let _ = window.remove_event_listener_with_callback(
-                    "message",
-                    callback.as_ref().unchecked_ref(),
-                );
-                drop(callback)
-            }
-        });
+            },
+        );
     }
     let toggle = {
         let pours = pours.clone();
         Callback::from(move |_| pours.set(!*pours))
     };
-    html! {<div class="viewer-card">{if props.kind.as_str()=="pcb"{html!{<label class="viewer-option"><input type="checkbox" checked={*pours} onchange={toggle}/>{" Polygon pours"}</label>}}else{Html::default()}}<iframe key={props.kind.to_string()} ref={node} class="native-viewer" data-kind={props.kind.clone()} title={format!("{} viewer",props.kind)} src="/kicad-viewer/runtime.html" /></div>}
+    let toggle_renderer = {
+        let rust = rust.clone();
+        Callback::from(move |_| {
+            let next = !*rust;
+            if let Some(s) = local_storage() {
+                let _ = s.set_item(RENDERER_KEY, if next { "rust" } else { "kicanvas" });
+            }
+            rust.set(next)
+        })
+    };
+    let options = if is_pcb {
+        html! {<div class="viewer-options">
+            <label class="viewer-option"><input type="checkbox" checked={*pours} onchange={toggle}/>{" Polygon pours"}</label>
+            <label class="viewer-option" title="Render the PCB with the native Rust view instead of KiCanvas"><input type="checkbox" checked={*rust} onchange={toggle_renderer}/>{" Rust renderer"}</label>
+        </div>}
+    } else {
+        Html::default()
+    };
+    let body = if use_rust {
+        html! {<PcbView project={props.project.clone()} revision={props.revision.clone()} pours={*pours}/>}
+    } else {
+        html! {<iframe key={props.kind.to_string()} ref={node} class="native-viewer" data-kind={props.kind.clone()} title={format!("{} viewer",props.kind)} src="/kicad-viewer/runtime.html" />}
+    };
+    html! {<div class={classes!("viewer-card", use_rust.then_some("rust-pcb"))}>{options}{body}</div>}
 }

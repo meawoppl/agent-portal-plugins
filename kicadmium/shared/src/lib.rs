@@ -1,4 +1,5 @@
 pub mod library;
+pub mod pcb;
 
 use serde::{Deserialize, Serialize};
 

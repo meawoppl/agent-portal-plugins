@@ -82,3 +82,28 @@ details.raw summary{cursor:pointer;color:#7dcfff}
 .lib-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:24px;box-sizing:border-box}
 .lib-stage .lib-stage-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa5ce}
 .lib-dialog footer{padding:6px 12px;border-top:1px solid #3b4261;color:#9aa5ce;font-size:12px;display:flex;gap:12px;flex-wrap:wrap}
+/* Rust PCB view (pcb_view/mod.rs). */
+.viewer-options{display:flex;gap:16px;flex-wrap:wrap}
+.viewer-card.rust-pcb{display:flex;flex-direction:column;gap:4px}
+.pcbv{position:relative;flex:1;min-height:480px;border-radius:6px;overflow:hidden;background:#1e1e1e}
+.pcbv-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.pcbv-toolbar{position:absolute;top:10px;right:10px;display:flex;gap:2px;padding:4px;border:1px solid #3b4261;border-radius:6px;background:#1a1b26e6;font-family:ui-monospace,monospace}
+.pcbv-toolbar button{border:0;border-radius:4px;background:transparent;color:#c0caf5;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px}
+.pcbv-toolbar button:hover{background:#24283b}
+.pcbv-toolbar button.on{background:#7aa2f7;color:#10131d}
+.pcbv-layers{position:absolute;top:54px;right:10px;bottom:10px;width:200px;overflow:auto;padding:8px;border:1px solid #3b4261;border-radius:6px;background:#1a1b26f0;font-size:12px}
+.pcbv-presets{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.pcbv-texts{padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid #3b4261}
+.pcbv-presets button{border:1px solid #3b4261;border-radius:4px;background:#24283b;color:#c0caf5;padding:3px 7px;cursor:pointer;font-size:11px}
+.pcbv-layer{display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer;white-space:nowrap}
+.pcbv-swatch{width:12px;height:12px;border-radius:2px;flex:none;border:1px solid #0006}
+.pcbv-props{position:absolute;left:10px;bottom:10px;max-width:min(460px,calc(100% - 20px));max-height:45%;overflow:auto;padding:8px 10px;border:1px solid #3b4261;border-radius:6px;background:#1a1b26f0;font-size:12px;font-family:ui-monospace,monospace}
+.pcbv-props-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.pcbv-props-head strong{color:#9ece6a;font-size:13px}
+.pcbv-props-head button{margin-left:auto;border:0;background:transparent;color:#c0caf5;font-size:16px;cursor:pointer}
+.pcbv-net{color:#7dcfff}
+.pcbv-props dl{display:grid;grid-template-columns:max-content 1fr;gap:3px 12px;margin:0}
+.pcbv-props dt{color:#9aa5ce}
+.pcbv-props dd{margin:0;overflow-wrap:anywhere}
+.pcbv-status{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#9aa5ce}
+@media (max-width:760px){.pcbv-layers{top:auto;height:45%;width:auto;left:10px}}

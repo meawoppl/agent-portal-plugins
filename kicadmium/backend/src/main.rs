@@ -5,6 +5,7 @@ mod jlc_corrections;
 mod jobs;
 mod library;
 mod lint;
+mod pcb_view;
 mod profile;
 mod quality;
 mod revision;
@@ -444,6 +445,7 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/libraries", get(libraries_endpoint))
                 .merge(library::routes())
                 .merge(lint::routes())
+                .merge(pcb_view::routes())
                 .merge(jobs::routes())
                 .layer(TraceLayer::new_for_http())
                 .with_state(state)

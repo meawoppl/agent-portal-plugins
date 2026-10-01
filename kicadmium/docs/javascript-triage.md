@@ -67,6 +67,36 @@ KiCanvas PCB paths until it matches on all of: pads, tracks, zones, text,
 drills, pours/layer visibility, selection, net highlight, source identity
 (revision), and touch.
 
+Status: implemented behind the PCB tab's "Rust renderer" switch
+(`localStorage["kicadmium:pcb-renderer"] = "rust"`, default KiCanvas).
+
+- Data: `/api/kicad/pcbview` (`backend/src/pcb_view.rs`) builds
+  `shared::pcb::PcbBoard` from `kct::schema::pcb` and the same `kct::sexp`
+  tree, at the project's current source revision. Text is sent as the raw
+  KiCad text plus position, rotation (after keep-upright), size, thickness,
+  justification, mirror, italic/bold, line spacing, layer and visibility.
+- View: `frontend/src/pcb_view/` (Canvas2D, Yew). Pad shapes, hit testing,
+  pointer handling and settings persistence are derived from pastebom's
+  viewer, which has no license; see `docs/third-party.md` before merging.
+  They were copied in with attribution rather than taken as a crate
+  dependency: pastebom's viewer is a binary built around the iBOM `PcbData`
+  model, which merges KiCad layers into front/back silkscreen/fab and
+  cannot express per-layer visibility. Layer order, palette and blending
+  follow the KiCanvas view (bundled theme JSON).
+- **Visual-metric divergence (text):** no KiCad font data is shipped (KiCad's
+  newstroke font is GPL-2.0-or-later). The view draws text with Canvas2D
+  `fillText` in the system monospace font, scaled so the cap height equals
+  the KiCad text height and stretched to the KiCad width/height ratio, with
+  stems thickened to the KiCad stroke width. It honours anchor, rotation,
+  mirror, horizontal/vertical justification (KiCad's line-position metrics),
+  multi-line spacing, italic and overbar/sub/superscript markup. Glyph
+  shapes and advance widths differ from KiCad's stroke font, so text runs
+  can be slightly longer or shorter than in KiCad or KiCanvas, and text
+  bounding boxes are not KiCad-exact.
+- Other deliberate differences: Beziers and arc segments in polygons are
+  drawn (KiCanvas skips or flattens them). Footprint values and fab/drawing
+  user text are toggles, off by default because KiCanvas never shows them.
+
 ## T3: schematic view on Rust (later)
 
 A Rust schematic renderer over `kct::schema::{schematic,symbol,library,hierarchy}`,

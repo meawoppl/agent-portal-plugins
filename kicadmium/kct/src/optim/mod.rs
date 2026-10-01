@@ -1,0 +1,32 @@
+//! Port of `kicad_tools/optim/__init__.py`.
+
+pub mod alignment;
+pub mod board_outline;
+pub mod bottom_up_placement;
+pub mod clustering;
+pub mod components;
+pub mod config;
+pub mod constraint_loader;
+pub mod constraints;
+pub mod cpp_backend;
+pub mod edge_placement;
+pub mod evolutionary;
+pub mod fom;
+pub mod fom_electrical;
+pub mod fom_features;
+pub mod fom_geometry;
+pub mod fom_thermal;
+pub mod geometry;
+pub mod keepout;
+pub mod place_route;
+pub mod placement;
+pub mod query;
+pub mod router_factory;
+pub mod routing;
+pub mod session;
+pub mod signal_integrity;
+pub mod suggestions;
+pub mod thermal;
+pub mod weights;
+pub mod workflow;
+pub mod zones;

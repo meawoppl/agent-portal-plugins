@@ -16,7 +16,11 @@ pub mod analyze;
 pub mod audit;
 pub mod board_metrics;
 pub mod check;
+pub mod constraints;
+pub mod creepage;
+pub mod creepage_export_rules;
 pub mod datasheet;
+pub mod decisions;
 pub mod design;
 pub mod drc;
 pub mod erc;
@@ -28,18 +32,23 @@ pub mod h;
 pub mod impedance;
 pub mod mfr;
 pub mod net_status;
+pub mod optim;
+pub mod optimize_placement;
 pub mod optimize_traces;
 pub mod parts;
 pub mod pcb;
+pub mod placement;
 pub mod project;
 pub mod render;
 pub mod repair_common;
 pub mod report;
 pub mod runner;
 pub mod screenshot;
+pub mod stitch;
 pub mod suggest;
 pub mod utility;
 pub mod workflow;
+pub mod zones;
 
 /// Global flags accepted before the command name.
 #[derive(Debug, Clone, Default)]
@@ -68,15 +77,15 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "drc", about: "Parse DRC report", wave: "A", run: Some(drc::run) },
     CommandSpec { name: "bom", about: "Generate bill of materials", wave: "B", run: Some(design::bom) },
     CommandSpec { name: "check", about: "Pure Python DRC (no kicad-cli)", wave: "A", run: Some(check::run) },
-    CommandSpec { name: "creepage", about: "HV creepage/clearance census (surface-path distance)", wave: "E", run: None },
-    CommandSpec { name: "creepage-export-rules", about: "Export voltage-domain netclasses + pairwise HV clearance (rule) clauses so kicad-cli DRC enforces creepage (Issue #4508)", wave: "E", run: None },
+    CommandSpec { name: "creepage", about: "HV creepage/clearance census (surface-path distance)", wave: "E", run: Some(creepage::run) },
+    CommandSpec { name: "creepage-export-rules", about: "Export voltage-domain netclasses + pairwise HV clearance (rule) clauses so kicad-cli DRC enforces creepage (Issue #4508)", wave: "E", run: Some(creepage_export_rules::run) },
     CommandSpec { name: "sch", about: "Schematic analysis tools", wave: "B", run: Some(design::sch) },
     CommandSpec { name: "pcb", about: "PCB query tools", wave: "C", run: Some(pcb::run) },
     CommandSpec { name: "lib", about: "Symbol and footprint library tools", wave: "B", run: Some(design::lib) },
     CommandSpec { name: "footprint", about: "Footprint generation and tools", wave: "G", run: Some(footprint::run) },
     CommandSpec { name: "mfr", about: "Manufacturer tools", wave: "G", run: Some(mfr::run) },
-    CommandSpec { name: "zones", about: "Add copper pour zones to PCB", wave: "E", run: None },
-    CommandSpec { name: "stitch", about: "Auto-add stitching vias for plane connections", wave: "E", run: None },
+    CommandSpec { name: "zones", about: "Add copper pour zones to PCB", wave: "E", run: Some(zones::run) },
+    CommandSpec { name: "stitch", about: "Auto-add stitching vias for plane connections", wave: "E", run: Some(stitch::run) },
     CommandSpec { name: "route", about: "Autoroute a PCB", wave: "F", run: None },
     CommandSpec { name: "route-auto", about: "Route a net using RoutingOrchestrator smart strategy selection", wave: "F", run: None },
     CommandSpec { name: "reason", about: "LLM-driven PCB layout reasoning", wave: "H", run: Some(h::reason) },
@@ -91,14 +100,14 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "fix-erc", about: "Automated ERC violation repair (PWR_FLAG + no-connect)", wave: "D", run: None },
     CommandSpec { name: "parts", about: "LCSC parts lookup and search", wave: "G", run: Some(parts::run) },
     CommandSpec { name: "datasheet", about: "Datasheet search, download, and PDF parsing", wave: "G", run: Some(datasheet::run) },
-    CommandSpec { name: "decisions", about: "Query design decisions (placement and routing rationale)", wave: "E", run: None },
-    CommandSpec { name: "placement", about: "Detect and fix placement conflicts", wave: "E", run: None },
-    CommandSpec { name: "optimize-placement", about: "Run CMA-ES placement optimization on a KiCad PCB", wave: "E", run: None },
+    CommandSpec { name: "decisions", about: "Query design decisions (placement and routing rationale)", wave: "E", run: Some(decisions::run) },
+    CommandSpec { name: "placement", about: "Detect and fix placement conflicts", wave: "E", run: Some(placement::run) },
+    CommandSpec { name: "optimize-placement", about: "Run CMA-ES placement optimization on a KiCad PCB", wave: "E", run: Some(optimize_placement::run) },
     CommandSpec { name: "config", about: "View and manage configuration", wave: "G", run: Some(utility::config) },
     CommandSpec { name: "interactive", about: "Launch interactive REPL mode", wave: "H", run: Some(h::interactive) },
     CommandSpec { name: "validate", about: "Validation tools", wave: "B", run: Some(design::validate) },
     CommandSpec { name: "analyze", about: "PCB analysis tools", wave: "C", run: Some(analyze::run) },
-    CommandSpec { name: "constraints", about: "Constraint conflict detection and management", wave: "E", run: None },
+    CommandSpec { name: "constraints", about: "Constraint conflict detection and management", wave: "E", run: Some(constraints::run) },
     CommandSpec { name: "estimate", about: "Manufacturing cost estimation", wave: "C", run: Some(estimate::run) },
     CommandSpec { name: "audit", about: "Manufacturing readiness audit (ERC, DRC, connectivity, compatibility)", wave: "C", run: Some(audit::audit) },
     CommandSpec { name: "suggest", about: "Part suggestions and recommendations", wave: "G", run: Some(suggest::run) },
@@ -127,7 +136,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "screenshot", about: "Capture a PNG screenshot of a KiCad board or schematic", wave: "C", run: Some(screenshot::run) },
     CommandSpec { name: "report", about: "Generate a Markdown design report", wave: "C", run: Some(report::run) },
     CommandSpec { name: "export", about: "Generate a complete manufacturing package (BOM, CPL, Gerbers, project ZIP, manifest)", wave: "G", run: Some(fabrication::export) },
-    CommandSpec { name: "optim", about: "Placement / routing FOM tools (issue #3186)", wave: "E", run: None },
+    CommandSpec { name: "optim", about: "Placement / routing FOM tools (issue #3186)", wave: "E", run: Some(optim::run) },
 ];
 
 /// Exit code for commands that are not ported yet.

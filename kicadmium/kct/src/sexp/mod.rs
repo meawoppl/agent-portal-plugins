@@ -6,6 +6,7 @@
 //! numbers (`0.1000`) and quoted-vs-bare strings round-trip byte-exact; edited
 //! or constructed atoms fall back to KiCad's quoting conventions.
 
+pub mod builders;
 mod format;
 mod parse;
 

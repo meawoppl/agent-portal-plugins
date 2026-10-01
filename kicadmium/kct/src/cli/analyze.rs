@@ -197,58 +197,125 @@ fn severity_rank(s: &str) -> u8 {
 }
 
 fn congestion_cmd(a: CongestionArgs) -> Result<i32> {
-    let r = load(&a.pcb)?;
+    #[derive(Clone, Default)]
+    struct Cell {
+        x: i64,
+        y: i64,
+        track: f64,
+        vias: usize,
+        pads: usize,
+        connected: usize,
+        components: BTreeSet<String>,
+        nets: BTreeSet<i64>,
+    }
+    fn cell_for<'a>(
+        cells: &'a mut Vec<Cell>,
+        indices: &mut std::collections::HashMap<(i64, i64), usize>,
+        p: (f64, f64),
+        grid: f64,
+    ) -> &'a mut Cell {
+        let key = ((p.0 / grid).floor() as i64, (p.1 / grid).floor() as i64);
+        let i = if let Some(&i) = indices.get(&key) {
+            i
+        } else {
+            let i = cells.len();
+            cells.push(Cell {
+                x: key.0,
+                y: key.1,
+                ..Default::default()
+            });
+            indices.insert(key, i);
+            i
+        };
+        &mut cells[i]
+    }
+    let pcb = Pcb::load(&a.pcb)?;
     let area = a.grid_size * a.grid_size;
-    let names = net_names(&r);
-    type CongestionCell = (f64, usize, usize, BTreeSet<String>, BTreeSet<String>);
-    let mut cells: BTreeMap<(i64, i64), CongestionCell> = BTreeMap::new();
-    for s in segments(&r) {
-        let p = point(s, "start");
-        let c = (
-            (p.0 / a.grid_size).floor() as i64,
-            (p.1 / a.grid_size).floor() as i64,
-        );
-        let e = cells.entry(c).or_default();
-        e.0 += len(s);
-        if let Some(n) = s
-            .get("net")
-            .and_then(|x| x.int_at(0))
-            .and_then(|n| names.get(&n))
-        {
-            e.4.insert(n.clone());
+    let names: BTreeMap<i64, String> = pcb
+        .nets()
+        .iter()
+        .map(|n| (n.number, n.name.clone()))
+        .collect();
+    let mut cells: Vec<Cell> = vec![];
+    let mut indices = std::collections::HashMap::new();
+    for s in pcb.segments() {
+        let length = s.length();
+        if length < 0.01 {
+            continue;
+        }
+        let count = 2usize.max((length / (a.grid_size / 2.0)) as usize + 1);
+        for i in 0..count {
+            let t = i as f64 / (count - 1) as f64;
+            let e = cell_for(
+                &mut cells,
+                &mut indices,
+                (
+                    s.start.0 + t * (s.end.0 - s.start.0),
+                    s.start.1 + t * (s.end.1 - s.start.1),
+                ),
+                a.grid_size,
+            );
+            e.track += length / count as f64;
+            e.nets.insert(s.net_number);
         }
     }
-    for v in r.children_named("via") {
-        let p = point(v, "at");
-        let c = (
-            (p.0 / a.grid_size).floor() as i64,
-            (p.1 / a.grid_size).floor() as i64,
-        );
-        cells.entry(c).or_default().1 += 1
+    for v in pcb.vias() {
+        let e = cell_for(&mut cells, &mut indices, v.position, a.grid_size);
+        e.vias += 1;
+        e.nets.insert(v.net_number);
     }
-    for f in r.children_named("footprint") {
-        let p = point(f, "at");
-        let c = (
-            (p.0 / a.grid_size).floor() as i64,
-            (p.1 / a.grid_size).floor() as i64,
-        );
-        let e = cells.entry(c).or_default();
-        e.3.insert(f.property("Reference").unwrap_or("").into());
-        for p in f.children_named("pad") {
-            e.2 += usize::from(p.get("net").is_none())
+    for f in pcb.footprints() {
+        cell_for(&mut cells, &mut indices, f.position, a.grid_size)
+            .components
+            .insert(f.reference.clone());
+        for p in &f.pads {
+            let e = cell_for(
+                &mut cells,
+                &mut indices,
+                (f.position.0 + p.position.0, f.position.1 + p.position.1),
+                a.grid_size,
+            );
+            e.pads += 1;
+            if p.net_number != 0 {
+                e.connected += 1;
+                e.nets.insert(p.net_number);
+            }
+        }
+    }
+    let mut hot: Vec<Cell> = cells
+        .into_iter()
+        .filter(|c| c.track / area >= 0.5 || c.vias >= 2 || (c.pads > 0 && c.connected < c.pads))
+        .collect();
+    hot.sort_by(|a, b| {
+        ((b.track / area + b.vias as f64 * 0.1)
+            .partial_cmp(&(a.track / area + a.vias as f64 * 0.1)))
+        .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    let mut merged: Vec<Cell> = vec![];
+    for c in hot {
+        if let Some(e) = merged.iter_mut().find(|e| {
+            (((c.x - e.x) as f64 * a.grid_size).hypot((c.y - e.y) as f64 * a.grid_size)) < 5.0
+        }) {
+            e.track += c.track;
+            e.vias += c.vias;
+            e.components.extend(c.components);
+            e.nets.extend(c.nets);
+        } else {
+            merged.push(c)
+        }
+        if merged.len() >= 10 {
+            break;
         }
     }
     let mut reports = vec![];
-    for ((x, y), (track, vias, unrouted, components, nets)) in cells {
-        let density = track / area;
-        if density < 0.5 && vias < 2 && unrouted == 0 {
-            continue;
-        }
-        let sev = if density >= 2. || vias >= 12 {
+    for c in merged {
+        let density = c.track / area;
+        let unrouted = c.pads.saturating_sub(c.connected);
+        let sev = if density >= 2. || c.vias >= 12 {
             "critical"
-        } else if density >= 1.5 || vias >= 8 {
+        } else if density >= 1.5 || c.vias >= 8 {
             "high"
-        } else if density >= 1. || vias >= 5 {
+        } else if density >= 1. || c.vias >= 5 {
             "medium"
         } else {
             "low"
@@ -257,16 +324,80 @@ fn congestion_cmd(a: CongestionArgs) -> Result<i32> {
             continue;
         }
         let mut suggestions = vec![];
-        if density >= 1. {
-            suggestions.push("Consider spreading traces across additional layers")
+        let components: Vec<_> = c.components.into_iter().collect();
+        let nets: Vec<_> = c
+            .nets
+            .iter()
+            .filter(|&&n| n != 0)
+            .take(10)
+            .map(|n| names.get(n).cloned().unwrap_or_else(|| format!("net_{n}")))
+            .collect();
+        if components.len() >= 2 {
+            let mut list = components
+                .iter()
+                .take(3)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join(", ");
+            if components.len() > 3 {
+                list += &format!(" (and {} more)", components.len() - 3)
+            }
+            suggestions.push(format!(
+                "Consider moving {list} to reduce component density"
+            ));
         }
-        if vias >= 5 {
-            suggestions.push("Reduce via concentration or fan out earlier")
+        if matches!(sev, "high" | "critical") {
+            suggestions
+                .push("Route some nets on inner layers to reduce top/bottom congestion".into())
+        }
+        if c.vias >= 10 {
+            suggestions.push(format!(
+                "Area has {} vias; consider optimizing routing to reduce layer changes",
+                c.vias
+            ))
+        } else if c.vias >= 5 {
+            suggestions.push(format!(
+                "Consider reducing vias ({}) by routing on fewer layers",
+                c.vias
+            ))
         }
         if unrouted > 0 {
-            suggestions.push("Route remaining pad connections")
+            suggestions.push(format!("{unrouted} unrouted connection(s) in this area; may need manual routing or component repositioning"))
         }
-        reports.push(json!({"center":{"x":(x as f64+0.5)*a.grid_size,"y":(y as f64+0.5)*a.grid_size},"radius":a.grid_size*2.5,"track_density":round3(density),"via_count":vias,"unrouted_connections":unrouted,"components":components,"nets":nets,"severity":sev,"suggestions":suggestions}));
+        if nets.len() >= 5 {
+            let power: Vec<_> = nets
+                .iter()
+                .filter(|n| {
+                    ["VCC", "VDD", "GND", "VSS", "PWR"]
+                        .iter()
+                        .any(|p| n.to_uppercase().contains(p))
+                })
+                .take(3)
+                .cloned()
+                .collect();
+            if !power.is_empty() {
+                suggestions.push(format!(
+                    "Power nets ({}) could use wider traces or dedicated planes",
+                    power.join(", ")
+                ))
+            }
+        }
+        let bypass: Vec<_> = components
+            .iter()
+            .filter(|r| r.starts_with('C'))
+            .take(3)
+            .cloned()
+            .collect();
+        if !bypass.is_empty() && matches!(sev, "high" | "critical") {
+            suggestions.push(format!(
+                "Consider via-in-pad for bypass capacitors ({})",
+                bypass.join(", ")
+            ))
+        }
+        if sev == "critical" && suggestions.is_empty() {
+            suggestions.push("Critical congestion: consider redesigning component placement or adding board layers".into())
+        }
+        reports.push(json!({"center":{"x":crate::pyjson::py_round((c.x as f64+0.5)*a.grid_size,2),"y":crate::pyjson::py_round((c.y as f64+0.5)*a.grid_size,2)},"radius":a.grid_size,"track_density":crate::pyjson::py_round(density,3),"via_count":c.vias,"unrouted_connections":unrouted,"components":components,"nets":nets,"severity":sev,"suggestions":suggestions}));
     }
     reports
         .sort_by_key(|v| std::cmp::Reverse(severity_rank(v["severity"].as_str().unwrap_or("low"))));
@@ -302,65 +433,215 @@ fn coupling(a: &SExp, b: &SExp) -> (f64, f64) {
     )
 }
 fn signal_integrity_cmd(a: SignalIntegrityArgs) -> Result<i32> {
-    let r = load(&a.pcb)?;
-    let names = net_names(&r);
-    let ss: Vec<_> = segments(&r).collect();
+    let pcb = Pcb::load(&a.pcb)?;
+    let names: BTreeMap<i64, String> = pcb
+        .nets()
+        .iter()
+        .map(|n| (n.number, n.name.clone()))
+        .collect();
+    let fast: BTreeSet<i64> = pcb
+        .nets()
+        .iter()
+        .filter(|n| is_fast(&n.name))
+        .map(|n| n.number)
+        .collect();
     let mut risks = vec![];
     if !a.impedance_only {
-        for i in 0..ss.len() {
-            for j in i + 1..ss.len() {
-                if layer(ss[i]) != layer(ss[j]) {
-                    continue;
+        let mut seen = BTreeSet::new();
+        for &n in &fast {
+            for s in pcb.segments_in_net(n) {
+                for other in pcb.segments_on_layer(&s.layer) {
+                    if other.net_number == n {
+                        continue;
+                    }
+                    let (parallel, gap) = coupling_segments(s, other);
+                    if parallel < 3.0 || gap > 0.5 {
+                        continue;
+                    }
+                    let key = (n.min(other.net_number), n.max(other.net_number));
+                    if !seen.insert(key) {
+                        continue;
+                    }
+                    let mut spacing = gap;
+                    if spacing < 0.05 {
+                        spacing = 0.05
+                    }
+                    let coeff =
+                        ((s.length().min(other.length()) / 10.0) * (0.1 / spacing)).min(1.0);
+                    let risk = if coeff >= 0.5 {
+                        "high"
+                    } else if coeff >= 0.3 {
+                        "medium"
+                    } else {
+                        "low"
+                    };
+                    if risk == "low" || severity_rank(risk) < severity_rank(&a.min_risk) {
+                        continue;
+                    }
+                    let target = (spacing * 2.0).max(0.5);
+                    risks.push(json!({"aggressor_net":names.get(&n).cloned().unwrap_or_else(||format!("Net{n}")),"victim_net":names.get(&other.net_number).cloned().unwrap_or_else(||format!("Net{}",other.net_number)),"parallel_length_mm":crate::pyjson::py_round(s.length().min(other.length()),2),"spacing_mm":crate::pyjson::py_round(spacing,3),"layer":s.layer,"coupling_coefficient":crate::pyjson::py_round(coeff,3),"risk_level":risk,"suggestion":format!("Increase spacing to {target:.2}mm or add ground guard trace")}));
                 }
-                let ni = ss[i].get("net").and_then(|x| x.int_at(0)).unwrap_or(0);
-                let nj = ss[j].get("net").and_then(|x| x.int_at(0)).unwrap_or(0);
-                if ni == nj {
-                    continue;
-                }
-                let an = names.get(&ni).cloned().unwrap_or_default();
-                if !is_fast(&an) {
-                    continue;
-                }
-                let (parallel, gap) = coupling(ss[i], ss[j]);
-                if parallel < 3. || gap > 0.5 {
-                    continue;
-                }
-                let coeff = ((parallel / 10.) * (1. - gap / 0.5)).clamp(0., 1.);
-                let risk = if coeff >= 0.5 {
-                    "high"
-                } else if coeff >= 0.3 {
-                    "medium"
-                } else {
-                    "low"
-                };
-                if severity_rank(risk) < severity_rank(&a.min_risk) {
-                    continue;
-                }
-                risks.push(json!({"aggressor_net":an,"victim_net":names.get(&nj).cloned().unwrap_or_default(),"parallel_length_mm":round2(parallel),"spacing_mm":round3(gap.max(0.)),"layer":layer(ss[i]),"coupling_coefficient":round3(coeff),"risk_level":risk,"suggestion":"Increase spacing or add a ground guard"}))
             }
         }
+        risks.sort_by(|x, y| {
+            severity_rank(y["risk_level"].as_str().unwrap())
+                .cmp(&severity_rank(x["risk_level"].as_str().unwrap()))
+                .then_with(|| {
+                    y["coupling_coefficient"]
+                        .as_f64()
+                        .partial_cmp(&x["coupling_coefficient"].as_f64())
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                })
+        });
     }
     let mut discs = vec![];
     if !a.crosstalk_only {
-        for v in r.children_named("via") {
-            let n = v.get("net").and_then(|x| x.int_at(0)).unwrap_or(0);
-            let p = point(v, "at");
-            discs.push(json!({"net":names.get(&n).cloned().unwrap_or_default(),"position":{"x":round2(p.0),"y":round2(p.1)},"impedance_before_ohms":50.0,"impedance_after_ohms":45.0,"mismatch_percent":10.0,"cause":"via","suggestion":"Minimize via stubs and provide a nearby return via"}))
+        for &n in &fast {
+            let mut ss: Vec<_> = pcb.segments_in_net(n).collect();
+            if ss.len() < 2 {
+                continue;
+            }
+            ss.sort_by(|a, b| {
+                a.start
+                    .0
+                    .total_cmp(&b.start.0)
+                    .then(a.start.1.total_cmp(&b.start.1))
+            });
+            for pair in ss.windows(2) {
+                let (s, t) = (pair[0], pair[1]);
+                if s.layer != t.layer
+                    || connection_point(s, t).is_none()
+                    || (s.width - t.width).abs() <= 0.01
+                {
+                    continue;
+                }
+                let z1 = if s.width > 0.0 {
+                    50.0 * (0.2 / s.width)
+                } else {
+                    50.0
+                };
+                let z2 = if t.width > 0.0 {
+                    50.0 * (0.2 / t.width)
+                } else {
+                    50.0
+                };
+                let mismatch = (z2 - z1).abs() / z1 * 100.0;
+                if mismatch < 10.0 {
+                    continue;
+                }
+                let p = connection_point(s, t).unwrap();
+                let avg = (s.width + t.width) / 2.0;
+                discs.push(json!({"net":names.get(&n).cloned().unwrap_or_else(||format!("Net{n}")),"position":{"x":crate::pyjson::py_round(p.0,2),"y":crate::pyjson::py_round(p.1,2)},"impedance_before_ohms":crate::pyjson::py_round(z1,1),"impedance_after_ohms":crate::pyjson::py_round(z2,1),"mismatch_percent":crate::pyjson::py_round(mismatch,1),"cause":"width_change","suggestion":format!("Use consistent {avg:.3}mm width to maintain 50Ohm impedance")}));
+            }
+            for v in pcb.vias_in_net(n) {
+                let widths: Vec<_> = ss
+                    .iter()
+                    .filter(|s| {
+                        [s.start, s.end]
+                            .iter()
+                            .any(|p| distance(*p, v.position) < 1.0)
+                    })
+                    .map(|s| s.width)
+                    .collect();
+                let trace = if widths.is_empty() {
+                    50.0
+                } else {
+                    let avg = widths.iter().sum::<f64>() / widths.len() as f64;
+                    if avg > 0.0 {
+                        50.0 * (0.2 / avg)
+                    } else {
+                        50.0
+                    }
+                };
+                let mismatch = (30.0 - trace).abs() / trace * 100.0;
+                if mismatch < 20.0 {
+                    continue;
+                }
+                discs.push(json!({"net":names.get(&n).cloned().unwrap_or_else(||format!("Net{n}")),"position":{"x":crate::pyjson::py_round(v.position.0,2),"y":crate::pyjson::py_round(v.position.1,2)},"impedance_before_ohms":crate::pyjson::py_round(trace,1),"impedance_after_ohms":30.0,"mismatch_percent":crate::pyjson::py_round(mismatch,1),"cause":"via","suggestion":"Consider via-in-pad or back-drill for high-speed signals"}));
+            }
         }
+        discs.sort_by(|x, y| {
+            y["mismatch_percent"]
+                .as_f64()
+                .partial_cmp(&x["mismatch_percent"].as_f64())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
     }
     let high = risks.iter().filter(|x| x["risk_level"] == "high").count();
     let out = json!({"crosstalk_risks":risks,"impedance_discontinuities":discs,"summary":{"crosstalk":{"total":risks.len(),"high":high,"medium":risks.iter().filter(|x|x["risk_level"]=="medium").count(),"low":risks.iter().filter(|x|x["risk_level"]=="low").count()},"impedance":{"total":discs.len(),"width_changes":0,"vias":discs.len()}}});
     emit(out, &a.format)?;
-    Ok(if high > 0 { 1 } else { 0 })
+    Ok(
+        if high > 0
+            || discs
+                .iter()
+                .any(|x| x["mismatch_percent"].as_f64().unwrap_or(0.0) >= 25.0)
+        {
+            1
+        } else {
+            0
+        },
+    )
+}
+fn coupling_segments(
+    a: &crate::schema::pcb::Segment,
+    b: &crate::schema::pcb::Segment,
+) -> (f64, f64) {
+    let (adx, ady) = (a.end.0 - a.start.0, a.end.1 - a.start.1);
+    let (bdx, bdy) = (b.end.0 - b.start.0, b.end.1 - b.start.1);
+    let (al, bl) = (a.length(), b.length());
+    if al < 0.01 || bl < 0.01 || ((adx * bdx + ady * bdy) / (al * bl)).abs() < 0.9 {
+        return (0.0, f64::INFINITY);
+    }
+    let (nx, ny) = (adx / al, ady / al);
+    let (px, py) = (b.start.0 - a.start.0, b.start.1 - a.start.1);
+    let proj = px * nx + py * ny;
+    (
+        (al.min(proj + bl) - 0.0f64.max(proj)).max(0.0),
+        (px * (-ny) + py * nx).abs() - (a.width + b.width) / 2.0,
+    )
+}
+fn connection_point(
+    a: &crate::schema::pcb::Segment,
+    b: &crate::schema::pcb::Segment,
+) -> Option<(f64, f64)> {
+    [
+        (a.start, b.start, a.start),
+        (a.start, b.end, a.start),
+        (a.end, b.start, a.end),
+        (a.end, b.end, a.end),
+    ]
+    .into_iter()
+    .find_map(|(x, y, p)| (distance(x, y) < 0.01).then_some(p))
 }
 fn is_fast(n: &str) -> bool {
-    let u = n.to_ascii_uppercase();
-    [
-        "CLK", "USB", "LVDS", "MIPI", "HDMI", "PCIE", "SATA", "DDR", "DQS", "ETH", "RGMII", "RMII",
-        "MOSI", "MISO", "SCK",
-    ]
-    .iter()
-    .any(|p| u.contains(p))
+    let ps = [
+        r"(?i)^CLK",
+        r"(?i)CLK$",
+        r"(?i)CLOCK",
+        r"(?i)_CLK_",
+        r"(?i)USB.*D[PM]$",
+        r"(?i)USB.*[DP][\+\-]?$",
+        r"(?i)USB.*DATA",
+        r"(?i)^D[\+\-]$",
+        r"(?i)LVDS",
+        r"(?i)MIPI",
+        r"(?i)HDMI",
+        r"(?i)DP_",
+        r"(?i)PCIE",
+        r"(?i)SATA",
+        r"(?i)DDR",
+        r"(?i)^DQ\d",
+        r"(?i)^DQS",
+        r"(?i)^DM\d",
+        r"(?i)ETH.*[TP][\+\-]?",
+        r"(?i)RGMII",
+        r"(?i)RMII",
+        r"(?i)MOSI",
+        r"(?i)MISO",
+        r"(?i)SCK",
+        r"(?i)SPI.*CLK",
+    ];
+    ps.iter().any(|p| regex::Regex::new(p).unwrap().is_match(n))
 }
 fn round2(v: f64) -> f64 {
     (v * 100.).round() / 100.
@@ -576,6 +857,13 @@ fn thermal_cmd(a: ThermalArgs) -> Result<i32> {
         }
         hotspots.push(json!({"position":{"x":round2(center.0),"y":round2(center.1)},"radius_mm":round2(radius),"sources":source_json,"total_power_w":round3(total),"copper_area_mm2":round1(copper),"via_count":via_count,"thermal_vias":thermal_vias,"severity":sev,"max_temp_rise_c":round1(rise),"suggestions":suggestions}));
     }
+    let thermal_rank = |s: &str| match s {
+        "critical" => 0,
+        "hot" => 1,
+        "warm" => 2,
+        _ => 3,
+    };
+    hotspots.sort_by_key(|h| thermal_rank(h["severity"].as_str().unwrap_or("ok")));
     let critical = hotspots
         .iter()
         .filter(|h| h["severity"] == "critical")
@@ -720,6 +1008,7 @@ fn emit(v: Value, f: &str) -> Result<i32> {
 fn segments(r: &SExp) -> impl Iterator<Item = &SExp> {
     r.children.iter().filter(|n| n.has_tag("segment"))
 }
+#[cfg(test)]
 fn len(s: &SExp) -> f64 {
     let (a, b) = (s.get("start"), s.get("end"));
     match (a, b) {
@@ -899,22 +1188,6 @@ fn trace_lengths_pcb(pcb: &Pcb, wanted: &[String], all: bool, pairs: bool) -> Va
                 .map(|x| format!("{} → {}", x[0], x[1]))
                 .collect::<Vec<_>>())
         }
-        if pairs {
-            if let Some(other) = partner(row["net_name"].as_str().unwrap()) {
-                let Some(onet) = pcb.nets().iter().find(|net| net.name == other) else {
-                    continue;
-                };
-                let other_length = pcb
-                    .segments_in_net(onet.number)
-                    .map(|s| s.length())
-                    .sum::<f64>()
-                    + pcb
-                        .arcs_in_net(onet.number)
-                        .map(|a| a.length())
-                        .sum::<f64>();
-                row["differential_pair"] = json!({"pair_net":other,"pair_length_mm":round3(other_length),"skew_mm":round3((length-other_length).abs())});
-            }
-        }
         reports.push(row)
     }
     reports.sort_by(|a, b| a["net_name"].as_str().cmp(&b["net_name"].as_str()));
@@ -1086,7 +1359,11 @@ fn complexity(pcb: &Pcb, grid_size: f64) -> Value {
             (1.0 / (1.0 + ((adjusted - 50.0) / 15.0_f64).exp()) * 100.0).round() / 100.0
         }
     };
-    let p2 = probability(2);
+    let p2 = if !pair_bases.is_empty() || high_speed > 0 {
+        probability(2) * 0.8
+    } else {
+        probability(2)
+    };
     let p4 = probability(4);
     let p6 = probability(6);
     let predictions = vec![

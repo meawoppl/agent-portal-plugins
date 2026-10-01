@@ -197,8 +197,12 @@ fn query_nets(r: &SExp) -> Value {
         let vias = nodes(r, "via")
             .filter(|s| s.get("net").and_then(|x| x.int_at(0)) == Some(no))
             .count();
+        let name = n.string_at(1).unwrap_or("");
         let zl: Vec<_> = nodes(r, "zone")
-            .filter(|z| z.get("net").and_then(|x| x.int_at(0)) == Some(no))
+            .filter(|z| {
+                z.get("net")
+                    .is_some_and(|x| x.int_at(0) == Some(no) || x.string_at(0) == Some(name))
+            })
             .flat_map(zone_layers)
             .collect();
         out.push(json!({"number":no,"name":n.string_at(1).unwrap_or(""),"segments":seg,"vias":vias,"zone_connected":!zl.is_empty(),"zone_layers":zl}));
@@ -207,8 +211,15 @@ fn query_nets(r: &SExp) -> Value {
 }
 fn query_padmap(r: &SExp, rf: Option<&str>, net: Option<&str>) -> Value {
     let mut rows=nodes(r,"footprint").filter_map(|f|{let reference=property(f,"Reference");if rf.is_some_and(|x|x!=reference){return None}let pads:Vec<_>=nodes(f,"pad").filter_map(|p|{let nn=p.get("net").and_then(|n|n.string_at(1)).unwrap_or("");if net.is_some_and(|x|x!=nn){None}else{Some(json!({"number":p.string_at(0).unwrap_or(""),"net":nn}))}}).collect();if net.is_some()&&pads.is_empty(){return None}Some(json!({"reference":reference,"value":property(f,"Value"),"footprint":f.string_at(0).unwrap_or(""),"pads":pads}))}).collect::<Vec<_>>();
-    rows.sort_by(|a, b| a["reference"].as_str().cmp(&b["reference"].as_str()));
+    rows.sort_by(|a, b| {
+        natural_ref(a["reference"].as_str().unwrap_or(""))
+            .cmp(&natural_ref(b["reference"].as_str().unwrap_or("")))
+    });
     Value::Array(rows)
+}
+fn natural_ref(s: &str) -> (&str, u64) {
+    let i = s.find(|c: char| c.is_ascii_digit()).unwrap_or(s.len());
+    (&s[..i], s[i..].parse().unwrap_or(0))
 }
 fn query_traces(r: &SExp, wanted: Option<&str>) -> Value {
     let mut m: BTreeMap<String, (usize, f64, BTreeSet<String>)> = BTreeMap::new();
@@ -233,7 +244,11 @@ fn query_stackup(r: &SExp) -> Value {
     Value::Array(stack.children.iter().filter(|n|n.has_tag("layer")).map(|n|json!({"name":n.string_at(0).unwrap_or(""),"type":n.child_str("type"),"thickness_mm":n.child_f64("thickness")})).collect())
 }
 fn query_zones(r: &SExp) -> Value {
-    let zs:Vec<_>=nodes(r,"zone").map(|z|{let pts:Vec<_>=z.find("polygon").map(|p|p.find_all("xy").collect()).unwrap_or_default();let xs:Vec<_>=pts.iter().filter_map(|p|p.float_at(0)).collect();let ys:Vec<_>=pts.iter().filter_map(|p|p.float_at(1)).collect();let bbox=if xs.is_empty(){Value::Null}else{json!({"min_x":xs.iter().copied().fold(f64::INFINITY,f64::min),"min_y":ys.iter().copied().fold(f64::INFINITY,f64::min),"max_x":xs.iter().copied().fold(f64::NEG_INFINITY,f64::max),"max_y":ys.iter().copied().fold(f64::NEG_INFINITY,f64::max)})};json!({"net_number":z.get("net").and_then(|n|n.int_at(0)).unwrap_or(0),"net_name":z.child_str("net_name").unwrap_or(""),"layer":layer(z),"priority":z.get("priority").and_then(|n|n.int_at(0)).unwrap_or(0),"clearance":z.find("clearance").and_then(|n|n.float_at(0)).unwrap_or(0.),"thermal_gap":z.find("thermal_gap").and_then(|n|n.float_at(0)).unwrap_or(0.),"thermal_bridge_width":z.find("thermal_bridge_width").and_then(|n|n.float_at(0)).unwrap_or(0.),"is_filled":z.get("filled_polygon").is_some(),"fill_type":"solid","boundary_points":pts.len(),"bounding_box":bbox})}).collect();
+    let origin = edge_bounds(r).map(|x| (x.0, x.1)).unwrap_or_default();
+    let netnos: BTreeMap<_, _> = nodes(r, "net")
+        .filter_map(|n| Some((n.string_at(1)?.to_owned(), n.int_at(0)?)))
+        .collect();
+    let zs:Vec<_>=nodes(r,"zone").map(|z|{let pts:Vec<_>=z.find("polygon").map(|p|p.find_all("xy").collect()).unwrap_or_default();let xs:Vec<_>=pts.iter().filter_map(|p|p.float_at(0).map(|x|x-origin.0)).collect();let ys:Vec<_>=pts.iter().filter_map(|p|p.float_at(1).map(|y|y-origin.1)).collect();let bbox=if xs.is_empty(){Value::Null}else{json!({"min_x":xs.iter().copied().fold(f64::INFINITY,f64::min),"min_y":ys.iter().copied().fold(f64::INFINITY,f64::min),"max_x":xs.iter().copied().fold(f64::NEG_INFINITY,f64::max),"max_y":ys.iter().copied().fold(f64::NEG_INFINITY,f64::max)})};let nr=z.get("net");let name=nr.and_then(|n|n.string_at(0)).or_else(||z.child_str("net_name")).unwrap_or("");let no=nr.and_then(|n|n.int_at(0)).or_else(||netnos.get(name).copied()).unwrap_or(0);json!({"net_number":no,"net_name":name,"layer":layer(z),"priority":z.get("priority").and_then(|n|n.int_at(0)).unwrap_or(0),"clearance":z.find("clearance").and_then(|n|n.float_at(0)).unwrap_or(0.),"thermal_gap":z.find("thermal_gap").and_then(|n|n.float_at(0)).unwrap_or(0.),"thermal_bridge_width":z.find("thermal_bridge_width").and_then(|n|n.float_at(0)).unwrap_or(0.),"is_filled":z.get("filled_polygon").is_some(),"fill_type":"solid","boundary_points":pts.len(),"bounding_box":bbox})}).collect();
     json!({"zones":zs,"count":zs.len()})
 }
 fn distance(a: Option<&SExp>, b: Option<&SExp>) -> f64 {

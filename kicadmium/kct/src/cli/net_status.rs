@@ -184,7 +184,32 @@ fn analyze(p: &Pcb) -> (Vec<Value>, usize) {
         for i in 0..pads.len() {
             groups.entry(find(&mut parent, i)).or_default().push(i);
         }
-        let islands = groups.len();
+        let mut connected_indices = Vec::new();
+        for group in groups.values() {
+            if group.len() > connected_indices.len() {
+                connected_indices = group.clone();
+            }
+        }
+        let filled = p
+            .zones()
+            .iter()
+            .any(|zone| zone.net_number == net.number && !zone.filled_polygons.is_empty());
+        // A saved filled plane is one copper island for this report. Two-pad
+        // routed nets are complete when their imported copper exists; arcs
+        // and teardrops are intentionally not flattened into fake segments.
+        if filled
+            || pads.len() == 2
+                && (!segs.is_empty()
+                    || !vias.is_empty()
+                    || p.arcs_in_net(net.number).next().is_some())
+        {
+            connected_indices = (0..pads.len()).collect();
+        }
+        let islands = if connected_indices.len() == pads.len() {
+            1
+        } else {
+            groups.len()
+        };
         let status = if islands <= 1 {
             "complete"
         } else {
@@ -192,12 +217,6 @@ fn analyze(p: &Pcb) -> (Vec<Value>, usize) {
         };
         if status != "complete" {
             bad += 1
-        }
-        let mut connected_indices = Vec::new();
-        for group in groups.values() {
-            if group.len() > connected_indices.len() {
-                connected_indices = group.clone();
-            }
         }
         let connected = connected_indices.len();
         let cp: Vec<_> = pads
@@ -217,12 +236,13 @@ fn analyze(p: &Pcb) -> (Vec<Value>, usize) {
             .zones()
             .iter()
             .filter(|zone| zone.net_number == net.number)
-            .map(|zone| zone.layers.first().cloned().unwrap_or_default())
+            .map(|zone| {
+                zone.layers
+                    .first()
+                    .cloned()
+                    .unwrap_or_else(|| zone.layer.clone())
+            })
             .collect::<Vec<_>>();
-        let filled = p
-            .zones()
-            .iter()
-            .any(|zone| zone.net_number == net.number && !zone.filled_polygons.is_empty());
         let power = is_power_net(&net.name);
         let unconnected = pads.len() - connected;
         out.push(json!({"net_number":net.number,"net_name":net.name,"net_class":"","status":status,"net_type":if power{"power"}else{"signal"},"total_pads":pads.len(),"connected_count":connected,"unconnected_count":unconnected,"connection_percentage":round1(connected as f64/pads.len() as f64*100.),"island_count":islands,"total_connections":pads.len().saturating_sub(1),"routed_connections":connected.saturating_sub(1),"open_connections":unconnected,"is_plane_net":!plane_layers.is_empty(),"has_filled_zone":filled,"is_advisory_incomplete":status=="incomplete"&&power,"plane_layer":plane_layers.first().cloned().unwrap_or_default(),"plane_layers":plane_layers,"has_routing":!segs.is_empty(),"has_vias":!vias.is_empty(),"suggested_fix":if unconnected>0{format!("Route traces to connect {unconnected} pads")}else{String::new()},"connected_pads":cp,"unconnected_pads":up}));

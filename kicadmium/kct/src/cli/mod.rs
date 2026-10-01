@@ -48,6 +48,8 @@ pub mod render;
 pub mod repair_common;
 pub mod report;
 pub mod router_support;
+pub mod route;
+pub mod route_args;
 pub mod runner;
 pub mod screenshot;
 pub mod stitch;
@@ -92,8 +94,8 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "mfr", about: "Manufacturer tools", wave: "G", run: Some(mfr::run) },
     CommandSpec { name: "zones", about: "Add copper pour zones to PCB", wave: "E", run: Some(zones::run) },
     CommandSpec { name: "stitch", about: "Auto-add stitching vias for plane connections", wave: "E", run: Some(stitch::run) },
-    CommandSpec { name: "route", about: "Autoroute a PCB", wave: "F", run: None },
-    CommandSpec { name: "route-auto", about: "Route a net using RoutingOrchestrator smart strategy selection", wave: "F", run: None },
+    CommandSpec { name: "route", about: "Autoroute a PCB", wave: "F", run: Some(route::run) },
+    CommandSpec { name: "route-auto", about: "Route a net using RoutingOrchestrator smart strategy selection", wave: "F", run: Some(route::run_auto) },
     CommandSpec { name: "reason", about: "LLM-driven PCB layout reasoning", wave: "H", run: Some(h::reason) },
     CommandSpec { name: "optimize-traces", about: "Optimize PCB traces", wave: "D", run: Some(optimize_traces::run) },
     CommandSpec { name: "validate-footprints", about: "Validate footprints for pad spacing issues", wave: "D", run: Some(footprint_validation::validate) },

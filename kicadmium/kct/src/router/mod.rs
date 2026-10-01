@@ -5,16 +5,20 @@
 //! is replaced by the native Rust pathfinder; there is no FFI. `optimizer`
 //! is the post-routing trace optimizer (wave D).
 
+pub mod core;
 pub mod current_paths;
 pub mod diffpair;
 pub mod diffpair_detection;
 pub mod geometry;
+pub mod grid;
+pub mod io;
 pub mod kelvin;
 pub mod layers;
 pub mod match_group_detection;
 pub mod net_class;
 pub mod net_names;
 pub mod optimizer;
+pub mod pathfinder;
 pub mod preflight;
 pub mod primitives;
 pub mod pyrandom;

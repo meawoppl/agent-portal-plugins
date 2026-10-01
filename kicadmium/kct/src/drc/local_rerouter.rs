@@ -89,7 +89,8 @@ impl PyHeap {
         let mut child = 2 * pos + 1;
         while child < end {
             let right = child + 1;
-            if right < end && !(nodes[self.items[child]].f < nodes[self.items[right]].f) {
+            if right < end && nodes[self.items[child]].f.partial_cmp(&nodes[self.items[right]].f)
+                != Some(std::cmp::Ordering::Less) {
                 child = right;
             }
             self.items[pos] = self.items[child];

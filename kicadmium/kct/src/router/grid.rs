@@ -18,6 +18,8 @@
 
 use std::collections::HashMap;
 
+type OutlineSegment = ((f64, f64), (f64, f64));
+
 /// Static cell owner: blocked for everyone.
 pub const BLOCKED: i32 = -1;
 /// Static cell owner: free for everyone.
@@ -247,7 +249,7 @@ impl RoutingGrid {
     }
 
     /// Block every cell outside `inside` or within `margin` of the outline.
-    pub fn add_board_edge(&mut self, outline: &[((f64, f64), (f64, f64))], margin: f64) {
+    pub fn add_board_edge(&mut self, outline: &[OutlineSegment], margin: f64) {
         if outline.is_empty() {
             return;
         }
@@ -349,7 +351,7 @@ pub fn point_segment_distance(px: f64, py: f64, a: (f64, f64), b: (f64, f64)) ->
 }
 
 /// Even-odd point-in-outline test over unordered edge segments.
-pub fn point_in_outline(px: f64, py: f64, outline: &[((f64, f64), (f64, f64))]) -> bool {
+pub fn point_in_outline(px: f64, py: f64, outline: &[OutlineSegment]) -> bool {
     let mut inside = false;
     for &((x1, y1), (x2, y2)) in outline {
         if (y1 > py) != (y2 > py) {

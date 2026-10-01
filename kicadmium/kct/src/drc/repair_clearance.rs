@@ -399,8 +399,6 @@ impl ClearanceRepairer {
         let o2 = self.find_object_at(l2.x_mm, l2.y_mm, &l2.layer, &v.nets);
         let (x, y, obs) = if o1.as_ref().is_some_and(|o| o.kind == "segment") {
             (l2.x_mm, l2.y_mm, o2)
-        } else if o2.as_ref().is_some_and(|o| o.kind == "segment") {
-            (l1.x_mm, l1.y_mm, o1)
         } else {
             (l1.x_mm, l1.y_mm, o1)
         };
@@ -1103,11 +1101,11 @@ pub fn group_violations_by_proximity(
         let mut changed = true;
         while changed {
             changed = false;
-            for j in 0..tagged.len() {
+            for (j, position) in pos.iter().enumerate() {
                 if assigned.contains(&j) {
                     continue;
                 }
-                let Some(pj) = pos[j] else { continue };
+                let Some(pj) = *position else { continue };
                 if cps.iter().any(|cp| ((pj.0 - cp.0).powi(2) + (pj.1 - cp.1).powi(2)).sqrt() <= radius) {
                     cluster.push(j);
                     assigned.insert(j);

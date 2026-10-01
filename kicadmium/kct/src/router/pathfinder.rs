@@ -177,10 +177,7 @@ impl Pathfinder {
                 }
                 let foreign = grid.foreign_count(i, req.net);
                 if foreign > 0 {
-                    match req.present_factor {
-                        None => return None,
-                        Some(p) => extra += p * foreign as f64 * 0.05,
-                    }
+                    extra += req.present_factor? * foreign as f64 * 0.05;
                 }
             }
         }

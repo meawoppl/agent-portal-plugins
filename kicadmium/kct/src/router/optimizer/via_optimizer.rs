@@ -136,7 +136,7 @@ struct ViaContext {
 }
 
 impl ViaContext {
-    fn from_layer(&self) -> Layer {
+    fn source_layer(&self) -> Layer {
         self.via.via.layers.0
     }
     fn to_layer(&self) -> Layer {
@@ -354,7 +354,7 @@ impl<'a> ViaOptimizer<'a> {
                 continue;
             }
             let (c1, c2) = (&contexts[i], &contexts[i + 1]);
-            if !(c1.from_layer() == c2.to_layer() && c1.to_layer() == c2.from_layer()) {
+            if !(c1.source_layer() == c2.to_layer() && c1.to_layer() == c2.source_layer()) {
                 continue;
             }
             let (v1, v2) = (&c1.via.via, &c2.via.via);
@@ -368,7 +368,7 @@ impl<'a> ViaOptimizer<'a> {
                 v1.y,
                 v2.x,
                 v2.y,
-                c1.from_layer(),
+                c1.source_layer(),
                 width,
                 route.net,
                 dist * self.config.max_detour_factor,
@@ -404,7 +404,7 @@ impl<'a> ViaOptimizer<'a> {
             let direct = ((ex - sx).powi(2) + (ey - sy).powi(2)).sqrt();
             let max_detour = direct * self.config.max_detour_factor;
             for (layer, width) in [
-                (ctx.from_layer(), before.seg.width),
+                (ctx.source_layer(), before.seg.width),
                 (ctx.to_layer(), after.seg.width),
             ] {
                 let Some(alt) =

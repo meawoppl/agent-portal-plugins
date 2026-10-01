@@ -446,7 +446,7 @@ fn project_dir(args: &CreateArgs) -> PathBuf {
 
 fn footprint_libraries(project: &Path, extras: &[PathBuf]) -> Result<BTreeMap<String, PathBuf>> {
     let mut libraries = BTreeMap::new();
-    if let Ok(table) = crate::sexp::parse_file(&project.join("fp-lib-table")) {
+    if let Ok(table) = crate::sexp::parse_file(project.join("fp-lib-table")) {
         for lib in table.children_named("lib") {
             let Some(name) = lib.child_str("name") else {
                 continue;

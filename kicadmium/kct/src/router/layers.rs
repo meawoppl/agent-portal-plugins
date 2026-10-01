@@ -137,6 +137,7 @@ pub struct LayerStack {
 
 impl LayerStack {
     /// Construct and validate (indices must be sequential from 0).
+    #[allow(clippy::result_large_err)]
     pub fn new(
         layers: Vec<LayerDefinition>,
         name: &str,
@@ -195,6 +196,7 @@ impl LayerStack {
     }
 
     /// Map Layer enum to grid index for this stackup.
+    #[allow(clippy::result_large_err)]
     pub fn layer_enum_to_index(&self, layer: Layer) -> Result<usize, KiCadToolsError> {
         let kicad_name = layer.kicad_name();
         if let Some(def) = self.layers.iter().find(|d| d.name == kicad_name) {
@@ -215,6 +217,7 @@ impl LayerStack {
     }
 
     /// Map grid index to Layer enum for this stackup.
+    #[allow(clippy::result_large_err)]
     pub fn index_to_layer_enum(&self, index: usize) -> Result<Layer, KiCadToolsError> {
         if index >= self.layers.len() {
             return Err(KiCadToolsError::routing("Layer index out of range")

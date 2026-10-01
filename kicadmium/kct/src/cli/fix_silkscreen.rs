@@ -88,7 +88,7 @@ fn most_common(keys: &[String]) -> Vec<(String, usize)> {
             None => out.push((k.clone(), 1)),
         }
     }
-    out.sort_by(|a, b| b.1.cmp(&a.1));
+    out.sort_by_key(|item| std::cmp::Reverse(item.1));
     out
 }
 

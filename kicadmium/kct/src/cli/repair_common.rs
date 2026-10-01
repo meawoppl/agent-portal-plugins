@@ -92,19 +92,6 @@ pub fn py_bool(b: bool) -> &'static str {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn path_normalization() {
-        assert_eq!(py_path_str("./a//b/"), "a/b");
-        assert_eq!(py_path_str("/x/./y"), "/x/y");
-        assert_eq!(py_path_str("../z"), "../z");
-        assert_eq!(py_path_str("."), ".");
-    }
-}
-
 /// `manufacturers.base.load_design_rules_from_yaml(id)`: the YAML file named
 /// exactly `<id>.yaml` (no alias resolution), configs in file order. `None`
 /// is upstream's `FileNotFoundError`.
@@ -175,4 +162,17 @@ pub fn require_write_target(dry_run: bool, output: Option<&str>, in_place: bool)
     }
     eprintln!("Error: {DESIGN_EDIT_TARGET_ERROR}");
     Some(EXIT_NO_WRITE_TARGET)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn path_normalization() {
+        assert_eq!(py_path_str("./a//b/"), "a/b");
+        assert_eq!(py_path_str("/x/./y"), "/x/y");
+        assert_eq!(py_path_str("../z"), "../z");
+        assert_eq!(py_path_str("."), ".");
+    }
 }

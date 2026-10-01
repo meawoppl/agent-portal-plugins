@@ -480,12 +480,8 @@ fn summarize_drc(report: &Json) -> (usize, usize, Vec<String>, usize) {
             }
         }
     }
-    let unconnected = report
-        .get("unconnected_items")
-        .and_then(Json::as_array)
-        .map_or(0, Vec::len);
     let _ = (errors, warnings);
-    (errors, warnings, lines, routing + unconnected * 0)
+    (errors, warnings, lines, routing)
 }
 
 fn print_results(stats: &RoutingStats) {

@@ -137,7 +137,7 @@ pub fn find_staircase_end(
     let mut i = start_idx + 2;
     while i < segments.len() {
         let dir_i = segment_direction(&segments[i], config.tolerance);
-        let expected = if (i - start_idx) % 2 == 0 { dir1 } else { dir2 };
+        let expected = if (i - start_idx).is_multiple_of(2) { dir1 } else { dir2 };
         let mut diff = (dir_i - expected).abs();
         if diff > 180.0 {
             diff = 360.0 - diff;

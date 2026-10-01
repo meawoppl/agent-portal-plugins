@@ -430,13 +430,15 @@ pub trait SyncedRouter {
     fn resync_route_occupancy(&mut self, pairs: &[(Route, Route)]);
 }
 
+type RouteAcceptance<'a> = Option<&'a mut dyn FnMut(&Route, &Route) -> bool>;
+
 /// Replace every route with `transform(route)`, keeping the grid in sync
 /// (#3507 incremental unmark/mark, #3511 batched resync).
 pub fn apply_route_transform_grid_synced<R: SyncedRouter>(
     router: &mut R,
     transform: &dyn Fn(&Route) -> Route,
     skip_nets: Option<&HashSet<i64>>,
-    mut accept: Option<&mut dyn FnMut(&Route, &Route) -> bool>,
+    mut accept: RouteAcceptance<'_>,
 ) -> Vec<Route> {
     let mut out = Vec::new();
     let mut mutated = Vec::new();

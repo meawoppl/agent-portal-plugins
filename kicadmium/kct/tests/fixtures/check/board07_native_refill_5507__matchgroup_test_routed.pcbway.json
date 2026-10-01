@@ -1,0 +1,3971 @@
+{
+ "file": "<FIXTURES>/board07_native_refill_5507/matchgroup_test_routed.kicad_pcb",
+ "manufacturer": "pcbway",
+ "layers": 4,
+ "summary": {
+  "errors": 177,
+  "warnings": 25,
+  "infos": 3,
+  "waived": 0,
+  "rules_checked": 49,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "diffpair_clearance_intra": 7,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'TMDS_D0_N' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    151.0,
+    95.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J2.2"
+   ],
+   "nets": [
+    "TMDS_D0_N"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'TMDS_D1_N' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    154.0,
+    95.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J2.5"
+   ],
+   "nets": [
+    "TMDS_D1_N"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'TMDS_D1_P' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    153.0,
+    95.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J2.4"
+   ],
+   "nets": [
+    "TMDS_D1_P"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'TMDS_D2_N' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    157.0,
+    95.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J2.8"
+   ],
+   "nets": [
+    "TMDS_D2_N"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'TMDS_D2_P' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    156.0,
+    95.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J2.7"
+   ],
+   "nets": [
+    "TMDS_D2_P"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J3 (Connector_PinHeader_2.54mm:PinHeader_1x09_P2.54mm_Vertical): 9.09mm from nearest board edge",
+   "location": [
+    113.5,
+    120.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 9.09,
+   "required_value": null,
+   "items": [
+    "J3"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J1 (Connector_FFC:FFC_6P_1.0mm): 11.00mm from nearest board edge",
+   "location": [
+    108.5,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 11.0,
+   "required_value": null,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J2 (Connector_Video:HDMI_A_Receptacle): 37.90mm from nearest board edge",
+   "location": [
+    153.5,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 37.9,
+   "required_value": null,
+   "items": [
+    "J2"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    147.65,
+    124.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    131.35,
+    92.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    176.69,
+    96.27
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    149.35,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    180.31,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    159.35,
+    115.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    179.22,
+    96.27
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    179.22,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    176.69,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    177.95,
+    93.73
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    107.65,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    119.35,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    157.9,
+    114.15
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    107.65,
+    69.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    147.9,
+    59.15
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    137.9,
+    70.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    132.35,
+    93.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    176.47,
+    94.24
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    181.55,
+    96.78
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    147.65,
+    124.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    180.5,
+    93.73
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    131.35,
+    92.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    176.69,
+    96.27
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    183.653,
+    92.978
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    180.31,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    115.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    179.22,
+    96.27
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    179.22,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    176.69,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    177.95,
+    93.73
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    107.65,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "+1V8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    132.35,
+    93.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    115.5,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    113.1,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    175.41,
+    98.81
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    139.9,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    61.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    153.1,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    132.35,
+    97.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    113.1,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    180.5,
+    91.19
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    110.7,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    156.3,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    179.22,
+    98.81
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    177.95,
+    97.54
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    154.7,
+    115.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    183.03,
+    93.73
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    127.3,
+    98.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    67.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    174.69,
+    95.72
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    155.5,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    147.1,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    64.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    119.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    67.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    129.7,
+    98.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    128.1,
+    98.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    177.95,
+    98.81
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    132.35,
+    95.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    109.1,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    146.3,
+    60.85
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    66.2
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    181.76,
+    97.54
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    63.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    140.7,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    138.64,
+    59.54
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    109.9,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    127.3,
+    92.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    126.5,
+    92.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    157.9,
+    125.85
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    145.5,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    156.3,
+    115.85
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    183.03,
+    92.46
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    176.69,
+    98.81
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    157.1,
+    115.85
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    109.35,
+    65.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    116.3,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    68.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    142.3,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    174.69,
+    97.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    153.1,
+    115.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    109.35,
+    67.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    155.0,
+    96.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    118.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    144.7,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    180.5,
+    98.81
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    183.03,
+    98.81
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    181.76,
+    91.19
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    153.9,
+    115.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    109.35,
+    64.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    147.1,
+    60.85
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    117.2
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    132.35,
+    94.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    109.35,
+    62.2
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    128.1,
+    92.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    139.1,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    113.9,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    155.5,
+    115.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    176.69,
+    97.54
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    141.5,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    143.1,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    109.35,
+    61.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    116.3,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    108.64,
+    59.54
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    63.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    122.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    116.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    109.35,
+    63.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    111.5,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    183.03,
+    96.27
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    152.3,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    183.03,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    143.9,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    150.7,
+    115.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    124.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    129.7,
+    92.85
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    122.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    117.9,
+    70.85
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    128.9,
+    98.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    152.3,
+    115.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    62.2
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    112.3,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    112.3,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    145.5,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    174.69,
+    94.45
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    109.35,
+    68.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    121.2
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    109.35,
+    63.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    149.9,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    183.03,
+    91.19
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    69.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    128.9,
+    92.85
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    123.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    175.41,
+    91.19
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    179.22,
+    97.54
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    109.35,
+    67.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    117.1,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    139.9,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    140.7,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    116.95,
+    58.35
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    153.9,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    111.5,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    151.5,
+    115.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    122.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    149.1,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    142.3,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    148.75,
+    70.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    143.9,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    117.1,
+    59.15
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    122.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    144.7,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    114.7,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    123.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    177.95,
+    91.19
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    131.35,
+    98.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    120.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    149.9,
+    115.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    126.5,
+    98.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    176.69,
+    91.19
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    152.0,
+    96.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    109.9,
+    60.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    180.5,
+    97.54
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    157.1,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    110.7,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    115.5,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    183.03,
+    97.54
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    113.9,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.35,
+    118.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    150.7,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    141.5,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    146.3,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    151.5,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    175.41,
+    97.54
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    132.35,
+    96.2
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    109.35,
+    66.2
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    148.64,
+    114.54
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    114.7,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    179.22,
+    91.19
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    154.7,
+    125.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.35,
+    65.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.100mm < minimum 0.150mm",
+   "location": [
+    143.1,
+    70.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.1,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    181.76,
+    98.81
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U1 (Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    108.5,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J3 (Connector_PinHeader_2.54mm:PinHeader_1x09_P2.54mm_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    103.34,
+    120.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U5 (Package_QFP:LQFP-48_7x7mm_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    148.5,
+    115.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U5"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J1 (Connector_FFC:FFC_6P_1.0mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    106.0,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U3 (Package_DFN_QFN:QFN-24-1EP_4x4mm_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    125.5,
+    93.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U4 (Package_BGA:BGA-49_5.0x5.0mm_Layout7x7_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    174.69,
+    91.19
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J2 (Connector_Video:HDMI_A_Receptacle) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    150.0,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U2 (Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    138.5,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_over_pad",
+   "type": "silkscreen_over_pad",
+   "severity": "warning",
+   "message": "Silkscreen text may overlap exposed pad on U4",
+   "location": [
+    178.5,
+    95.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U4",
+    "pad A4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U3 (reference) overlaps exposed copper of U3 pad 10",
+   "location": [
+    128.5,
+    92.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U3 (reference)",
+    "U3 pad 10"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U3 (reference) overlaps exposed copper of U3 pad 9",
+   "location": [
+    128.5,
+    92.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U3 (reference)",
+    "U3 pad 9"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U4 (reference) overlaps exposed copper of U4 pad A4",
+   "location": [
+    178.5,
+    91.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U4 (reference)",
+    "U4 pad A4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U5 (reference) overlaps exposed copper of U5 pad 18",
+   "location": [
+    153.5,
+    115.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U5 (reference)",
+    "U5 pad 18"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U5 (reference) overlaps exposed copper of U5 pad 19",
+   "location": [
+    153.5,
+    115.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U5 (reference)",
+    "U5 pad 19"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": [],
+ "fabrication_process": {
+  "process_id": "pcbway-via-in-pad",
+  "name": "PCBWay Via-in-Pad (epoxy-filled & capped)",
+  "min_layer_count": 2,
+  "min_via_drill_mm": 0.15,
+  "max_via_drill_mm": 0.5,
+  "min_annular_ring_mm": 0.15,
+  "requires_filled_and_capped": true,
+  "min_component_hole_distance_mm": 0.5,
+  "source": "https://www.pcbway.com/capabilities.html",
+  "ordering_instructions": "Order the PCBWay Via-in-Pad (epoxy-filled & capped) process (pcbway-via-in-pad): a >= 2-layer stackup with epoxy-filled and copper-capped (plated-over) vias, via drills between 0.15 and 0.5 mm, annular ring >= 0.15 mm, and in-pad vias kept >= 0.5 mm from any other component's drilled hole. Do not substitute ordinary open or merely tented vias. Source: https://www.pcbway.com/capabilities.html"
+ }
+}

@@ -1,4 +1,5 @@
 //! Offline manufacturing cost model, ported from `cost.estimator`.
+pub mod suggest;
 use crate::schema::pcb::Pcb;
 use serde_json::{json, Value};
 use std::collections::BTreeMap;

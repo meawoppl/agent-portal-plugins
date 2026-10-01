@@ -1,0 +1,135 @@
+{
+ "summary": {
+  "errors": 3,
+  "warnings": 0,
+  "info": 0
+ },
+ "mistakes": [
+  {
+   "category": "thermal_management",
+   "severity": "error",
+   "title": "Thermal pad not connected",
+   "components": [
+    "U1"
+   ],
+   "location": [
+    8.0,
+    8.0
+   ],
+   "explanation": "U1 has an exposed thermal pad (pad 9) that is not connected to any net. Thermal pads must be connected to ground with multiple vias for heat dissipation. Unconnected thermal pads cause device overheating and failure.",
+   "fix_suggestion": "Connect the thermal pad on U1 to ground (GND). Add a copper pour under the pad with 4-9 thermal vias connecting to the ground plane.",
+   "learn_more_url": "docs/mistakes/thermal-pad-connection.md"
+  },
+  {
+   "category": "thermal_management",
+   "severity": "error",
+   "title": "Thermal pad not connected",
+   "components": [
+    "U2"
+   ],
+   "location": [
+    16.0,
+    8.0
+   ],
+   "explanation": "U2 has an exposed thermal pad (pad 9) that is not connected to any net. Thermal pads must be connected to ground with multiple vias for heat dissipation. Unconnected thermal pads cause device overheating and failure.",
+   "fix_suggestion": "Connect the thermal pad on U2 to ground (GND). Add a copper pour under the pad with 4-9 thermal vias connecting to the ground plane.",
+   "learn_more_url": "docs/mistakes/thermal-pad-connection.md"
+  },
+  {
+   "category": "thermal_management",
+   "severity": "error",
+   "title": "Thermal pad not connected",
+   "components": [
+    "U3"
+   ],
+   "location": [
+    24.0,
+    8.0
+   ],
+   "explanation": "U3 has an exposed thermal pad (pad 9) that is not connected to any net. Thermal pads must be connected to ground with multiple vias for heat dissipation. Unconnected thermal pads cause device overheating and failure.",
+   "fix_suggestion": "Connect the thermal pad on U3 to ground (GND). Add a copper pour under the pad with 4-9 thermal vias connecting to the ground plane.",
+   "learn_more_url": "docs/mistakes/thermal-pad-connection.md"
+  }
+ ],
+ "coverage": [
+  {
+   "check_name": "BypassCapDistanceCheck",
+   "category": "bypass_capacitor",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalTraceLengthCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalNoiseProximityCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "DifferentialPairSkewCheck",
+   "category": "differential_pair",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PowerTraceWidthCheck",
+   "category": "power_trace",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ThermalPadConnectionCheck",
+   "category": "thermal_management",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ViaInPadCheck",
+   "category": "via_placement",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "AcidTrapCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "TombstoningRiskCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "MissingDecouplingCapCheck",
+   "category": "decoupling",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PullUpResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "LedSeriesResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "BomFieldHealthCheck",
+   "category": "bom_health",
+   "status": "incomplete",
+   "reason": "no BOM-eligible component on this board defines an MPN/LCSC-style property (checked ['jlc', 'jlcpcb', 'lcsc', 'lcsc part', 'lcsc_pn', 'manufacturer_pn', 'mfr_pn', 'mpn', 'pn']); this board may not track manufacturer part numbers in footprint properties, so BOM part-number coverage cannot be assessed"
+  }
+ ],
+ "coverage_complete": false
+}

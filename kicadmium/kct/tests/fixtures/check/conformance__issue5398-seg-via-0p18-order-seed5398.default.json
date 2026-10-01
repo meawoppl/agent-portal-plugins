@@ -1,0 +1,68 @@
+{
+ "file": "<FIXTURES>/conformance/issue5398-seg-via-0p18-order-seed5398.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 0,
+  "warnings": 2,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 47,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": true
+ },
+ "violations": [
+  {
+   "rule_id": "track_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling track end: Track [SENSE_TRACK] on F.Cu, length 20.0000 mm (both ends dangling)",
+   "location": [
+    10.0,
+    15.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 20.0,
+   "required_value": null,
+   "items": [
+    "ef2fdf3d-2733-40ea-8a59-a6a2b2ed9b99",
+    "net:SENSE_TRACK"
+   ],
+   "nets": [
+    "SENSE_TRACK"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [SENSE_VIA] on F.Cu - B.Cu bonds copper on 0 layer(s)",
+   "location": [
+    20.0,
+    15.555
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.0,
+   "required_value": 2.0,
+   "items": [
+    "net:SENSE_VIA"
+   ],
+   "nets": [
+    "SENSE_VIA"
+   ],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

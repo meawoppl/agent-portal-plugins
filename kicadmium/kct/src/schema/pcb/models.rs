@@ -866,7 +866,7 @@ impl Arc {
         }
         let ux = ((bx * bx + by * by) * cy - (cx * cx + cy * cy) * by) / det;
         let uy = (bx * (cx * cx + cy * cy) - cx * (bx * bx + by * by)) / det;
-        let radius = ux.hypot(uy);
+        let radius = crate::utils::pymath::hypot(ux, uy);
         let start = (-uy).atan2(-ux);
         let rem = |a: f64| a.rem_euclid(TAU);
         let mid = rem((by - uy).atan2(bx - ux) - start);

@@ -7,6 +7,9 @@ use crate::schema::pcb::Pcb;
 use crate::validate::rules::DRC_TOLERANCE;
 use crate::validate::violations::{DRCResults, DRCViolation};
 
+/// `(position, drill, item, footprint_ref, net)`.
+type DrillRecord = ((f64, f64), f64, String, String, String);
+
 #[derive(Debug, Clone, Default)]
 pub struct DimensionRules;
 
@@ -93,7 +96,7 @@ impl DimensionRules {
     fn check_drill_clearance(&self, pcb: &Pcb, rules: &DesignRules, results: &mut DRCResults) {
         let min_clearance = rules.min_hole_to_hole_mm;
         // (pos, drill, item, fp_ref, net)
-        let mut drills: Vec<((f64, f64), f64, String, String, String)> = Vec::new();
+        let mut drills: Vec<DrillRecord> = Vec::new();
         for via in pcb.vias() {
             let name = net_label(pcb, via.net_number);
             drills.push((via.position, via.drill, name.clone(), String::new(), name));

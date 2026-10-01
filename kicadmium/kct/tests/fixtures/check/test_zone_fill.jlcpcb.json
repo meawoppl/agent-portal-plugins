@@ -1,0 +1,94 @@
+{
+ "file": "<FIXTURES>/test_zone_fill.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 3,
+  "warnings": 0,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 42,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "clearance_segment_segment",
+   "type": "clearance_segment_segment",
+   "severity": "error",
+   "message": "SHORT: 'GND' and 'VCC' copper overlaps by 0.250mm (segment to segment)",
+   "location": [
+    105.0,
+    100.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": -0.25,
+   "required_value": 0.127,
+   "items": [
+    "Trace-42ccb920",
+    "Trace-ead31bc7"
+   ],
+   "nets": [
+    "GND",
+    "VCC"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "clearance_pad_segment",
+   "type": "clearance_pad_segment",
+   "severity": "error",
+   "message": "SHORT: 'GND' and 'VCC' copper overlaps by 0.125mm (segment to pad)",
+   "location": [
+    101.25,
+    100.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": -0.125,
+   "required_value": 0.127,
+   "items": [
+    "Trace-42ccb920",
+    "R1-2"
+   ],
+   "nets": [
+    "GND",
+    "VCC"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "clearance_pad_segment",
+   "type": "clearance_pad_segment",
+   "severity": "error",
+   "message": "SHORT: 'VCC' and 'GND' copper overlaps by 0.125mm (segment to pad)",
+   "location": [
+    108.75,
+    100.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": -0.125,
+   "required_value": 0.127,
+   "items": [
+    "Trace-ead31bc7",
+    "R2-1"
+   ],
+   "nets": [
+    "VCC",
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

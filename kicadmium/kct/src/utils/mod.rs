@@ -5,8 +5,12 @@
 //! (`f"{value!r}"`), so messages stay byte-compatible with kicad-tools.
 
 pub mod pyfmt;
+pub mod pyjsondecode;
+pub mod pymath;
 pub mod pyrepr;
+pub mod pyset;
 pub mod scoring;
+pub mod stdsort;
 
 use std::path::Path;
 

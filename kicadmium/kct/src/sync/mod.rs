@@ -4,3 +4,4 @@
 
 pub mod discover;
 pub mod drift;
+pub mod reconciler;

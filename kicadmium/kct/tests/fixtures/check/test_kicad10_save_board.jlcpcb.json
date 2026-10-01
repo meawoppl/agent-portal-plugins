@@ -1,0 +1,63 @@
+{
+ "file": "<FIXTURES>/test_kicad10_save_board.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 0,
+  "warnings": 1,
+  "infos": 1,
+  "waived": 0,
+  "rules_checked": 47,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": true
+ },
+ "violations": [
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J1 (Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical): 4.15mm from nearest board edge",
+   "location": [
+    141.0,
+    87.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 4.1499999999999995,
+   "required_value": null,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "D1 (LED_THT:LED_D5.0mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    154.73,
+    87.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "D1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

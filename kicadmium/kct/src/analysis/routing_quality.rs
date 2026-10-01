@@ -203,7 +203,7 @@ pub fn compute_routing_quality_from_records(
     for (start, end, layer, net) in records {
         let dx = end.0 - start.0;
         let dy = end.1 - start.1;
-        let length = dx.hypot(dy);
+        let length = crate::utils::pymath::hypot(dx, dy);
         if length <= COORD_EPSILON_MM {
             m.zero_length_count += 1;
             continue;
@@ -269,10 +269,6 @@ pub fn compute_routing_quality(pcb: &Pcb) -> RoutingQualityMetrics {
         .collect();
     let mut m = compute_routing_quality_from_records(&records);
     m.copper_arc_count = pcb.arcs().len() as i64;
-    m.copper_arc_length_mm = pcb
-        .arcs()
-        .iter()
-        .map(|a| a.length())
-        .fold(0.0, |a, b| a + b);
+    m.copper_arc_length_mm = crate::utils::pymath::py_sum(pcb.arcs().iter().map(|a| a.length()));
     m
 }

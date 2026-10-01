@@ -1,0 +1,445 @@
+{
+ "file": "<FIXTURES>/projects/multilayer_zones.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 4,
+ "summary": {
+  "errors": 11,
+  "warnings": 8,
+  "infos": 1,
+  "waived": 0,
+  "rules_checked": 51,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "clearance_pad_segment",
+   "type": "clearance_pad_segment",
+   "severity": "error",
+   "message": "Segment to pad clearance 0.075mm < minimum 0.102mm",
+   "location": [
+    145.48,
+    120.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.075,
+   "required_value": 0.1016,
+   "items": [
+    "Trace-seg-4",
+    "C2-2"
+   ],
+   "nets": [
+    "+5V",
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "clearance_segment_via",
+   "type": "clearance_segment_via",
+   "severity": "error",
+   "message": "SHORT: '+5V' and 'GND' copper overlaps by 0.425mm (segment to via)",
+   "location": [
+    140.0,
+    125.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": -0.425,
+   "required_value": 0.1016,
+   "items": [
+    "Trace-seg-5",
+    "Via-via-1"
+   ],
+   "nets": [
+    "+5V",
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net '+3V3' is partially routed: 4 of 5 pads stranded (connected island has 1 pads)",
+   "location": [
+    114.52,
+    120.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C1.1"
+   ],
+   "nets": [
+    "+3V3"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net '+5V' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    144.52,
+    120.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C2.1"
+   ],
+   "nets": [
+    "+5V"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'SCL' is partially routed: 2 of 3 pads stranded (connected island has 1 pads)",
+   "location": [
+    170.0,
+    137.62
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1.4"
+   ],
+   "nets": [
+    "SCL"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'SDA' is partially routed: 2 of 3 pads stranded (connected island has 1 pads)",
+   "location": [
+    170.0,
+    135.08
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1.3"
+   ],
+   "nets": [
+    "SDA"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J1 (Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical): 9.15mm from nearest board edge",
+   "location": [
+    170.0,
+    130.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 9.150000000000006,
+   "required_value": null,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "clearance_pad_zone",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Short: pad on net '+3V3' overlaps zone fill of net 'GND' on B.Cu (overlap depth 7.900mm)",
+   "location": [
+    170.0,
+    130.042
+   ],
+   "layer": "B.Cu",
+   "actual_value": -7.9,
+   "required_value": 0.1016,
+   "items": [
+    "J1-1",
+    "ZoneFill-GND"
+   ],
+   "nets": [
+    "+3V3",
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "clearance_pad_zone",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Short: pad on net 'SDA' overlaps zone fill of net 'GND' on B.Cu (overlap depth 7.900mm)",
+   "location": [
+    170.0,
+    135.122
+   ],
+   "layer": "B.Cu",
+   "actual_value": -7.9,
+   "required_value": 0.1016,
+   "items": [
+    "J1-3",
+    "ZoneFill-GND"
+   ],
+   "nets": [
+    "SDA",
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "clearance_pad_zone",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Short: pad on net 'SCL' overlaps zone fill of net 'GND' on B.Cu (overlap depth 7.900mm)",
+   "location": [
+    170.0,
+    137.662
+   ],
+   "layer": "B.Cu",
+   "actual_value": -7.9,
+   "required_value": 0.1016,
+   "items": [
+    "J1-4",
+    "ZoneFill-GND"
+   ],
+   "nets": [
+    "SCL",
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "track_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling track end: Track [+5V] on F.Cu, length 5.0000 mm",
+   "location": [
+    145.0,
+    120.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 5.0,
+   "required_value": null,
+   "items": [
+    "seg-4",
+    "net:+5V"
+   ],
+   "nets": [
+    "+5V"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "track_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling track end: Track [+5V] on F.Cu, length 10.7500 mm",
+   "location": [
+    134.25,
+    125.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 10.75,
+   "required_value": null,
+   "items": [
+    "seg-5",
+    "net:+5V"
+   ],
+   "nets": [
+    "+5V"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+3V3] on F.Cu - In1.Cu bonds copper on 0 layer(s)",
+   "location": [
+    145.0,
+    135.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+3V3"
+   ],
+   "nets": [
+    "+3V3"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U1 (Package_QFP:LQFP-48_7x7mm_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    125.75,
+    127.25
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J1 (Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    170.0,
+    130.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'SIGNAL_A' has only 1 pad on U1-12 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    125.75,
+    132.75
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U1-12"
+   ],
+   "nets": [
+    "SIGNAL_A"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'SIGNAL_B' has only 1 pad on U1-24 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    134.25,
+    132.75
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U1-24"
+   ],
+   "nets": [
+    "SIGNAL_B"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "zone_unfilled",
+   "type": "zone_unfilled",
+   "severity": "warning",
+   "message": "Zone for net '+3V3' on In1.Cu has fill enabled but no filled polygons [(5.00, 5.00) to (55.00, 55.00) mm]",
+   "location": [
+    130.0,
+    130.0
+   ],
+   "layer": "In1.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:+3V3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "zone_unfilled",
+   "type": "zone_unfilled",
+   "severity": "warning",
+   "message": "Zone for net 'GND' on In2.Cu has fill enabled but no filled polygons [(2.00, 2.00) to (78.00, 58.00) mm]",
+   "location": [
+    140.0,
+    130.0
+   ],
+   "layer": "In2.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:GND"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "zone_fill_disabled",
+   "type": "zone_fill_disabled",
+   "severity": "warning",
+   "message": "Zone fill disabled for net '+5V' on F.Cu [(60.00, 15.00) to (75.00, 30.00) mm]",
+   "location": [
+    167.0,
+    122.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:+5V"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

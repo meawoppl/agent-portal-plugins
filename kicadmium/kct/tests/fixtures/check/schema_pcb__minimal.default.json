@@ -1,0 +1,70 @@
+{
+ "file": "<FIXTURES>/schema_pcb/minimal.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 1,
+  "warnings": 1,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 42,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "clearance_pad_segment",
+   "type": "clearance_pad_segment",
+   "severity": "error",
+   "message": "SHORT: 'GND' and '+3.3V' copper overlaps by 0.540mm (segment to pad)",
+   "location": [
+    100.51,
+    100.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": -0.54,
+   "required_value": 0.127,
+   "items": [
+    "Trace-00000000",
+    "R1-2"
+   ],
+   "nets": [
+    "GND",
+    "+3.3V"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "track_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling track end: Track [GND] on F.Cu, length 10.0000 mm (both ends dangling)",
+   "location": [
+    100.0,
+    100.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 10.0,
+   "required_value": null,
+   "items": [
+    "00000000-0000-0000-0000-000000000020",
+    "net:GND"
+   ],
+   "nets": [
+    "GND"
+   ],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

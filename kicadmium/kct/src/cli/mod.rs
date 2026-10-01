@@ -22,9 +22,11 @@ pub mod creepage_export_rules;
 pub mod datasheet;
 pub mod decisions;
 pub mod design;
+pub mod detect_mistakes;
 pub mod drc;
 pub mod erc;
 pub mod estimate;
+pub mod explain;
 pub mod fabrication;
 pub mod fleet;
 pub mod footprint;
@@ -130,8 +132,8 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "bench", about: "Run external DeepPCB-comparable board benchmarks", wave: "F", run: None },
     CommandSpec { name: "sync", about: "Reconcile schematic and PCB references", wave: "B", run: Some(design::sync) },
     CommandSpec { name: "run", about: "Run a native kct JSON/YAML automation workflow", wave: "H", run: Some(h::run) },
-    CommandSpec { name: "explain", about: "Explain design rules and DRC violations", wave: "A", run: None },
-    CommandSpec { name: "detect-mistakes", about: "Detect common PCB design mistakes with educational explanations", wave: "A", run: None },
+    CommandSpec { name: "explain", about: "Explain design rules and DRC violations", wave: "A", run: Some(explain::run) },
+    CommandSpec { name: "detect-mistakes", about: "Detect common PCB design mistakes with educational explanations", wave: "A", run: Some(detect_mistakes::run) },
     CommandSpec { name: "calibrate", about: "Calibrate routing performance settings for your machine", wave: "F", run: None },
     CommandSpec { name: "screenshot", about: "Capture a PNG screenshot of a KiCad board or schematic", wave: "C", run: Some(screenshot::run) },
     CommandSpec { name: "report", about: "Generate a Markdown design report", wave: "C", run: Some(report::run) },

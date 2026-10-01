@@ -1,0 +1,138 @@
+{
+ "file": "<FIXTURES>/schema_pcb/routing_test.kicad_pcb",
+ "manufacturer": "pcbway",
+ "layers": 2,
+ "summary": {
+  "errors": 3,
+  "warnings": 1,
+  "infos": 1,
+  "waived": 0,
+  "rules_checked": 45,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net '+3.3V' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    125.0,
+    130.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1.1"
+   ],
+   "nets": [
+    "+3.3V"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GND' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    125.0,
+    132.54
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1.2"
+   ],
+   "nets": [
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'NET1' is partially routed: 2 of 3 pads stranded (connected island has 1 pads)",
+   "location": [
+    134.49,
+    115.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R1.1"
+   ],
+   "nets": [
+    "NET1"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J1 (Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical): 6.61mm from nearest board edge",
+   "location": [
+    125.0,
+    130.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 6.61,
+   "required_value": null,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U1 (Package_SO:SOIC-8_3.9x4.9mm_P1.27mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    112.3,
+    113.095
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": [],
+ "fabrication_process": {
+  "process_id": "pcbway-via-in-pad",
+  "name": "PCBWay Via-in-Pad (epoxy-filled & capped)",
+  "min_layer_count": 2,
+  "min_via_drill_mm": 0.15,
+  "max_via_drill_mm": 0.5,
+  "min_annular_ring_mm": 0.15,
+  "requires_filled_and_capped": true,
+  "min_component_hole_distance_mm": 0.5,
+  "source": "https://www.pcbway.com/capabilities.html",
+  "ordering_instructions": "Order the PCBWay Via-in-Pad (epoxy-filled & capped) process (pcbway-via-in-pad): a >= 2-layer stackup with epoxy-filled and copper-capped (plated-over) vias, via drills between 0.15 and 0.5 mm, annular ring >= 0.15 mm, and in-pad vias kept >= 0.5 mm from any other component's drilled hole. Do not substitute ordinary open or merely tented vias. Source: https://www.pcbway.com/capabilities.html"
+ }
+}

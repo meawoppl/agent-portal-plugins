@@ -1,13 +1,18 @@
-//! DRC report parsing, explanation, and manufacturer checks (port of the
-//! report side of `kicad_tools.drc`).
+//! DRC report parsing, explanation, manufacturer checks, and the native
+//! geometric helpers of `kicad_tools.drc`: `geometric` (kicad-cli
+//! reconciliation), `incremental` (cached placement DRC with a spatial
+//! index, replacing the C++ backend), `predictive` (move warnings) and
+//! `different_net_short` (grid-independent short detection).
 //!
-//! Not ported here (they need `schema.pcb` geometry): `geometric`,
-//! `incremental`, `predictive`, `different_net_short`, the repair modules,
-//! `fixer`, `local_rerouter`, and the C++ backend.
+//! Not ported here: the repair modules, `fixer`, and `local_rerouter`.
 
 pub mod checker;
 pub mod compat;
+pub mod different_net_short;
+pub mod geometric;
+pub mod incremental;
 pub mod net_compat;
+pub mod predictive;
 pub mod report;
 pub mod severity;
 pub mod suggestions;

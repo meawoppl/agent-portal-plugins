@@ -365,9 +365,10 @@ impl MaskCopperRequest {
 
 /// `check_mask_to_copper(path, policy, intents, **native)`.
 ///
-/// The native mask-geometry inspection (KiCad plot export + attributed
-/// object geometry) is not ported yet, so a request with a policy reports
-/// incomplete coverage rather than a false pass.
+/// Upstream's native mask-geometry inspection runs a KiCad pcbnew Python
+/// worker (plot export + attributed object geometry), which kct does not
+/// use, so a request with a policy reports incomplete coverage rather than
+/// a false pass.
 pub fn check_mask_to_copper(
     _path: &std::path::Path,
     policy: Option<&MaskCopperPolicy>,

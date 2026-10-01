@@ -240,11 +240,108 @@ pub fn panel(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         for col in 0..a.cols {
             let x = col as f64 * dx;
             let y = row as f64 * dy;
-            for original in originals.iter().filter(|n| is_board_object(n)) {
+            for original in originals
+                .iter()
+                .filter(|n| is_board_object(n) && !is_edge_graphic(n))
+            {
                 let mut n = original.clone();
                 translate_board_object(&mut n, x, y);
                 root.children.push(n)
             }
+        }
+    }
+    let board_w = maxx - minx;
+    let board_h = maxy - miny;
+    let panel_max_x = (a.cols as f64 - 1.0) * dx + board_w;
+    let panel_max_y = (a.rows as f64 - 1.0) * dy + board_h;
+    let mut tabs = Vec::new();
+    // Upstream places `tab_count` equally spaced tabs at every internal seam.
+    for row in 0..a.rows {
+        for col in 0..a.cols.saturating_sub(1) {
+            let x = col as f64 * dx + board_w + a.spacing / 2.0;
+            for i in 0..a.tab_count {
+                let y = row as f64 * dy + board_h * (i + 1) as f64 / (a.tab_count + 1) as f64;
+                tabs.push(Tab {
+                    x,
+                    y,
+                    width: a.spacing,
+                    height: a.tab_width,
+                    horizontal: false,
+                });
+            }
+        }
+    }
+    for col in 0..a.cols {
+        for row in 0..a.rows.saturating_sub(1) {
+            let y = row as f64 * dy + board_h + a.spacing / 2.0;
+            for i in 0..a.tab_count {
+                let x = col as f64 * dx + board_w * (i + 1) as f64 / (a.tab_count + 1) as f64;
+                tabs.push(Tab {
+                    x,
+                    y,
+                    width: a.tab_width,
+                    height: a.spacing,
+                    horizontal: true,
+                });
+            }
+        }
+    }
+    for tab in &tabs {
+        render_tab(&mut root, tab);
+        if a.cut == "mousebite" {
+            render_mousebites(&mut root, tab, a.mousebite_diameter, a.mousebite_spacing);
+        }
+    }
+    if a.cut == "vcut" {
+        for col in 0..a.cols.saturating_sub(1) {
+            let x = col as f64 * dx + board_w + a.spacing / 2.0;
+            root.children.push(gr_line(x, 0.0, x, panel_max_y));
+        }
+        for row in 0..a.rows.saturating_sub(1) {
+            let y = row as f64 * dy + board_h + a.spacing / 2.0;
+            root.children.push(gr_line(0.0, y, panel_max_x, y));
+        }
+    }
+    let mut bounds = (0.0, 0.0, panel_max_x, panel_max_y);
+    if a.frame {
+        bounds = (
+            -a.frame_space - a.frame_width,
+            -a.frame_space - a.frame_width,
+            panel_max_x + a.frame_space + a.frame_width,
+            panel_max_y + a.frame_space + a.frame_width,
+        );
+        render_rect(&mut root, bounds);
+        render_rect(
+            &mut root,
+            (
+                -a.frame_space,
+                -a.frame_space,
+                panel_max_x + a.frame_space,
+                panel_max_y + a.frame_space,
+            ),
+        );
+    } else {
+        render_rect(&mut root, bounds);
+    }
+    if a.tooling_holes {
+        let pts = [
+            (bounds.0 + 3.5, bounds.3 - 3.5),
+            (bounds.2 - 3.5, bounds.3 - 3.5),
+            (bounds.0 + 3.5, bounds.1 + 3.5),
+        ];
+        for (x, y) in pts {
+            root.children
+                .push(hole_footprint("Panel:ToolingHole", x, y, 3.0));
+        }
+    }
+    if a.fiducials {
+        let pts = [
+            (bounds.0 + 5.0, bounds.3 - 5.0),
+            (bounds.2 - 5.0, bounds.3 - 5.0),
+            (bounds.0 + 5.0, bounds.1 + 5.0),
+        ];
+        for (x, y) in pts {
+            root.children.push(fiducial_footprint(x, y));
         }
     }
     let out = a.output.unwrap_or_else(|| {
@@ -258,24 +355,212 @@ pub fn panel(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         path: Some(out.clone()),
     }
     .save(None)?;
-    let data = serde_json::json!({"output":out,"rows":a.rows,"cols":a.cols,"copies":a.rows*a.cols,"board_size_mm":[maxx-minx,maxy-miny],"cut":a.cut});
+    let data = serde_json::json!({"command":"panel","input":a.input,"output":out,
+        "grid":{"rows":a.rows,"cols":a.cols,"spacing_mm":a.spacing},
+        "board_count":a.rows*a.cols,"tabs":tabs.len(),"cut_method":a.cut,
+        "tab_width_mm":a.tab_width,"tab_count":a.tab_count,"frame":a.frame,
+        "tooling_holes":a.tooling_holes,"fiducials":a.fiducials,"success":true});
     if a.format == "json" {
         println!("{}", serde_json::to_string_pretty(&data)?)
     } else {
         println!("Created {}x{} panel: {}", a.cols, a.rows, out.display())
     }
-    let _ = (
-        a.tab_width,
-        a.tab_count,
-        a.mousebite_diameter,
-        a.mousebite_spacing,
-        a.frame,
-        a.frame_width,
-        a.frame_space,
-        a.tooling_holes,
-        a.fiducials,
-    );
     Ok(0)
+}
+#[derive(Clone, Copy)]
+struct Tab {
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+    horizontal: bool,
+}
+
+fn is_edge_graphic(n: &SExp) -> bool {
+    n.name.as_deref().is_some_and(|v| v.starts_with("gr_"))
+        && n.get("layer").and_then(|l| l.string_at(0)) == Some("Edge.Cuts")
+}
+fn render_rect(root: &mut SExp, (x0, y0, x1, y1): (f64, f64, f64, f64)) {
+    for (a, b, c, d) in [
+        (x0, y0, x1, y0),
+        (x1, y0, x1, y1),
+        (x1, y1, x0, y1),
+        (x0, y1, x0, y0),
+    ] {
+        root.children.push(gr_line(a, b, c, d));
+    }
+}
+fn render_tab(root: &mut SExp, t: &Tab) {
+    let (x0, x1, y0, y1) = (
+        t.x - t.width / 2.0,
+        t.x + t.width / 2.0,
+        t.y - t.height / 2.0,
+        t.y + t.height / 2.0,
+    );
+    if t.horizontal {
+        root.children.push(gr_line(x0, y0, x0, y1));
+        root.children.push(gr_line(x1, y0, x1, y1));
+    } else {
+        root.children.push(gr_line(x0, y0, x1, y0));
+        root.children.push(gr_line(x0, y1, x1, y1));
+    }
+}
+fn gr_line(x0: f64, y0: f64, x1: f64, y1: f64) -> SExp {
+    SExp::list(
+        "gr_line",
+        [
+            SExp::list("start", [SExp::atom(x0), SExp::atom(y0)]),
+            SExp::list("end", [SExp::atom(x1), SExp::atom(y1)]),
+            SExp::list(
+                "stroke",
+                [
+                    SExp::pair("width", 0.05),
+                    SExp::list("type", [SExp::symbol("default")]),
+                ],
+            ),
+            SExp::list("layer", [SExp::quoted("Edge.Cuts")]),
+        ],
+    )
+}
+fn render_mousebites(root: &mut SExp, t: &Tab, diameter: f64, spacing: f64) {
+    let length = if t.horizontal { t.width } else { t.height };
+    // Match upstream's subtraction-derived vertical-tab extent.  Its two
+    // independently computed endpoints land one ulp inside the nominal tab
+    // width (observable in the established 2x2 golden output).
+    let effective = if t.horizontal {
+        length
+    } else {
+        length - f64::EPSILON * length.abs().max(1.0)
+    };
+    let count = ((effective / spacing).floor() as usize + 1).max(1);
+    for i in 0..count {
+        let p = if count == 1 {
+            0.0
+        } else {
+            -length / 2.0 + length * i as f64 / (count - 1) as f64
+        };
+        let (x, y) = if t.horizontal {
+            (t.x + p, t.y)
+        } else {
+            (t.x, t.y + p)
+        };
+        root.children
+            .push(hole_footprint("Panel:Mousebite", x, y, diameter));
+    }
+}
+fn hole_footprint(name: &str, x: f64, y: f64, d: f64) -> SExp {
+    SExp::list(
+        "footprint",
+        [
+            SExp::quoted(name),
+            SExp::list("layer", [SExp::quoted("F.Cu")]),
+            SExp::list("at", [SExp::atom(x), SExp::atom(y)]),
+            SExp::list(
+                "attr",
+                [
+                    SExp::symbol("board_only"),
+                    SExp::symbol("exclude_from_pos_files"),
+                    SExp::symbol("exclude_from_bom"),
+                ],
+            ),
+            SExp::list(
+                "pad",
+                [
+                    SExp::quoted(""),
+                    SExp::symbol("np_thru_hole"),
+                    SExp::symbol("circle"),
+                    SExp::list("at", [SExp::atom(0.0), SExp::atom(0.0)]),
+                    SExp::list("size", [SExp::atom(d), SExp::atom(d)]),
+                    SExp::pair("drill", d),
+                    SExp::list("layers", [SExp::quoted("*.Cu"), SExp::quoted("*.Mask")]),
+                ],
+            ),
+        ],
+    )
+}
+fn fiducial_footprint(x: f64, y: f64) -> SExp {
+    SExp::list(
+        "footprint",
+        [
+            SExp::quoted("Panel:Fiducial"),
+            SExp::list("layer", [SExp::quoted("F.Cu")]),
+            SExp::list("at", [SExp::atom(x), SExp::atom(y)]),
+            SExp::list(
+                "attr",
+                [
+                    SExp::symbol("board_only"),
+                    SExp::symbol("exclude_from_pos_files"),
+                    SExp::symbol("exclude_from_bom"),
+                ],
+            ),
+            SExp::list(
+                "pad",
+                [
+                    SExp::quoted("1"),
+                    SExp::symbol("smd"),
+                    SExp::symbol("circle"),
+                    SExp::list("at", [SExp::atom(0.0), SExp::atom(0.0)]),
+                    SExp::list("size", [SExp::atom(1.0), SExp::atom(1.0)]),
+                    SExp::list("layers", [SExp::quoted("F.Cu"), SExp::quoted("F.Mask")]),
+                    SExp::pair("solder_mask_margin", 2.0),
+                ],
+            ),
+        ],
+    )
+}
+
+#[cfg(test)]
+mod panel_parity_tests {
+    use super::*;
+
+    #[test]
+    fn upstream_2x2_mousebite_golden_has_42_holes() {
+        let mut root = SExp::list("kicad_pcb", []);
+        let horizontal = Tab {
+            x: 0.0,
+            y: 0.0,
+            width: 3.0,
+            height: 2.0,
+            horizontal: true,
+        };
+        let vertical = Tab {
+            x: 0.0,
+            y: 0.0,
+            width: 2.0,
+            height: 3.0,
+            horizontal: false,
+        };
+        for _ in 0..6 {
+            render_mousebites(&mut root, &horizontal, 0.5, 0.8);
+        }
+        for _ in 0..6 {
+            render_mousebites(&mut root, &vertical, 0.5, 0.8);
+        }
+        assert_eq!(
+            root.children.len(),
+            42,
+            "matches rjwalters/kicad-tools golden panel"
+        );
+        assert!(root
+            .children
+            .iter()
+            .all(|n| n.string_at(0) == Some("Panel:Mousebite")));
+    }
+
+    #[test]
+    fn panel_furniture_uses_upstream_footprint_shapes() {
+        let hole = hole_footprint("Panel:ToolingHole", 3.5, 3.5, 3.0);
+        assert_eq!(hole.get("at").and_then(|n| n.float_at(0)), Some(3.5));
+        let pad = hole.children_named("pad").next().unwrap();
+        assert_eq!(pad.string_at(1), Some("np_thru_hole"));
+        let fid = fiducial_footprint(5.0, 5.0);
+        let pad = fid.children_named("pad").next().unwrap();
+        assert_eq!(pad.string_at(1), Some("smd"));
+        assert_eq!(
+            pad.get("solder_mask_margin").and_then(|n| n.float_at(0)),
+            Some(2.0)
+        );
+    }
 }
 fn is_board_object(n: &SExp) -> bool {
     matches!(

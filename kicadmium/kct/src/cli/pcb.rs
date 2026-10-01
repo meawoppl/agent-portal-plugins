@@ -194,7 +194,9 @@ fn query_nets(r: &SExp) -> Value {
     Value::Array(out)
 }
 fn query_padmap(r: &SExp, rf: Option<&str>, net: Option<&str>) -> Value {
-    Value::Array(nodes(r,"footprint").filter_map(|f|{let reference=property(f,"Reference");if rf.is_some_and(|x|x!=reference){return None}let pads:Vec<_>=nodes(f,"pad").filter_map(|p|{let nn=p.get("net").and_then(|n|n.string_at(1)).unwrap_or("");if net.is_some_and(|x|x!=nn){None}else{Some(json!({"number":p.string_at(0).unwrap_or(""),"net":nn}))}}).collect();if net.is_some()&&pads.is_empty(){return None}Some(json!({"reference":reference,"value":property(f,"Value"),"footprint":f.string_at(0).unwrap_or(""),"pads":pads}))}).collect())
+    let mut rows=nodes(r,"footprint").filter_map(|f|{let reference=property(f,"Reference");if rf.is_some_and(|x|x!=reference){return None}let pads:Vec<_>=nodes(f,"pad").filter_map(|p|{let nn=p.get("net").and_then(|n|n.string_at(1)).unwrap_or("");if net.is_some_and(|x|x!=nn){None}else{Some(json!({"number":p.string_at(0).unwrap_or(""),"net":nn}))}}).collect();if net.is_some()&&pads.is_empty(){return None}Some(json!({"reference":reference,"value":property(f,"Value"),"footprint":f.string_at(0).unwrap_or(""),"pads":pads}))}).collect::<Vec<_>>();
+    rows.sort_by(|a, b| a["reference"].as_str().cmp(&b["reference"].as_str()));
+    Value::Array(rows)
 }
 fn query_traces(r: &SExp, wanted: Option<&str>) -> Value {
     let mut m: BTreeMap<String, (usize, f64, BTreeSet<String>)> = BTreeMap::new();

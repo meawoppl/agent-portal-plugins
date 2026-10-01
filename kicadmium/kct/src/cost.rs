@@ -69,17 +69,20 @@ pub fn estimate(
         1.
     };
     let pcb_total = (2. + area_cost + layer_cost + finish_cost + color_cost + thick_cost) * disc;
-    let mut groups: BTreeMap<(String, String), (String, usize)> = BTreeMap::new();
+    let mut groups: Vec<((String, String), (String, usize))> = Vec::new();
     for f in p
         .footprints()
         .iter()
         .filter(|f| !f.reference.is_empty() && !f.reference.starts_with('#') && !f.dnp)
     {
-        let e = groups
-            .entry((f.value.clone(), f.name.clone()))
-            .or_insert((f.reference.clone(), 0));
-        e.1 += 1;
+        let key = (f.value.clone(), f.name.clone());
+        if let Some((_, (_, count))) = groups.iter_mut().find(|(existing, _)| *existing == key) {
+            *count += 1;
+        } else {
+            groups.push((key, (f.reference.clone(), 1)));
+        }
     }
+    groups.sort_by(|a, b| a.1 .0.cmp(&b.1 .0));
     let mut items = Vec::new();
     let mut categories: BTreeMap<&str, f64> = BTreeMap::new();
     let mut component_total = 0.;
@@ -140,7 +143,7 @@ pub fn estimate(
     let pcb_unit = pcb_total / qty as f64;
     let asm_unit = asm_total / qty as f64;
     let total = pcb_unit + component_total + asm_unit;
-    json!({"manufacturer":mfr,"quantity":qty,"currency":"USD","summary":{"pcb_cost_per_unit":r2(pcb_unit),"component_cost_per_unit":r2(component_total),"assembly_cost_per_unit":r2(asm_unit),"total_per_unit":r2(total),"total_for_quantity":r2(total*qty as f64)},"pcb":{"cost_per_unit":r2(pcb_unit),"total_cost":r2(pcb_total),"breakdown":{"base":2.0,"area":r2(area_cost),"layers":r2(layer_cost),"finish":r2(finish_cost),"color":r2(color_cost),"vias":0.0,"thickness":r2(thick_cost)},"specs":{"width_mm":w,"height_mm":h,"area_cm2":r2(area),"layer_count":layers,"surface_finish":finish,"solder_mask_color":color,"board_thickness_mm":thickness}},"components":{"cost_per_unit":r2(component_total),"total_parts":groups.values().map(|x|x.1).sum::<usize>(),"unique_parts":groups.len(),"breakdown":categories,"items":items},"assembly":{"cost_per_unit":r2(asm_unit),"total_cost":r2(asm_total),"breakdown":{"smt":r2(smt_cost),"through_hole":r2(tht_cost),"setup":9.5,"bga":r2(bga_cost),"fine_pitch":0.0},"specs":{"smt_parts":smt,"through_hole_parts":tht,"unique_parts":groups.len(),"bga_parts":bga,"double_sided":double}},"cost_drivers":[],"optimization_suggestions":[format!("Use basic parts to avoid extended part fees ({} extended parts)",groups.len())]})
+    json!({"manufacturer":mfr,"quantity":qty,"currency":"USD","summary":{"pcb_cost_per_unit":r2(pcb_unit),"component_cost_per_unit":r2(component_total),"assembly_cost_per_unit":r2(asm_unit),"total_per_unit":r2(total),"total_for_quantity":r2(total*qty as f64)},"pcb":{"cost_per_unit":r2(pcb_unit),"total_cost":r2(pcb_total),"breakdown":{"base":2.0,"area":r2(area_cost),"layers":r2(layer_cost),"finish":r2(finish_cost),"color":r2(color_cost),"vias":0.0,"thickness":r2(thick_cost)},"specs":{"width_mm":w,"height_mm":h,"area_cm2":r2(area),"layer_count":layers,"surface_finish":finish,"solder_mask_color":color,"board_thickness_mm":thickness}},"components":{"cost_per_unit":r2(component_total),"total_parts":groups.iter().map(|(_,x)|x.1).sum::<usize>(),"unique_parts":groups.len(),"breakdown":categories,"items":items},"assembly":{"cost_per_unit":r2(asm_unit),"total_cost":r2(asm_total),"breakdown":{"smt":r2(smt_cost),"through_hole":r2(tht_cost),"setup":9.5,"bga":r2(bga_cost),"fine_pitch":0.0},"specs":{"smt_parts":smt,"through_hole_parts":tht,"unique_parts":groups.len(),"bga_parts":bga,"double_sided":double}},"cost_drivers":[],"optimization_suggestions":[format!("Use basic parts to avoid extended part fees ({} extended parts)",groups.len())]})
 }
 fn prefix(r: &str) -> &str {
     let n = r.find(|c: char| c.is_ascii_digit()).unwrap_or(r.len());

@@ -1,5 +1,6 @@
 //! Native PCB analysis commands.
 use super::{parse_args, Globals};
+use crate::schema::pcb::Pcb;
 use crate::sexp::{Document, SExp};
 use anyhow::{bail, Result};
 use clap::{Args as ClapArgs, Parser, Subcommand};
@@ -160,9 +161,8 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             )
         }
         Command::Complexity(a) => {
-            let r = load(&a.pcb)?;
-            let _ = a.grid_size;
-            emit(complexity(&r), &a.format)
+            let pcb = Pcb::load(&a.pcb)?;
+            emit(complexity(&pcb, a.grid_size), &a.format)
         }
         Command::Congestion(a) => congestion_cmd(a),
         Command::SignalIntegrity(a) => signal_integrity_cmd(a),
@@ -366,24 +366,40 @@ fn round2(v: f64) -> f64 {
     (v * 100.).round() / 100.
 }
 fn thermal_cmd(a: ThermalArgs) -> Result<i32> {
-    let r = load(&a.pcb)?;
-    let mut sources = vec![];
-    for f in r.children_named("footprint") {
-        let reference = f.property("Reference").unwrap_or("");
-        let value = f.property("Value").unwrap_or("");
-        let name = f.string_at(0).unwrap_or("");
+    let pcb = Pcb::load(&a.pcb)?;
+    #[derive(Clone)]
+    struct Source {
+        reference: String,
+        power: f64,
+        package: String,
+        pos: (f64, f64),
+        kind: &'static str,
+        value: String,
+        thermal: Option<f64>,
+    }
+    let mut sources: Vec<Source> = vec![];
+    for f in pcb.footprints() {
+        let reference = f.reference.as_str();
+        let value = f.value.as_str();
+        let name = f.name.as_str();
         let u = format!("{reference} {value} {name}").to_ascii_uppercase();
+        let package = [
+            "SOT-223", "SOT-23", "TO-220", "TO-252", "TO-263", "QFN", "SOIC-8", "TSSOP", "0402",
+            "0603", "0805", "1206", "2512",
+        ]
+        .into_iter()
+        .find(|package| u.contains(package))
+        .unwrap_or("unknown");
         let (kind, power) = if reference.starts_with('R') {
             (
                 "resistor",
-                if u.contains("2512") {
-                    1.0
-                } else if u.contains("1206") {
-                    0.25
-                } else if u.contains("0805") {
-                    0.125
-                } else {
-                    0.1
+                match package {
+                    "0402" => 0.03125,
+                    "0603" => 0.05,
+                    "0805" => 0.0625,
+                    "1206" => 0.125,
+                    "2512" => 0.5,
+                    _ => 0.05,
                 },
             )
         } else if reference.starts_with('Q') || u.contains("MOSFET") {
@@ -400,48 +416,172 @@ fn thermal_cmd(a: ThermalArgs) -> Result<i32> {
         if power < a.min_power {
             continue;
         }
-        let p = point(f, "at");
-        sources.push(json!({"reference":reference,"power_w":power,"package":name,"position":{"x":round2(p.0),"y":round2(p.1)},"component_type":kind,"value":value}));
+        let p = f.position;
+        let thermal = match package {
+            "SOT-23" => Some(250.),
+            "SOT-223" => Some(50.),
+            "TO-220" => Some(5.),
+            "TO-252" => Some(15.),
+            "TO-263" => Some(10.),
+            "QFN" => Some(30.),
+            "SOIC-8" => Some(100.),
+            "TSSOP" => Some(120.),
+            "0402" => Some(300.),
+            "0603" => Some(250.),
+            "0805" => Some(200.),
+            "1206" => Some(150.),
+            _ => None,
+        };
+        sources.push(Source {
+            reference: reference.into(),
+            power,
+            package: package.into(),
+            pos: p,
+            kind,
+            value: value.into(),
+            thermal,
+        });
     }
     let mut hotspots = vec![];
-    for s in &sources {
-        let p = (
-            s["position"]["x"].as_f64().unwrap(),
-            s["position"]["y"].as_f64().unwrap(),
-        );
-        let nearby: Vec<_> = sources
-            .iter()
-            .filter(|x| {
-                distance(
-                    p,
-                    (
-                        x["position"]["x"].as_f64().unwrap(),
-                        x["position"]["y"].as_f64().unwrap(),
-                    ),
-                ) <= a.cluster_radius
-            })
-            .cloned()
-            .collect();
-        let total: f64 = nearby.iter().filter_map(|x| x["power_w"].as_f64()).sum();
-        let rise = total * 50.;
-        let sev = if rise >= 100. {
+    let mut assigned = BTreeSet::new();
+    for (index, source) in sources.iter().enumerate() {
+        if assigned.contains(&index) {
+            continue;
+        }
+        let mut nearby = vec![source.clone()];
+        assigned.insert(index);
+        for (other_index, other) in sources.iter().enumerate() {
+            if !assigned.contains(&other_index)
+                && distance(source.pos, other.pos) <= a.cluster_radius
+            {
+                nearby.push(other.clone());
+                assigned.insert(other_index);
+            }
+        }
+        let total: f64 = nearby.iter().map(|x| x.power).sum();
+        let center = if nearby.len() == 1 {
+            nearby[0].pos
+        } else {
+            (
+                nearby.iter().map(|x| x.pos.0).sum::<f64>() / nearby.len() as f64,
+                nearby.iter().map(|x| x.pos.1).sum::<f64>() / nearby.len() as f64,
+            )
+        };
+        let radius = if nearby.len() == 1 {
+            5.0
+        } else {
+            (nearby
+                .iter()
+                .map(|x| distance(x.pos, center))
+                .fold(0.0, f64::max)
+                + 2.0)
+                .max(5.0)
+        };
+        let mut via_count = 0;
+        let mut thermal_vias = 0;
+        for via in pcb.vias() {
+            if distance(via.position, center) <= radius {
+                via_count += 1;
+                if via.drill <= 0.4 && via.layers.len() >= 2 {
+                    thermal_vias += 1
+                }
+            }
+        }
+        let mut copper = 0.0;
+        for zone in pcb.zones() {
+            if !zone.polygon.is_empty() {
+                let minx = zone
+                    .polygon
+                    .iter()
+                    .map(|p| p.0)
+                    .fold(f64::INFINITY, f64::min);
+                let maxx = zone
+                    .polygon
+                    .iter()
+                    .map(|p| p.0)
+                    .fold(f64::NEG_INFINITY, f64::max);
+                let miny = zone
+                    .polygon
+                    .iter()
+                    .map(|p| p.1)
+                    .fold(f64::INFINITY, f64::min);
+                let maxy = zone
+                    .polygon
+                    .iter()
+                    .map(|p| p.1)
+                    .fold(f64::NEG_INFINITY, f64::max);
+                let q = (center.0.clamp(minx, maxx), center.1.clamp(miny, maxy));
+                if distance(q, center) <= radius {
+                    let area = zone
+                        .polygon
+                        .iter()
+                        .zip(zone.polygon.iter().cycle().skip(1))
+                        .map(|(p, q)| p.0 * q.1 - q.0 * p.1)
+                        .sum::<f64>()
+                        .abs()
+                        / 2.0;
+                    copper += area.min(std::f64::consts::PI * radius * radius)
+                }
+            }
+        }
+        if copper == 0.0 {
+            copper = pcb
+                .segments()
+                .iter()
+                .filter(|seg| {
+                    distance(
+                        (
+                            (seg.start.0 + seg.end.0) / 2.0,
+                            (seg.start.1 + seg.end.1) / 2.0,
+                        ),
+                        center,
+                    ) <= radius
+                })
+                .map(|seg| distance(seg.start, seg.end) * 0.25)
+                .sum();
+            if copper.abs() < 1e-12 {
+                copper = 0.0;
+            }
+        }
+        let thermal_r = (if copper > 0.0 {
+            (5000.0 / copper).max(10.0)
+        } else {
+            200.0
+        }) / (1.0 + 0.1 * thermal_vias as f64);
+        let rise = total * thermal_r;
+        let sev = if rise > 60. || total > 2.0 {
             "critical"
-        } else if rise >= 60. {
+        } else if rise > 40. || total > 1.0 {
             "hot"
-        } else if rise >= 30. {
+        } else if rise > 20. || total > 0.5 {
             "warm"
         } else {
             "ok"
         };
-        hotspots.push(json!({"position":s["position"],"radius_mm":a.cluster_radius,"sources":nearby,"total_power_w":round3(total),"copper_area_mm2":0.0,"via_count":0,"thermal_vias":0,"severity":sev,"max_temp_rise_c":round2(rise),"suggestions":if matches!(sev,"hot"|"critical"){vec!["Add copper area and thermal vias"]}else{Vec::<&str>::new()}}));
+        let source_json=nearby.iter().map(|s|{let mut v=json!({"reference":s.reference,"power_w":round3(s.power),"package":s.package,"position":{"x":round2(s.pos.0),"y":round2(s.pos.1)},"component_type":s.kind});if let Some(r)=s.thermal{v["thermal_resistance_c_per_w"]=json!(round1(r))}if !s.value.is_empty(){v["value"]=json!(s.value)}v}).collect::<Vec<_>>();
+        let mut suggestions = Vec::new();
+        if thermal_vias < 4 && total > 0.2 {
+            let main = nearby
+                .iter()
+                .max_by(|a, b| a.power.total_cmp(&b.power))
+                .unwrap();
+            suggestions.push(format!(
+                "Add thermal vias under {} (currently {}, recommend 4+ for {:.2}W)",
+                main.reference, thermal_vias, total
+            ));
+        }
+        let min_copper = total * 100.;
+        if copper < min_copper {
+            suggestions.push(format!("Increase copper pour area for heat spreading (current: {:.0}mm², recommend: {:.0}mm²+)",copper,min_copper));
+        }
+        hotspots.push(json!({"position":{"x":round2(center.0),"y":round2(center.1)},"radius_mm":round2(radius),"sources":source_json,"total_power_w":round3(total),"copper_area_mm2":round1(copper),"via_count":via_count,"thermal_vias":thermal_vias,"severity":sev,"max_temp_rise_c":round1(rise),"suggestions":suggestions}));
     }
-    hotspots.dedup_by(|a, b| a["position"] == b["position"]);
     let critical = hotspots
         .iter()
         .filter(|h| h["severity"] == "critical")
         .count();
     let hot = hotspots.iter().filter(|h| h["severity"] == "hot").count();
-    let out = json!({"hotspots":hotspots,"summary":{"total":hotspots.len(),"critical":critical,"hot":hot,"warm":hotspots.iter().filter(|h|h["severity"]=="warm").count(),"ok":hotspots.iter().filter(|h|h["severity"]=="ok").count(),"total_power_w":round3(sources.iter().filter_map(|x|x["power_w"].as_f64()).sum())}});
+    let out = json!({"hotspots":hotspots,"summary":{"total":hotspots.len(),"critical":critical,"hot":hot,"warm":hotspots.iter().filter(|h|h["severity"]=="warm").count(),"ok":hotspots.iter().filter(|h|h["severity"]=="ok").count(),"total_power_w":round3(sources.iter().map(|x|x.power).sum())}});
     emit(out, &a.format)?;
     Ok(if critical > 0 {
         2
@@ -638,18 +778,231 @@ fn detect_pairs<'a>(names: impl Iterator<Item = &'a String>) -> Vec<Value> {
     }
     o
 }
-fn complexity(r: &SExp) -> Value {
-    let tl = trace_lengths(r, &[], true, true);
-    let total = tl["summary"]["total_length_mm"].as_f64().unwrap_or(0.);
-    let nets = tl["summary"]["total_nets"].as_u64().unwrap_or(0);
-    let pads = r
-        .children_named("footprint")
-        .flat_map(|f| f.children_named("pad"))
+fn complexity(pcb: &Pcb, grid_size: f64) -> Value {
+    let mut edge_points = Vec::new();
+    for line in pcb
+        .graphic_lines()
+        .iter()
+        .filter(|line| line.layer == "Edge.Cuts")
+    {
+        edge_points.extend([line.start, line.end]);
+    }
+    for arc in pcb
+        .graphic_arcs()
+        .iter()
+        .filter(|arc| arc.layer == "Edge.Cuts")
+    {
+        edge_points.extend([arc.start, arc.mid, arc.end]);
+    }
+    let (width, height) = if edge_points.is_empty() {
+        (100.0, 100.0)
+    } else {
+        let minx = edge_points
+            .iter()
+            .map(|p| p.0)
+            .fold(f64::INFINITY, f64::min);
+        let maxx = edge_points
+            .iter()
+            .map(|p| p.0)
+            .fold(f64::NEG_INFINITY, f64::max);
+        let miny = edge_points
+            .iter()
+            .map(|p| p.1)
+            .fold(f64::INFINITY, f64::min);
+        let maxy = edge_points
+            .iter()
+            .map(|p| p.1)
+            .fold(f64::NEG_INFINITY, f64::max);
+        (maxx - minx, maxy - miny)
+    };
+    let area = width * height;
+    let total_pads = pcb.footprints().iter().map(|f| f.pads.len()).sum::<usize>();
+    let mut positions: BTreeMap<i64, Vec<(f64, f64)>> = BTreeMap::new();
+    for footprint in pcb.footprints() {
+        for pad in &footprint.pads {
+            if pad.net_number > 0 {
+                if let Some(pos) = pcb.get_pad_position(&footprint.reference, &pad.number) {
+                    positions.entry(pad.net_number).or_default().push(pos);
+                }
+            }
+        }
+    }
+    let all_positions = positions.clone();
+    positions.retain(|_, pads| pads.len() >= 2);
+    let total_nets = positions.len();
+    let mst_length = |points: &[(f64, f64)]| {
+        if points.len() < 2 {
+            return 0.0;
+        }
+        let mut remaining = points.to_vec();
+        let mut current = remaining.remove(0);
+        let mut total = 0.0;
+        while !remaining.is_empty() {
+            let (index, distance) = remaining
+                .iter()
+                .enumerate()
+                .map(|(index, point)| (index, (point.0 - current.0).hypot(point.1 - current.1)))
+                .min_by(|a, b| a.1.total_cmp(&b.1))
+                .unwrap();
+            total += distance;
+            current = remaining.remove(index);
+        }
+        total
+    };
+    let total_length = positions
+        .values()
+        .map(|points| mst_length(points))
+        .sum::<f64>();
+    let mut grid: BTreeMap<(i64, i64), (usize, BTreeSet<i64>)> = BTreeMap::new();
+    for (net, pads) in &all_positions {
+        for &(x, y) in pads {
+            let cell = grid
+                .entry((
+                    (x / grid_size).floor() as i64,
+                    (y / grid_size).floor() as i64,
+                ))
+                .or_default();
+            cell.0 += 1;
+            cell.1.insert(*net);
+        }
+    }
+    let crossing_number = grid
+        .values()
+        .map(|(_, nets)| nets.len() * nets.len().saturating_sub(1) / 2)
+        .sum::<usize>();
+    let max_pin_density = grid
+        .values()
+        .map(|(pads, _)| *pads as f64 / (grid_size * grid_size))
+        .fold(0.0, f64::max);
+    let net_names = pcb
+        .nets()
+        .iter()
+        .map(|n| n.name.to_ascii_uppercase())
+        .collect::<Vec<_>>();
+    let mut pair_bases = BTreeSet::new();
+    for name in &net_names {
+        for suffix in ["_P", "_N", "+", "-", "_DP", "_DN", "_POS", "_NEG"] {
+            if let Some(base) = name.strip_suffix(suffix) {
+                pair_bases.insert(base.to_owned());
+                break;
+            }
+        }
+    }
+    let high_speed = net_names
+        .iter()
+        .filter(|name| {
+            [
+                "CLK", "CLOCK", "USB", "HDMI", "LVDS", "DDR", "PCIE", "SATA", "ETH", "SGMII",
+            ]
+            .iter()
+            .any(|pattern| name.contains(pattern))
+        })
         .count();
-    json!({"metrics":{"total_pads":pads,"total_nets":nets,"avg_net_length_mm":if nets==0{0.}else{(total/nets as f64*100.).round()/100.},"differential_pairs":tl["differential_pairs"].as_array().map_or(0,Vec::len)},"scores":{"overall":0.0},"predictions":{"complexity_rating":if pads<25{"trivial"}else if pads<100{"simple"}else{"complex"},"min_layers_predicted":2},"bottlenecks":[],"recommendations":[]})
+    let normalize =
+        |value: f64, low: f64, high: f64| ((value - low) / (high - low) * 100.0).clamp(0.0, 100.0);
+    let density_score = if area > 0.0 {
+        normalize(total_pads as f64 / area, 0.01, 0.07)
+    } else {
+        100.0
+    };
+    let crossing_score = if total_nets > 0 {
+        normalize(crossing_number as f64 / total_nets as f64, 0.5, 8.0)
+    } else {
+        0.0
+    };
+    let channel_score = (100.0 - max_pin_density * 100.0).max(0.0);
+    let overall = density_score * 0.4 + crossing_score * 0.35 + (100.0 - channel_score) * 0.25;
+    let rating = if overall < 20.0 {
+        "trivial"
+    } else if overall < 40.0 {
+        "simple"
+    } else if overall < 60.0 {
+        "moderate"
+    } else if overall < 80.0 {
+        "complex"
+    } else {
+        "extreme"
+    };
+    let probability = |layers: i32| {
+        let adjusted = overall
+            + match layers {
+                4 => -30.0,
+                6 => -55.0,
+                _ => 0.0,
+            };
+        if adjusted <= 0.0 {
+            0.99
+        } else if adjusted >= 100.0 {
+            0.01
+        } else {
+            (1.0 / (1.0 + ((adjusted - 50.0) / 15.0_f64).exp()) * 100.0).round() / 100.0
+        }
+    };
+    let p2 = probability(2);
+    let p4 = probability(4);
+    let p6 = probability(6);
+    let predictions = vec![
+        json!({"layers":2,"probability":p2,"recommended":p2>=0.7,"notes":if p2<0.3{"Not recommended"}else if p2<0.7{"May require optimization"}else{""}}),
+        json!({"layers":4,"probability":p4,"recommended":((0.3..0.7).contains(&p2))||(pair_bases.len()>0&&p2<0.9),"notes":if pair_bases.is_empty(){""}else{"Good for differential pairs"}}),
+        json!({"layers":6,"probability":p6,"recommended":p4<0.7||rating=="extreme","notes":if p4<0.7||rating=="extreme"{"Recommended for this complexity"}else{""}}),
+    ];
+    let min_layers = if p2 >= 0.7 {
+        2
+    } else if p4 >= 0.7 {
+        4
+    } else {
+        6
+    };
+    let mut bottlenecks=pcb.footprints().iter().filter(|fp|fp.pads.len()>=8).filter_map(|fp|{
+        let minx=fp.pads.iter().map(|p|p.position.0).fold(f64::INFINITY,f64::min);let maxx=fp.pads.iter().map(|p|p.position.0).fold(f64::NEG_INFINITY,f64::max);let miny=fp.pads.iter().map(|p|p.position.1).fold(f64::INFINITY,f64::min);let maxy=fp.pads.iter().map(|p|p.position.1).fold(f64::NEG_INFINITY,f64::max);let w=maxx-minx;let h=maxy-miny;let density=fp.pads.len() as f64/if w>0.&&h>0.{w*h}else{1.};if density<0.5{return None}let severity=if density>=1.0{"Very high"}else{"High"};let package=if fp.pads.len()>=100{"BGA"}else if fp.pads.len()>=32{"QFP"}else if fp.pads.len()>=16{"SOIC/SSOP"}else{"IC"};Some(json!({"component":fp.reference,"position":{"x":fp.position.0,"y":fp.position.1},"description":format!("{severity} pin density, {}-pin {package}, limited escape routing",fp.pads.len()),"pin_count":fp.pads.len(),"pin_density":round3(density),"available_channels":(2.*(w+h)/0.5) as i64}))
+    }).collect::<Vec<_>>();
+    bottlenecks.sort_by(|a, b| {
+        b["pin_density"]
+            .as_f64()
+            .unwrap_or(0.)
+            .total_cmp(&a["pin_density"].as_f64().unwrap_or(0.))
+    });
+    bottlenecks.truncate(10);
+    let mut recommendations = Vec::new();
+    if min_layers > 2 {
+        recommendations.push(format!(
+            "Consider {min_layers}-layer board for reliable routing"
+        ));
+    }
+    if let Some(worst) = bottlenecks.first() {
+        recommendations.push(format!(
+            "High pin density around {} ({} pins) - may need escape routing",
+            worst["component"].as_str().unwrap_or(""),
+            worst["pin_count"]
+        ));
+    }
+    if !pair_bases.is_empty() {
+        recommendations.push(format!(
+            "Board has {} differential pair(s) - ensure length matching and controlled impedance",
+            pair_bases.len()
+        ));
+    }
+    if density_score > 70. {
+        recommendations
+            .push("High pad density - consider finer trace/clearance rules or larger board".into());
+    }
+    if crossing_score > 70. {
+        recommendations.push(
+            "High net crossing complexity - additional layers or component repositioning may help"
+                .into(),
+        );
+    }
+    if overall > 50. {
+        recommendations
+            .push("Use --auto-layers flag to automatically find minimum viable layer count".into());
+    }
+    json!({"metrics":{"total_pads":total_pads,"total_nets":total_nets,"board_area_mm2":round1(area),"board_width_mm":round1(width),"board_height_mm":round1(height),"avg_net_length_mm":round2(if total_nets==0{0.0}else{total_length/total_nets as f64}),"max_pin_density":round3(max_pin_density),"crossing_number":crossing_number,"differential_pairs":pair_bases.len(),"high_speed_nets":high_speed},"scores":{"density":round1(density_score),"crossings":round1(crossing_score),"channels":round1(channel_score),"overall":round1(overall)},"predictions":{"complexity_rating":rating,"min_layers_predicted":min_layers,"layer_predictions":predictions},"bottlenecks":bottlenecks,"recommendations":recommendations})
+}
+fn round1(v: f64) -> f64 {
+    crate::pyjson::py_round(v, 1)
 }
 fn round3(v: f64) -> f64 {
-    (v * 1000.).round() / 1000.
+    crate::pyjson::py_round(v, 3)
 }
 #[cfg(test)]
 mod tests {

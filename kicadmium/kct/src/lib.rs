@@ -7,9 +7,18 @@
 //! module per CLI command family under `cli`.
 
 pub mod cli;
+pub mod config;
+pub mod core;
+pub mod exceptions;
 pub mod fsutil;
+pub mod geometry;
+pub mod progress;
+pub mod project;
 pub mod sexp;
+pub mod sidecars;
+pub mod transaction;
 pub mod units;
+pub mod utils;
 
 pub use anyhow::{Error, Result};
 pub use sexp::{parse, parse_file, Document, SExp, Value};

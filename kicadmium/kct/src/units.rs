@@ -56,7 +56,12 @@ impl UnitFormatter {
     pub fn resolve(cli: Option<&str>) -> Self {
         let system = cli
             .and_then(UnitSystem::parse)
-            .or_else(|| std::env::var(UNITS_ENV_VAR).ok().as_deref().and_then(UnitSystem::parse))
+            .or_else(|| {
+                std::env::var(UNITS_ENV_VAR)
+                    .ok()
+                    .as_deref()
+                    .and_then(UnitSystem::parse)
+            })
             .unwrap_or_default();
         Self::new(system)
     }

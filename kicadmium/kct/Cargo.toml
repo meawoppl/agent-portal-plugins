@@ -9,8 +9,14 @@ description = "Rust port of rjwalters/kicad-tools (kct): KiCad automation for ag
 anyhow.workspace = true
 clap.workspace = true
 serde.workspace = true
-serde_json.workspace = true
+serde_json = { workspace = true, features = ["preserve_order"] }
 serde_yaml = "0.9"
+geo = "0.32"
+num-bigint = "0.4"
+num-rational = "0.4"
+num-traits = "0.2"
+toml = { version = "0.8", features = ["preserve_order"] }
+uuid = { version = "1", features = ["v4"] }
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -1,0 +1,24 @@
+==================================================
+Trace Optimization
+==================================================
+
+Input:  <WORK>/ot_charlie_text.kicad_pcb
+Output: <WORK>/ot_charlie_text.out.kicad_pcb
+
+Optimizations enabled:
+  - Collinear merge: yes
+  - Zigzag elimination: yes
+  - 45 corners: yes
+    (chamfer size: 0.5mm)
+
+--------------------------------------------------
+Results:
+--------------------------------------------------
+  Nets optimized:  8
+
+  Segments:           197 ->    108  (-45.2%)
+  Corners:            153 ->     89
+  Total length:     327.2mm ->  326.6mm  (-0.2%)
+
+Saved to: <WORK>/ot_charlie_text.out.kicad_pcb
+==================================================

@@ -1,0 +1,11 @@
+{
+  "min_width_mm": 0.2,
+  "min_height_mm": 1.0,
+  "manufacturer": "jlcpcb",
+  "dry_run": false,
+  "total_line_width_fixed": 0,
+  "total_text_height_fixed": 0,
+  "total_fixed": 0,
+  "line_width_fixes": [],
+  "text_height_fixes": []
+}

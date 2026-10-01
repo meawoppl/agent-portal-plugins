@@ -1,0 +1,4 @@
+Moved 1 in-pad via(s) off-pad:
+  Via 11111111 (net 'SIG') on pad U1-1: (10.000, 10.000) -> (10.000, 10.727); stubs on F.Cu, B.Cu
+
+Saved to: <WORK>/fv_free_slide_text.out.kicad_pcb

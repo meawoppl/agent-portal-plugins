@@ -518,7 +518,7 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_via_under_body(&self) -> DRCResults {
-        let rule = rules::via_under_body::ViaUnderBodyRule;
+        let rule = rules::via_under_body::ViaUnderBodyRule::default();
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 

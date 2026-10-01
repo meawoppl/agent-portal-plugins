@@ -2314,22 +2314,31 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             pins,
         } => {
             let d = load(&library)?;
-            let names: Vec<_> = d
-                .children_named("symbol")
-                .filter_map(|s| s.string_at(0))
-                .collect();
+            let symbols:Vec<_>=d.children_named("symbol").filter_map(|s|s.string_at(0).map(|name|{
+                let properties:BTreeMap<_,_>=s.children_named("property").filter_map(|p|Some((p.string_at(0)?.to_owned(),p.string_at(1)?.to_owned()))).collect();
+                let pin_rows:Vec<_>=s.find_all("pin").filter(|p|p.get("number").is_some()).map(|p|serde_json::json!({"number":p.get("number").and_then(|n|n.string_at(0)),"name":p.get("name").and_then(|n|n.string_at(0)),"type":p.text_at(0),"position":p.at().map(|x|vec![x.0,x.1]).unwrap_or_default(),"rotation":p.at().map(|x|x.2).unwrap_or(0.0),"length":p.child_f64("length").unwrap_or(0.0)})).collect();
+                let mut row=serde_json::json!({"name":name,"properties":properties,"pin_count":pin_rows.len()});
+                if pins {row.as_object_mut().unwrap().insert("pins".into(),pin_rows.into());} row
+            })).collect();
             if format == "json" {
-                if pins {
-                    let d = load(&library)?;
-                    let rows: Vec<_> = d.children_named("symbol").filter_map(|s| s.string_at(0).map(|name| serde_json::json!({"name":name,"pins":s.find_all("pin").count()}))).collect();
-                    json(&rows)?
-                } else {
-                    json(&names)?
-                }
+                json(
+                    &serde_json::json!({"path":library,"symbol_count":symbols.len(),"symbols":symbols}),
+                )?
             } else {
-                for n in names {
-                    println!("{n}")
+                println!(
+                    "Symbol Library: {}\n{}",
+                    library.file_name().unwrap_or_default().to_string_lossy(),
+                    "=".repeat(60)
+                );
+                for row in symbols {
+                    println!(
+                        "\n{}\n{}\n  Pin count:   {}",
+                        row["name"].as_str().unwrap_or(""),
+                        "-".repeat(40),
+                        row["pin_count"]
+                    );
                 }
+                println!("\nTotal: {} symbols", d.children_named("symbol").count());
             }
         }
         LibCmd::Validate { library } => {
@@ -2343,26 +2352,27 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             directory: library,
             format,
         } => {
-            let mut names = vec![];
+            let mut rows = vec![];
             for e in std::fs::read_dir(&library)
                 .with_context(|| format!("read {}", library.display()))?
             {
                 let p = e?.path();
                 if p.extension().and_then(|x| x.to_str()) == Some("kicad_mod") {
-                    names.push(
-                        p.file_stem()
-                            .unwrap_or_default()
-                            .to_string_lossy()
-                            .to_string(),
-                    )
+                    let d = load(&p)?;
+                    rows.push(serde_json::json!({"file":p.file_name().unwrap_or_default().to_string_lossy(),"name":d.string_at(0).unwrap_or("(unknown)"),"pads":d.children_named("pad").count(),"layer":d.child_str("layer").unwrap_or("F.Cu")}))
                 }
             }
-            names.sort();
+            rows.sort_by(|a, b| a["file"].as_str().cmp(&b["file"].as_str()));
             if format == "json" {
-                json(&names)?
+                json(&rows)?
             } else {
-                for n in names {
-                    println!("{n}")
+                for r in rows {
+                    println!(
+                        "{:<36} {:>4}  {}",
+                        r["name"].as_str().unwrap_or(""),
+                        r["pads"],
+                        r["layer"].as_str().unwrap_or("")
+                    )
                 }
             }
         }
@@ -2579,11 +2589,23 @@ pub fn validate(args: Vec<OsString>, _: &Globals) -> Result<i32> {
 }
 fn print_footprint_info(path: &Path, format: &str, include_pads: bool) -> Result<()> {
     let d = load(path)?;
+    let pads:Vec<_>=d.children_named("pad").map(|p|{
+        let at=p.at().unwrap_or((0.0,0.0,0.0));let size=p.get("size");
+        serde_json::json!({"name":p.string_at(0),"type":p.string_at(1),"shape":p.string_at(2),"x":at.0,"y":at.1,"rotation":at.2,"width":size.and_then(|s|s.float_at(0)).unwrap_or(0.0),"height":size.and_then(|s|s.float_at(1)).unwrap_or(0.0),"drill":p.get("drill").and_then(|s|s.float_at(0)),"layers":p.get("layers").map(|l|l.children.iter().filter_map(|n|n.value.as_ref().map(ToString::to_string)).collect::<Vec<_>>()).unwrap_or_default()})
+    }).collect();
     let v = serde_json::json!({
         "name":d.string_at(0),
+        "format":if d.has_tag("footprint") {"KiCad 6+"} else {"KiCad 5"},
+        "layer":d.child_str("layer").unwrap_or("F.Cu"),
+        "version":d.get("version").and_then(|n|n.int_at(0)),
+        "description":d.child_str("descr"),
+        "tags":d.child_str("tags"),
         "pad_count":d.children_named("pad").count(),
-        "model_count":d.children_named("model").count(),
-        "pads":if include_pads { Some(d.children_named("pad").map(|p| serde_json::json!({"number":p.string_at(0),"type":p.string_at(1),"shape":p.string_at(2)})).collect::<Vec<_>>()) } else { None }
+        "line_count":d.children_named("fp_line").count(),
+        "arc_count":d.children_named("fp_arc").count(),
+        "circle_count":d.children_named("fp_circle").count(),
+        "text_count":d.children_named("fp_text").count(),
+        "pads":if include_pads { Some(pads) } else { None }
     });
     if format == "json" {
         json(&v)?

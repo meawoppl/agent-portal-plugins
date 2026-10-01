@@ -63,6 +63,8 @@ pub struct RouteParams {
     pub quiet: bool,
     pub json: bool,
     pub reserve_planes: bool,
+    /// Flags the user passed that this port accepts but does not implement.
+    pub ignored_flags: Vec<String>,
 }
 
 /// Board-declared Default net class (from the sibling `.kicad_pro`).
@@ -193,6 +195,7 @@ fn resolve_params(ns: &Namespace, g: &Globals) -> Result<RouteParams, (i32, Stri
         quiet,
         json: ns.get("format") == Some("json"),
         reserve_planes: ns.flag("reserve_plane_layers"),
+        ignored_flags: Vec::new(),
     })
 }
 
@@ -784,14 +787,97 @@ pub fn run(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         Ok(ns) => ns,
         Err(code) => return Ok(code),
     };
-    let p = match resolve_params(&ns, g) {
+    let mut p = match resolve_params(&ns, g) {
         Ok(p) => p,
         Err((code, msg)) => {
             eprintln!("{msg}");
             return Ok(code);
         }
     };
+    p.ignored_flags = ignored_flags(&ns, ROUTE_OPTS, ROUTE_IMPLEMENTED);
+    if matches!(p.strategy.as_str(), "monte-carlo" | "evolutionary") {
+        p.ignored_flags.push(format!("--strategy {}", p.strategy));
+    }
+    warn_ignored("route", &p.ignored_flags);
     route_main(&p)
+}
+
+/// `route` options the native router honours (all others are accepted for
+/// upstream compatibility but have no effect yet).
+const ROUTE_IMPLEMENTED: &[&str] = &[
+    "output",
+    "format",
+    "strategy",
+    "skip_nets",
+    "nets",
+    "preserve_existing",
+    "complete",
+    "grid",
+    "max_cells",
+    "trace_width",
+    "clearance",
+    "via_drill",
+    "via_diameter",
+    "iterations",
+    "timeout",
+    "per_net_timeout",
+    "verbose",
+    "dry_run",
+    "quiet",
+    "layers",
+    "auto_pour",
+    "auto_layers",
+    "max_layers",
+    "min_completion",
+    "manufacturer",
+    "skip_drc",
+    "reserve_plane_layers",
+    "edge_clearance",
+];
+
+/// `route-auto` options the native router honours.
+const ROUTE_AUTO_IMPLEMENTED: &[&str] = &[
+    "net",
+    "nets",
+    "allow_partial",
+    "no_repair",
+    "via_drill",
+    "via_diameter",
+    "output",
+    "in_place",
+    "dry_run",
+    "verbose",
+    "format",
+];
+
+/// Explicitly passed options whose dest is not in `implemented` (first long
+/// option name, deduplicated, in table order).
+fn ignored_flags(
+    ns: &Namespace,
+    opts: &[super::route_args::Opt],
+    implemented: &[&str],
+) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for o in opts {
+        if implemented.contains(&o.dest) {
+            continue;
+        }
+        if let Some(name) = o.names.iter().find(|n| ns.was_explicit(n)) {
+            let name = name.to_string();
+            if !out.contains(&name) {
+                out.push(name);
+            }
+        }
+    }
+    out
+}
+
+fn warn_ignored(cmd: &str, flags: &[String]) {
+    for f in flags {
+        eprintln!(
+            "Warning: kct {cmd}: {f} accepted for compatibility, not implemented (no effect)"
+        );
+    }
 }
 
 /// Shared route driver (also used by `route-auto` / benchmarks).
@@ -1259,6 +1345,7 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
             "drc_routing_violations": drc_routing_errors,
             "elapsed_s": (started.elapsed().as_secs_f64() * 100.0).round() / 100.0,
             "unrouted_nets": best.router.results.values().filter(|r| !r.is_complete()).map(|r| r.name.clone()).collect::<Vec<_>>(),
+            "ignored_flags": p.ignored_flags,
         });
         println!("{}", serde_json::to_string_pretty(&doc)?);
     }
@@ -1286,6 +1373,8 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         Err(code) => return Ok(code),
     };
     let pcb_path = PathBuf::from(&ns.positionals[0]);
+    let ignored = ignored_flags(&ns, ROUTE_AUTO_OPTS, ROUTE_AUTO_IMPLEMENTED);
+    warn_ignored("route-auto", &ignored);
     let as_json = ns.get("format") == Some("json");
     if !pcb_path.exists() {
         eprintln!("Error: File not found: {}", pcb_path.display());
@@ -1378,6 +1467,7 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         quiet: true,
         json: false,
         reserve_planes: true,
+        ignored_flags: Vec::new(),
     };
     if !as_json {
         println!(
@@ -1460,6 +1550,7 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
                 "board": pcb_path.display().to_string(),
                 "output": output.display().to_string(),
                 "nets": entries,
+                "ignored_flags": ignored,
             }))?
         );
     } else {

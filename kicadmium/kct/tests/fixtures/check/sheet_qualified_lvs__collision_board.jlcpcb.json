@@ -1,0 +1,109 @@
+{
+ "file": "<FIXTURES>/sheet_qualified_lvs/collision_board.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 4,
+  "warnings": 0,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 42,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GND' is partially routed: 2 of 3 pads stranded (connected island has 1 pads)",
+   "location": [
+    111.0,
+    100.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R3.2"
+   ],
+   "nets": [
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net '/SENSE' has only 1 pad on R1-1 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    99.0,
+    100.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R1-1"
+   ],
+   "nets": [
+    "/SENSE"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net '/ChildA/SENSE' has only 1 pad on R3-1 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    109.0,
+    100.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R3-1"
+   ],
+   "nets": [
+    "/ChildA/SENSE"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net '/ChildB/SENSE' has only 1 pad on R4-1 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    119.0,
+    100.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R4-1"
+   ],
+   "nets": [
+    "/ChildB/SENSE"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

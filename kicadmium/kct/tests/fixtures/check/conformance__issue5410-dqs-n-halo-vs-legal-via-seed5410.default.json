@@ -1,0 +1,67 @@
+{
+ "file": "<FIXTURES>/conformance/issue5410-dqs-n-halo-vs-legal-via-seed5410.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 4,
+ "summary": {
+  "errors": 0,
+  "warnings": 2,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 51,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": true
+ },
+ "violations": [
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [DQS_N] on F.Cu - B.Cu bonds copper on 0 layer(s)",
+   "location": [
+    143.777,
+    123.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.0,
+   "required_value": 2.0,
+   "items": [
+    "net:DQS_N"
+   ],
+   "nets": [
+    "DQS_N"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [DQ3] on F.Cu - B.Cu bonds copper on 0 layer(s)",
+   "location": [
+    143.142,
+    123.292
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.0,
+   "required_value": 2.0,
+   "items": [
+    "net:DQ3"
+   ],
+   "nets": [
+    "DQ3"
+   ],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

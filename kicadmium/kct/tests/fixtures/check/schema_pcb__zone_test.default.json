@@ -1,0 +1,86 @@
+{
+ "file": "<FIXTURES>/schema_pcb/zone_test.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 1,
+  "warnings": 2,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 42,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "clearance_pad_zone",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Short: pad on net '+3.3V' overlaps zone fill of net 'GND' on F.Cu (overlap depth 9.900mm)",
+   "location": [
+    110.51,
+    110.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": -9.9,
+   "required_value": 0.127,
+   "items": [
+    "R1-2",
+    "ZoneFill-GND"
+   ],
+   "nets": [
+    "+3.3V",
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "zone_fill_disabled",
+   "type": "zone_fill_disabled",
+   "severity": "warning",
+   "message": "Zone fill disabled for net '+3.3V' on B.Cu [(100.00, 100.00) to (120.00, 115.00) mm]",
+   "location": [
+    110.0,
+    107.5
+   ],
+   "layer": "B.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:+3.3V"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "zone_unfilled",
+   "type": "zone_unfilled",
+   "severity": "warning",
+   "message": "Zone for net 'GND' on B.Cu has fill enabled but no filled polygons [(140.00, 100.00) to (160.00, 125.00) mm]",
+   "location": [
+    150.0,
+    115.0
+   ],
+   "layer": "B.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:GND"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

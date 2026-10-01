@@ -1,0 +1,898 @@
+{
+ "file": "<FIXTURES>/historical_demo_boards/07-matchgroup-test/output/matchgroup_test_routed.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 4,
+ "summary": {
+  "errors": 10,
+  "warnings": 30,
+  "infos": 3,
+  "waived": 0,
+  "rules_checked": 51,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "diffpair_clearance_intra": 7,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'DQ3' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    138.5,
+    63.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U2.4"
+   ],
+   "nets": [
+    "DQ3"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'DQ4' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    138.5,
+    66.2
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U2.8"
+   ],
+   "nets": [
+    "DQ4"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'MIPI_DAT0_N' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    125.5,
+    95.4
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U3.4"
+   ],
+   "nets": [
+    "MIPI_DAT0_N"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'TMDS_D0_N' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    151.0,
+    95.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J2.2"
+   ],
+   "nets": [
+    "TMDS_D0_N"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'TMDS_D1_N' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    154.0,
+    95.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J2.5"
+   ],
+   "nets": [
+    "TMDS_D1_N"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J3 (Connector_PinHeader_2.54mm:PinHeader_1x09_P2.54mm_Vertical): 9.09mm from nearest board edge",
+   "location": [
+    113.5,
+    120.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 9.09,
+   "required_value": null,
+   "items": [
+    "J3"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J1 (Connector_FFC:FFC_6P_1.0mm): 11.00mm from nearest board edge",
+   "location": [
+    108.5,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 11.0,
+   "required_value": null,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J2 (Connector_Video:HDMI_A_Receptacle): 37.90mm from nearest board edge",
+   "location": [
+    153.5,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 37.9,
+   "required_value": null,
+   "items": [
+    "J2"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    179.22,
+    96.27
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    180.5,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    177.55,
+    95.66
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    178.36,
+    95.47
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    147.65,
+    124.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    159.35,
+    115.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    149.35,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    131.35,
+    92.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    180.9,
+    94.2
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    176.72,
+    93.22
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    177.09,
+    96.74
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [+1V8] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    107.65,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:+1V8"
+   ],
+   "nets": [
+    "+1V8"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U1 (Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    108.5,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J3 (Connector_PinHeader_2.54mm:PinHeader_1x09_P2.54mm_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    103.34,
+    120.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U5 (Package_QFP:LQFP-48_7x7mm_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    148.5,
+    115.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U5"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J1 (Connector_FFC:FFC_6P_1.0mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    106.0,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U3 (Package_DFN_QFN:QFN-24-1EP_4x4mm_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    125.5,
+    93.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U4 (Package_BGA:BGA-49_5.0x5.0mm_Layout7x7_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    174.69,
+    91.19
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J2 (Connector_Video:HDMI_A_Receptacle) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    150.0,
+    95.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U2 (Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    138.5,
+    60.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_text_height",
+   "type": "silkscreen_text_height",
+   "severity": "warning",
+   "message": "Silkscreen text height 0.80mm < minimum 1.00mm on J3",
+   "location": [
+    113.5,
+    120.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.8,
+   "required_value": 1.0,
+   "items": [
+    "J3 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_text_height",
+   "type": "silkscreen_text_height",
+   "severity": "warning",
+   "message": "Silkscreen text height 0.80mm < minimum 1.00mm on J1",
+   "location": [
+    108.5,
+    95.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.8,
+   "required_value": 1.0,
+   "items": [
+    "J1 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_text_height",
+   "type": "silkscreen_text_height",
+   "severity": "warning",
+   "message": "Silkscreen text height 0.80mm < minimum 1.00mm on U3",
+   "location": [
+    128.5,
+    95.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.8,
+   "required_value": 1.0,
+   "items": [
+    "U3 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_text_height",
+   "type": "silkscreen_text_height",
+   "severity": "warning",
+   "message": "Silkscreen text height 0.80mm < minimum 1.00mm on J2",
+   "location": [
+    153.5,
+    95.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.8,
+   "required_value": 1.0,
+   "items": [
+    "J2 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_over_pad",
+   "type": "silkscreen_over_pad",
+   "severity": "warning",
+   "message": "Silkscreen text may overlap exposed pad on U4",
+   "location": [
+    178.5,
+    95.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U4",
+    "pad A4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U3 (reference) overlaps exposed copper of U3 pad 10",
+   "location": [
+    128.5,
+    92.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U3 (reference)",
+    "U3 pad 10"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U3 (reference) overlaps exposed copper of U3 pad 9",
+   "location": [
+    128.5,
+    92.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U3 (reference)",
+    "U3 pad 9"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U4 (reference) overlaps exposed copper of U4 pad A4",
+   "location": [
+    178.5,
+    91.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U4 (reference)",
+    "U4 pad A4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U5 (reference) overlaps exposed copper of U5 pad 18",
+   "location": [
+    153.5,
+    115.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U5 (reference)",
+    "U5 pad 18"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U5 (reference) overlaps exposed copper of U5 pad 19",
+   "location": [
+    153.5,
+    115.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U5 (reference)",
+    "U5 pad 19"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad",
+   "type": "via_in_pad",
+   "severity": "error",
+   "message": "Via at (81.369, 52.629) drilled inside pad U4-B1 (net 'TMDS_D0_P'); current manufacturer profile does not support via-in-pad. Switch to jlcpcb-tier1 or pcbway, or move the via off the pad.",
+   "location": [
+    174.869,
+    92.629
+   ],
+   "layer": null,
+   "actual_value": 0.3,
+   "required_value": null,
+   "items": [
+    "Via-c3338c97",
+    "U4-B1"
+   ],
+   "nets": [
+    "TMDS_D0_P"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad",
+   "type": "via_in_pad",
+   "severity": "error",
+   "message": "Via at (56.477, 55.423) drilled inside pad J2-1 (net 'TMDS_D0_P'); current manufacturer profile does not support via-in-pad. Switch to jlcpcb-tier1 or pcbway, or move the via off the pad.",
+   "location": [
+    149.977,
+    95.423
+   ],
+   "layer": null,
+   "actual_value": 0.3,
+   "required_value": null,
+   "items": [
+    "Via-f2ac44d6",
+    "J2-1"
+   ],
+   "nets": [
+    "TMDS_D0_P"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad",
+   "type": "via_in_pad",
+   "severity": "error",
+   "message": "Via at (83.528, 52.248) drilled inside pad U4-B3 (net 'TMDS_D1_P'); current manufacturer profile does not support via-in-pad. Switch to jlcpcb-tier1 or pcbway, or move the via off the pad.",
+   "location": [
+    177.028,
+    92.248
+   ],
+   "layer": null,
+   "actual_value": 0.3,
+   "required_value": null,
+   "items": [
+    "Via-3d6983cf",
+    "U4-B3"
+   ],
+   "nets": [
+    "TMDS_D1_P"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad",
+   "type": "via_in_pad",
+   "severity": "error",
+   "message": "Via at (86.195, 52.629) drilled inside pad U4-B5 (net 'TMDS_D2_P'); current manufacturer profile does not support via-in-pad. Switch to jlcpcb-tier1 or pcbway, or move the via off the pad.",
+   "location": [
+    179.695,
+    92.629
+   ],
+   "layer": null,
+   "actual_value": 0.3,
+   "required_value": null,
+   "items": [
+    "Via-cb8b2d29",
+    "U4-B5"
+   ],
+   "nets": [
+    "TMDS_D2_P"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad",
+   "type": "via_in_pad",
+   "severity": "error",
+   "message": "Via at (87.592, 52.629) drilled inside pad U4-B6 (net 'TMDS_D2_N'); current manufacturer profile does not support via-in-pad. Switch to jlcpcb-tier1 or pcbway, or move the via off the pad.",
+   "location": [
+    181.092,
+    92.629
+   ],
+   "layer": null,
+   "actual_value": 0.3,
+   "required_value": null,
+   "items": [
+    "Via-e2676dbd",
+    "U4-B6"
+   ],
+   "nets": [
+    "TMDS_D2_N"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

@@ -1,0 +1,44 @@
+{
+ "file": "<FIXTURES>/test_kicad10_save_board_new_tokens.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 4,
+ "summary": {
+  "errors": 0,
+  "warnings": 1,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 51,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": true
+ },
+ "violations": [
+  {
+   "rule_id": "zone_unfilled",
+   "type": "zone_unfilled",
+   "severity": "warning",
+   "message": "Zone for net 'GND' on F.Cu has fill enabled but no filled polygons [(1.00, 1.00) to (19.00, 19.00) mm]",
+   "location": [
+    150.0,
+    90.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:GND"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

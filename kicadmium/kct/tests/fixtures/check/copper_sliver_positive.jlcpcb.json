@@ -1,0 +1,61 @@
+{
+ "file": "<FIXTURES>/copper_sliver_positive.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 1,
+  "warnings": 1,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 47,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "copper_sliver",
+   "type": "copper_sliver",
+   "severity": "warning",
+   "message": "Copper sliver on F.Cu: acute tip exceeds native chord tolerance 0.080mm (tip angle 1.1\u00b0, opposite width 0.200mm)",
+   "location": [
+    10.0,
+    25.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.2,
+   "required_value": 0.08,
+   "items": [],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "footprint_outside_board",
+   "type": "footprint_outside_board",
+   "severity": "error",
+   "message": "Footprint  at (-5.00, -5.00) is outside the board outline by 7.07mm",
+   "location": [
+    0.0,
+    0.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 7.0710678118654755,
+   "required_value": 0.0,
+   "items": [
+    ""
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

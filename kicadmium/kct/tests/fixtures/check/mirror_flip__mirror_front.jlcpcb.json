@@ -1,0 +1,85 @@
+{
+ "file": "<FIXTURES>/mirror_flip/mirror_front.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 0,
+  "warnings": 3,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 47,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": true
+ },
+ "violations": [
+  {
+   "rule_id": "silkscreen_line_width",
+   "type": "silkscreen_line_width",
+   "severity": "warning",
+   "message": "Silkscreen line width 0.12mm < minimum 0.15mm on U1",
+   "location": [
+    100.0,
+    100.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.12,
+   "required_value": 0.15,
+   "items": [
+    "U1",
+    "fp_line"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_over_pad",
+   "type": "silkscreen_over_pad",
+   "severity": "warning",
+   "message": "Silkscreen text may overlap exposed pad on U1",
+   "location": [
+    100.0,
+    100.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U1",
+    "pad 3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U1 (reference) overlaps exposed copper of U1 pad 3",
+   "location": [
+    100.0,
+    100.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U1 (reference)",
+    "U1 pad 3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

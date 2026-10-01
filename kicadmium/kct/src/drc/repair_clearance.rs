@@ -95,9 +95,18 @@ impl RepairResult {
         add(self.cluster_rerouted, "Cluster reroutes");
         add(self.footprint_nudges, "Footprint nudges (pad-pad)");
         add(self.footprint_skipped_locked, "Skipped (footprint locked)");
-        add(self.footprint_skipped_connector, "Skipped (connector footprint)");
-        add(self.footprint_skipped_same_component, "Skipped (same component pads)");
-        add(self.skipped_exceeds_max, "Skipped (exceeds max displacement)");
+        add(
+            self.footprint_skipped_connector,
+            "Skipped (connector footprint)",
+        );
+        add(
+            self.footprint_skipped_same_component,
+            "Skipped (same component pads)",
+        );
+        add(
+            self.skipped_exceeds_max,
+            "Skipped (exceeds max displacement)",
+        );
         add(self.skipped_infeasible, "Skipped (infeasible)");
         add(self.skipped_no_local_route, "Skipped (no local route)");
         add(self.skipped_no_location, "Skipped (no location)");
@@ -129,7 +138,14 @@ struct FpInfo {
     is_connector: bool,
 }
 
-fn closest_point_on_segment(x1: f64, y1: f64, x2: f64, y2: f64, px: f64, py: f64) -> (f64, f64, f64) {
+fn closest_point_on_segment(
+    x1: f64,
+    y1: f64,
+    x2: f64,
+    y2: f64,
+    px: f64,
+    py: f64,
+) -> (f64, f64, f64) {
     let dx = x2 - x1;
     let dy = y2 - y1;
     let len_sq = dx * dx + dy * dy;
@@ -206,7 +222,9 @@ impl ClearanceRepairer {
             if !child.has_tag("net") {
                 continue;
             }
-            let atoms: Vec<String> = (0..child.children.len()).filter_map(|i| child.text_at(i)).collect();
+            let atoms: Vec<String> = (0..child.children.len())
+                .filter_map(|i| child.text_at(i))
+                .collect();
             if atoms.len() < 2 {
                 continue;
             }
@@ -247,8 +265,14 @@ impl ClearanceRepairer {
         };
         let groups = [
             (pick(ViolationType::CLEARANCE), prefer.to_string()),
-            (pick(ViolationType::CLEARANCE_SEGMENT_VIA), "move-trace".into()),
-            (pick(ViolationType::CLEARANCE_PAD_SEGMENT), "move-trace".into()),
+            (
+                pick(ViolationType::CLEARANCE_SEGMENT_VIA),
+                "move-trace".into(),
+            ),
+            (
+                pick(ViolationType::CLEARANCE_PAD_SEGMENT),
+                "move-trace".into(),
+            ),
             (pick(ViolationType::CLEARANCE_PAD_VIA), "move-via".into()),
         ];
         let all: Vec<DRCViolation> = groups.iter().flat_map(|(v, _)| v.iter().cloned()).collect();
@@ -258,7 +282,14 @@ impl ClearanceRepairer {
         for (vs, pref) in &groups {
             for v in vs {
                 let before = result.skipped_infeasible;
-                self.repair_single_violation(v, &mut result, max_displacement, margin, pref, dry_run);
+                self.repair_single_violation(
+                    v,
+                    &mut result,
+                    max_displacement,
+                    margin,
+                    pref,
+                    dry_run,
+                );
                 if result.skipped_infeasible > before {
                     skipped.push(idx);
                 }
@@ -267,8 +298,10 @@ impl ClearanceRepairer {
         }
         if local_reroute {
             let both = self.find_both_endpoints_at_vias(&all, max_displacement, margin);
-            let mut cands: Vec<(DRCViolation, &'static str)> =
-                skipped.iter().map(|&i| (all[i].clone(), "skipped")).collect();
+            let mut cands: Vec<(DRCViolation, &'static str)> = skipped
+                .iter()
+                .map(|&i| (all[i].clone(), "skipped"))
+                .collect();
             let skipped_set: HashSet<usize> = skipped.iter().copied().collect();
             for i in both {
                 if !skipped_set.contains(&i) {
@@ -276,7 +309,13 @@ impl ClearanceRepairer {
                 }
             }
             if !cands.is_empty() {
-                self.run_local_reroute_phase(&cands, &mut result, margin, dry_run, local_grid_padding);
+                self.run_local_reroute_phase(
+                    &cands,
+                    &mut result,
+                    margin,
+                    dry_run,
+                    local_grid_padding,
+                );
             }
         }
         if nudge_footprints {
@@ -292,9 +331,17 @@ impl ClearanceRepairer {
             .collect()
     }
 
-    fn find_both_endpoints_at_vias(&self, violations: &[DRCViolation], max_d: f64, margin: f64) -> Vec<usize> {
+    fn find_both_endpoints_at_vias(
+        &self,
+        violations: &[DRCViolation],
+        max_d: f64,
+        margin: f64,
+    ) -> Vec<usize> {
         let vias = self.via_positions();
-        let at_via = |x: f64, y: f64| vias.iter().any(|(vx, vy)| ((x - vx).powi(2) + (y - vy).powi(2)).sqrt() <= 0.001);
+        let at_via = |x: f64, y: f64| {
+            vias.iter()
+                .any(|(vx, vy)| ((x - vx).powi(2) + (y - vy).powi(2)).sqrt() <= 0.001)
+        };
         let mut out = Vec::new();
         for (i, v) in violations.iter().enumerate() {
             if v.locations.len() < 2 {
@@ -312,7 +359,9 @@ impl ClearanceRepairer {
                     continue;
                 }
                 let seg = node_at(&self.doc, &o.path);
-                let (Some((sx, sy)), Some((ex, ey))) = (xy_of(seg.find("start")), xy_of(seg.find("end"))) else {
+                let (Some((sx, sy)), Some((ex, ey))) =
+                    (xy_of(seg.find("start")), xy_of(seg.find("end")))
+                else {
                     continue;
                 };
                 if at_via(sx, sy) && at_via(ex, ey) {
@@ -350,8 +399,19 @@ impl ClearanceRepairer {
                         .map(|(_, o)| o.expect("checked"))
                         .collect();
                     let (v, src) = &tagged[i];
-                    if !self.attempt_local_reroute(v, result, &rerouter, margin, dry_run, src, &extra, true) {
-                        self.attempt_local_reroute(v, result, &rerouter, margin, dry_run, src, &[], false);
+                    if !self.attempt_local_reroute(
+                        v, result, &rerouter, margin, dry_run, src, &extra, true,
+                    ) {
+                        self.attempt_local_reroute(
+                            v,
+                            result,
+                            &rerouter,
+                            margin,
+                            dry_run,
+                            src,
+                            &[],
+                            false,
+                        );
                     }
                 }
             }
@@ -495,7 +555,10 @@ impl ClearanceRepairer {
         if uuid.is_empty() {
             return;
         }
-        let e = self.nudge_history.entry(uuid.to_string()).or_insert((0.0, 0.0));
+        let e = self
+            .nudge_history
+            .entry(uuid.to_string())
+            .or_insert((0.0, 0.0));
         e.0 += dx;
         e.1 += dy;
     }
@@ -532,7 +595,9 @@ impl ClearanceRepairer {
                 result.skipped_no_delta += 1;
                 return;
             };
-            self.repair_from_single_location(loc.x_mm, loc.y_mm, &loc.layer, delta, margin, v, result, max_d, prefer, dry_run);
+            self.repair_from_single_location(
+                loc.x_mm, loc.y_mm, &loc.layer, delta, margin, v, result, max_d, prefer, dry_run,
+            );
             return;
         }
         let (l1, l2) = (v.locations[0].clone(), v.locations[1].clone());
@@ -555,11 +620,12 @@ impl ClearanceRepairer {
             result.skipped_infeasible += 1;
             return;
         };
-        let (other, mut other_x, mut other_y) = if o1.as_ref().is_some_and(|o| o.path == target.path) {
-            (o2.clone(), l2.x_mm, l2.y_mm)
-        } else {
-            (o1.clone(), l1.x_mm, l1.y_mm)
-        };
+        let (other, mut other_x, mut other_y) =
+            if o1.as_ref().is_some_and(|o| o.path == target.path) {
+                (o2.clone(), l2.x_mm, l2.y_mm)
+            } else {
+                (o1.clone(), l1.x_mm, l1.y_mm)
+            };
         if let Some(other) = &other {
             other_x = other.x;
             other_y = other.y;
@@ -636,7 +702,11 @@ impl ClearanceRepairer {
             result.skipped_infeasible += 1;
             return;
         };
-        let other = if objs[0].path == target.path { &objs[1] } else { &objs[0] };
+        let other = if objs[0].path == target.path {
+            &objs[1]
+        } else {
+            &objs[0]
+        };
         let (dx, dy, dist) = compute_nudge(target.x, target.y, other.x, other.y, required);
         let uuid = self.uuid_of(&target.path);
         let actual = v.actual_value_mm.unwrap_or(0.0);
@@ -663,20 +733,35 @@ impl ClearanceRepairer {
     /// Nearest segment, then via, then pad within 1.5 mm.
     pub fn find_object_at(&self, x: f64, y: f64, layer: &str, nets: &[String]) -> Option<Obj> {
         let layer_opt = if layer.is_empty() { None } else { Some(layer) };
-        if let Some(o) = self.find_segments_near(x, y, 1.5, layer_opt, nets).into_iter().next() {
+        if let Some(o) = self
+            .find_segments_near(x, y, 1.5, layer_opt, nets)
+            .into_iter()
+            .next()
+        {
             return Some(o);
         }
         if let Some(o) = self.find_vias_near(x, y, 1.5, nets).into_iter().next() {
             return Some(o);
         }
-        self.find_pads_near(x, y, 1.5, layer_opt, nets).into_iter().next()
+        self.find_pads_near(x, y, 1.5, layer_opt, nets)
+            .into_iter()
+            .next()
     }
 
-    pub fn find_segments_near(&self, x: f64, y: f64, radius: f64, layer: Option<&str>, nets: &[String]) -> Vec<Obj> {
+    pub fn find_segments_near(
+        &self,
+        x: f64,
+        y: f64,
+        radius: f64,
+        layer: Option<&str>,
+        nets: &[String],
+    ) -> Vec<Obj> {
         let mut out = Vec::new();
         for path in descendant_paths(&self.doc, &|n| n.has_tag("segment")) {
             let seg = node_at(&self.doc, &path);
-            let (Some((sx, sy)), Some((ex, ey))) = (xy_of(seg.find("start")), xy_of(seg.find("end"))) else {
+            let (Some((sx, sy)), Some((ex, ey))) =
+                (xy_of(seg.find("start")), xy_of(seg.find("end")))
+            else {
                 continue;
             };
             let (cx, cy, d) = closest_point_on_segment(sx, sy, ex, ey, x, y);
@@ -691,7 +776,14 @@ impl ClearanceRepairer {
             if !nets.is_empty() && !nets.contains(&net) {
                 continue;
             }
-            out.push(Obj { path, kind: "segment", x: cx, y: cy, layer: seg_layer, net });
+            out.push(Obj {
+                path,
+                kind: "segment",
+                x: cx,
+                y: cy,
+                layer: seg_layer,
+                net,
+            });
         }
         out
     }
@@ -700,7 +792,9 @@ impl ClearanceRepairer {
         let mut out = Vec::new();
         for path in descendant_paths(&self.doc, &|n| n.has_tag("via")) {
             let via = node_at(&self.doc, &path);
-            let Some((vx, vy)) = xy_of(via.find("at")) else { continue };
+            let Some((vx, vy)) = xy_of(via.find("at")) else {
+                continue;
+            };
             if ((vx - x).powi(2) + (vy - y).powi(2)).sqrt() > radius {
                 continue;
             }
@@ -710,26 +804,50 @@ impl ClearanceRepairer {
             }
             let layer = via
                 .find("layers")
-                .map(|l| l.atoms().map(|a| a.to_string()).collect::<Vec<_>>().join(" - "))
+                .map(|l| {
+                    l.atoms()
+                        .map(|a| a.to_string())
+                        .collect::<Vec<_>>()
+                        .join(" - ")
+                })
                 .unwrap_or_default();
-            out.push(Obj { path, kind: "via", x: vx, y: vy, layer, net });
+            out.push(Obj {
+                path,
+                kind: "via",
+                x: vx,
+                y: vy,
+                layer,
+                net,
+            });
         }
         out
     }
 
-    pub fn find_pads_near(&self, x: f64, y: f64, radius: f64, layer: Option<&str>, nets: &[String]) -> Vec<Obj> {
+    pub fn find_pads_near(
+        &self,
+        x: f64,
+        y: f64,
+        radius: f64,
+        layer: Option<&str>,
+        nets: &[String],
+    ) -> Vec<Obj> {
         let mut out = Vec::new();
         for fp_path in footprint_paths(&self.doc) {
             let fp = node_at(&self.doc, &fp_path);
             let Some(at) = fp.find("at") else { continue };
             let a: Vec<f64> = at.atoms().map(|v| v.as_f64().unwrap_or(0.0)).collect();
-            let (fx, fy) = (a.first().copied().unwrap_or(0.0), a.get(1).copied().unwrap_or(0.0));
+            let (fx, fy) = (
+                a.first().copied().unwrap_or(0.0),
+                a.get(1).copied().unwrap_or(0.0),
+            );
             let rot = a.get(2).copied().unwrap_or(0.0);
             let ang = (-rot).to_radians();
             let (c, s) = (ang.cos(), ang.sin());
             for p in descendant_paths(fp, &|n| n.has_tag("pad")) {
                 let pad = node_at(fp, &p);
-                let Some((lx, ly)) = xy_of(pad.find("at")) else { continue };
+                let Some((lx, ly)) = xy_of(pad.find("at")) else {
+                    continue;
+                };
                 let ax = fx + lx * c - ly * s;
                 let ay = fy + lx * s + ly * c;
                 if ((ax - x).powi(2) + (ay - y).powi(2)).sqrt() > radius {
@@ -772,7 +890,9 @@ impl ClearanceRepairer {
         let mut out = Vec::new();
         for path in descendant_paths(&self.doc, &|n| n.has_tag("segment")) {
             let seg = node_at(&self.doc, &path);
-            let (Some((sx, sy)), Some((ex, ey))) = (xy_of(seg.find("start")), xy_of(seg.find("end"))) else {
+            let (Some((sx, sy)), Some((ex, ey))) =
+                (xy_of(seg.find("start")), xy_of(seg.find("end")))
+            else {
                 continue;
             };
             if ((sx - x).powi(2) + (sy - y).powi(2)).sqrt() <= tol {
@@ -804,11 +924,15 @@ impl ClearanceRepairer {
 
     fn move_segment(&mut self, path: &NodePath, dx: f64, dy: f64) -> Option<bool> {
         let seg = node_at(&self.doc, path);
-        let (Some((sx, sy)), Some((ex, ey))) = (xy_of(seg.find("start")), xy_of(seg.find("end"))) else {
+        let (Some((sx, sy)), Some((ex, ey))) = (xy_of(seg.find("start")), xy_of(seg.find("end")))
+        else {
             return None;
         };
         let vias = self.via_positions();
-        let at_via = |x: f64, y: f64| vias.iter().any(|(vx, vy)| ((x - vx).powi(2) + (y - vy).powi(2)).sqrt() <= 0.001);
+        let at_via = |x: f64, y: f64| {
+            vias.iter()
+                .any(|(vx, vy)| ((x - vx).powi(2) + (y - vy).powi(2)).sqrt() <= 0.001)
+        };
         let (sa, ea) = (at_via(sx, sy), at_via(ex, ey));
         if sa && ea {
             return Some(false);
@@ -827,7 +951,14 @@ impl ClearanceRepairer {
         Some(sa || ea)
     }
 
-    fn apply_nudge(&mut self, path: &NodePath, kind: &str, dx: f64, dy: f64, result: Option<&mut RepairResult>) {
+    fn apply_nudge(
+        &mut self,
+        path: &NodePath,
+        kind: &str,
+        dx: f64,
+        dy: f64,
+        result: Option<&mut RepairResult>,
+    ) {
         match kind {
             "via" => {
                 if self.move_via(path, dx, dy) {
@@ -854,7 +985,10 @@ impl ClearanceRepairer {
         let want = uuid.trim_matches('"');
         descendant_paths(&self.doc, &|n| n.has_tag(kind))
             .into_iter()
-            .find(|p| first_text(node_at(&self.doc, p).find("uuid")).is_some_and(|u| u.trim_matches('"') == want))
+            .find(|p| {
+                first_text(node_at(&self.doc, p).find("uuid"))
+                    .is_some_and(|u| u.trim_matches('"') == want)
+            })
     }
 
     /// Reverse a previously applied nudge (located by UUID).
@@ -870,7 +1004,14 @@ impl ClearanceRepairer {
         }
     }
 
-    fn repair_pad_pad_violations(&mut self, report: &DRCReport, result: &mut RepairResult, max_d: f64, margin: f64, dry_run: bool) {
+    fn repair_pad_pad_violations(
+        &mut self,
+        report: &DRCReport,
+        result: &mut RepairResult,
+        max_d: f64,
+        margin: f64,
+        dry_run: bool,
+    ) {
         let vs: Vec<DRCViolation> = report
             .by_type(ViolationType::CLEARANCE_PAD_PAD)
             .into_iter()
@@ -902,7 +1043,10 @@ impl ClearanceRepairer {
                 result.skipped_infeasible += 1;
                 continue;
             }
-            let (Some(f1), Some(f2)) = (self.find_footprint_by_ref(&refs[0]), self.find_footprint_by_ref(&refs[1])) else {
+            let (Some(f1), Some(f2)) = (
+                self.find_footprint_by_ref(&refs[0]),
+                self.find_footprint_by_ref(&refs[1]),
+            ) else {
                 result.skipped_infeasible += 1;
                 continue;
             };
@@ -914,12 +1058,16 @@ impl ClearanceRepairer {
                 continue;
             };
             let (l1, l2) = (&v.locations[0], &v.locations[1]);
-            let first_refs = v.items.first().map(|i| extract_component_refs(std::slice::from_ref(i)));
-            let (px, py, ox, oy) = if first_refs.is_some_and(|r| r.contains(&target.reference.to_uppercase())) {
-                (l1.x_mm, l1.y_mm, l2.x_mm, l2.y_mm)
-            } else {
-                (l2.x_mm, l2.y_mm, l1.x_mm, l1.y_mm)
-            };
+            let first_refs = v
+                .items
+                .first()
+                .map(|i| extract_component_refs(std::slice::from_ref(i)));
+            let (px, py, ox, oy) =
+                if first_refs.is_some_and(|r| r.contains(&target.reference.to_uppercase())) {
+                    (l1.x_mm, l1.y_mm, l2.x_mm, l2.y_mm)
+                } else {
+                    (l2.x_mm, l2.y_mm, l1.x_mm, l1.y_mm)
+                };
             let (dx, dy, dist) = compute_nudge(px, py, ox, oy, required);
             let actual = v.actual_value_mm.unwrap_or(0.0);
             result.footprint_nudge_results.push(FootprintNudgeResult {
@@ -964,19 +1112,32 @@ impl ClearanceRepairer {
             if fp_ref.to_uppercase() != want {
                 continue;
             }
-            let Some((x, y)) = xy_of(fp.find_child("at")) else { continue };
-            let mut locked = fp
-                .find_children("locked")
-                .iter()
-                .any(|l| matches!(l.text_at(0).unwrap_or_else(|| "yes".into()).as_str(), "yes" | "true"));
+            let Some((x, y)) = xy_of(fp.find_child("at")) else {
+                continue;
+            };
+            let mut locked = fp.find_children("locked").iter().any(|l| {
+                matches!(
+                    l.text_at(0).unwrap_or_else(|| "yes".into()).as_str(),
+                    "yes" | "true"
+                )
+            });
             if !locked {
                 if let Some(attr) = fp.find_child("attr") {
-                    locked = (0..attr.children.len()).any(|i| attr.text_at(i).as_deref() == Some("locked"));
+                    locked = (0..attr.children.len())
+                        .any(|i| attr.text_at(i).as_deref() == Some("locked"));
                 }
             }
             let pad_count = fp.find_all("pad").count();
             let is_connector = fp_ref.to_uppercase().starts_with('J');
-            return Some(FpInfo { path, reference: fp_ref, x, y, locked, pad_count, is_connector });
+            return Some(FpInfo {
+                path,
+                reference: fp_ref,
+                x,
+                y,
+                locked,
+                pad_count,
+                is_connector,
+            });
         }
         None
     }
@@ -985,7 +1146,10 @@ impl ClearanceRepairer {
         let fp = node_at(&self.doc, path);
         let Some(at) = fp.find("at") else { return };
         let a: Vec<f64> = at.atoms().map(|v| v.as_f64().unwrap_or(0.0)).collect();
-        let (ox, oy) = (a.first().copied().unwrap_or(0.0), a.get(1).copied().unwrap_or(0.0));
+        let (ox, oy) = (
+            a.first().copied().unwrap_or(0.0),
+            a.get(1).copied().unwrap_or(0.0),
+        );
         let rot = a.get(2).copied().unwrap_or(0.0);
         let ang = (-rot).to_radians();
         let (c, s) = (ang.cos(), ang.sin());
@@ -1043,7 +1207,11 @@ fn choose_target<'a>(o1: Option<&'a Obj>, o2: Option<&'a Obj>, prefer: &str) -> 
     }
 }
 
-fn select_nudge_target(f1: FpInfo, f2: FpInfo, result: &mut RepairResult) -> Option<(FpInfo, FpInfo)> {
+fn select_nudge_target(
+    f1: FpInfo,
+    f2: FpInfo,
+    result: &mut RepairResult,
+) -> Option<(FpInfo, FpInfo)> {
     let m1 = !f1.locked && !f1.is_connector;
     let m2 = !f2.locked && !f2.is_connector;
     if !m1 && !m2 {
@@ -1106,7 +1274,10 @@ pub fn group_violations_by_proximity(
                     continue;
                 }
                 let Some(pj) = *position else { continue };
-                if cps.iter().any(|cp| ((pj.0 - cp.0).powi(2) + (pj.1 - cp.1).powi(2)).sqrt() <= radius) {
+                if cps
+                    .iter()
+                    .any(|cp| ((pj.0 - cp.0).powi(2) + (pj.1 - cp.1).powi(2)).sqrt() <= radius)
+                {
                     cluster.push(j);
                     assigned.insert(j);
                     cps.push(pj);

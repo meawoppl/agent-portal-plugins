@@ -102,7 +102,10 @@ fn resolve_params(ns: &Namespace, g: &Globals) -> Result<RouteParams, (i32, Stri
         return Err((1, format!("Error: File not found: {}", pcb.display())));
     }
     if pcb.extension().and_then(|e| e.to_str()) != Some("kicad_pcb") {
-        return Err((1, format!("Error: Expected .kicad_pcb file, got: {}", pcb.display())));
+        return Err((
+            1,
+            format!("Error: Expected .kicad_pcb file, got: {}", pcb.display()),
+        ));
     }
     if ns.get("nets").is_some() && ns.get("skip_nets").is_some() {
         return Err((
@@ -188,7 +191,13 @@ fn resolve_params(ns: &Namespace, g: &Globals) -> Result<RouteParams, (i32, Stri
 
 /// Upstream `auto_select_grid_resolution`: the finest candidate grid whose
 /// per-layer cell count fits `max_cells`, never coarser than the clearance.
-pub fn auto_grid(width: f64, height: f64, clearance: f64, max_cells: usize, fine_pitch: bool) -> f64 {
+pub fn auto_grid(
+    width: f64,
+    height: f64,
+    clearance: f64,
+    max_cells: usize,
+    fine_pitch: bool,
+) -> f64 {
     let mut candidates = vec![0.1, 0.127, 0.15, 0.2, 0.25];
     if fine_pitch {
         candidates.insert(0, 0.05);
@@ -238,7 +247,9 @@ fn pour_assignments(board: &BoardData, layers: usize) -> Vec<(String, String)> {
     let mut gnd: Vec<(usize, String)> = Vec::new();
     let mut pwr: Vec<(usize, String)> = Vec::new();
     for (net, idx) in &pads {
-        let Some(name) = board.nets.get(net) else { continue };
+        let Some(name) = board.nets.get(net) else {
+            continue;
+        };
         if idx.len() < 2 || !is_power_net(name, None) {
             continue;
         }
@@ -253,16 +264,41 @@ fn pour_assignments(board: &BoardData, layers: usize) -> Vec<(String, String)> {
     pwr.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
     let mut out = Vec::new();
     if let Some((_, n)) = gnd.first() {
-        out.push((n.clone(), if layers >= 4 { "In1.Cu".into() } else { "B.Cu".into() }));
+        out.push((
+            n.clone(),
+            if layers >= 4 {
+                "In1.Cu".into()
+            } else {
+                "B.Cu".into()
+            },
+        ));
     }
     if let Some((_, n)) = pwr.first() {
-        out.push((n.clone(), if layers >= 4 { "In2.Cu".into() } else { "F.Cu".into() }));
+        out.push((
+            n.clone(),
+            if layers >= 4 {
+                "In2.Cu".into()
+            } else {
+                "F.Cu".into()
+            },
+        ));
     }
     out
 }
 
-fn zone_sexp(net: &str, layer: &str, bounds: (f64, f64, f64, f64), inset: f64, uuid: &str) -> String {
-    let (x0, y0, x1, y1) = (bounds.0 + inset, bounds.1 + inset, bounds.2 - inset, bounds.3 - inset);
+fn zone_sexp(
+    net: &str,
+    layer: &str,
+    bounds: (f64, f64, f64, f64),
+    inset: f64,
+    uuid: &str,
+) -> String {
+    let (x0, y0, x1, y1) = (
+        bounds.0 + inset,
+        bounds.1 + inset,
+        bounds.2 - inset,
+        bounds.3 - inset,
+    );
     format!(
         "(zone (net \"{net}\") (layer \"{layer}\") (uuid \"{uuid}\") (hatch edge 0.5) (priority 1) \
          (connect_pads (clearance 0.3)) (min_thickness 0.25) \
@@ -291,7 +327,13 @@ pub struct Attempt {
     pub completion: f64,
 }
 
-fn make_config(p: &RouteParams, layers: usize, grid: f64, skip: &HashSet<String>, late: &HashSet<String>) -> RouterConfig {
+fn make_config(
+    p: &RouteParams,
+    layers: usize,
+    grid: f64,
+    skip: &HashSet<String>,
+    late: &HashSet<String>,
+) -> RouterConfig {
     RouterConfig {
         trace_width: p.trace_width,
         clearance: p.clearance,
@@ -391,7 +433,11 @@ fn run_attempt(
         println!("  Nets to route: {}", router.order.len());
         println!("\n  Routing ({})...", p.strategy);
     }
-    let iterations = if p.strategy == "basic" { 0 } else { p.iterations };
+    let iterations = if p.strategy == "basic" {
+        0
+    } else {
+        p.iterations
+    };
     router.route_all_negotiated(iterations);
     let stats = router.get_statistics();
     let completion = if stats.nets_total == 0 {
@@ -421,12 +467,21 @@ fn sha256_file(path: &Path) -> Option<(String, u64)> {
 /// Write the `<stem>.route.json` artifact receipt (upstream
 /// `cli/route_receipt.py`, schema `kicad-tools.route-artifacts.v1`).
 pub fn write_route_receipt(output: &Path, exit_code: i32) -> Result<PathBuf> {
-    let stem = output.file_stem().and_then(|s| s.to_str()).unwrap_or("board");
+    let stem = output
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("board");
     let dir = output.parent().unwrap_or(Path::new("."));
     let entry = |p: PathBuf| -> Json {
-        let name = p.file_name().and_then(|s| s.to_str()).unwrap_or("").to_string();
+        let name = p
+            .file_name()
+            .and_then(|s| s.to_str())
+            .unwrap_or("")
+            .to_string();
         match sha256_file(&p) {
-            Some((sha, size)) => json!({"path": name, "state": "present", "sha256": sha, "size": size}),
+            Some((sha, size)) => {
+                json!({"path": name, "state": "present", "sha256": sha, "size": size})
+            }
             None => json!({"path": name, "state": "absent"}),
         }
     };
@@ -471,7 +526,8 @@ fn fill_zones_and_drc(output: &Path, quiet: bool) -> Option<Json> {
     let has_zones = text.contains("(zone");
     let report = std::env::temp_dir().join(format!("kct-route-drc-{}.json", std::process::id()));
     let mut cmd = std::process::Command::new(&cli);
-    cmd.args(["pcb", "drc", "--format", "json", "--severity-all", "-o"]).arg(&report);
+    cmd.args(["pcb", "drc", "--format", "json", "--severity-all", "-o"])
+        .arg(&report);
     if has_zones {
         cmd.args(["--refill-zones", "--save-board"]);
         if !quiet {
@@ -543,7 +599,10 @@ fn print_results(stats: &RoutingStats) {
     println!("  Segments:        {}", stats.segments);
     println!("  Vias:            {}", stats.vias);
     println!("  Total length:    {:.2}mm", stats.total_length_mm);
-    println!("  Nets routed:     {}/{}", stats.nets_routed, stats.nets_total);
+    println!(
+        "  Nets routed:     {}/{}",
+        stats.nets_routed, stats.nets_total
+    );
     println!(
         "  Partial routes:  {}/{} -- have segments, not all pads connected",
         stats.nets_partial, stats.nets_total
@@ -577,7 +636,12 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
     let detected_layers = pcb.copper_layers().len().max(2);
     let quiet = p.quiet;
     // Validate --nets names.
-    let all_names: Vec<String> = pcb.nets().iter().map(|n| n.name.clone()).filter(|n| !n.is_empty()).collect();
+    let all_names: Vec<String> = pcb
+        .nets()
+        .iter()
+        .map(|n| n.name.clone())
+        .filter(|n| !n.is_empty())
+        .collect();
     let mut skip: HashSet<String> = p.skip_nets.iter().cloned().collect();
     if let Some(only) = &p.only_nets {
         for n in only {
@@ -610,7 +674,10 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
             );
         }
     }
-    let (bw, bh) = (board0.bounds.2 - board0.bounds.0, board0.bounds.3 - board0.bounds.1);
+    let (bw, bh) = (
+        board0.bounds.2 - board0.bounds.0,
+        board0.bounds.3 - board0.bounds.1,
+    );
     let fine = min_pad_pitch(&board0) < 0.65;
     let grid = p
         .grid
@@ -619,7 +686,11 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
         println!("{}", "=".repeat(60));
         println!(
             "KiCad PCB Autorouter{}",
-            if p.auto_layers { " - Layer Escalation Mode" } else { "" }
+            if p.auto_layers {
+                " - Layer Escalation Mode"
+            } else {
+                ""
+            }
         );
         println!("{}", "=".repeat(60));
         println!("Input:          {}", p.pcb.display());
@@ -635,12 +706,22 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
         if !skip.is_empty() && p.only_nets.is_none() {
             let mut s: Vec<&String> = skip.iter().collect();
             s.sort();
-            println!("Skip:           {}", s.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", "));
+            println!(
+                "Skip:           {}",
+                s.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", ")
+            );
         }
     }
     if p.dry_run {
         if !quiet {
-            println!("\nDry run: {} nets would be routed on {start_layers} layers (grid {grid}mm)", pads_by_net(&board0).iter().filter(|(n, v)| v.len() >= 2 && !skip.contains(board0.nets.get(n).map(String::as_str).unwrap_or(""))).count());
+            println!(
+                "\nDry run: {} nets would be routed on {start_layers} layers (grid {grid}mm)",
+                pads_by_net(&board0)
+                    .iter()
+                    .filter(|(n, v)| v.len() >= 2
+                        && !skip.contains(board0.nets.get(n).map(String::as_str).unwrap_or("")))
+                    .count()
+            );
         }
         return Ok(0);
     }
@@ -662,7 +743,11 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
         }
         let plan = pour_plan(p, &pcb, layers, &pour_nets, &skip)?;
         if !quiet && !plan.planes.is_empty() {
-            let desc: Vec<String> = plan.planes.iter().map(|(n, l)| format!("{n} on {l}")).collect();
+            let desc: Vec<String> = plan
+                .planes
+                .iter()
+                .map(|(n, l)| format!("{n} on {l}"))
+                .collect();
             println!("  Plane layers (reserved): {}", desc.join(", "));
         }
         let attempt = run_attempt(p, &pcb, layers, grid, &skip, &plan.late, &plan.planes)?;
@@ -675,7 +760,11 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
             );
             println!(
                 "  Status: {}",
-                if attempt.completion >= p.min_completion { "SUCCESS" } else { "INSUFFICIENT" }
+                if attempt.completion >= p.min_completion {
+                    "SUCCESS"
+                } else {
+                    "INSUFFICIENT"
+                }
             );
         }
         let better = best
@@ -688,7 +777,9 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
         if done {
             break;
         }
-        if p.timeout.is_some_and(|t| started.elapsed().as_secs_f64() > t) {
+        if p.timeout
+            .is_some_and(|t| started.elapsed().as_secs_f64() > t)
+        {
             break;
         }
     }
@@ -740,8 +831,11 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
         .into_iter()
         .filter(|(n, _)| pour_nets.contains(n))
         .map(|(net, layer)| {
-            let uuid = uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_OID, format!("{net}:{layer}").as_bytes())
-                .to_string();
+            let uuid = uuid::Uuid::new_v5(
+                &uuid::Uuid::NAMESPACE_OID,
+                format!("{net}:{layer}").as_bytes(),
+            )
+            .to_string();
             zone_sexp(&net, &layer, board_best.bounds, p.edge_clearance, &uuid)
         })
         .collect();
@@ -790,10 +884,18 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
                     println!("    - {l}");
                 }
             }
-            println!("\n  Run 'kct check {} --mfr {}' for full details", p.output.display(), p.manufacturer);
+            println!(
+                "\n  Run 'kct check {} --mfr {}' for full details",
+                p.output.display(),
+                p.manufacturer
+            );
         }
     }
-    let exit = if best.completion >= p.min_completion { 0 } else { EXIT_PARTIAL };
+    let exit = if best.completion >= p.min_completion {
+        0
+    } else {
+        EXIT_PARTIAL
+    };
     let receipt = write_route_receipt(&p.output, exit)?;
     if p.json {
         let s = &best.stats;
@@ -855,14 +957,24 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
     }
     targets.extend(split_names(ns.get("nets")));
     let pcb = Pcb::load(&pcb_path)?;
-    let names: Vec<String> = pcb.nets().iter().map(|n| n.name.clone()).filter(|n| !n.is_empty()).collect();
+    let names: Vec<String> = pcb
+        .nets()
+        .iter()
+        .map(|n| n.name.clone())
+        .filter(|n| !n.is_empty())
+        .collect();
     if targets.is_empty() {
         targets = names.clone();
     }
     for t in &targets {
         if !names.contains(t) {
             if as_json {
-                println!("{}", serde_json::to_string_pretty(&json!({"error": format!("Net '{t}' not found"), "nets": []}))?);
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(
+                        &json!({"error": format!("Net '{t}' not found"), "nets": []})
+                    )?
+                );
             } else {
                 eprintln!("Error: Net '{t}' not found in {}", pcb_path.display());
             }
@@ -877,7 +989,10 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         (None, false) => {
             let msg = "Error: route-auto needs -o/--output PATH (or --in-place to overwrite the input board)";
             if as_json {
-                println!("{}", serde_json::to_string_pretty(&json!({"error": msg, "nets": []}))?);
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&json!({"error": msg, "nets": []}))?
+                );
             } else {
                 eprintln!("{msg}");
             }
@@ -885,8 +1000,14 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         }
     };
     let declared = project_default_class(&pcb_path);
-    let via_d = ns.f64("via_diameter").or(declared.map(|d| d.2).filter(|v| *v > 0.0)).unwrap_or(0.6);
-    let via_dr = ns.f64("via_drill").or(declared.map(|d| d.3).filter(|v| *v > 0.0)).unwrap_or(0.3);
+    let via_d = ns
+        .f64("via_diameter")
+        .or(declared.map(|d| d.2).filter(|v| *v > 0.0))
+        .unwrap_or(0.6);
+    let via_dr = ns
+        .f64("via_drill")
+        .or(declared.map(|d| d.3).filter(|v| *v > 0.0))
+        .unwrap_or(0.3);
     let strategy = ns.str_or("strategy", "auto");
     let params = RouteParams {
         pcb: pcb_path.clone(),
@@ -919,12 +1040,21 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         reserve_planes: true,
     };
     if !as_json {
-        println!("Routing {} net(s) in {} (strategy: {strategy})", targets.len(), pcb_path.display());
+        println!(
+            "Routing {} net(s) in {} (strategy: {strategy})",
+            targets.len(),
+            pcb_path.display()
+        );
         println!("  Via geometry: {via_d}mm diameter / {via_dr}mm drill");
     }
     if params.dry_run {
         if as_json {
-            println!("{}", serde_json::to_string_pretty(&json!({"board": pcb_path.display().to_string(), "output": output.display().to_string(), "dry_run": true, "nets": targets.iter().map(|t| json!({"net": t, "strategy": strategy})).collect::<Vec<_>>()}))?);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(
+                    &json!({"board": pcb_path.display().to_string(), "output": output.display().to_string(), "dry_run": true, "nets": targets.iter().map(|t| json!({"net": t, "strategy": strategy})).collect::<Vec<_>>()})
+                )?
+            );
         } else {
             println!("Dry run: no changes written");
         }
@@ -933,9 +1063,22 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
     // Route.
     let detected = pcb.copper_layers().len().max(2);
     let board = load_pcb_for_routing(&pcb, detected)?;
-    let (bw, bh) = (board.bounds.2 - board.bounds.0, board.bounds.3 - board.bounds.1);
-    let grid = auto_grid(bw, bh, params.clearance, params.max_cells, min_pad_pitch(&board) < 0.65);
-    let skip: HashSet<String> = names.iter().filter(|n| !targets.contains(n)).cloned().collect();
+    let (bw, bh) = (
+        board.bounds.2 - board.bounds.0,
+        board.bounds.3 - board.bounds.1,
+    );
+    let grid = auto_grid(
+        bw,
+        bh,
+        params.clearance,
+        params.max_cells,
+        min_pad_pitch(&board) < 0.65,
+    );
+    let skip: HashSet<String> = names
+        .iter()
+        .filter(|n| !targets.contains(n))
+        .cloned()
+        .collect();
     // Existing copper of the target nets is kept as same-net fixed copper.
     let attempt = run_attempt(&params, &pcb, detected, grid, &skip, &HashSet::new(), &[])?;
     let routes = attempt.router.routes();
@@ -945,7 +1088,12 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
     for t in &targets {
         let res = attempt.router.results.values().find(|r| &r.name == t);
         let (ok, segs, vias, len) = match res {
-            Some(r) => (r.is_complete(), r.route.segments.len(), r.route.vias.len(), r.route.total_length()),
+            Some(r) => (
+                r.is_complete(),
+                r.route.segments.len(),
+                r.route.vias.len(),
+                r.route.total_length(),
+            ),
             None => (true, 0, 0, 0.0),
         };
         if !ok {
@@ -966,13 +1114,20 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         }));
     }
     if as_json {
-        println!("{}", serde_json::to_string_pretty(&json!({
-            "board": pcb_path.display().to_string(),
-            "output": output.display().to_string(),
-            "nets": entries,
-        }))?);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&json!({
+                "board": pcb_path.display().to_string(),
+                "output": output.display().to_string(),
+                "nets": entries,
+            }))?
+        );
     } else {
         println!("Saved: {}", output.display());
     }
-    Ok(if failed > 0 && !ns.flag("allow_partial") { 1 } else { 0 })
+    Ok(if failed > 0 && !ns.flag("allow_partial") {
+        1
+    } else {
+        0
+    })
 }

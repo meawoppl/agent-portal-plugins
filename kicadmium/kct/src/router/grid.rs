@@ -112,7 +112,13 @@ pub struct RoutingGrid {
 }
 
 impl RoutingGrid {
-    pub fn new(width: f64, height: f64, origin: (f64, f64), resolution: f64, layers: usize) -> Self {
+    pub fn new(
+        width: f64,
+        height: f64,
+        origin: (f64, f64),
+        resolution: f64,
+        layers: usize,
+    ) -> Self {
         let cols = (width / resolution).ceil() as usize + 1;
         let rows = (height / resolution).ceil() as usize + 1;
         let n = cols * rows * layers;
@@ -173,8 +179,10 @@ impl RoutingGrid {
         let g = self.resolution;
         let fx0 = ((bbox.0 - margin - self.origin_x) / g).floor().max(0.0) as usize;
         let fy0 = ((bbox.1 - margin - self.origin_y) / g).floor().max(0.0) as usize;
-        let fx1 = (((bbox.2 + margin - self.origin_x) / g).ceil().max(0.0) as usize).min(self.cols - 1);
-        let fy1 = (((bbox.3 + margin - self.origin_y) / g).ceil().max(0.0) as usize).min(self.rows - 1);
+        let fx1 =
+            (((bbox.2 + margin - self.origin_x) / g).ceil().max(0.0) as usize).min(self.cols - 1);
+        let fy1 =
+            (((bbox.3 + margin - self.origin_y) / g).ceil().max(0.0) as usize).min(self.rows - 1);
         (fx0, fy0, fx1, fy1)
     }
 
@@ -310,7 +318,13 @@ impl RoutingGrid {
     }
 
     /// Cells covered by a capsule (for dynamic marking).
-    pub fn capsule_cells(&self, a: (f64, f64), b: (f64, f64), layer: usize, halo: f64) -> Vec<usize> {
+    pub fn capsule_cells(
+        &self,
+        a: (f64, f64),
+        b: (f64, f64),
+        layer: usize,
+        halo: f64,
+    ) -> Vec<usize> {
         let bbox = (a.0.min(b.0), a.1.min(b.1), a.0.max(b.0), a.1.max(b.1));
         let (x0, y0, x1, y1) = self.cell_range(bbox, halo + self.resolution);
         let mut out = Vec::new();

@@ -66,7 +66,12 @@ pub type NodePath = Vec<usize>;
 
 /// Pre-order paths of all descendants (not `root`) matching `pred`.
 pub fn descendant_paths(root: &SExp, pred: &dyn Fn(&SExp) -> bool) -> Vec<NodePath> {
-    fn walk(node: &SExp, path: &mut NodePath, pred: &dyn Fn(&SExp) -> bool, out: &mut Vec<NodePath>) {
+    fn walk(
+        node: &SExp,
+        path: &mut NodePath,
+        pred: &dyn Fn(&SExp) -> bool,
+        out: &mut Vec<NodePath>,
+    ) {
         for (i, child) in node.children.iter().enumerate() {
             path.push(i);
             if pred(child) {
@@ -91,7 +96,9 @@ pub fn node_at_mut<'a>(root: &'a mut SExp, path: &[usize]) -> &'a mut SExp {
 
 /// Mutable first descendant named `tag`.
 pub fn find_mut<'a>(node: &'a mut SExp, tag: &str) -> Option<&'a mut SExp> {
-    let path = descendant_paths(node, &|n| n.has_tag(tag)).into_iter().next()?;
+    let path = descendant_paths(node, &|n| n.has_tag(tag))
+        .into_iter()
+        .next()?;
     Some(node_at_mut(node, &path))
 }
 
@@ -129,7 +136,11 @@ impl SilkscreenRepairer {
     /// `(property "Reference" ...)`.
     pub fn footprint_reference(fp: &SExp) -> String {
         for tag in ["fp_text", "property"] {
-            let key = if tag == "fp_text" { "reference" } else { "Reference" };
+            let key = if tag == "fp_text" {
+                "reference"
+            } else {
+                "Reference"
+            };
             for child in &fp.children {
                 if child.is_list() && child.has_tag(tag) && !child.children.is_empty() {
                     let atoms: Vec<String> = child.atoms().map(atom_str).collect();
@@ -176,7 +187,11 @@ impl SilkscreenRepairer {
     }
 
     /// Widen silkscreen strokes below `min_width_mm` (zero widths skipped).
-    pub fn repair_line_widths(&mut self, min_width_mm: f64, dry_run: bool) -> SilkscreenRepairResult {
+    pub fn repair_line_widths(
+        &mut self,
+        min_width_mm: f64,
+        dry_run: bool,
+    ) -> SilkscreenRepairResult {
         let mut result = SilkscreenRepairResult {
             min_width_mm,
             fixes: Vec::new(),
@@ -278,7 +293,11 @@ impl SilkscreenRepairer {
     }
 
     /// Scale visible silkscreen text below `min_height_mm` (aspect kept).
-    pub fn repair_text_heights(&mut self, min_height_mm: f64, dry_run: bool) -> TextHeightRepairResult {
+    pub fn repair_text_heights(
+        &mut self,
+        min_height_mm: f64,
+        dry_run: bool,
+    ) -> TextHeightRepairResult {
         let mut result = TextHeightRepairResult {
             min_height_mm,
             fixes: Vec::new(),

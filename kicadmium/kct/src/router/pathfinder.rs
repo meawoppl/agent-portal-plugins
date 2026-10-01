@@ -68,7 +68,13 @@ impl Ord for Node {
             .f
             .partial_cmp(&self.f)
             .unwrap_or(Ordering::Equal)
-            .then_with(|| other.g.partial_cmp(&self.g).unwrap_or(Ordering::Equal).reverse())
+            .then_with(|| {
+                other
+                    .g
+                    .partial_cmp(&self.g)
+                    .unwrap_or(Ordering::Equal)
+                    .reverse()
+            })
             .then_with(|| other.idx.cmp(&self.idx))
     }
 }
@@ -152,7 +158,9 @@ impl Pathfinder {
                     Some(grid.history[i] as f64 * 0.0)
                 }
             }
-            Some(p) => Some((foreign as f64) * p * (1.0 + grid.history[i] as f64) + grid.history[i] as f64),
+            Some(p) => {
+                Some((foreign as f64) * p * (1.0 + grid.history[i] as f64) + grid.history[i] as f64)
+            }
         }
     }
 
@@ -251,7 +259,11 @@ impl Pathfinder {
             self.g[s] = 0.0;
             self.came[s] = NONE;
             let h = Self::heuristic(grid, s, tb, diag);
-            heap.push(Node { f: h, g: 0.0, idx: s });
+            heap.push(Node {
+                f: h,
+                g: 0.0,
+                idx: s,
+            });
         }
         let mut via_cache: HashMap<usize, Option<f64>> = HashMap::new();
         let mut expansions = 0usize;

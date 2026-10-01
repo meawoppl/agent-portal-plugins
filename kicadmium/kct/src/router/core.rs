@@ -226,7 +226,11 @@ impl Autorouter {
                 .collect();
             let net = bp.pad.net as i32;
             if bp.npth || (bp.hole > 0.0 && bp.copper.is_empty()) {
-                let hole = PadShape::circle(bp.shape.cx, bp.shape.cy, bp.hole.max(bp.pad.width.min(bp.pad.height)) / 2.0);
+                let hole = PadShape::circle(
+                    bp.shape.cx,
+                    bp.shape.cy,
+                    bp.hole.max(bp.pad.width.min(bp.pad.height)) / 2.0,
+                );
                 self.grid.add_shape_halo(&hole, &all, BLOCKED, c + w / 2.0);
                 continue;
             }
@@ -238,10 +242,9 @@ impl Autorouter {
             if bp.hole > 0.0 {
                 // Plated hole: keep via drills hole-to-hole clear of it.
                 let r = bp.hole / 2.0 + self.config.via_drill / 2.0 + self.config.min_hole_to_hole;
-                let (x0, y0, x1, y1) = self.grid.cell_range(
-                    (bp.shape.cx, bp.shape.cy, bp.shape.cx, bp.shape.cy),
-                    r + g,
-                );
+                let (x0, y0, x1, y1) = self
+                    .grid
+                    .cell_range((bp.shape.cx, bp.shape.cy, bp.shape.cx, bp.shape.cy), r + g);
                 for y in y0..=y1 {
                     for x in x0..=x1 {
                         let (wx, wy) = self.grid.grid_to_world(x, y);
@@ -319,7 +322,11 @@ impl Autorouter {
             let edges: Vec<((f64, f64), (f64, f64))> = (0..k.polygon.len())
                 .map(|i| (k.polygon[i], k.polygon[(i + 1) % k.polygon.len()]))
                 .collect();
-            let layers: Vec<usize> = k.layers.iter().filter_map(|n| self.layer_index(n)).collect();
+            let layers: Vec<usize> = k
+                .layers
+                .iter()
+                .filter_map(|n| self.layer_index(n))
+                .collect();
             for y in 0..self.grid.rows {
                 for x in 0..self.grid.cols {
                     let (wx, wy) = self.grid.grid_to_world(x, y);
@@ -495,7 +502,8 @@ impl Autorouter {
             .unwrap();
         let mut comps: Vec<Component> = vec![self.new_component(start)];
         let mut remaining: Vec<usize> = pads.iter().copied().filter(|&p| p != start).collect();
-        let deadline = Instant::now() + Duration::from_secs_f64(self.config.per_net_timeout.max(0.1));
+        let deadline =
+            Instant::now() + Duration::from_secs_f64(self.config.per_net_timeout.max(0.1));
         let mut cur = 0usize;
         loop {
             if Instant::now() > deadline || self.timed_out() {
@@ -684,7 +692,11 @@ impl Autorouter {
                 })
                 .fold(f64::MAX, f64::min)
         };
-        remaining.sort_by(|&a, &b| dist(self, a, comp).partial_cmp(&dist(self, b, comp)).unwrap());
+        remaining.sort_by(|&a, &b| {
+            dist(self, a, comp)
+                .partial_cmp(&dist(self, b, comp))
+                .unwrap()
+        });
         for k in 0..remaining.len() {
             let target_pad = remaining[k];
             let targets = self.pad_cells(target_pad);
@@ -755,7 +767,12 @@ impl Autorouter {
         true
     }
 
-    fn search_window(&self, a: &[usize], b: &[usize], margin: usize) -> (usize, usize, usize, usize) {
+    fn search_window(
+        &self,
+        a: &[usize],
+        b: &[usize],
+        margin: usize,
+    ) -> (usize, usize, usize, usize) {
         let mut w = (usize::MAX, usize::MAX, 0usize, 0usize);
         for &i in a.iter().chain(b.iter()) {
             let (_, x, y) = self.cell_xy(i);
@@ -793,9 +810,8 @@ impl Autorouter {
         dst_pad: Option<usize>,
     ) {
         res.path_cells.extend_from_slice(path);
-        let layer_of = |l: usize| -> Layer {
-            Layer::from_name(&self.layer_names[l]).unwrap_or(Layer::FCu)
-        };
+        let layer_of =
+            |l: usize| -> Layer { Layer::from_name(&self.layer_names[l]).unwrap_or(Layer::FCu) };
         let mut pending: Vec<(f64, f64)> = Vec::new();
         // Split into same-layer runs.
         let mut runs: Vec<(usize, Vec<(f64, f64)>)> = Vec::new();
@@ -817,10 +833,7 @@ impl Autorouter {
                             res.net,
                         )
                         .with_net_name(&res.name);
-                        via.layers = (
-                            layer_of(0),
-                            layer_of(self.grid.num_layers - 1),
-                        );
+                        via.layers = (layer_of(0), layer_of(self.grid.num_layers - 1));
                         res.route.vias.push(via);
                         res.via_cells.push(self.grid.world_to_grid(at.0, at.1));
                         pending.push(at);
@@ -882,7 +895,10 @@ impl Autorouter {
         for via in &res.route.vias {
             let halo = via.diameter / 2.0 + c + w_other / 2.0 + HALO_MARGIN_CELLS * g;
             for l in 0..self.grid.num_layers {
-                cells.extend(self.grid.capsule_cells((via.x, via.y), (via.x, via.y), l, halo));
+                cells.extend(
+                    self.grid
+                        .capsule_cells((via.x, via.y), (via.x, via.y), l, halo),
+                );
             }
         }
         cells.sort_unstable();
@@ -913,7 +929,11 @@ impl Autorouter {
                 for &(dx, dy) in &self.via_disc {
                     let nx = x as i64 + dx;
                     let ny = y as i64 + dy;
-                    if nx < 0 || ny < 0 || nx >= self.grid.cols as i64 || ny >= self.grid.rows as i64 {
+                    if nx < 0
+                        || ny < 0
+                        || nx >= self.grid.cols as i64
+                        || ny >= self.grid.rows as i64
+                    {
                         continue;
                     }
                     let i = self.grid.idx(l, nx as usize, ny as usize);
@@ -955,7 +975,10 @@ impl Autorouter {
         self.log(&format!("  Max iterations: {max_iterations}"));
         self.log("  Present factor: 0.5 (adaptive)");
         self.log("  History increment: 1.0 (adaptive)");
-        self.log(&format!("  Per-net timeout: {:.1}s", self.config.per_net_timeout));
+        self.log(&format!(
+            "  Per-net timeout: {:.1}s",
+            self.config.per_net_timeout
+        ));
         self.log("\n--- Iteration 0: Initial routing with sharing ---");
         let total = order.len();
         let mut present = 0.5;
@@ -1194,7 +1217,11 @@ impl Autorouter {
         }
         // Against pads.
         for bp in &self.board.pads {
-            let layers: Vec<usize> = bp.copper.iter().filter_map(|n| self.layer_index(n)).collect();
+            let layers: Vec<usize> = bp
+                .copper
+                .iter()
+                .filter_map(|n| self.layer_index(n))
+                .collect();
             let bb = bp.shape.bbox();
             let (x0, y0) = key(bb.0 - 1.0, bb.1 - 1.0);
             let (x1, y1) = key(bb.2 + 1.0, bb.3 + 1.0);
@@ -1233,9 +1260,9 @@ impl Autorouter {
         // Against fixed copper of other nets.
         for f in &self.board.fixed {
             let (fa, fb, fr, fl) = match f {
-                FixedCopper::Segment { a, b, width, layer, .. } => {
-                    (*a, *b, width / 2.0, self.layer_index(layer))
-                }
+                FixedCopper::Segment {
+                    a, b, width, layer, ..
+                } => (*a, *b, width / 2.0, self.layer_index(layer)),
                 FixedCopper::Via { at, diameter, .. } => (*at, *at, diameter / 2.0, None),
             };
             for it in &items {
@@ -1323,12 +1350,15 @@ pub fn seg_seg_distance(a1: (f64, f64), a2: (f64, f64), b1: (f64, f64), b2: (f64
 }
 
 fn segments_cross(p1: (f64, f64), p2: (f64, f64), p3: (f64, f64), p4: (f64, f64)) -> bool {
-    let d = |a: (f64, f64), b: (f64, f64), c: (f64, f64)| (b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0);
+    let d = |a: (f64, f64), b: (f64, f64), c: (f64, f64)| {
+        (b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0)
+    };
     let d1 = d(p3, p4, p1);
     let d2 = d(p3, p4, p2);
     let d3 = d(p1, p2, p3);
     let d4 = d(p1, p2, p4);
-    ((d1 > 0.0 && d2 < 0.0) || (d1 < 0.0 && d2 > 0.0)) && ((d3 > 0.0 && d4 < 0.0) || (d3 < 0.0 && d4 > 0.0))
+    ((d1 > 0.0 && d2 < 0.0) || (d1 < 0.0 && d2 > 0.0))
+        && ((d3 > 0.0 && d4 < 0.0) || (d3 < 0.0 && d4 > 0.0))
 }
 
 /// Distance from a segment to a pad shape (sampled along the segment).

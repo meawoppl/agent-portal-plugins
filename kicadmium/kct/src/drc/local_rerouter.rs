@@ -23,7 +23,10 @@ pub struct RerouteResult {
 pub(crate) fn xy_of(node: Option<&SExp>) -> Option<(f64, f64)> {
     let n = node?;
     let a: Vec<f64> = n.atoms().map(|v| v.as_f64().unwrap_or(0.0)).collect();
-    Some((a.first().copied().unwrap_or(0.0), a.get(1).copied().unwrap_or(0.0)))
+    Some((
+        a.first().copied().unwrap_or(0.0),
+        a.get(1).copied().unwrap_or(0.0),
+    ))
 }
 
 pub(crate) fn first_f(node: Option<&SExp>, default: f64) -> f64 {
@@ -89,8 +92,12 @@ impl PyHeap {
         let mut child = 2 * pos + 1;
         while child < end {
             let right = child + 1;
-            if right < end && nodes[self.items[child]].f.partial_cmp(&nodes[self.items[right]].f)
-                != Some(std::cmp::Ordering::Less) {
+            if right < end
+                && nodes[self.items[child]]
+                    .f
+                    .partial_cmp(&nodes[self.items[right]].f)
+                    != Some(std::cmp::Ordering::Less)
+            {
                 child = right;
             }
             self.items[pos] = self.items[child];
@@ -168,7 +175,16 @@ impl LocalRerouter {
         let rows = ((max_y - min_y) / self.resolution) as i64 + 1;
         let mut blocked: HashSet<(i64, i64)> = HashSet::new();
         let block_radius = obstacle_radius + seg_width / 2.0 + trace_clearance;
-        self.mark_circle(&mut blocked, obstacle_x, obstacle_y, block_radius, min_x, min_y, cols, rows);
+        self.mark_circle(
+            &mut blocked,
+            obstacle_x,
+            obstacle_y,
+            block_radius,
+            min_x,
+            min_y,
+            cols,
+            rows,
+        );
         for &(ox, oy, or) in extra_obstacles {
             let r = or + seg_width / 2.0 + trace_clearance;
             self.mark_circle(&mut blocked, ox, oy, r, min_x, min_y, cols, rows);
@@ -472,11 +488,20 @@ pub fn make_segment_node(
     SExp::list(
         "segment",
         [
-            SExp::list("start", [SExp::atom(py_round(x1, 4)), SExp::atom(py_round(y1, 4))]),
-            SExp::list("end", [SExp::atom(py_round(x2, 4)), SExp::atom(py_round(y2, 4))]),
+            SExp::list(
+                "start",
+                [SExp::atom(py_round(x1, 4)), SExp::atom(py_round(y1, 4))],
+            ),
+            SExp::list(
+                "end",
+                [SExp::atom(py_round(x2, 4)), SExp::atom(py_round(y2, 4))],
+            ),
             SExp::list("width", [SExp::atom(py_round(width, 4))]),
             SExp::list("layer", [SExp::quoted(layer)]),
-            SExp::list("uuid", [SExp::quoted(crate::router::primitives::make_uuid())]),
+            SExp::list(
+                "uuid",
+                [SExp::quoted(crate::router::primitives::make_uuid())],
+            ),
             SExp::list("net", [SExp::atom(net)]),
         ],
     )

@@ -62,7 +62,10 @@ pub fn ray_aabb_exit_distance(px: f64, py: f64, dx: f64, dy: f64, b: Bbox) -> f6
     } else if dy < -1e-12 {
         ts.push((b.1 - py) / dy);
     }
-    ts.into_iter().filter(|t| *t > 0.0).fold(None, |m: Option<f64>, t| Some(m.map_or(t, |m| m.min(t)))).unwrap_or(0.0)
+    ts.into_iter()
+        .filter(|t| *t > 0.0)
+        .fold(None, |m: Option<f64>, t| Some(m.map_or(t, |m| m.min(t))))
+        .unwrap_or(0.0)
 }
 
 pub fn collect_smd_pads_by_net(pcb: &Pcb) -> PadsByNet {
@@ -104,7 +107,8 @@ pub fn resolve_hole_clearance(pcb: &Pcb, explicit: Option<f64>) -> Result<f64> {
     if let Some(path) = pcb.path() {
         let project = path.with_extension("kicad_pro");
         if project.exists() {
-            let data: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&project)?)?;
+            let data: serde_json::Value =
+                serde_json::from_str(&std::fs::read_to_string(&project)?)?;
             let mut cur = &data;
             let mut location = "project".to_string();
             let empty = serde_json::Value::Object(Default::default());
@@ -142,7 +146,10 @@ fn has_unmodeled_drill(pad: &Pad) -> bool {
     pad.drill_size.is_some() || pad.drill_offset != (0.0, 0.0)
 }
 
-fn point_of(node: Option<&SExp>, transform: &dyn Fn(f64, f64) -> Option<(f64, f64)>) -> Option<(f64, f64)> {
+fn point_of(
+    node: Option<&SExp>,
+    transform: &dyn Fn(f64, f64) -> Option<(f64, f64)>,
+) -> Option<(f64, f64)> {
     let n = node?;
     let (x, y) = (n.float_at(0)?, n.float_at(1)?);
     if !x.is_finite() || !y.is_finite() {
@@ -152,16 +159,25 @@ fn point_of(node: Option<&SExp>, transform: &dyn Fn(f64, f64) -> Option<(f64, f6
 }
 
 /// Conservative stroke-inclusive bounds of a raw graphic item.
-fn raw_copper_bounds(item: &SExp, transform: &dyn Fn(f64, f64) -> Option<(f64, f64)>) -> Option<Bbox> {
+fn raw_copper_bounds(
+    item: &SExp,
+    transform: &dyn Fn(f64, f64) -> Option<(f64, f64)>,
+) -> Option<Bbox> {
     let width = match item.get("width") {
         Some(w) => w.float_at(0),
-        None => item.get("stroke").and_then(|s| s.get("width")).and_then(|w| w.float_at(0)),
+        None => item
+            .get("stroke")
+            .and_then(|s| s.get("width"))
+            .and_then(|w| w.float_at(0)),
     }?;
     if !width.is_finite() || width < 0.0 {
         return None;
     }
     let name = item.tag().unwrap_or("");
-    let kind = name.strip_prefix("gr_").or_else(|| name.strip_prefix("fp_")).unwrap_or(name);
+    let kind = name
+        .strip_prefix("gr_")
+        .or_else(|| name.strip_prefix("fp_"))
+        .unwrap_or(name);
     let points: Vec<(f64, f64)> = match kind {
         "line" | "rect" => {
             let (a, b) = (item.get("start"), item.get("end"));
@@ -200,7 +216,11 @@ fn raw_copper_bounds(item: &SExp, transform: &dyn Fn(f64, f64) -> Option<(f64, f
             if pts.children.iter().any(|c| !c.has_tag("xy")) {
                 return None;
             }
-            let v: Option<Vec<_>> = pts.children.iter().map(|c| point_of(Some(c), transform)).collect();
+            let v: Option<Vec<_>> = pts
+                .children
+                .iter()
+                .map(|c| point_of(Some(c), transform))
+                .collect();
             let v = v?;
             if v.len() < 3 || (kind == "curve" && v.len() != 4) {
                 return None;
@@ -247,7 +267,11 @@ fn check_raw_copper(
                 Some((x - ox, y - oy))
             }
         };
-        let items: Vec<&SExp> = if footprint { node.children.iter().collect() } else { vec![node] };
+        let items: Vec<&SExp> = if footprint {
+            node.children.iter().collect()
+        } else {
+            vec![node]
+        };
         for item in items {
             let name = item.tag().unwrap_or("");
             if item.is_atom()
@@ -257,7 +281,10 @@ fn check_raw_copper(
             {
                 continue;
             }
-            let layer = item.get("layer").and_then(|l| l.text_at(0)).unwrap_or_default();
+            let layer = item
+                .get("layer")
+                .and_then(|l| l.text_at(0))
+                .unwrap_or_default();
             if !layers.contains(&layer) {
                 continue;
             }
@@ -265,7 +292,11 @@ fn check_raw_copper(
                 if let Some(net) = item.get("net") {
                     match net.value_at(0) {
                         Some(crate::sexp::Value::Int(i)) if *i == via.net_number => continue,
-                        Some(crate::sexp::Value::Str(s)) if !via.net_name.is_empty() && *s == via.net_name => continue,
+                        Some(crate::sexp::Value::Str(s))
+                            if !via.net_name.is_empty() && *s == via.net_name =>
+                        {
+                            continue
+                        }
                         _ => {}
                     }
                 }
@@ -287,7 +318,10 @@ fn copper_names(pcb: &Pcb) -> Vec<String> {
 
 fn span(copper: &[String], endpoints: &[String]) -> Vec<String> {
     if endpoints.len() >= 2 && endpoints.iter().all(|l| copper.contains(l)) {
-        let idx: Vec<usize> = endpoints.iter().filter_map(|l| copper.iter().position(|c| c == l)).collect();
+        let idx: Vec<usize> = endpoints
+            .iter()
+            .filter_map(|l| copper.iter().position(|c| c == l))
+            .collect();
         let lo = *idx.iter().min().expect("non-empty");
         let hi = *idx.iter().max().expect("non-empty");
         return copper[lo..=hi].to_vec();
@@ -319,7 +353,10 @@ pub fn check_hole_to_copper(
         if has(&seg.layer) && foreign(seg.net_number) {
             let gap = dist_point_to_segment(x, y, seg) - hole_r - seg.width / 2.0;
             if gap < floor - 1e-6 {
-                return Some(format!("hole-to-copper {gap:.3}mm to track on {}", seg.layer));
+                return Some(format!(
+                    "hole-to-copper {gap:.3}mm to track on {}",
+                    seg.layer
+                ));
             }
         }
     }
@@ -334,7 +371,10 @@ pub fn check_hole_to_copper(
         let d = (x - other.position.0).hypot(y - other.position.1);
         let gap = (d - hole_r - other.size / 2.0).min(d - via.size / 2.0 - other.drill / 2.0);
         if gap < floor - 1e-6 {
-            return Some(format!("hole-to-copper {gap:.3}mm to via on net {}", other.net_number));
+            return Some(format!(
+                "hole-to-copper {gap:.3}mm to via on net {}",
+                other.net_number
+            ));
         }
     }
     for fp in pcb.footprints() {
@@ -343,10 +383,16 @@ pub fn check_hole_to_copper(
                 continue;
             }
             if has_unmodeled_drill(pad) {
-                return Some(format!("hole-to-copper unmodeled drill at pad {}-{}", fp.reference, pad.number));
+                return Some(format!(
+                    "hole-to-copper unmodeled drill at pad {}-{}",
+                    fp.reference, pad.number
+                ));
             }
             if pad.shape == "custom" {
-                return Some(format!("hole-to-copper unproven for custom pad {}-{}", fp.reference, pad.number));
+                return Some(format!(
+                    "hole-to-copper unproven for custom pad {}-{}",
+                    fp.reference, pad.number
+                ));
             }
             let b = pad_absolute_bbox(pad, fp);
             let mut gap = if pad.pad_type == "np_thru_hole" {
@@ -359,7 +405,10 @@ pub fn check_hole_to_copper(
                 gap = gap.min((x - c.0).hypot(y - c.1) - via.size / 2.0 - pad.drill / 2.0);
             }
             if gap < floor - 1e-6 {
-                return Some(format!("hole-to-copper {gap:.3}mm to pad {}-{}", fp.reference, pad.number));
+                return Some(format!(
+                    "hole-to-copper {gap:.3}mm to pad {}-{}",
+                    fp.reference, pad.number
+                ));
             }
         }
     }
@@ -468,18 +517,28 @@ pub fn check_clearance(
         }
         let cu = dist_point_to_segment(new_x, new_y, seg) - via_r - seg.width / 2.0;
         if cu < min_clearance - 1e-6 {
-            return Ok(Some(format!("clearance {cu:.3}mm to track on net {}", seg.net_number)));
+            return Ok(Some(format!(
+                "clearance {cu:.3}mm to track on net {}",
+                seg.net_number
+            )));
         }
     }
     let floor = resolve_hole_clearance(pcb, min_hole_clearance)?;
-    Ok(check_hole_to_copper(pcb, via_index, via, new_x, new_y, floor, Some(min_clearance)))
+    Ok(check_hole_to_copper(
+        pcb,
+        via_index,
+        via,
+        new_x,
+        new_y,
+        floor,
+        Some(min_clearance),
+    ))
 }
 
 /// Footprint by index (helper for callers holding pad indices).
 pub fn footprint_at(pcb: &Pcb, index: usize) -> &Footprint {
     &pcb.footprints()[index]
 }
-
 
 // ------------------------------------------------------------------ relocation
 
@@ -573,7 +632,13 @@ fn same_net_zone_boundaries(pcb: &Pcb, via: &Via, net_name: &str) -> Vec<Vec<(f6
         .collect()
 }
 
-fn plane_stub_layers(pcb: &Pcb, via: &Via, pad: &Pad, target: (f64, f64), net_name: &str) -> Vec<String> {
+fn plane_stub_layers(
+    pcb: &Pcb,
+    via: &Via,
+    pad: &Pad,
+    target: (f64, f64),
+    net_name: &str,
+) -> Vec<String> {
     use crate::validate::rules::placement::point_in_polygon;
     let old_land = sh::point_buffer(via.position, via.size / 2.0);
     let new_land = sh::point_buffer(target, via.size / 2.0);
@@ -676,7 +741,11 @@ pub fn check_stub_clearance(
     for seg in pcb.segments() {
         if has(&seg.layer)
             && foreign(seg.net_number)
-            && too_close(&Geom::Line(vec![seg.start, seg.end]), seg.width / 2.0, min_clearance)
+            && too_close(
+                &Geom::Line(vec![seg.start, seg.end]),
+                seg.width / 2.0,
+                min_clearance,
+            )
         {
             return Ok(Some(format!(
                 "stub clearance to track on {}, net {}",
@@ -695,9 +764,17 @@ pub fn check_stub_clearance(
                 other.net_number
             )));
         }
-        if overlaps(&sp) && too_close(&Geom::Point(other.position), other.size / 2.0, min_clearance)
+        if overlaps(&sp)
+            && too_close(
+                &Geom::Point(other.position),
+                other.size / 2.0,
+                min_clearance,
+            )
         {
-            return Ok(Some(format!("stub clearance to via on net {}", other.net_number)));
+            return Ok(Some(format!(
+                "stub clearance to via on net {}",
+                other.net_number
+            )));
         }
     }
     for fp in pcb.footprints() {
@@ -973,9 +1050,10 @@ fn first_offpad_candidate(
                 continue;
             }
             let (layers, width) = match plane {
-                Some((_, pad, net_name)) => {
-                    (plane_stub_layers(pcb, via, pad, (nx, ny), net_name), via.size)
-                }
+                Some((_, pad, net_name)) => (
+                    plane_stub_layers(pcb, via, pad, (nx, ny), net_name),
+                    via.size,
+                ),
                 None => (stub_layers.to_vec(), stub_width),
             };
             if check_stub_clearance(
@@ -1030,7 +1108,13 @@ fn persist_via_with_stubs(
     ok
 }
 
-fn skip(via: &Via, net_name: &str, pad_ref: &str, reason: &str, category: &str) -> ViaRelocationSkip {
+fn skip(
+    via: &Via,
+    net_name: &str,
+    pad_ref: &str,
+    reason: &str,
+    category: &str,
+) -> ViaRelocationSkip {
     ViaRelocationSkip {
         x: via.position.0,
         y: via.position.1,
@@ -1082,9 +1166,10 @@ pub fn relocate_in_pad_vias(
             continue;
         };
         let fps = pcb.footprints();
-        let Some(&(fi, pi, bbox)) = cands.iter().find(|(fi, pi, b)| {
-            via_inside_pad(&via, *b, Some((&fps[*fi].pads[*pi], &fps[*fi])))
-        }) else {
+        let Some(&(fi, pi, bbox)) = cands
+            .iter()
+            .find(|(fi, pi, b)| via_inside_pad(&via, *b, Some((&fps[*fi].pads[*pi], &fps[*fi]))))
+        else {
             continue;
         };
         let fp = fps[fi].clone();
@@ -1398,7 +1483,10 @@ pub fn print_relocation_results(
     if format == "summary" {
         println!("{action} {} in-pad via(s) off-pad", result.moved.len());
         if !result.skipped.is_empty() {
-            println!("  {} skipped (clearance/hole-to-hole)", result.skipped.len());
+            println!(
+                "  {} skipped (clearance/hole-to-hole)",
+                result.skipped.len()
+            );
         }
         if !result.unresolvable.is_empty() {
             println!("  {} unresolvable (Phase 2/3)", result.unresolvable.len());
@@ -1417,7 +1505,11 @@ pub fn print_relocation_results(
             format!("stubs on {}", m.stub_layers.join(", "))
         };
         let short: String = m.uuid.chars().take(8).collect();
-        let short = if short.is_empty() { "?".to_string() } else { short };
+        let short = if short.is_empty() {
+            "?".to_string()
+        } else {
+            short
+        };
         println!(
             "  Via {short} (net '{}') on pad {}: ({:.3}, {:.3}) -> ({:.3}, {:.3}); {tie}",
             m.net_name, m.pad_ref, m.old_x, m.old_y, m.new_x, m.new_y
@@ -1432,9 +1524,15 @@ pub fn print_relocation_results(
         );
     }
     if !result.skipped.is_empty() {
-        println!("\nSkipped {} via(s) (would violate clearance):", result.skipped.len());
+        println!(
+            "\nSkipped {} via(s) (would violate clearance):",
+            result.skipped.len()
+        );
         for s in result.skipped.iter().take(10) {
-            println!("  Via at ({:.3}, {:.3}) on pad {}: {}", s.x, s.y, s.pad_ref, s.reason);
+            println!(
+                "  Via at ({:.3}, {:.3}) on pad {}: {}",
+                s.x, s.y, s.pad_ref, s.reason
+            );
         }
         if result.skipped.len() > 10 {
             println!("  ... and {} more", result.skipped.len() - 10);
@@ -1446,7 +1544,10 @@ pub fn print_relocation_results(
             result.unresolvable.len()
         );
         for u in result.unresolvable.iter().take(10) {
-            println!("  Via at ({:.3}, {:.3}) on pad {}: {}", u.x, u.y, u.pad_ref, u.reason);
+            println!(
+                "  Via at ({:.3}, {:.3}) on pad {}: {}",
+                u.x, u.y, u.pad_ref, u.reason
+            );
         }
         if result.unresolvable.len() > 10 {
             println!("  ... and {} more", result.unresolvable.len() - 10);

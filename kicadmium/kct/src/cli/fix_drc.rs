@@ -26,7 +26,8 @@ use crate::pyjson::{dumps_indent, py_float_repr, py_repr_str, py_round, Json};
 use crate::validate::connectivity::{ConnectivityResult, ConnectivityValidator};
 
 /// Topology advisories excluded from the pure-Rust DRC fallback (#4680).
-pub const UNREPAIRABLE_TOPOLOGY_RULE_IDS: &[&str] = &["track_dangling", "via_dangling", "isolated_copper"];
+pub const UNREPAIRABLE_TOPOLOGY_RULE_IDS: &[&str] =
+    &["track_dangling", "via_dangling", "isolated_copper"];
 
 #[derive(Parser, Debug)]
 #[command(about = "Automated DRC violation repair (clearance + drill)")]
@@ -112,7 +113,12 @@ impl PassResult {
     }
 }
 
-fn get_drc_report(path: Option<&str>, pcb_path: &Path, mfr: &str, layers: i64) -> Option<DRCReport> {
+fn get_drc_report(
+    path: Option<&str>,
+    pcb_path: &Path,
+    mfr: &str,
+    layers: i64,
+) -> Option<DRCReport> {
     if let Some(p) = path {
         let rp = Path::new(p);
         if !rp.exists() {
@@ -130,7 +136,10 @@ fn get_drc_report(path: Option<&str>, pcb_path: &Path, mfr: &str, layers: i64) -
     if let Some(cli) = find_kicad_cli() {
         println!(
             "Running DRC (kicad-cli) on: {}",
-            pcb_path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default()
+            pcb_path
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default()
         );
         let res = run_drc(pcb_path, None, "json", true, Some(&cli));
         if !res.success {
@@ -189,12 +198,19 @@ fn count_connected_nets(path: &Path) -> i64 {
     connectivity_report(path).map_or(-1, |r| r.connected_nets as i64)
 }
 
-fn regressed_nets(before: Option<&ConnectivityResult>, after: Option<&ConnectivityResult>) -> BTreeSet<String> {
+fn regressed_nets(
+    before: Option<&ConnectivityResult>,
+    after: Option<&ConnectivityResult>,
+) -> BTreeSet<String> {
     let (Some(b), Some(a)) = (before, after) else {
         return BTreeSet::new();
     };
     let broken = |r: &ConnectivityResult| -> BTreeSet<String> {
-        r.issues.iter().filter(|i| !i.net_name.is_empty()).map(|i| i.net_name.clone()).collect()
+        r.issues
+            .iter()
+            .filter(|i| !i.net_name.is_empty())
+            .map(|i| i.net_name.clone())
+            .collect()
     };
     broken(a).difference(&broken(b)).cloned().collect()
 }
@@ -212,8 +228,16 @@ fn attempt_granular_rollback(
     if total == 0 {
         return (false, 0, Vec::new());
     }
-    let off_n: Vec<_> = cr.nudges.iter().filter(|n| regressed.contains(&n.net_name)).collect();
-    let off_a: Vec<_> = dr.actions.iter().filter(|a| regressed.contains(&a.net_name)).collect();
+    let off_n: Vec<_> = cr
+        .nudges
+        .iter()
+        .filter(|n| regressed.contains(&n.net_name))
+        .collect();
+    let off_a: Vec<_> = dr
+        .actions
+        .iter()
+        .filter(|a| regressed.contains(&a.net_name))
+        .collect();
     let offenders = (off_n.len() + off_a.len()) as i64;
     if offenders == 0 || offenders == total {
         let _ = std::fs::write(output, snapshot);
@@ -285,7 +309,16 @@ fn run_single_pass(
         let load = if pass_number > 1 { output } else { pcb_path };
         match ClearanceRepairer::new(load) {
             Ok(mut rep) => {
-                cr = rep.repair_from_report(report, max_d, margin, "move-trace", dry_run, local_reroute, 0.5, false);
+                cr = rep.repair_from_report(
+                    report,
+                    max_d,
+                    margin,
+                    "move-trace",
+                    dry_run,
+                    local_reroute,
+                    0.5,
+                    false,
+                );
                 if cr.repaired > 0 && !dry_run {
                     if let Err(e) = rep.save(Some(output)) {
                         eprintln!("Error during clearance repair: {e}");
@@ -296,7 +329,11 @@ fn run_single_pass(
         }
     }
     if !drill_violations.is_empty() {
-        let load = if cr.repaired > 0 && !dry_run { output } else { pcb_path };
+        let load = if cr.repaired > 0 && !dry_run {
+            output
+        } else {
+            pcb_path
+        };
         match DrillClearanceRepairer::new(load) {
             Ok(mut rep) => {
                 dr = rep.repair(drill_violations, max_d, margin, dry_run, rules);
@@ -335,10 +372,19 @@ pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
         eprintln!("Error: --max-passes must be at least 1");
         return Ok(1);
     }
-    let Some(report) = get_drc_report(args.drc_report.as_deref(), &pcb_path, &args.mfr, args.layers) else {
+    let Some(report) = get_drc_report(
+        args.drc_report.as_deref(),
+        &pcb_path,
+        &args.mfr,
+        args.layers,
+    ) else {
         return Ok(1);
     };
-    let output = args.output.clone().map(PathBuf::from).unwrap_or_else(|| pcb_path.clone());
+    let output = args
+        .output
+        .clone()
+        .map(PathBuf::from)
+        .unwrap_or_else(|| pcb_path.clone());
     if !args.transactional {
         return execute_repair(&args, &pcb_path, &output, report);
     }
@@ -355,13 +401,21 @@ pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
     Ok(code)
 }
 
-fn execute_repair(args: &Args, pcb_path: &Path, output: &Path, mut report: DRCReport) -> Result<i32> {
+fn execute_repair(
+    args: &Args,
+    pcb_path: &Path,
+    output: &Path,
+    mut report: DRCReport,
+) -> Result<i32> {
     let max_passes = if args.dry_run { 1 } else { args.max_passes };
     let local_reroute = !args.no_local_reroute;
     let verify_before = if args.verify {
         let r = run_native_drc(pcb_path, &args.mfr, args.layers);
         if let (Some(r), false) = (&r, args.quiet) {
-            println!("[verify] Before repair: {} violation(s) via pure-Python DRC", r.violations.len());
+            println!(
+                "[verify] Before repair: {} violation(s) via pure-Python DRC",
+                r.violations.len()
+            );
         }
         r
     } else {
@@ -389,8 +443,17 @@ fn execute_repair(args: &Args, pcb_path: &Path, output: &Path, mut report: DRCRe
             0
         };
         let drill: Vec<DRCViolation> = if do_drill {
-            let mut v: Vec<DRCViolation> = report.by_type(ViolationType::DRILL_CLEARANCE).into_iter().cloned().collect();
-            v.extend(report.by_type(ViolationType::HOLE_NEAR_HOLE).into_iter().cloned());
+            let mut v: Vec<DRCViolation> = report
+                .by_type(ViolationType::DRILL_CLEARANCE)
+                .into_iter()
+                .cloned()
+                .collect();
+            v.extend(
+                report
+                    .by_type(ViolationType::HOLE_NEAR_HOLE)
+                    .into_iter()
+                    .cloned(),
+            );
             v
         } else {
             Vec::new()
@@ -464,7 +527,8 @@ fn execute_repair(args: &Args, pcb_path: &Path, output: &Path, mut report: DRCRe
                 if a >= 0 && a < base {
                     let after_report = connectivity_report(output);
                     let regressed = regressed_nets(baseline_report.as_ref(), after_report.as_ref());
-                    let (all, kept, uuids) = attempt_granular_rollback(output, &cr, &dr, &regressed, snap, pass_num);
+                    let (all, kept, uuids) =
+                        attempt_granular_rollback(output, &cr, &dr, &regressed, snap, pass_num);
                     if all {
                         rolled_back = true;
                         conn_rollback = true;
@@ -515,11 +579,23 @@ fn execute_repair(args: &Args, pcb_path: &Path, output: &Path, mut report: DRCRe
     }
 
     if !args.quiet {
-        print_results(&passes, &args.format, args.dry_run, args.max_displacement, args.max_passes);
+        print_results(
+            &passes,
+            &args.format,
+            args.dry_run,
+            args.max_displacement,
+            args.max_passes,
+        );
     }
     if args.verify && !args.dry_run {
-        if let (Some(before), Some(after)) = (&verify_before, run_native_drc(output, &args.mfr, args.layers)) {
-            let (b, a) = (before.violations.len() as i64, after.violations.len() as i64);
+        if let (Some(before), Some(after)) = (
+            &verify_before,
+            run_native_drc(output, &args.mfr, args.layers),
+        ) {
+            let (b, a) = (
+                before.violations.len() as i64,
+                after.violations.len() as i64,
+            );
             let delta = b - a;
             if !args.quiet {
                 let eq = "=".repeat(60);
@@ -535,7 +611,9 @@ fn execute_repair(args: &Args, pcb_path: &Path, output: &Path, mut report: DRCRe
                 } else {
                     println!("  WARNING: {} new violation(s) introduced!", -delta);
                 }
-                println!("\nThese counts use the same engine as `kct check` for consistent comparison.");
+                println!(
+                    "\nThese counts use the same engine as `kct check` for consistent comparison."
+                );
             }
         }
     }
@@ -566,14 +644,30 @@ struct Effective {
 fn effective(last: Option<&PassResult>) -> Effective {
     let rolled_back = last.is_some_and(|l| l.connectivity_rolled_back);
     let partial = last.is_some_and(|l| l.connectivity_partial_rollback);
-    let reverted: BTreeSet<String> = last.map(|l| l.reverted_uuids.iter().cloned().collect()).unwrap_or_default();
+    let reverted: BTreeSet<String> = last
+        .map(|l| l.reverted_uuids.iter().cloned().collect())
+        .unwrap_or_default();
     let (cr, dr) = last.map_or((0, 0), |l| {
         (
-            l.clearance_result.nudges.iter().filter(|n| reverted.contains(&n.uuid)).count() as i64,
-            l.drill_result.actions.iter().filter(|a| reverted.contains(&a.uuid)).count() as i64,
+            l.clearance_result
+                .nudges
+                .iter()
+                .filter(|n| reverted.contains(&n.uuid))
+                .count() as i64,
+            l.drill_result
+                .actions
+                .iter()
+                .filter(|a| reverted.contains(&a.uuid))
+                .count() as i64,
         )
     });
-    Effective { rolled_back, partial, reverted, clearance_reverted: cr, drill_reverted: dr }
+    Effective {
+        rolled_back,
+        partial,
+        reverted,
+        clearance_reverted: cr,
+        drill_reverted: dr,
+    }
 }
 
 fn print_results(passes: &[PassResult], format: &str, dry_run: bool, max_d: f64, max_passes: i64) {
@@ -602,12 +696,18 @@ fn print_json(passes: &[PassResult], dry_run: bool, max_d: f64, max_passes: i64)
         };
         (tv, tr)
     } else {
-        (passes.first().map_or(0, |p| p.violations_before), total_repaired_all)
+        (
+            passes.first().map_or(0, |p| p.violations_before),
+            total_repaired_all,
+        )
     };
     let (ecr, edr) = if e.rolled_back {
         (0, 0)
     } else if e.partial {
-        (cr.repaired - e.clearance_reverted, dr.repaired - e.drill_reverted)
+        (
+            cr.repaired - e.clearance_reverted,
+            dr.repaired - e.drill_reverted,
+        )
     } else {
         (cr.repaired, dr.repaired)
     };
@@ -703,9 +803,18 @@ fn print_json(passes: &[PassResult], dry_run: bool, max_d: f64, max_passes: i64)
 
 fn pass_line(p: &PassResult) {
     if p.converged() {
-        println!("  Pass {}: {} -> {} (converged)", p.pass_number, p.violations_before, p.violations_before);
+        println!(
+            "  Pass {}: {} -> {} (converged)",
+            p.pass_number, p.violations_before, p.violations_before
+        );
     } else {
-        println!("  Pass {}: {} -> {} (-{})", p.pass_number, p.violations_before, p.violations_after(), p.repaired);
+        println!(
+            "  Pass {}: {} -> {} (-{})",
+            p.pass_number,
+            p.violations_before,
+            p.violations_after(),
+            p.repaired
+        );
     }
 }
 
@@ -722,7 +831,10 @@ fn print_summary(passes: &[PassResult], dry_run: bool) {
         let (c, d) = if e.rolled_back {
             (0, 0)
         } else if e.partial {
-            (cr.repaired - e.clearance_reverted, dr.repaired - e.drill_reverted)
+            (
+                cr.repaired - e.clearance_reverted,
+                dr.repaired - e.drill_reverted,
+            )
         } else {
             (cr.repaired, dr.repaired)
         };
@@ -735,7 +847,10 @@ fn print_summary(passes: &[PassResult], dry_run: bool) {
         }
     } else {
         let total: i64 = passes.iter().map(|p| p.repaired).sum();
-        println!("{action} {total}/{} DRC violations", passes[0].violations_before);
+        println!(
+            "{action} {total}/{} DRC violations",
+            passes[0].violations_before
+        );
         passes.iter().for_each(pass_line);
     }
     if non_targeted > 0 {
@@ -790,7 +905,11 @@ fn print_text(passes: &[PassResult], dry_run: bool, max_d: f64) {
         } else if e.partial {
             (
                 cr.repaired - e.clearance_reverted,
-                if e.clearance_reverted > 0 { format!(" ({} reverted)", e.clearance_reverted) } else { String::new() },
+                if e.clearance_reverted > 0 {
+                    format!(" ({} reverted)", e.clearance_reverted)
+                } else {
+                    String::new()
+                },
             )
         } else {
             (cr.repaired, String::new())
@@ -799,7 +918,10 @@ fn print_text(passes: &[PassResult], dry_run: bool, max_d: f64) {
         for n in cr.nudges.iter().take(5) {
             let s = if is_rev(&n.uuid) { " (reverted)" } else { "" };
             println!("  [{}] {}{s}", n.object_type.to_uppercase(), n.net_name);
-            println!("    at ({:.4}, {:.4}) -> {:.4}mm", n.x, n.y, n.displacement_mm);
+            println!(
+                "    at ({:.4}, {:.4}) -> {:.4}mm",
+                n.x, n.y, n.displacement_mm
+            );
         }
         if cr.nudges.len() > 5 {
             println!("  ... and {} more", cr.nudges.len() - 5);
@@ -812,7 +934,11 @@ fn print_text(passes: &[PassResult], dry_run: bool, max_d: f64) {
         } else if e.partial {
             (
                 dr.repaired - e.drill_reverted,
-                if e.drill_reverted > 0 { format!(" ({} reverted)", e.drill_reverted) } else { String::new() },
+                if e.drill_reverted > 0 {
+                    format!(" ({} reverted)", e.drill_reverted)
+                } else {
+                    String::new()
+                },
             )
         } else {
             (dr.repaired, String::new())
@@ -867,11 +993,16 @@ fn print_text(passes: &[PassResult], dry_run: bool, max_d: f64) {
         if remaining > 0 {
             println!("  Repairable (not yet fixed): {remaining}");
             if exceeds > 0 {
-                println!("    Try increasing --max-displacement (currently {}mm)", py_float_repr(max_d));
+                println!(
+                    "    Try increasing --max-displacement (currently {}mm)",
+                    py_float_repr(max_d)
+                );
             }
         }
         if non_targeted > 0 {
-            println!("  Non-repairable: {non_targeted} (edge clearance, dimension, silkscreen, etc.)");
+            println!(
+                "  Non-repairable: {non_targeted} (edge clearance, dimension, silkscreen, etc.)"
+            );
         }
     }
 }

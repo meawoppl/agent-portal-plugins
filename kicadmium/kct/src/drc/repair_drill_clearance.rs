@@ -66,9 +66,15 @@ impl DrillRepairResult {
         };
         add(self.deduplicated, "De-duplicated same-net vias");
         add(self.slid, "Slid vias apart");
-        add(self.skipped_exceeds_max, "Skipped (exceeds max displacement)");
+        add(
+            self.skipped_exceeds_max,
+            "Skipped (exceeds max displacement)",
+        );
         add(self.skipped_infeasible, "Skipped (infeasible)");
-        add(self.skipped_unsafe, "Skipped (slide would introduce a new violation)");
+        add(
+            self.skipped_unsafe,
+            "Skipped (slide would introduce a new violation)",
+        );
         add(self.skipped_no_location, "Skipped (no location)");
         add(self.skipped_no_delta, "Skipped (no delta info)");
         lines.join("\n")
@@ -107,7 +113,9 @@ impl DrillClearanceRepairer {
             if !child.has_tag("net") {
                 continue;
             }
-            let atoms: Vec<String> = (0..child.children.len()).filter_map(|i| child.text_at(i)).collect();
+            let atoms: Vec<String> = (0..child.children.len())
+                .filter_map(|i| child.text_at(i))
+                .collect();
             if atoms.len() < 2 {
                 continue;
             }
@@ -136,11 +144,23 @@ impl DrillClearanceRepairer {
         let mut result = DrillRepairResult::default();
         let drill: Vec<&DRCViolation> = violations
             .iter()
-            .filter(|v| matches!(v.vtype, ViolationType::DRILL_CLEARANCE | ViolationType::HOLE_NEAR_HOLE))
+            .filter(|v| {
+                matches!(
+                    v.vtype,
+                    ViolationType::DRILL_CLEARANCE | ViolationType::HOLE_NEAR_HOLE
+                )
+            })
             .collect();
         result.total_violations = drill.len() as i64;
         for v in drill {
-            self.repair_single(v, &mut result, max_displacement, margin, dry_run, design_rules);
+            self.repair_single(
+                v,
+                &mut result,
+                max_displacement,
+                margin,
+                dry_run,
+                design_rules,
+            );
         }
         result
     }
@@ -199,12 +219,19 @@ impl DrillClearanceRepairer {
         let mut out = Vec::new();
         for path in descendant_paths(&self.doc, &|n| n.has_tag("via")) {
             let via = node_at(&self.doc, &path);
-            let Some((vx, vy)) = xy_of(via.find("at")) else { continue };
+            let Some((vx, vy)) = xy_of(via.find("at")) else {
+                continue;
+            };
             if ((vx - x).powi(2) + (vy - y).powi(2)).sqrt() > radius {
                 continue;
             }
             let net = self.resolve(via).1;
-            out.push(ViaHit { path, net, x: vx, y: vy });
+            out.push(ViaHit {
+                path,
+                net,
+                x: vx,
+                y: vy,
+            });
         }
         out
     }
@@ -213,7 +240,15 @@ impl DrillClearanceRepairer {
         first_text(node_at(&self.doc, path).find("uuid")).unwrap_or_default()
     }
 
-    fn deduplicate(&mut self, path: &NodePath, x: f64, y: f64, net: &str, result: &mut DrillRepairResult, dry_run: bool) {
+    fn deduplicate(
+        &mut self,
+        path: &NodePath,
+        x: f64,
+        y: f64,
+        net: &str,
+        result: &mut DrillRepairResult,
+        dry_run: bool,
+    ) {
         result.actions.push(DrillRepairAction {
             action: "deduplicate".into(),
             via_x: x,
@@ -249,7 +284,11 @@ impl DrillClearanceRepairer {
             Some((seg_path, sx, sy, ex, ey)) => {
                 let ds = ((sx - vx).powi(2) + (sy - vy).powi(2)).sqrt();
                 let de = ((ex - vx).powi(2) + (ey - vy).powi(2)).sqrt();
-                let (dirx, diry) = if ds < de { (ex - sx, ey - sy) } else { (sx - ex, sy - ey) };
+                let (dirx, diry) = if ds < de {
+                    (ex - sx, ey - sy)
+                } else {
+                    (sx - ex, sy - ey)
+                };
                 let len = (dirx * dirx + diry * diry).sqrt();
                 if len < 1e-10 {
                     push_away(vx, vy, ox, oy, required)
@@ -273,7 +312,10 @@ impl DrillClearanceRepairer {
             None => push_away(vx, vy, ox, oy, required),
         };
         if let Some(rules) = rules {
-            if self.target_clearance_reason(vx, vy, vx + dx, vy + dy, rules).is_some() {
+            if self
+                .target_clearance_reason(vx, vy, vx + dx, vy + dy, rules)
+                .is_some()
+            {
                 result.skipped_unsafe += 1;
                 return;
             }
@@ -301,7 +343,14 @@ impl DrillClearanceRepairer {
     }
 
     /// Clearance-engine gate on the post-move position (board frame).
-    fn target_clearance_reason(&self, vx: f64, vy: f64, nx: f64, ny: f64, rules: &DesignRules) -> Option<String> {
+    fn target_clearance_reason(
+        &self,
+        vx: f64,
+        vy: f64,
+        nx: f64,
+        ny: f64,
+        rules: &DesignRules,
+    ) -> Option<String> {
         use crate::cli::relocate_in_pad_vias as rel;
         let pcb = crate::schema::pcb::Pcb::from_sexp(self.doc.clone()).ok()?;
         let (ox, oy) = pcb.board_origin();
@@ -344,14 +393,20 @@ impl DrillClearanceRepairer {
         let want = action.uuid.trim_matches('"').to_string();
         let Some(path) = descendant_paths(&self.doc, &|n| n.has_tag("via"))
             .into_iter()
-            .find(|p| first_text(node_at(&self.doc, p).find("uuid")).is_some_and(|u| u.trim_matches('"') == want))
+            .find(|p| {
+                first_text(node_at(&self.doc, p).find("uuid"))
+                    .is_some_and(|u| u.trim_matches('"') == want)
+            })
         else {
             return false;
         };
         let Some((cx, cy)) = xy_of(node_at(&self.doc, &path).find("at")) else {
             return false;
         };
-        let (nx, ny) = (py_round(cx - action.displacement_x, 4), py_round(cy - action.displacement_y, 4));
+        let (nx, ny) = (
+            py_round(cx - action.displacement_x, 4),
+            py_round(cy - action.displacement_y, 4),
+        );
         let segs: Vec<NodePath> = descendant_paths(&self.doc, &|n| n.has_tag("segment"))
             .into_iter()
             .filter(|p| {
@@ -375,7 +430,12 @@ impl DrillClearanceRepairer {
         true
     }
 
-    fn find_connected_segment(&self, vx: f64, vy: f64, net: &str) -> Option<(NodePath, f64, f64, f64, f64)> {
+    fn find_connected_segment(
+        &self,
+        vx: f64,
+        vy: f64,
+        net: &str,
+    ) -> Option<(NodePath, f64, f64, f64, f64)> {
         let net_num = self.net_names.get(net).copied().unwrap_or(-1);
         for path in descendant_paths(&self.doc, &|n| n.has_tag("segment")) {
             let seg = node_at(&self.doc, &path);
@@ -385,7 +445,9 @@ impl DrillClearanceRepairer {
             if self.resolve(seg).0 != net_num {
                 continue;
             }
-            let (Some((sx, sy)), Some((ex, ey))) = (xy_of(seg.find("start")), xy_of(seg.find("end"))) else {
+            let (Some((sx, sy)), Some((ex, ey))) =
+                (xy_of(seg.find("start")), xy_of(seg.find("end")))
+            else {
                 continue;
             };
             let ds = ((sx - vx).powi(2) + (sy - vy).powi(2)).sqrt();

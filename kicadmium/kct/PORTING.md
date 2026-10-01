@@ -43,6 +43,13 @@ panelization, manufacturing export, cleanup/doctor/config, and the repair/build
 orchestrators. These implementations invoke `kicad-cli` only for KiCad-native
 exports and checks; no Python interpreter or wrapper remains in their path.
 
+### Known practical divergence
+
+`optimize-placement` currently uses a deterministic force-directed optimizer
+with HPWL, overlap, and board-boundary penalties. Upstream uses CMA-ES. The
+native command is useful and reproducible on real boards today; CMA-ES remains
+a future fidelity improvement rather than a claim of algorithmic parity.
+
 ### `kct run` migration
 
 Upstream `kct run FILE.py -- ARGS...` executes arbitrary Python in the

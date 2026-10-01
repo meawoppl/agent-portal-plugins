@@ -38,13 +38,15 @@ pub fn absolute_pad_position(fp: &Footprint, pad: &Pad) -> (f64, f64) {
     (fp.position.0 + rx, fp.position.1 + ry)
 }
 
+type NetPads<'a> = Vec<((i64, &'a str), Vec<(&'a Footprint, &'a Pad)>)>;
+
 #[derive(Debug, Clone, Default)]
 pub struct SinglePadNetRule;
 
 impl SinglePadNetRule {
     pub fn check(&self, pcb: &Pcb, _rules: &DesignRules) -> DRCResults {
         let mut results = DRCResults::with_rules_checked(1);
-        let mut net_pads: Vec<((i64, &str), Vec<(&Footprint, &Pad)>)> = Vec::new();
+        let mut net_pads: NetPads = Vec::new();
         let mut index: std::collections::HashMap<(i64, &str), usize> = Default::default();
         for fp in pcb.footprints() {
             for pad in &fp.pads {

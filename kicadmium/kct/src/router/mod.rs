@@ -2,6 +2,12 @@
 //! pure-Rust DRC checker consumes). The autorouter itself is Wave F.
 
 pub mod current_paths;
+pub mod diffpair;
+pub mod diffpair_detection;
+pub mod kelvin;
+pub mod match_group_detection;
 pub mod net_class;
 pub mod net_names;
+pub mod preflight;
 pub mod rules;
+pub mod via_in_pad_eligibility;

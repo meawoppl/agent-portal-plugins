@@ -99,7 +99,7 @@ fn mfr_ids() -> Vec<&'static str> {
 }
 
 #[derive(Parser, Debug)]
-#[command(about = "Pure Python DRC for PCBs (no kicad-cli required)")]
+#[command(about = "Native Rust DRC for PCBs (no kicad-cli required)")]
 struct Args {
     /// Path to .kicad_pcb file or directory containing one
     pcb: String,
@@ -1187,7 +1187,7 @@ fn output_table(
     let bar = "=".repeat(60);
     let dash = "-".repeat(60);
     println!("\n{bar}");
-    println!("PURE PYTHON DRC CHECK");
+    println!("NATIVE RUST DRC CHECK");
     println!("{bar}");
     println!("File: {}", file_name(pcb_path));
     println!("Manufacturer: {}", mfr.to_uppercase());
@@ -2152,6 +2152,7 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
             &effective_mfr,
             layers,
             preset_copper_oz,
+            net_class_map.as_ref(),
             args.emit_drc_constraints,
         );
     }
@@ -2187,6 +2188,7 @@ fn emit_drc_sidecars(
     manufacturer_id: &str,
     layers: i64,
     copper_oz: f64,
+    net_class_map: Option<&NetClassMap>,
     emit_both: bool,
 ) {
     match manufacturers::drc_sidecars::write_drc_sidecars(
@@ -2195,6 +2197,7 @@ fn emit_drc_sidecars(
         manufacturer_id,
         layers,
         copper_oz,
+        net_class_map,
         emit_both,
     ) {
         Ok(written) => eprintln!(

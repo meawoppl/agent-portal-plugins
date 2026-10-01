@@ -1,0 +1,3041 @@
+{
+ "summary": {
+  "errors": 2,
+  "warnings": 178,
+  "info": 6
+ },
+ "mistakes": [
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U2"
+   ],
+   "location": [
+    38.0,
+    10.5
+   ],
+   "explanation": "U2 has a power pin on net 'USB_D+', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from USB_D+ to the nearest ground return, placed within a few mm of U2's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U1"
+   ],
+   "location": [
+    38.0,
+    28.0
+   ],
+   "explanation": "U1 has a power pin on net 'USB_MCU_D+', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from USB_MCU_D+ to the nearest ground return, placed within a few mm of U1's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "R13"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 12.9mm from R13 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of R13 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "R14"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 16.0mm from R14 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 16.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of R14 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "R16"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 21.2mm from R16 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of R16 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U1"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 12.3mm from U1 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U1 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U1"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 11.3mm from U1 pin 24 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U1 pin 24, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U1"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 16.7mm from U1 pin 34 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 16.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U1 pin 34, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U1"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 14.7mm from U1 pin 44 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U1 pin 44, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "C3"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 19.4mm from C3 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 19.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of C3 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "J2"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 23.1mm from J2 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 23.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of J2 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "R5"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 16.3mm from R5 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 16.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of R5 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "C2"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 14.2mm from C2 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of C2 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "R12"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 10.4mm from R12 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 10.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of R12 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "F1"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 31.6mm from F1 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 31.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of F1 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "J3"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 31.9mm from J3 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 31.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of J3 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "C4"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 12.6mm from C4 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of C4 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "C1"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 19.8mm from C1 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 19.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of C1 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "R15"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 19.4mm from R15 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 19.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of R15 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "R13"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 24.3mm from R13 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 24.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of R13 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "R14"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 24.0mm from R14 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 24.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of R14 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "R16"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 17.1mm from R16 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 17.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of R16 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "C5"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 20.4mm from C5 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 20.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of C5 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "U1"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 14.9mm from U1 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of U1 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "U1"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 16.3mm from U1 pin 14 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 16.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of U1 pin 14, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "U1"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 9.8mm from U1 pin 24 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 9.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of U1 pin 24, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "U1"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 5.0mm from U1 pin 34 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 5.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of U1 pin 34, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "U1"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 13.0mm from U1 pin 44 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of U1 pin 44, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "J2"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 39.9mm from J2 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 39.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of J2 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "R5"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 9.3mm from R5 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 9.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of R5 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "C2"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 18.9mm from C2 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 18.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of C2 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "R12"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 25.2mm from R12 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 25.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of R12 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "F1"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 12.5mm from F1 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of F1 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "J3"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 12.4mm from J3 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of J3 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "C4"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 12.0mm from C4 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of C4 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "C1"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 5.6mm from C1 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 5.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of C1 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C3",
+    "R15"
+   ],
+   "location": [
+    47.0,
+    22.0
+   ],
+   "explanation": "C3 is 24.4mm from R15 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 24.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C3 to within 3.0mm of R15 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "R13"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 26.2mm from R13 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 26.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of R13 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "R14"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 28.5mm from R14 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 28.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of R14 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "R16"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 29.2mm from R16 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 29.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of R16 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "C5"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 13.7mm from C5 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of C5 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "U1"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 11.7mm from U1 pin 14 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of U1 pin 14, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "U1"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 16.3mm from U1 pin 24 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 16.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of U1 pin 24, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "U1"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 13.1mm from U1 pin 34 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of U1 pin 34, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "U1"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 5.3mm from U1 pin 44 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 5.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of U1 pin 44, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "C3"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 17.3mm from C3 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 17.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of C3 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "J2"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 23.5mm from J2 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 23.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of J2 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "R5"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 21.4mm from R5 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of R5 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "R12"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 24.2mm from R12 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 24.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of R12 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "F1"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 25.6mm from F1 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 25.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of F1 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "J3"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 29.7mm from J3 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 29.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of J3 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "C4"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 19.9mm from C4 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 19.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of C4 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "C1"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 14.1mm from C1 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of C1 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "R15"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 31.2mm from R15 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 31.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of R15 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "R13"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 12.6mm from R13 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of R13 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "R14"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 12.0mm from R14 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of R14 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "R16"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 8.7mm from R16 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 8.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of R16 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "C5"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 14.1mm from C5 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of C5 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "U1"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 17.3mm from U1 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 17.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of U1 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "U1"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 11.4mm from U1 pin 14 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of U1 pin 14, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "U1"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 12.7mm from U1 pin 34 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of U1 pin 34, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "U1"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 17.5mm from U1 pin 44 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 17.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of U1 pin 44, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "C3"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 12.0mm from C3 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of C3 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "J2"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 36.4mm from J2 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 36.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of J2 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "C2"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 21.3mm from C2 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of C2 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "R12"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 14.3mm from R12 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of R12 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "F1"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 24.2mm from F1 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 24.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of F1 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "J3"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 21.3mm from J3 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of J3 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "C1"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 15.7mm from C1 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 15.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of C1 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C4",
+    "R15"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 12.7mm from R15 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C4 to within 3.0mm of R15 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "R13"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 27.0mm from R13 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 27.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of R13 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "R14"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 27.3mm from R14 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 27.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of R14 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "R16"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 21.7mm from R16 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of R16 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "C5"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 20.5mm from C5 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 20.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of C5 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "U1"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 12.1mm from U1 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of U1 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "U1"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 16.4mm from U1 pin 14 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 16.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of U1 pin 14, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "U1"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 12.2mm from U1 pin 24 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of U1 pin 24, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "U1"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 9.6mm from U1 pin 44 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 9.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of U1 pin 44, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "J2"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 37.8mm from J2 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 37.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of J2 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "R5"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 13.5mm from R5 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of R5 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "C2"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 15.6mm from C2 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 15.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of C2 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "R12"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 27.3mm from R12 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 27.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of R12 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "F1"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 11.7mm from F1 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of F1 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "J3"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 14.9mm from J3 pin 2 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of J3 pin 2, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "C4"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 15.3mm from C4 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 15.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of C4 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "R15"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 28.2mm from R15 pin 1 (VCC). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 28.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of R15 pin 1, with a short, wide trace to both VCC and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "crystal_oscillator",
+   "severity": "warning",
+   "title": "Crystal trace too long",
+   "components": [
+    "Y1"
+   ],
+   "location": [
+    28.0,
+    28.0
+   ],
+   "explanation": "Crystal trace XTAL1 is 11.9mm long. Crystal oscillator traces should be kept under 10.0mm to minimize parasitic capacitance and EMI. Long traces can affect frequency accuracy and increase noise emissions.",
+   "fix_suggestion": "Move the microcontroller closer to Y1, or reroute XTAL1 to shorten the trace. Place load capacitors close to the crystal pins.",
+   "learn_more_url": "docs/mistakes/crystal-layout.md"
+  },
+  {
+   "category": "crystal_oscillator",
+   "severity": "warning",
+   "title": "Crystal trace too long",
+   "components": [
+    "Y1"
+   ],
+   "location": [
+    28.0,
+    28.0
+   ],
+   "explanation": "Crystal trace XTAL2 is 10.6mm long. Crystal oscillator traces should be kept under 10.0mm to minimize parasitic capacitance and EMI. Long traces can affect frequency accuracy and increase noise emissions.",
+   "fix_suggestion": "Move the microcontroller closer to Y1, or reroute XTAL2 to shorten the trace. Place load capacitors close to the crystal pins.",
+   "learn_more_url": "docs/mistakes/crystal-layout.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "GND"
+   ],
+   "location": [
+    43.78,
+    19.0
+   ],
+   "explanation": "Power trace on GND is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on GND to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "USB_D+"
+   ],
+   "location": [
+    37.57499999999999,
+    4.450000000000003
+   ],
+   "explanation": "Power trace on USB_D+ is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on USB_D+ to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "USB_MCU_D+"
+   ],
+   "location": [
+    39.82499999999999,
+    21.599999999999994
+   ],
+   "explanation": "Power trace on USB_MCU_D+ is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on USB_MCU_D+ to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "VCC"
+   ],
+   "location": [
+    33.889999999999986,
+    39.55
+   ],
+   "explanation": "Power trace on VCC is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on VCC to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "C9",
+    "pad 1"
+   ],
+   "location": [
+    22.55000000000001,
+    26.0
+   ],
+   "explanation": "Via found in SMD pad 1 of C9. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "R13",
+    "pad 1"
+   ],
+   "location": [
+    43.17500000000001,
+    46.0
+   ],
+   "explanation": "Via found in SMD pad 1 of R13. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "R13",
+    "pad 2"
+   ],
+   "location": [
+    44.82499999999999,
+    46.425
+   ],
+   "explanation": "Via found in SMD pad 2 of R13. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "R14",
+    "pad 1"
+   ],
+   "location": [
+    47.18000000000001,
+    46.0
+   ],
+   "explanation": "Via found in SMD pad 1 of R14. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "R14",
+    "pad 2"
+   ],
+   "location": [
+    48.82499999999999,
+    46.0
+   ],
+   "explanation": "Via found in SMD pad 2 of R14. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "R16",
+    "pad 2"
+   ],
+   "location": [
+    56.82499999999999,
+    37.0
+   ],
+   "explanation": "Via found in SMD pad 2 of R16. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "C10",
+    "pad 2"
+   ],
+   "location": [
+    22.775000000000006,
+    32.0
+   ],
+   "explanation": "Via found in SMD pad 2 of C10. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "C5",
+    "pad 1"
+   ],
+   "location": [
+    32.87144699999999,
+    37.353553000000005
+   ],
+   "explanation": "Via found in SMD pad 1 of C5. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "C8",
+    "pad 1"
+   ],
+   "location": [
+    22.55000000000001,
+    30.0
+   ],
+   "explanation": "Via found in SMD pad 1 of C8. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U2",
+    "pad 1"
+   ],
+   "location": [
+    37.05000000000001,
+    9.362499999999997
+   ],
+   "explanation": "Via found in SMD pad 1 of U2. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U2",
+    "pad 3"
+   ],
+   "location": [
+    37.05000000000001,
+    11.637500000000003
+   ],
+   "explanation": "Via found in SMD pad 3 of U2. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U2",
+    "pad 4"
+   ],
+   "location": [
+    38.94999999999999,
+    11.637500000000003
+   ],
+   "explanation": "Via found in SMD pad 4 of U2. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U2",
+    "pad 6"
+   ],
+   "location": [
+    38.94999999999999,
+    9.362499999999997
+   ],
+   "explanation": "Via found in SMD pad 6 of U2. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 2"
+   ],
+   "location": [
+    32.337500000000006,
+    24.799999999999997
+   ],
+   "explanation": "Via found in SMD pad 2 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 8"
+   ],
+   "location": [
+    32.837500000000006,
+    29.599999999999994
+   ],
+   "explanation": "Via found in SMD pad 8 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 9"
+   ],
+   "location": [
+    32.837500000000006,
+    30.400000000000006
+   ],
+   "explanation": "Via found in SMD pad 9 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 10"
+   ],
+   "location": [
+    32.337500000000006,
+    31.200000000000003
+   ],
+   "explanation": "Via found in SMD pad 10 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 13"
+   ],
+   "location": [
+    34.80000000000001,
+    33.662499999999994
+   ],
+   "explanation": "Via found in SMD pad 13 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 23"
+   ],
+   "location": [
+    43.662499999999994,
+    32.0
+   ],
+   "explanation": "Via found in SMD pad 23 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 29"
+   ],
+   "location": [
+    43.650000000000006,
+    27.25
+   ],
+   "explanation": "Via found in SMD pad 29 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 40"
+   ],
+   "location": [
+    37.19999999999999,
+    21.837500000000006
+   ],
+   "explanation": "Via found in SMD pad 40 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 42"
+   ],
+   "location": [
+    35.599999999999994,
+    22.799999999999997
+   ],
+   "explanation": "Via found in SMD pad 42 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 43"
+   ],
+   "location": [
+    34.80000000000001,
+    22.337500000000006
+   ],
+   "explanation": "Via found in SMD pad 43 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U1",
+    "pad 44"
+   ],
+   "location": [
+    34.0,
+    22.337500000000006
+   ],
+   "explanation": "Via found in SMD pad 44 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "J2",
+    "pad 5"
+   ],
+   "location": [
+    18.900000000000006,
+    39.05
+   ],
+   "explanation": "Via found in SMD pad 5 of J2. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "R5",
+    "pad 2"
+   ],
+   "location": [
+    51.19999999999999,
+    30.599999999999994
+   ],
+   "explanation": "Via found in SMD pad 2 of R5. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "SW5",
+    "pad 1"
+   ],
+   "location": [
+    59.849999999999994,
+    27.099999999999994
+   ],
+   "explanation": "Via found in SMD pad 1 of SW5. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "R12",
+    "pad 1"
+   ],
+   "location": [
+    39.17500000000001,
+    46.0
+   ],
+   "explanation": "Via found in SMD pad 1 of R12. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "Y1",
+    "pad 1"
+   ],
+   "location": [
+    26.75,
+    28.5
+   ],
+   "explanation": "Via found in SMD pad 1 of Y1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "SW4",
+    "pad 1"
+   ],
+   "location": [
+    58.849999999999994,
+    50.099999999999994
+   ],
+   "explanation": "Via found in SMD pad 1 of SW4. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "C6",
+    "pad 1"
+   ],
+   "location": [
+    36.55000000000001,
+    18.0
+   ],
+   "explanation": "Via found in SMD pad 1 of C6. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "SW3",
+    "pad 1"
+   ],
+   "location": [
+    46.849999999999994,
+    50.099999999999994
+   ],
+   "explanation": "Via found in SMD pad 1 of SW3. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "J3",
+    "pad 1"
+   ],
+   "location": [
+    52.52350000000001,
+    15.459999999999994
+   ],
+   "explanation": "Via found in SMD pad 1 of J3. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "J3",
+    "pad 4"
+   ],
+   "location": [
+    57.47649999999999,
+    18.0
+   ],
+   "explanation": "Via found in SMD pad 4 of J3. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "C4",
+    "pad 1"
+   ],
+   "location": [
+    46.22,
+    34.0
+   ],
+   "explanation": "Via found in SMD pad 1 of C4. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "C13",
+    "pad 1"
+   ],
+   "location": [
+    41.400000000000006,
+    11.400000000000006
+   ],
+   "explanation": "Via found in SMD pad 1 of C13. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "SW2",
+    "pad 1"
+   ],
+   "location": [
+    58.849999999999994,
+    40.099999999999994
+   ],
+   "explanation": "Via found in SMD pad 1 of SW2. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "SW2",
+    "pad 1"
+   ],
+   "location": [
+    65.15,
+    40.099999999999994
+   ],
+   "explanation": "Via found in SMD pad 1 of SW2. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "R15",
+    "pad 1"
+   ],
+   "location": [
+    51.17500000000001,
+    46.0
+   ],
+   "explanation": "Via found in SMD pad 1 of R15. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "BTN1",
+    "F.Cu"
+   ],
+   "location": [
+    40.82499999999999,
+    46.0
+   ],
+   "explanation": "Trace on BTN1 (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "BTN1",
+    "F.Cu"
+   ],
+   "location": [
+    31.63749999999999,
+    28.799999999999997
+   ],
+   "explanation": "Trace on BTN1 (F.Cu) has a 0\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "BTN2",
+    "In2.Cu"
+   ],
+   "location": [
+    32.80000000000001,
+    29.599999999999994
+   ],
+   "explanation": "Trace on BTN2 (In2.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "BTN3",
+    "F.Cu"
+   ],
+   "location": [
+    48.82499999999999,
+    46.0
+   ],
+   "explanation": "Trace on BTN3 (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "BTN3",
+    "F.Cu"
+   ],
+   "location": [
+    48.82499999999999,
+    46.0
+   ],
+   "explanation": "Trace on BTN3 (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "BTN3",
+    "F.Cu"
+   ],
+   "location": [
+    48.82499999999999,
+    46.075
+   ],
+   "explanation": "Trace on BTN3 (F.Cu) has a 0\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "BTN3",
+    "In2.Cu"
+   ],
+   "location": [
+    46.80000000000001,
+    50.099999999999994
+   ],
+   "explanation": "Trace on BTN3 (In2.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "BTN4",
+    "In2.Cu"
+   ],
+   "location": [
+    53.599999999999994,
+    45.2
+   ],
+   "explanation": "Trace on BTN4 (In2.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "ISP_SCK",
+    "F.Cu"
+   ],
+   "location": [
+    35.599999999999994,
+    21.637500000000003
+   ],
+   "explanation": "Trace on ISP_SCK (F.Cu) has a 0\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "JOY_Y",
+    "F.Cu"
+   ],
+   "location": [
+    25.82499999999999,
+    35.0
+   ],
+   "explanation": "Trace on JOY_Y (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "JOY_Y",
+    "F.Cu"
+   ],
+   "location": [
+    44.36250000000001,
+    27.200000000000003
+   ],
+   "explanation": "Trace on JOY_Y (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "JOY_Y",
+    "B.Cu"
+   ],
+   "location": [
+    28.599999999999994,
+    33.8
+   ],
+   "explanation": "Trace on JOY_Y (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "RESET",
+    "F.Cu"
+   ],
+   "location": [
+    66.15,
+    27.099999999999994
+   ],
+   "explanation": "Trace on RESET (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "RESET",
+    "In2.Cu"
+   ],
+   "location": [
+    59.80000000000001,
+    27.099999999999994
+   ],
+   "explanation": "Trace on RESET (In2.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "USB_CC1",
+    "F.Cu"
+   ],
+   "location": [
+    33.30000000000001,
+    8.799999999999997
+   ],
+   "explanation": "Trace on USB_CC1 (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "USB_CC1",
+    "F.Cu"
+   ],
+   "location": [
+    33.0,
+    9.099999999999994
+   ],
+   "explanation": "Trace on USB_CC1 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "USB_CC1",
+    "F.Cu"
+   ],
+   "location": [
+    33.69999999999999,
+    10.650000000000006
+   ],
+   "explanation": "Trace on USB_CC1 (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "USB_CC1",
+    "F.Cu"
+   ],
+   "location": [
+    32.599999999999994,
+    8.150000000000006
+   ],
+   "explanation": "Trace on USB_CC1 (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VBUS",
+    "F.Cu"
+   ],
+   "location": [
+    37.19999999999999,
+    22.337500000000006
+   ],
+   "explanation": "Trace on VBUS (F.Cu) has a 0\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VBUS",
+    "F.Cu"
+   ],
+   "location": [
+    54.224999999999994,
+    10.0
+   ],
+   "explanation": "Trace on VBUS (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VBUS",
+    "B.Cu"
+   ],
+   "location": [
+    42.150000000000006,
+    12.150000000000006
+   ],
+   "explanation": "Trace on VBUS (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VBUS",
+    "B.Cu"
+   ],
+   "location": [
+    55.80000000000001,
+    7.799999999999997
+   ],
+   "explanation": "Trace on VBUS (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VBUS",
+    "In1.Cu"
+   ],
+   "location": [
+    40.30000000000001,
+    11.5
+   ],
+   "explanation": "Trace on VBUS (In1.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VBUS",
+    "In2.Cu"
+   ],
+   "location": [
+    35.900000000000006,
+    4.5
+   ],
+   "explanation": "Trace on VBUS (In2.Cu) has a 0\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VBUS",
+    "In2.Cu"
+   ],
+   "location": [
+    40.099999999999994,
+    4.5
+   ],
+   "explanation": "Trace on VBUS (In2.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VCC",
+    "F.Cu"
+   ],
+   "location": [
+    57.5,
+    10.0
+   ],
+   "explanation": "Trace on VCC (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VCC",
+    "F.Cu"
+   ],
+   "location": [
+    19.0,
+    19.0
+   ],
+   "explanation": "Trace on VCC (F.Cu) has a 0\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VCC",
+    "F.Cu"
+   ],
+   "location": [
+    41.19999999999999,
+    22.337500000000006
+   ],
+   "explanation": "Trace on VCC (F.Cu) has a 0\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VCC",
+    "F.Cu"
+   ],
+   "location": [
+    33.22,
+    37.0
+   ],
+   "explanation": "Trace on VCC (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VCC",
+    "F.Cu"
+   ],
+   "location": [
+    58.400000000000006,
+    10.349999999999994
+   ],
+   "explanation": "Trace on VCC (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "VCC",
+    "In1.Cu"
+   ],
+   "location": [
+    32.900000000000006,
+    37.400000000000006
+   ],
+   "explanation": "Trace on VCC (In1.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "XTAL1",
+    "B.Cu"
+   ],
+   "location": [
+    26.5,
+    28.25
+   ],
+   "explanation": "Trace on XTAL1 (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "R2"
+   ],
+   "location": [
+    45.0,
+    9.0
+   ],
+   "explanation": "R2 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "C9"
+   ],
+   "location": [
+    23.0,
+    26.0
+   ],
+   "explanation": "C9 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "R13"
+   ],
+   "location": [
+    44.0,
+    46.0
+   ],
+   "explanation": "R13 pad 1 is connected to copper zone (VCC), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "R14"
+   ],
+   "location": [
+    48.0,
+    46.0
+   ],
+   "explanation": "R14 pad 1 is connected to copper zone (VCC), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "R16"
+   ],
+   "location": [
+    56.0,
+    37.0
+   ],
+   "explanation": "R16 pad 1 is connected to copper zone (VCC), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "C10"
+   ],
+   "location": [
+    22.0,
+    32.0
+   ],
+   "explanation": "C10 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "C8"
+   ],
+   "location": [
+    23.0,
+    30.0
+   ],
+   "explanation": "C8 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "C11"
+   ],
+   "location": [
+    22.0,
+    35.0
+   ],
+   "explanation": "C11 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "R6"
+   ],
+   "location": [
+    38.0,
+    39.0
+   ],
+   "explanation": "R6 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "R1"
+   ],
+   "location": [
+    30.0,
+    9.0
+   ],
+   "explanation": "R1 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "R5"
+   ],
+   "location": [
+    50.0,
+    31.0
+   ],
+   "explanation": "R5 pad 1 is connected to copper zone (VCC), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "R12"
+   ],
+   "location": [
+    40.0,
+    46.0
+   ],
+   "explanation": "R12 pad 1 is connected to copper zone (VCC), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "C6"
+   ],
+   "location": [
+    37.0,
+    18.0
+   ],
+   "explanation": "C6 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "C12"
+   ],
+   "location": [
+    55.0,
+    10.0
+   ],
+   "explanation": "C12 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "C13"
+   ],
+   "location": [
+    42.0,
+    11.0
+   ],
+   "explanation": "C13 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "C7"
+   ],
+   "location": [
+    47.0,
+    31.0
+   ],
+   "explanation": "C7 pad 2 is connected to copper zone (GND), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Thermal imbalance may cause tombstoning",
+   "components": [
+    "R15"
+   ],
+   "location": [
+    52.0,
+    46.0
+   ],
+   "explanation": "R15 pad 1 is connected to copper zone (VCC), while the other pad is not. The thermal mass difference can cause tombstoning: the pad on the zone heats slower, so solder melts unevenly.",
+   "fix_suggestion": "Add thermal relief to the zone connection, or add copper to balance thermal mass on both pads. Consider adding thermal spokes or reducing zone connection width.",
+   "learn_more_url": "docs/mistakes/tombstoning.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "info",
+   "title": "Bypass capacitor placement could be improved",
+   "components": [
+    "C5",
+    "U1"
+   ],
+   "location": [
+    34.0,
+    37.0
+   ],
+   "explanation": "C5 is 3.7mm from U1 pin 14. Ideally, bypass capacitors should be within 3.0mm for optimal decoupling.",
+   "fix_suggestion": "Consider moving C5 closer to U1 pin 14 if space permits.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "info",
+   "title": "Bypass capacitor placement could be improved",
+   "components": [
+    "C2",
+    "U1"
+   ],
+   "location": [
+    29.0,
+    24.0
+   ],
+   "explanation": "C2 is 3.4mm from U1 pin 2. Ideally, bypass capacitors should be within 3.0mm for optimal decoupling.",
+   "fix_suggestion": "Consider moving C2 closer to U1 pin 2 if space permits.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "info",
+   "title": "Bypass capacitor placement could be improved",
+   "components": [
+    "C4",
+    "U1"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 4.4mm from U1 pin 24. Ideally, bypass capacitors should be within 3.0mm for optimal decoupling.",
+   "fix_suggestion": "Consider moving C4 closer to U1 pin 24 if space permits.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "info",
+   "title": "Bypass capacitor placement could be improved",
+   "components": [
+    "C4",
+    "R5"
+   ],
+   "location": [
+    47.0,
+    34.0
+   ],
+   "explanation": "C4 is 3.7mm from R5 pin 1. Ideally, bypass capacitors should be within 3.0mm for optimal decoupling.",
+   "fix_suggestion": "Consider moving C4 closer to R5 pin 1 if space permits.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "info",
+   "title": "Bypass capacitor placement could be improved",
+   "components": [
+    "C1",
+    "U1"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 3.5mm from U1 pin 34. Ideally, bypass capacitors should be within 3.0mm for optimal decoupling.",
+   "fix_suggestion": "Consider moving C1 closer to U1 pin 34 if space permits.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "info",
+   "title": "Bypass capacitor placement could be improved",
+   "components": [
+    "C1",
+    "C3"
+   ],
+   "location": [
+    43.0,
+    19.0
+   ],
+   "explanation": "C1 is 4.4mm from C3 pin 1. Ideally, bypass capacitors should be within 3.0mm for optimal decoupling.",
+   "fix_suggestion": "Consider moving C1 closer to C3 pin 1 if space permits.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  }
+ ],
+ "coverage": [
+  {
+   "check_name": "BypassCapDistanceCheck",
+   "category": "bypass_capacitor",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalTraceLengthCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalNoiseProximityCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "DifferentialPairSkewCheck",
+   "category": "differential_pair",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PowerTraceWidthCheck",
+   "category": "power_trace",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ThermalPadConnectionCheck",
+   "category": "thermal_management",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ViaInPadCheck",
+   "category": "via_placement",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "AcidTrapCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "TombstoningRiskCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "MissingDecouplingCapCheck",
+   "category": "decoupling",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PullUpResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "LedSeriesResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "BomFieldHealthCheck",
+   "category": "bom_health",
+   "status": "incomplete",
+   "reason": "no BOM-eligible component on this board defines an MPN/LCSC-style property (checked ['jlc', 'jlcpcb', 'lcsc', 'lcsc part', 'lcsc_pn', 'manufacturer_pn', 'mfr_pn', 'mpn', 'pn']); this board may not track manufacturer part numbers in footprint properties, so BOM part-number coverage cannot be assessed"
+  }
+ ],
+ "coverage_complete": false
+}

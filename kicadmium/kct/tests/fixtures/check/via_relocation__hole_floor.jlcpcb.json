@@ -1,0 +1,188 @@
+{
+ "file": "<FIXTURES>/via_relocation/hole_floor.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 4,
+ "summary": {
+  "errors": 4,
+  "warnings": 4,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 51,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "track_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling track end: Track [SIG] on F.Cu, length 2.0000 mm",
+   "location": [
+    12.0,
+    10.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 2.0,
+   "required_value": null,
+   "items": [
+    "net:SIG"
+   ],
+   "nets": [
+    "SIG"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [SIG] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    10.0,
+    10.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:SIG"
+   ],
+   "nets": [
+    "SIG"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen X0 (reference) overlaps exposed copper of  pad 1",
+   "location": [
+    10.7016,
+    9.4421
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "X0 (reference)",
+    " pad 1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_overlap",
+   "type": "silk_overlap",
+   "severity": "warning",
+   "message": "Silkscreen X0 (reference) overlaps silkscreen X1 (reference)",
+   "location": [
+    10.7016,
+    9.4421
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "X0 (reference)",
+    "X1 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'SIG' has only 1 pad on Test:Pad-1 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    10.0,
+    10.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Test:Pad-1"
+   ],
+   "nets": [
+    "SIG"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "min_pad_size",
+   "type": "min_pad_size",
+   "severity": "error",
+   "message": "Pad size 0.200x0.200mm: smallest dimension 0.200mm < minimum 0.250mm",
+   "location": [
+    10.7016,
+    10.4421
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.2,
+   "required_value": 0.25,
+   "items": [
+    "X0-1"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "min_pad_size",
+   "type": "min_pad_size",
+   "severity": "error",
+   "message": "Pad size 0.200x0.200mm: smallest dimension 0.200mm < minimum 0.250mm",
+   "location": [
+    12.0,
+    10.4421
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.2,
+   "required_value": 0.25,
+   "items": [
+    "X1-1"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad",
+   "type": "via_in_pad",
+   "severity": "error",
+   "message": "Via at (10.000, 10.000) drilled inside pad -1 (net 'SIG'); current manufacturer profile does not support via-in-pad. Switch to jlcpcb-tier1 or pcbway, or move the via off the pad.",
+   "location": [
+    10.0,
+    10.0
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": null,
+   "items": [
+    "Via-11111111",
+    "-1"
+   ],
+   "nets": [
+    "SIG"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

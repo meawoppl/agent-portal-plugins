@@ -16,7 +16,7 @@ impl ZeroLengthSegmentRule {
         for s in pcb.segments() {
             let dx = s.end.0 - s.start.0;
             let dy = s.end.1 - s.start.1;
-            if dx.hypot(dy) > COORD_EPSILON_MM {
+            if crate::utils::pymath::hypot(dx, dy) > COORD_EPSILON_MM {
                 continue;
             }
             let (x, y) = s.start;

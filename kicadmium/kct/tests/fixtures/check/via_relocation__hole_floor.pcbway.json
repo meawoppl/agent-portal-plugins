@@ -1,0 +1,219 @@
+{
+ "file": "<FIXTURES>/via_relocation/hole_floor.kicad_pcb",
+ "manufacturer": "pcbway",
+ "layers": 4,
+ "summary": {
+  "errors": 5,
+  "warnings": 4,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 49,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "track_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling track end: Track [SIG] on F.Cu, length 2.0000 mm",
+   "location": [
+    12.0,
+    10.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 2.0,
+   "required_value": null,
+   "items": [
+    "net:SIG"
+   ],
+   "nets": [
+    "SIG"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [SIG] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    10.0,
+    10.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:SIG"
+   ],
+   "nets": [
+    "SIG"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    10.0,
+    10.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "SIG"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen X0 (reference) overlaps exposed copper of  pad 1",
+   "location": [
+    10.7016,
+    9.4421
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "X0 (reference)",
+    " pad 1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_overlap",
+   "type": "silk_overlap",
+   "severity": "warning",
+   "message": "Silkscreen X0 (reference) overlaps silkscreen X1 (reference)",
+   "location": [
+    10.7016,
+    9.4421
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "X0 (reference)",
+    "X1 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'SIG' has only 1 pad on Test:Pad-1 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    10.0,
+    10.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Test:Pad-1"
+   ],
+   "nets": [
+    "SIG"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "min_pad_size",
+   "type": "min_pad_size",
+   "severity": "error",
+   "message": "Pad size 0.200x0.200mm: smallest dimension 0.200mm < minimum 0.250mm",
+   "location": [
+    10.7016,
+    10.4421
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.2,
+   "required_value": 0.25,
+   "items": [
+    "X0-1"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "min_pad_size",
+   "type": "min_pad_size",
+   "severity": "error",
+   "message": "Pad size 0.200x0.200mm: smallest dimension 0.200mm < minimum 0.250mm",
+   "location": [
+    12.0,
+    10.4421
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.2,
+   "required_value": 0.25,
+   "items": [
+    "X1-1"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (10.000, 10.000) drilled inside pad -1 (net 'SIG') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    10.0,
+    10.0
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-11111111",
+    "-1"
+   ],
+   "nets": [
+    "SIG"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": [],
+ "fabrication_process": {
+  "process_id": "pcbway-via-in-pad",
+  "name": "PCBWay Via-in-Pad (epoxy-filled & capped)",
+  "min_layer_count": 2,
+  "min_via_drill_mm": 0.15,
+  "max_via_drill_mm": 0.5,
+  "min_annular_ring_mm": 0.15,
+  "requires_filled_and_capped": true,
+  "min_component_hole_distance_mm": 0.5,
+  "source": "https://www.pcbway.com/capabilities.html",
+  "ordering_instructions": "Order the PCBWay Via-in-Pad (epoxy-filled & capped) process (pcbway-via-in-pad): a >= 2-layer stackup with epoxy-filled and copper-capped (plated-over) vias, via drills between 0.15 and 0.5 mm, annular ring >= 0.15 mm, and in-pad vias kept >= 0.5 mm from any other component's drilled hole. Do not substitute ordinary open or merely tented vias. Source: https://www.pcbway.com/capabilities.html"
+ }
+}

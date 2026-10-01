@@ -1,0 +1,418 @@
+{
+ "file": "<FIXTURES>/board06_pour_escape.kicad_pcb",
+ "manufacturer": "pcbway",
+ "layers": 4,
+ "summary": {
+  "errors": 14,
+  "warnings": 4,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 44,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "diffpair_clearance_intra": 9,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GND' is partially routed: 5 of 6 pads stranded (connected island has 1 pads)",
+   "location": [
+    119.0,
+    55.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1.A12"
+   ],
+   "nets": [
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'USB2_D+' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    114.0,
+    57.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1.B6"
+   ],
+   "nets": [
+    "USB2_D+"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'VBUS_USB' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    116.0,
+    55.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1.A9"
+   ],
+   "nets": [
+    "VBUS_USB"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "clearance_via_zone",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Short: via on net 'USB2_D+' overlaps zone fill of net '+3V3' on B.Cu (overlap depth 0.101mm)",
+   "location": [
+    113.7,
+    58.101
+   ],
+   "layer": "B.Cu",
+   "actual_value": -0.1012,
+   "required_value": 0.1016,
+   "items": [
+    "Via-98159d6c",
+    "ZoneFill-+3V3"
+   ],
+   "nets": [
+    "USB2_D+",
+    "+3V3"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "track_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling track end: Track [USB2_D-] on F.Cu, length 2.0506 mm",
+   "location": [
+    114.35,
+    60.15
+   ],
+   "layer": "F.Cu",
+   "actual_value": 2.0506096654409767,
+   "required_value": null,
+   "items": [
+    "47503f1d-c33a-4f6c-9d69-1fba5e187b24",
+    "net:USB2_D-"
+   ],
+   "nets": [
+    "USB2_D-"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "track_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling track end: Track [USB3_TX1+] on In2.Cu, length 10.9602 mm (both ends dangling)",
+   "location": [
+    110.0,
+    56.6
+   ],
+   "layer": "In2.Cu",
+   "actual_value": 10.960155108391481,
+   "required_value": null,
+   "items": [
+    "40a26c60-0d27-4659-b72a-da9b2f32751e",
+    "net:USB3_TX1+"
+   ],
+   "nets": [
+    "USB3_TX1+"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_over_pad",
+   "type": "silkscreen_over_pad",
+   "severity": "warning",
+   "message": "Silkscreen text may overlap exposed pad on ANCHOR",
+   "location": [
+    115.0,
+    60.0
+   ],
+   "layer": "B.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "ANCHOR",
+    "pad 1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen ANCHOR (reference) overlaps exposed copper of ANCHOR pad 1",
+   "location": [
+    115.0,
+    60.0
+   ],
+   "layer": "B.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "ANCHOR (reference)",
+    "ANCHOR pad 1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'USB3_TX1+' has only 1 pad on J1-A2 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    109.0,
+    55.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1-A2"
+   ],
+   "nets": [
+    "USB3_TX1+"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'USB3_TX1-' has only 1 pad on J1-A3 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    110.0,
+    55.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1-A3"
+   ],
+   "nets": [
+    "USB3_TX1-"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'USB_CC1' has only 1 pad on J1-A5 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    112.0,
+    55.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1-A5"
+   ],
+   "nets": [
+    "USB_CC1"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'USB3_RX2-' has only 1 pad on J1-A10 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    117.0,
+    55.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1-A10"
+   ],
+   "nets": [
+    "USB3_RX2-"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'USB3_RX2+' has only 1 pad on J1-A11 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    118.0,
+    55.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1-A11"
+   ],
+   "nets": [
+    "USB3_RX2+"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'USB3_TX2+' has only 1 pad on J1-B2 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    118.0,
+    57.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1-B2"
+   ],
+   "nets": [
+    "USB3_TX2+"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'USB3_TX2-' has only 1 pad on J1-B3 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    117.0,
+    57.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1-B3"
+   ],
+   "nets": [
+    "USB3_TX2-"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'USB_CC2' has only 1 pad on J1-B5 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    115.0,
+    57.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1-B5"
+   ],
+   "nets": [
+    "USB_CC2"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'USB3_RX1-' has only 1 pad on J1-B10 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    110.0,
+    57.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1-B10"
+   ],
+   "nets": [
+    "USB3_RX1-"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'USB3_RX1+' has only 1 pad on J1-B11 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    109.0,
+    57.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1-B11"
+   ],
+   "nets": [
+    "USB3_RX1+"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": [],
+ "fabrication_process": {
+  "process_id": "pcbway-via-in-pad",
+  "name": "PCBWay Via-in-Pad (epoxy-filled & capped)",
+  "min_layer_count": 2,
+  "min_via_drill_mm": 0.15,
+  "max_via_drill_mm": 0.5,
+  "min_annular_ring_mm": 0.15,
+  "requires_filled_and_capped": true,
+  "min_component_hole_distance_mm": 0.5,
+  "source": "https://www.pcbway.com/capabilities.html",
+  "ordering_instructions": "Order the PCBWay Via-in-Pad (epoxy-filled & capped) process (pcbway-via-in-pad): a >= 2-layer stackup with epoxy-filled and copper-capped (plated-over) vias, via drills between 0.15 and 0.5 mm, annular ring >= 0.15 mm, and in-pad vias kept >= 0.5 mm from any other component's drilled hole. Do not substitute ordinary open or merely tented vias. Source: https://www.pcbway.com/capabilities.html"
+ }
+}

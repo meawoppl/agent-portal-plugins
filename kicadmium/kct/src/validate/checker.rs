@@ -353,22 +353,22 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_clearances(&self) -> DRCResults {
-        let rule = rules::clearance::ClearanceRule::default();
+        let rule = rules::clearance::ClearanceRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_segment_zone_clearances(&self) -> DRCResults {
-        let rule = rules::clearance::SegmentZoneClearanceRule::default();
+        let rule = rules::clearance::SegmentZoneClearanceRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_via_zone_clearances(&self) -> DRCResults {
-        let rule = rules::clearance::ViaZoneClearanceRule::default();
+        let rule = rules::clearance::ViaZoneClearanceRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_copper_slivers(&self) -> DRCResults {
-        let rule = rules::copper_sliver::CopperSliverRule::default();
+        let rule = rules::copper_sliver::CopperSliverRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -383,7 +383,7 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_dangling_copper(&self) -> DRCResults {
-        let rule = rules::dangling_copper::DanglingCopperRule::default();
+        let rule = rules::dangling_copper::DanglingCopperRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -416,7 +416,23 @@ impl<'a> DRCChecker<'a> {
         if self.net_class_map.is_none() {
             self.warn_inactive_skew_rule("diffpair_length_skew");
         }
-        let rule = rules::diffpair_length_skew::DiffPairLengthSkewRule::default();
+        let (skew, thresholds) = crate::validate::diffpair_skew::derive_skew_data(
+            self.pcb,
+            self.net_class_map.as_ref(),
+            Some(self.design_rules.board_thickness_mm),
+            self.layers,
+        );
+        let (engaged, _) = crate::validate::diffpair_engagement::derive_engagement_state(
+            self.pcb,
+            self.net_class_map.as_ref(),
+        );
+        let rule = rules::diffpair_length_skew::DiffPairLengthSkewRule::new(
+            skew,
+            engaged.iter().copied().collect(),
+            thresholds,
+            rules::diffpair_length_skew::DEFAULT_SKEW_TOLERANCE_MM,
+            self.emit_skew_info,
+        );
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -424,17 +440,25 @@ impl<'a> DRCChecker<'a> {
         if self.net_class_map.is_none() {
             self.warn_inactive_skew_rule("diffpair_routing_continuity");
         }
-        let rule = rules::diffpair_routing_continuity::DiffPairRoutingContinuityRule::default();
+        let (engaged, thresholds) = crate::validate::diffpair_engagement::derive_engagement_state(
+            self.pcb,
+            self.net_class_map.as_ref(),
+        );
+        let rule = rules::diffpair_routing_continuity::DiffPairRoutingContinuityRule::new(
+            &engaged,
+            thresholds,
+            self.emit_skew_info,
+        );
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_dimensions(&self) -> DRCResults {
-        let rule = rules::dimensions::DimensionRules::default();
+        let rule = rules::dimensions::DimensionRules;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_edge_clearances(&self) -> DRCResults {
-        let rule = rules::edge::EdgeClearanceRule::default();
+        let rule = rules::edge::EdgeClearanceRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -451,7 +475,12 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_impedance(&self) -> DRCResults {
-        let rule = rules::impedance::ImpedanceRule::default();
+        let rule = match &self.net_class_map {
+            None => rules::impedance::ImpedanceRule::default(),
+            Some(m) => rules::impedance::ImpedanceRule::with_specs(
+                crate::validate::impedance_specs::derive_single_ended_impedance_specs(Some(m)),
+            ),
+        };
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -459,7 +488,25 @@ impl<'a> DRCChecker<'a> {
         if self.net_class_map.is_none() {
             self.warn_inactive_skew_rule("match_group_length_skew");
         }
-        let rule = rules::match_group_length_skew::MatchGroupLengthSkewRule::default();
+        let rule = match &self.net_class_map {
+            None => rules::match_group_length_skew::MatchGroupLengthSkewRule::default(),
+            Some(m) => {
+                let (skew, groups, thresholds) =
+                    crate::validate::match_group_skew::derive_group_skew_data(
+                        self.pcb,
+                        Some(m),
+                        Some(self.design_rules.board_thickness_mm),
+                        self.layers,
+                        false,
+                    );
+                rules::match_group_length_skew::MatchGroupLengthSkewRule::new(
+                    skew,
+                    groups,
+                    thresholds,
+                    self.emit_skew_info,
+                )
+            }
+        };
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -481,12 +528,12 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_solder_mask_pads(&self) -> DRCResults {
-        let rule = rules::solder_mask::SolderMaskPadRules::default();
+        let rule = rules::solder_mask::SolderMaskPadRules;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_footprint_placement(&self) -> DRCResults {
-        let rule = rules::placement::FootprintOutsideBoardRule::default();
+        let rule = rules::placement::FootprintOutsideBoardRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -498,22 +545,23 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_netlist(&self) -> DRCResults {
-        let rule = rules::netlist::NetlistRule::default();
+        let rule = rules::netlist::NetlistRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_single_pad_nets(&self) -> DRCResults {
-        let rule = rules::single_pad_net::SinglePadNetRule::default();
+        let rule = rules::single_pad_net::SinglePadNetRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_via_in_pad(&self) -> DRCResults {
-        let rule = rules::via_in_pad::ViaInPadRule::default();
+        let rule = rules::via_in_pad::ViaInPadRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_width_consistency(&self) -> DRCResults {
-        let rule = rules::width_consistency::WidthConsistencyRule::default();
+        let rule = rules::width_consistency::WidthConsistencyRule::default()
+            .with_options(self.width_consistency_options.as_deref().unwrap_or(&[]));
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -523,17 +571,17 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_zero_length_segments(&self) -> DRCResults {
-        let rule = rules::zero_length_segment::ZeroLengthSegmentRule::default();
+        let rule = rules::zero_length_segment::ZeroLengthSegmentRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_zones(&self) -> DRCResults {
-        let rule = rules::zone_fill::ZoneFillRule::default();
+        let rule = rules::zone_fill::ZoneFillRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
     pub fn check_isolated_copper(&self) -> DRCResults {
-        let rule = rules::zone_fill::IsolatedCopperRule::default();
+        let rule = rules::zone_fill::IsolatedCopperRule;
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 
@@ -546,9 +594,87 @@ impl<'a> DRCChecker<'a> {
         auto_derive_threshold: bool,
         aggregate: bool,
     ) -> DRCResults {
-        let _ = (grid_resolution, threshold, auto_derive_threshold, aggregate);
+        use crate::router::preflight::check_pad_grid_alignment;
         let mut results = DRCResults::new();
+        if self.pcb.path().is_none() {
+            results.rules_checked += 1;
+            return results;
+        }
+        let report = check_pad_grid_alignment(
+            self.pcb.sexp(),
+            grid_resolution,
+            threshold,
+            self.design_rules.min_clearance_mm,
+            auto_derive_threshold,
+        );
         results.rules_checked += 1;
+        let per_pad =
+            |results: &mut DRCResults, pads: &[&crate::router::preflight::PreflightOffGridPad]| {
+                for pad in pads {
+                    let label = pad.label();
+                    let mut v = DRCViolation::new(
+                        "pad_grid",
+                        "warning",
+                        pad.message(report.grid_resolution, report.suggested_grid),
+                    )
+                    .at(pad.x, pad.y)
+                    .actual(pad.offset_mm)
+                    .required(report.threshold);
+                    if !label.is_empty() {
+                        v = v.items([label]);
+                    }
+                    results.add(v);
+                }
+            };
+        if !aggregate {
+            let all: Vec<_> = report.off_grid_pads.iter().collect();
+            per_pad(&mut results, &all);
+            return results;
+        }
+        let grid = crate::pyjson::py_float_repr(report.grid_resolution);
+        for (reference, pads) in report.grouped_by_ref() {
+            if pads.len() == 1 {
+                per_pad(&mut results, &pads);
+                continue;
+            }
+            // `max(pads, key=offset)`: first maximum.
+            let mut example = pads[0];
+            for p in &pads[1..] {
+                if p.offset_mm > example.offset_mm {
+                    example = p;
+                }
+            }
+            let fp = if example.footprint_name.is_empty() {
+                String::new()
+            } else {
+                format!(", footprint {}", example.footprint_name)
+            };
+            let head = format!(
+                "{reference}: {} pads off-grid by up to {:.3}mm (grid {grid}mm{fp}).\n  Example: pad {} at ({:.3}, {:.3}).\n",
+                pads.len(),
+                example.offset_mm,
+                example.label(),
+                example.x,
+                example.y
+            );
+            let tail = match report.suggested_grid {
+                Some(sg) => format!(
+                    "  Suggested fix: round pad positions OR set finer router grid ({}mm would align all pads).\n  Use --verbose for per-pad detail.",
+                    crate::pyjson::py_float_repr(sg)
+                ),
+                None => format!(
+                    "  Suggested fix: round pad positions to the router grid (footprint pitch may not align to {grid}mm).\n  Use --verbose for per-pad detail."
+                ),
+            };
+            let mut v = DRCViolation::new("pad_grid", "warning", head + &tail)
+                .at(example.x, example.y)
+                .actual(example.offset_mm)
+                .required(report.threshold);
+            if !reference.is_empty() {
+                v = v.items([reference.clone()]);
+            }
+            results.add(v);
+        }
         results
     }
 }

@@ -5,8 +5,10 @@
 //! profile never depends on a Python installation or runtime data directory.
 
 pub mod drc_sidecars;
+pub mod dru_generator;
 pub mod fabrication_overrides;
 pub mod fabrication_process;
+pub mod project_generator;
 
 use std::collections::BTreeMap;
 

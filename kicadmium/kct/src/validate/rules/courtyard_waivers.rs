@@ -40,7 +40,7 @@ impl CourtyardWaivers {
     }
 }
 
-fn nonempty_str<'a>(v: Option<&'a Json>) -> Option<&'a str> {
+fn nonempty_str(v: Option<&Json>) -> Option<&str> {
     v.and_then(Json::as_str).filter(|s| !s.is_empty())
 }
 

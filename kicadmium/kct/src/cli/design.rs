@@ -54,6 +54,7 @@ struct Symbol {
     uuid: String,
     in_bom: bool,
     mpn: String,
+    lcsc: String,
 }
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 struct Net {
@@ -91,6 +92,11 @@ fn symbols_of(root: &SExp) -> Vec<Symbol> {
                 mpn: s
                     .property("MPN")
                     .or_else(|| s.property("Manufacturer Part Number"))
+                    .unwrap_or("")
+                    .into(),
+                lcsc: s
+                    .property("LCSC")
+                    .or_else(|| s.property("LCSC Part #"))
                     .unwrap_or("")
                     .into(),
             })
@@ -431,11 +437,7 @@ fn electrical_netlist(root: &SExp) -> Vec<NetlistEntry> {
     });
     out
 }
-fn connected_by_wires(
-    wires: &[((f64, f64), (f64, f64))],
-    starts: &[usize],
-    goals: &[usize],
-) -> bool {
+fn connected_by_wires(wires: &[Wire], starts: &[usize], goals: &[usize]) -> bool {
     let mut seen: BTreeSet<usize> = starts.iter().copied().collect();
     let mut stack = starts.to_vec();
     while let Some(i) = stack.pop() {
@@ -455,6 +457,7 @@ fn connected_by_wires(
     }
     false
 }
+type Wire = ((f64, f64), (f64, f64));
 pub fn netlist(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: NetlistArgs = super::parse_args("netlist", args);
     match a.cmd {
@@ -630,6 +633,7 @@ struct BomRow {
     footprint: String,
     mpn: String,
     dnp: bool,
+    lcsc: String,
 }
 pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: BomArgs = super::parse_args("bom", args);
@@ -639,14 +643,14 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         (a.include_dnp || !s.dnp) && !a.exclude.iter().any(|p| wildcard(p, &s.reference))
     });
     let mut rows: Vec<BomRow> = if a.group {
-        let mut m: BTreeMap<(String, String, String), Vec<String>> = BTreeMap::new();
+        let mut m: BTreeMap<(String, String, String, String), Vec<String>> = BTreeMap::new();
         for s in syms {
-            m.entry((s.value, s.footprint, s.mpn))
+            m.entry((s.value, s.footprint, s.mpn, s.lcsc))
                 .or_default()
                 .push(s.reference)
         }
         m.into_iter()
-            .map(|((value, footprint, mpn), mut references)| {
+            .map(|((value, footprint, mpn, lcsc), mut references)| {
                 references.sort();
                 BomRow {
                     quantity: references.len(),
@@ -655,6 +659,7 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                     footprint,
                     mpn,
                     dnp: false,
+                    lcsc,
                 }
             })
             .collect()
@@ -667,6 +672,7 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                 footprint: s.footprint,
                 mpn: s.mpn,
                 dnp: s.dnp,
+                lcsc: s.lcsc,
             })
             .collect()
     };
@@ -674,6 +680,12 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         rows.sort_by(|a, b| a.value.cmp(&b.value))
     } else if a.sort == "footprint" {
         rows.sort_by(|a, b| a.footprint.cmp(&b.footprint))
+    }
+    if a.check_availability {
+        return bom_availability(&rows, a.quantity, a.format);
+    }
+    if a.validate {
+        return bom_assembly_validation(&rows, a.quantity, a.format);
     }
     match a.format {
         BomFormat::Json => {
@@ -730,15 +742,211 @@ pub fn bom(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             println!("Comment,Designator,Footprint,LCSC Part #");
             for r in rows {
                 println!(
-                    "{},{},{},",
+                    "{},{},{},{}",
                     csv(&r.value),
                     csv(&r.references.join(",")),
-                    csv(&r.footprint)
+                    csv(&r.footprint),
+                    csv(&r.lcsc)
                 )
             }
         }
     }
     Ok(0)
+}
+
+fn lookup_bom_part(id: &str) -> (Option<crate::parts::Part>, Option<String>) {
+    if id.is_empty() {
+        return (None, None);
+    }
+    match crate::parts::cache_get(id, 7).and_then(|p| {
+        if p.is_some() {
+            Ok(p)
+        } else {
+            crate::parts::lookup(id)
+        }
+    }) {
+        Ok(p) => (p, None),
+        Err(e) => (None, Some(e.to_string())),
+    }
+}
+fn bom_availability(rows: &[BomRow], boards: usize, format: BomFormat) -> Result<i32> {
+    let mut items = vec![];
+    let mut all = true;
+    let mut available = 0;
+    let mut low = 0;
+    let mut oos = 0;
+    let mut missing = 0;
+    let mut total_cost = 0.0;
+    let mut cost_known = true;
+    for r in rows {
+        let needed = r.quantity * boards;
+        let (part, error) = lookup_bom_part(&r.lcsc);
+        let (status, stock, min_order, prices, in_stock) = if r.lcsc.is_empty() {
+            ("no_lcsc", 0, None, vec![], false)
+        } else if let Some(p) = part.as_ref() {
+            let status = if p.stock == 0 {
+                "out_of_stock"
+            } else if p.stock < needed as i64 {
+                "low_stock"
+            } else {
+                "available"
+            };
+            (
+                status,
+                p.stock,
+                Some(p.min_order),
+                p.prices
+                    .iter()
+                    .map(|x| (x.quantity, x.unit_price))
+                    .collect(),
+                p.stock > 0,
+            )
+        } else if error.is_some() {
+            ("unknown", 0, None, vec![], false)
+        } else {
+            ("not_found", 0, None, vec![], false)
+        };
+        let sufficient = (status == "available" || status == "low_stock") && stock >= needed as i64;
+        if sufficient {
+            available += 1
+        } else {
+            all = false
+        }
+        if in_stock && !sufficient {
+            low += 1
+        }
+        if status == "out_of_stock" {
+            oos += 1
+        }
+        if matches!(status, "no_lcsc" | "not_found") {
+            missing += 1
+        }
+        let unit = prices
+            .iter()
+            .rfind(|(q, _)| *q <= needed as u64)
+            .or_else(|| prices.first())
+            .map(|x| x.1);
+        let ext = unit.map(|u| u * needed as f64);
+        if let Some(x) = ext {
+            total_cost += x
+        } else {
+            cost_known = false
+        }
+        items.push(serde_json::json!({"reference":r.references.join(","),"value":r.value,"footprint":r.footprint,"mpn":if r.mpn.is_empty(){None}else{Some(r.mpn.as_str())},"lcsc_part":if r.lcsc.is_empty(){None}else{Some(r.lcsc.as_str())},"quantity_needed":needed,"quantity_available":stock,"status":status,"in_stock":in_stock,"sufficient_stock":sufficient,"inventory":{},"min_order_qty":min_order,"price_breaks":prices,"unit_price":unit,"extended_price":ext,"lead_time_days":null,"alternatives":[],"error":error}));
+    }
+    let result = serde_json::json!({"summary":{"total_items":items.len(),"available":available,"low_stock":low,"out_of_stock":oos,"missing":missing,"unverified":items.iter().filter(|i|i["status"]=="unknown").count(),"unavailable":0,"all_available":all,"total_cost":if cost_known{Some(total_cost)}else{None},"quantity_multiplier":boards},"checked_at":null,"items":items});
+    match format {
+        BomFormat::Json => json(&result)?,
+        BomFormat::Csv => {
+            println!("Reference,Value,Footprint,MPN,LCSC,Quantity Needed,Quantity Available,Status,In Stock,Sufficient Stock,Unit Price,Extended Price,Error");
+            for i in result["items"].as_array().unwrap() {
+                println!(
+                    "{},{},{},{},{},{},{},{},{},{},{},{},{}",
+                    i["reference"],
+                    i["value"],
+                    i["footprint"],
+                    i["mpn"],
+                    i["lcsc_part"],
+                    i["quantity_needed"],
+                    i["quantity_available"],
+                    i["status"],
+                    i["in_stock"],
+                    i["sufficient_stock"],
+                    i["unit_price"],
+                    i["extended_price"],
+                    i["error"]
+                )
+            }
+        }
+        _ => {
+            for i in result["items"].as_array().unwrap() {
+                println!(
+                    "{:<12} {:<16} {:<10} {:>6} {:>8}  {}",
+                    i["reference"].as_str().unwrap_or(""),
+                    i["value"].as_str().unwrap_or(""),
+                    i["lcsc_part"].as_str().unwrap_or("-"),
+                    i["quantity_needed"],
+                    i["quantity_available"],
+                    i["status"].as_str().unwrap_or("")
+                );
+            }
+            println!("\nSummary: {} items checked\n  Available:    {}\n  Low stock:    {}\n  Out of stock: {}\n  Missing/No LCSC: {}",items.len(),available,low,oos,missing)
+        }
+    }
+    Ok(if all { 0 } else { 2 })
+}
+fn bom_assembly_validation(rows: &[BomRow], boards: usize, format: BomFormat) -> Result<i32> {
+    let mut items = vec![];
+    let (mut available, mut basic, mut extended, mut low, mut oos, mut missing, mut not_found) =
+        (0, 0, 0, 0, 0, 0, 0);
+    for r in rows {
+        let qty = r.quantity * boards;
+        let (part, error) = lookup_bom_part(&r.lcsc);
+        let (status, tier, stock, mfr, desc) = if r.lcsc.is_empty() {
+            ("no_lcsc", "unknown", 0, "", " ")
+        } else if let Some(p) = part.as_ref() {
+            let status = if p.stock == 0 {
+                "out_of_stock"
+            } else if p.stock < 100 {
+                "low_stock"
+            } else {
+                "available"
+            };
+            (
+                status,
+                if p.is_basic { "basic" } else { "extended" },
+                p.stock,
+                p.mfr_part.as_str(),
+                p.description.as_str(),
+            )
+        } else {
+            ("not_found", "unknown", 0, "", "")
+        };
+        if matches!(status, "available" | "low_stock") {
+            available += 1
+        }
+        if status == "available" && tier == "basic" {
+            basic += 1
+        }
+        if status == "available" && tier == "extended" {
+            extended += 1
+        }
+        if status == "low_stock" {
+            low += 1
+        }
+        if status == "out_of_stock" {
+            oos += 1
+        }
+        if status == "no_lcsc" {
+            missing += 1
+        }
+        if status == "not_found" {
+            not_found += 1
+        }
+        items.push(serde_json::json!({"references":r.references.join(","),"value":r.value,"footprint":r.footprint,"quantity":qty,"lcsc_part":if r.lcsc.is_empty(){None}else{Some(r.lcsc.as_str())},"status":status,"tier":tier,"stock":stock,"inventory":{},"in_stock":stock>0,"mfr_part":mfr,"description":desc,"error":error}));
+    }
+    let ready = oos + missing + not_found == 0;
+    let result = serde_json::json!({"summary":{"total_items":items.len(),"available":available,"basic_parts":basic,"extended_parts":extended,"low_stock":low,"out_of_stock":oos,"missing_lcsc":missing,"not_found":not_found,"assembly_ready":ready,"extended_fee":extended as f64*3.0},"validated_at":null,"items":items});
+    if matches!(format, BomFormat::Json) {
+        json(&result)?
+    } else {
+        println!(
+            "LCSC Part # Component            Tier       Stock      Status\n{}",
+            "-".repeat(66)
+        );
+        for i in &items {
+            println!(
+                "{:<12} {:<20} {:<10} {:<10} {}",
+                i["lcsc_part"].as_str().unwrap_or("(none)"),
+                i["value"].as_str().unwrap_or(""),
+                i["tier"].as_str().unwrap_or("-"),
+                i["stock"],
+                i["status"]
+            )
+        }
+        println!("\nSummary: {available}/{} parts available\n  Basic: {basic} parts (no handling fee)\n  Extended: {extended} parts ($3 fee each = ${:.2})",items.len(),extended as f64*3.0)
+    }
+    Ok(if ready { 0 } else { 1 })
 }
 
 #[derive(Parser)]
@@ -1164,7 +1372,8 @@ pub fn sch(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             }
             let mut d = crate::Document::load(&schematic)?;
             let mut from = (start[0], start[1]);
-            for to in ends.chunks_exact(2) {
+            let (pairs, _) = ends.as_chunks::<2>();
+            for to in pairs {
                 d.root.push(wire_node(from, (to[0], to[1])));
                 from = (to[0], to[1]);
             }
@@ -2697,44 +2906,102 @@ pub fn validate(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         schematic.as_ref(),
         pcb.as_ref(),
     ) {
-        let sd = load(schematic)?;
         let pd = load(pcb)?;
-        let ss = symbols_of(&sd);
-        let sr: BTreeSet<_> = ss.iter().map(|s| s.reference.as_str()).collect();
-        let pr: BTreeSet<_> = pd
-            .children_named("footprint")
-            .filter_map(|f| f.property("Reference"))
+        let bom = crate::schema::bom::extract_bom(&schematic.to_string_lossy(), true)?;
+        let ss: Vec<crate::validate::consistency::Component> = bom
+            .items
+            .into_iter()
+            .filter(|x| !x.is_virtual() && !x.dnp && x.on_board && !x.reference.starts_with('#'))
+            .map(|x| crate::validate::consistency::Component {
+                reference: x.reference,
+                value: x.value,
+                footprint: x.footprint,
+                pad_nets: BTreeMap::new(),
+            })
             .collect();
-        for r in sr.difference(&pr) {
-            issues
-                .push(serde_json::json!({"severity":"error","kind":"missing_on_pcb","reference":r}))
+        let ps: Vec<crate::validate::consistency::Component> = pd
+            .children_named("footprint")
+            .filter_map(|f| {
+                let reference = f.property("Reference")?.to_owned();
+                let pad_nets = f
+                    .children_named("pad")
+                    .filter_map(|p| {
+                        Some((
+                            p.string_at(0)?.to_owned(),
+                            p.get("net")?.string_at(1)?.to_owned(),
+                        ))
+                    })
+                    .collect();
+                Some(crate::validate::consistency::Component {
+                    reference,
+                    value: f.property("Value").unwrap_or("").into(),
+                    footprint: f.string_at(0).unwrap_or("").into(),
+                    pad_nets,
+                })
+            })
+            .collect();
+        if a.lvs {
+            let mut checked = crate::validate::consistency::lvs(&ss, &ps);
+            checked.matches.retain(|m| m.confidence >= a.min_confidence);
+            let exact = checked.exact_match_count();
+            let fuzzy = checked.fuzzy_match_count();
+            let result = serde_json::json!({"schematic":schematic,"pcb":pcb,"is_clean":checked.is_clean(),"exact_matches":exact,"fuzzy_matches":fuzzy,"unmatched_pcb_count":checked.unmatched_pcb.len(),"unmatched_sch_count":checked.unmatched_sch.len(),"matches":checked.matches,"unmatched_pcb":checked.unmatched_pcb,"unmatched_schematic":checked.unmatched_sch});
+            if a.format == "json" {
+                json(&result)?
+            } else {
+                println!(
+                    "LVS: {} exact, {} fuzzy, {} unmatched PCB, {} unmatched schematic",
+                    exact, fuzzy, result["unmatched_pcb_count"], result["unmatched_sch_count"]
+                )
+            }
+            return Ok(if result["is_clean"] == true {
+                0
+            } else if a.strict && fuzzy > 0 {
+                2
+            } else {
+                1
+            });
         }
-        for r in pr.difference(&sr) {
-            issues
-                .push(serde_json::json!({"severity":"error","kind":"orphan_on_pcb","reference":r}))
-        }
-        for s in ss {
-            if let Some(f) = pd
-                .children_named("footprint")
-                .find(|f| f.property("Reference") == Some(&s.reference))
-            {
-                if !s.footprint.is_empty()
-                    && f.string_at(0)
-                        .is_some_and(|id| id != s.footprint && !id.ends_with(&s.footprint))
-                {
-                    issues.push(serde_json::json!({"severity":"error","kind":"footprint_mismatch","reference":s.reference,"schematic":s.footprint,"pcb":f.string_at(0)}))
+        let sd = load(schematic)?;
+        let mut pin_nets: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
+        for net in electrical_netlist(&sd) {
+            for pin in net.pins {
+                if let Some((r, p)) = pin.rsplit_once('.') {
+                    pin_nets
+                        .entry(r.into())
+                        .or_default()
+                        .insert(p.into(), net.name.clone());
                 }
             }
         }
+        let checked = crate::validate::consistency::consistency(&ss, &ps, &pin_nets);
+        issues = checked
+            .issues
+            .into_iter()
+            .filter(|i| !a.errors_only || i.severity == "error")
+            .map(|i| serde_json::to_value(i).unwrap())
+            .collect();
     }
     if a.format == "json" {
-        json(&serde_json::json!({"files":reports,"issues":issues,"valid":issues.is_empty()}))?
+        let errors = issues.iter().filter(|i| i["severity"] == "error").count();
+        let warnings = issues.iter().filter(|i| i["severity"] == "warning").count();
+        json(
+            &serde_json::json!({"schematic":schematic,"pcb":pcb,"is_consistent":errors==0,"summary":{"errors":errors,"warnings":warnings,"component_issues":issues.iter().filter(|i|i["domain"]=="component").count(),"net_issues":issues.iter().filter(|i|i["domain"]=="net").count(),"property_issues":issues.iter().filter(|i|i["domain"]=="property").count()},"files":reports,"issues":issues,"valid":errors==0}),
+        )?
     } else {
         for r in reports {
             println!("OK {}", r["file"].as_str().unwrap_or(""))
         }
     }
-    Ok(if issues.is_empty() { 0 } else { 1 })
+    let errors = issues.iter().any(|i| i["severity"] == "error");
+    let warnings = issues.iter().any(|i| i["severity"] == "warning");
+    Ok(if errors {
+        1
+    } else if warnings && a.strict {
+        2
+    } else {
+        0
+    })
 }
 fn print_footprint_info(path: &Path, format: &str, include_pads: bool) -> Result<()> {
     let d = load(path)?;
@@ -2981,6 +3248,7 @@ mod tests {
                 uuid: String::new(),
                 in_bom: true,
                 mpn: String::new(),
+                lcsc: String::new(),
             }]
         );
     }

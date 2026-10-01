@@ -25,6 +25,7 @@ pub mod intent;
 pub mod ipc;
 pub mod lvs;
 pub mod manufacturers;
+pub mod operations;
 pub mod optim;
 pub mod parts;
 pub mod patterns;

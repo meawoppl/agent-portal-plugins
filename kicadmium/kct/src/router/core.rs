@@ -89,6 +89,15 @@ impl NetResult {
     }
 }
 
+/// A connected group of a net's pads and copper cells.
+#[derive(Debug, Clone, Default)]
+struct Component {
+    cells: Vec<usize>,
+    set: HashSet<usize>,
+    core_owner: HashMap<usize, usize>,
+    pads: Vec<usize>,
+}
+
 /// Aggregate statistics (upstream `get_statistics`).
 #[derive(Debug, Clone, Default)]
 pub struct RoutingStats {
@@ -387,6 +396,11 @@ impl Autorouter {
     }
 
     /// Route one net (tree growth). `present` = negotiated factor or strict.
+    ///
+    /// Pads join the main copper tree nearest-first. When the tree is walled
+    /// in, a new component is seeded from the next pad and grown, then joined
+    /// back to the main tree (so partial routes keep as much copper as
+    /// possible). `connected_pads` counts the pads of the largest component.
     fn route_net(&mut self, net: i64, present: Option<f64>) -> NetResult {
         let pads = self.net_pads.get(&net).cloned().unwrap_or_default();
         let name = self.board.nets.get(&net).cloned().unwrap_or_default();
@@ -401,8 +415,6 @@ impl Autorouter {
             return res;
         }
         let w = self.width_for(net);
-        let allowed = self.allowed_layers();
-        let inner: Vec<usize> = (1..self.grid.num_layers.saturating_sub(1)).collect();
         // Start from the pad closest to the net centroid.
         let (mut sx, mut sy) = (0.0, 0.0);
         for &p in &pads {
@@ -418,112 +430,189 @@ impl Autorouter {
                 da.partial_cmp(&db).unwrap()
             })
             .unwrap();
-        let mut connected: Vec<usize> = vec![start];
-        let mut tree: Vec<usize> = self.pad_cells(start);
-        let mut tree_set: HashSet<usize> = tree.iter().copied().collect();
-        // Map tree cells (from pad cores) back to the pad they belong to.
-        let mut core_owner: HashMap<usize, usize> = tree.iter().map(|&c| (c, start)).collect();
+        let mut comps: Vec<Component> = vec![self.new_component(start)];
         let mut remaining: Vec<usize> = pads.iter().copied().filter(|&p| p != start).collect();
-        res.connected_pads = 1;
         let deadline = Instant::now() + Duration::from_secs_f64(self.config.per_net_timeout.max(0.1));
-        let net32 = net as i32;
-        let via_disc = self.via_disc.clone();
-        while !remaining.is_empty() {
+        let mut cur = 0usize;
+        loop {
             if Instant::now() > deadline || self.timed_out() {
                 break;
             }
-            // Nearest remaining pad to any connected pad.
-            remaining.sort_by(|&a, &b| {
-                let d = |p: usize| {
-                    connected
-                        .iter()
-                        .map(|&q| {
-                            let (pa, pb) = (&self.board.pads[p].shape, &self.board.pads[q].shape);
-                            (pa.cx - pb.cx).hypot(pa.cy - pb.cy)
-                        })
-                        .fold(f64::MAX, f64::min)
-                };
-                d(a).partial_cmp(&d(b)).unwrap()
-            });
-            let mut progressed = false;
-            for k in 0..remaining.len() {
-                let target_pad = remaining[k];
-                let targets = self.pad_cells(target_pad);
-                if targets.is_empty() || tree.is_empty() {
-                    continue;
-                }
-                // Already touching (overlapping pads of the same net).
-                if targets.iter().any(|t| tree_set.contains(t)) {
-                    for &t in &targets {
-                        if tree_set.insert(t) {
-                            tree.push(t);
-                            core_owner.insert(t, target_pad);
+            let mut comp = std::mem::take(&mut comps[cur]);
+            let grew = self.grow_component(&mut comp, &mut remaining, &mut res, w, present);
+            comps[cur] = comp;
+            if grew {
+                continue;
+            }
+            // Join other components into the main one (index 0).
+            let mut joined = false;
+            let mut k = 1;
+            while k < comps.len() {
+                let mut main = std::mem::take(&mut comps[0]);
+                let ok = self.join_components(&mut main, &comps[k], &mut res, w, present);
+                comps[0] = main;
+                if ok {
+                    let other = comps.remove(k);
+                    let main = &mut comps[0];
+                    for c in other.cells {
+                        if main.set.insert(c) {
+                            main.cells.push(c);
                         }
                     }
-                    connected.push(target_pad);
-                    remaining.remove(k);
-                    res.connected_pads += 1;
-                    progressed = true;
-                    break;
+                    main.core_owner.extend(other.core_owner);
+                    main.pads.extend(other.pads);
+                    joined = true;
+                } else {
+                    k += 1;
                 }
-                let window = self.search_window(&tree, &targets, 40);
-                let mut path = None;
-                for win in [Some(window), None] {
-                    let req = SearchRequest {
-                        net: net32,
-                        sources: &tree,
-                        targets: &targets,
-                        allowed_layers: &allowed,
-                        inner_layers: &inner,
-                        via_disc: &via_disc,
-                        vias_allowed: allowed.len() > 1,
-                        present_factor: present,
-                        max_expansions: 3_000_000,
-                        window: win,
-                    };
-                    path = self.pf.search(&self.grid, &req);
-                    if path.is_some() {
-                        break;
-                    }
-                }
-                let Some(path) = path else {
+            }
+            if joined {
+                cur = 0;
+                continue;
+            }
+            if remaining.is_empty() {
+                break;
+            }
+            // Seed a new component from the remaining pad nearest the main tree.
+            let seed = remaining.remove(0);
+            comps.push(self.new_component(seed));
+            cur = comps.len() - 1;
+        }
+        res.connected_pads = comps.iter().map(|c| c.pads.len()).max().unwrap_or(1);
+        res
+    }
+
+    fn new_component(&self, pad: usize) -> Component {
+        let cells = self.pad_cells(pad);
+        Component {
+            set: cells.iter().copied().collect(),
+            core_owner: cells.iter().map(|&c| (c, pad)).collect(),
+            cells,
+            pads: vec![pad],
+        }
+    }
+
+    fn search(
+        &mut self,
+        net: i64,
+        sources: &[usize],
+        targets: &[usize],
+        present: Option<f64>,
+    ) -> Option<Vec<usize>> {
+        let allowed = self.allowed_layers();
+        let inner: Vec<usize> = (1..self.grid.num_layers.saturating_sub(1)).collect();
+        let via_disc = std::mem::take(&mut self.via_disc);
+        let window = self.search_window(sources, targets, 40);
+        let mut path = None;
+        for win in [Some(window), None] {
+            let req = SearchRequest {
+                net: net as i32,
+                sources,
+                targets,
+                allowed_layers: &allowed,
+                inner_layers: &inner,
+                via_disc: &via_disc,
+                vias_allowed: allowed.len() > 1,
+                present_factor: present,
+                max_expansions: 3_000_000,
+                window: win,
+            };
+            path = self.pf.search(&self.grid, &req);
+            if path.is_some() || self.pf.last.expansions < 50 {
+                break;
+            }
+        }
+        self.via_disc = via_disc;
+        path
+    }
+
+    /// Connect the nearest reachable remaining pad to `comp`.
+    fn grow_component(
+        &mut self,
+        comp: &mut Component,
+        remaining: &mut Vec<usize>,
+        res: &mut NetResult,
+        w: f64,
+        present: Option<f64>,
+    ) -> bool {
+        let dist = |s: &Self, p: usize, c: &Component| {
+            c.pads
+                .iter()
+                .map(|&q| {
+                    let (pa, pb) = (&s.board.pads[p].shape, &s.board.pads[q].shape);
+                    (pa.cx - pb.cx).hypot(pa.cy - pb.cy)
+                })
+                .fold(f64::MAX, f64::min)
+        };
+        remaining.sort_by(|&a, &b| dist(self, a, comp).partial_cmp(&dist(self, b, comp)).unwrap());
+        for k in 0..remaining.len() {
+            let target_pad = remaining[k];
+            let targets = self.pad_cells(target_pad);
+            if targets.is_empty() || comp.cells.is_empty() {
+                continue;
+            }
+            if !targets.iter().any(|t| comp.set.contains(t)) {
+                let sources = comp.cells.clone();
+                let Some(path) = self.search(res.net, &sources, &targets, present) else {
                     if std::env::var_os("KCT_ROUTE_DEBUG").is_some() {
                         let bp = &self.board.pads[target_pad];
                         eprintln!(
                             "debug: net {} pad {}.{} unreachable: {} target cells, {} tree cells, {} expansions",
-                            name, bp.pad.r#ref, bp.pad.pin, targets.len(), tree.len(), self.pf.last.expansions
+                            res.name,
+                            bp.pad.r#ref,
+                            bp.pad.pin,
+                            targets.len(),
+                            sources.len(),
+                            self.pf.last.expansions
                         );
                     }
                     continue;
                 };
-                // Emit geometry.
-                let first = path[0];
-                let last = *path.last().unwrap();
-                let src_pad = core_owner.get(&first).copied();
-                self.emit_path(&mut res, &path, w, src_pad, Some(target_pad));
+                let src_pad = comp.core_owner.get(&path[0]).copied();
+                self.emit_path(res, &path, w, src_pad, Some(target_pad));
                 for &c in &path {
-                    if tree_set.insert(c) {
-                        tree.push(c);
+                    if comp.set.insert(c) {
+                        comp.cells.push(c);
                     }
                 }
-                for t in self.pad_cells(target_pad) {
-                    if tree_set.insert(t) {
-                        tree.push(t);
-                        core_owner.insert(t, target_pad);
-                    }
-                }
-                let _ = last;
-                connected.push(target_pad);
-                remaining.remove(k);
-                res.connected_pads += 1;
-                progressed = true;
-                break;
             }
-            if !progressed {
-                break;
+            for t in targets {
+                if comp.set.insert(t) {
+                    comp.cells.push(t);
+                }
+                comp.core_owner.insert(t, target_pad);
+            }
+            comp.pads.push(target_pad);
+            remaining.remove(k);
+            return true;
+        }
+        false
+    }
+
+    /// Connect component `b` to `a` (path from `b` cells to `a` cells).
+    fn join_components(
+        &mut self,
+        a: &mut Component,
+        b: &Component,
+        res: &mut NetResult,
+        w: f64,
+        present: Option<f64>,
+    ) -> bool {
+        if b.cells.iter().any(|c| a.set.contains(c)) {
+            return true;
+        }
+        let Some(path) = self.search(res.net, &b.cells, &a.cells, present) else {
+            return false;
+        };
+        let src = b.core_owner.get(&path[0]).copied();
+        let dst = a.core_owner.get(path.last().unwrap()).copied();
+        self.emit_path(res, &path, w, src, dst);
+        for &c in &path {
+            if a.set.insert(c) {
+                a.cells.push(c);
             }
         }
-        res
+        true
     }
 
     fn search_window(&self, a: &[usize], b: &[usize], margin: usize) -> (usize, usize, usize, usize) {

@@ -182,7 +182,10 @@ pub fn auto_grid(width: f64, height: f64, clearance: f64, max_cells: usize, fine
     }
     for &g in &candidates {
         let cells = ((width / g).ceil() + 1.0) * ((height / g).ceil() + 1.0);
-        if cells <= max_cells as f64 && g <= clearance.max(0.1) * 1.5 {
+        // The native grid is compact (a few bytes per cell), so fine-pitch
+        // boards may use up to 4x the nominal cell budget.
+        let budget = if fine_pitch { max_cells * 4 } else { max_cells };
+        if cells <= budget as f64 && g <= clearance.max(0.1) * 1.5 {
             return g;
         }
     }

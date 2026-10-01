@@ -7,9 +7,13 @@ use std::path::Path;
 use anyhow::Result;
 use clap::Parser;
 
-use super::repair_common::{load_design_rules_from_yaml, pick_rules, py_path_str, ALL_MANUFACTURER_NAMES};
+use super::repair_common::{
+    load_design_rules_from_yaml, pick_rules, py_path_str, ALL_MANUFACTURER_NAMES,
+};
 use super::{parse_args, Globals};
-use crate::drc::repair_silkscreen::{SilkscreenRepairResult, SilkscreenRepairer, TextHeightRepairResult};
+use crate::drc::repair_silkscreen::{
+    SilkscreenRepairResult, SilkscreenRepairer, TextHeightRepairResult,
+};
 use crate::jobj;
 use crate::pyjson::{dumps_indent, py_float_repr, Json};
 
@@ -33,9 +37,12 @@ struct Args {
     /// Minimum silkscreen text height in mm (overrides manufacturer rules)
     #[arg(long)]
     min_height: Option<f64>,
-    /// Output file path (default: overwrite input)
+    /// Output file path (required unless --dry-run or --in-place)
     #[arg(short = 'o', long)]
     output: Option<String>,
+    /// Explicitly authorize overwriting the input PCB
+    #[arg(long, conflicts_with = "output")]
+    in_place: bool,
     /// Preview changes without modifying files
     #[arg(long)]
     dry_run: bool,
@@ -147,7 +154,10 @@ fn print_results(
             if parts.is_empty() {
                 parts.push("0 silkscreen violation(s)".into());
             }
-            println!("{action} {total} silkscreen violation(s){source}: {}", parts.join("; "));
+            println!(
+                "{action} {total} silkscreen violation(s){source}: {}",
+                parts.join("; ")
+            );
         }
         _ => {
             if line.total_fixed() == 0 && text.total_fixed() == 0 {
@@ -164,7 +174,13 @@ fn print_results(
                 let keys: Vec<String> = line
                     .fixes
                     .iter()
-                    .map(|f| if f.footprint_ref.is_empty() { "(board-level)".into() } else { f.footprint_ref.clone() })
+                    .map(|f| {
+                        if f.footprint_ref.is_empty() {
+                            "(board-level)".into()
+                        } else {
+                            f.footprint_ref.clone()
+                        }
+                    })
                     .collect();
                 for (key, count) in most_common(&keys) {
                     let i = keys.iter().position(|k| *k == key).unwrap_or(0);
@@ -185,7 +201,13 @@ fn print_results(
                 let keys: Vec<String> = text
                     .fixes
                     .iter()
-                    .map(|f| if f.footprint_ref.is_empty() { "(board-level)".into() } else { f.footprint_ref.clone() })
+                    .map(|f| {
+                        if f.footprint_ref.is_empty() {
+                            "(board-level)".into()
+                        } else {
+                            f.footprint_ref.clone()
+                        }
+                    })
                     .collect();
                 for (key, count) in most_common(&keys) {
                     let i = keys.iter().position(|k| *k == key).unwrap_or(0);
@@ -203,6 +225,10 @@ fn print_results(
 pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
     let mut args: Args = parse_args("fix-silkscreen", argv);
     args.quiet |= g.quiet;
+    if !args.dry_run && args.output.is_none() && !args.in_place {
+        eprintln!("Error: design edits require --output, --in-place, or --dry-run");
+        return Ok(1);
+    }
     let pcb_path = Path::new(&args.pcb);
     if !pcb_path.exists() {
         eprintln!("Error: PCB file not found: {}", py_path_str(&args.pcb));

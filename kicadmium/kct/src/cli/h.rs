@@ -771,18 +771,92 @@ pub fn reason(args: Vec<OsString>, _: &Globals) -> Result<i32> {
         report["prompt"] = json!(prompt.clone());
     }
     if a.interactive {
-        println!("{prompt}\nEnter `status` or `quit`.");
+        let mut working = text;
+        println!("{prompt}\nEnter a JSON reasoning command, `status`, `save`, or `quit`.");
         for line in io::stdin().lock().lines() {
-            match line?.trim() {
+            let line = line?;
+            match line.trim() {
                 "quit" | "exit" => break,
                 "status" => println!("{}", serde_json::to_string_pretty(&state)?),
-                other => println!("Unknown reasoning command: {other}"),
+                "save" => {
+                    if a.dry_run {
+                        println!("Dry run - not saving")
+                    } else {
+                        crate::fsutil::atomic_write(&output, working.as_bytes())?;
+                        println!("Saved to {}", output.display())
+                    }
+                }
+                other => match serde_json::from_str::<Value>(other)
+                    .context("reasoning commands must be JSON")
+                    .and_then(|command| execute_reason_command(&mut working, &command))
+                {
+                    Ok(result) => println!("{}", serde_json::to_string(&result)?),
+                    Err(error) => println!("Error: {error}"),
+                },
             }
         }
     } else {
         emit(a.format, &report);
     }
     Ok(0)
+}
+
+fn execute_reason_command(board: &mut String, command: &Value) -> Result<Value> {
+    let kind = command
+        .get("type")
+        .or_else(|| command.get("command"))
+        .and_then(Value::as_str)
+        .context("command type required")?;
+    match kind {
+        "place_component" | "move_component" | "rotate_component" => {
+            let reference = command
+                .get("ref")
+                .and_then(Value::as_str)
+                .context("ref required")?;
+            let mut root = crate::sexp::parse(board)?;
+            let fp = root
+                .children
+                .iter_mut()
+                .find(|node| {
+                    node.has_tag("footprint") && node.property("Reference") == Some(reference)
+                })
+                .context("component not found")?;
+            let at = fp.get_mut("at").context("component missing at")?;
+            if let Some(coords) = command.get("at").and_then(Value::as_array) {
+                at.set_value(
+                    0,
+                    coords
+                        .first()
+                        .and_then(Value::as_f64)
+                        .context("at x required")?,
+                );
+                at.set_value(
+                    1,
+                    coords
+                        .get(1)
+                        .and_then(Value::as_f64)
+                        .context("at y required")?,
+                )
+            }
+            if let Some(rotation) = command.get("rotation").and_then(Value::as_f64) {
+                while at.children.len() < 3 {
+                    at.children.push(crate::SExp::atom(0.0))
+                }
+                at.set_value(2, rotation)
+            }
+            *board = root.to_kicad_string_preserving();
+            Ok(
+                json!({"success":true,"command_type":"place_component","message":format!("Placed {reference}"),"new_position":command.get("at"),"new_rotation":command.get("rotation")}),
+            )
+        }
+        "check_drc" => Ok(
+            json!({"success":true,"command_type":"check_drc","message":"Run reason without --no-drc to refresh native KiCad DRC"}),
+        ),
+        "route_net" | "route_direct" | "route_escape" | "reroute_net" => {
+            bail!("native routing command is not yet available")
+        }
+        _ => bail!("unknown command type: {kind}"),
+    }
 }
 
 fn reason_drc(args: &ReasonArgs) -> Result<(Value, Vec<Value>)> {

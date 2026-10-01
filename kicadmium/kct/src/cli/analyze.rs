@@ -659,6 +659,8 @@ fn thermal_cmd(a: ThermalArgs) -> Result<i32> {
         thermal: Option<f64>,
     }
     let mut sources: Vec<Source> = vec![];
+    let regulator_part = regex::Regex::new(r"(?i)(LM|LT|AP|MIC|XC)\d{4}").unwrap();
+    let tps_part = regex::Regex::new(r"(?i)TPS").unwrap();
     for f in pcb.footprints() {
         let reference = f.reference.as_str();
         let value = f.value.as_str();
@@ -690,10 +692,8 @@ fn thermal_cmd(a: ThermalArgs) -> Result<i32> {
         } else if u.contains("LDO")
             || u.contains("REG")
             || u.contains("AMS1117")
-            || regex::Regex::new(r"(?i)(LM|LT|AP|MIC|XC)\d{4}")
-                .unwrap()
-                .is_match(value)
-            || regex::Regex::new(r"(?i)TPS").unwrap().is_match(value)
+            || regulator_part.is_match(value)
+            || tps_part.is_match(value)
         {
             ("regulator", 0.5)
         } else if u.contains("DRV") || u.contains("L298") || u.contains("A4988") {
@@ -846,7 +846,25 @@ fn thermal_cmd(a: ThermalArgs) -> Result<i32> {
         } else {
             "ok"
         };
-        let source_json=nearby.iter().map(|s|{let mut v=json!({"reference":s.reference,"power_w":round3(s.power),"package":s.package,"position":{"x":round2(s.pos.0),"y":round2(s.pos.1)},"component_type":s.kind});if let Some(r)=s.thermal{v["thermal_resistance_c_per_w"]=json!(round1(r))}if !s.value.is_empty(){v["value"]=json!(s.value)}v}).collect::<Vec<_>>();
+        let source_json = nearby
+            .iter()
+            .map(|s| {
+                let mut v = json!({
+                    "reference": s.reference,
+                    "power_w": round3(s.power),
+                    "package": s.package,
+                    "position": {"x": round2(s.pos.0), "y": round2(s.pos.1)},
+                    "component_type": s.kind
+                });
+                if let Some(r) = s.thermal {
+                    v["thermal_resistance_c_per_w"] = json!(round1(r));
+                }
+                if !s.value.is_empty() {
+                    v["value"] = json!(s.value);
+                }
+                v
+            })
+            .collect::<Vec<_>>();
         let mut suggestions = Vec::new();
         if thermal_vias < 4 && total > 0.2 {
             let main = nearby
@@ -1384,7 +1402,7 @@ fn complexity(pcb: &Pcb, grid_size: f64) -> Value {
     let p6 = probability(6);
     let predictions = vec![
         json!({"layers":2,"probability":p2,"recommended":p2>=0.7,"notes":if p2<0.3{"Not recommended"}else if p2<0.7{"May require optimization"}else{""}}),
-        json!({"layers":4,"probability":p4,"recommended":((0.3..0.7).contains(&p2))||(pair_bases.len()>0&&p2<0.9),"notes":if pair_bases.is_empty(){""}else{"Good for differential pairs"}}),
+        json!({"layers":4,"probability":p4,"recommended":((0.3..0.7).contains(&p2))||(!pair_bases.is_empty()&&p2<0.9),"notes":if pair_bases.is_empty(){""}else{"Good for differential pairs"}}),
         json!({"layers":6,"probability":p6,"recommended":p4<0.7||rating=="extreme","notes":if p4<0.7||rating=="extreme"{"Recommended for this complexity"}else{""}}),
     ];
     let min_layers = if p2 >= 0.7 {

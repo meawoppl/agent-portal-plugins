@@ -181,6 +181,8 @@ pub fn median(values: &[f64]) -> f64 {
 pub fn compute_routing_quality_from_records(
     records: &[QualitySegmentRecord],
 ) -> RoutingQualityMetrics {
+    type EndpointKey<'a> = (i64, &'a str, (i64, i64));
+    type ShortSegment<'a> = (Dir, i64, &'a str, (i64, i64), (i64, i64));
     let total_segments = records.len() as i64;
     let nets: HashSet<i64> = records.iter().map(|r| r.3).filter(|n| *n != 0).collect();
     let nets_with_copper = nets.len() as i64;
@@ -196,8 +198,8 @@ pub fn compute_routing_quality_from_records(
         ..Default::default()
     };
     let mut lengths = Vec::new();
-    let mut endpoints: HashMap<(i64, &str, (i64, i64)), HashSet<Dir>> = HashMap::new();
-    let mut shorts: Vec<(Dir, i64, &str, (i64, i64), (i64, i64))> = Vec::new();
+    let mut endpoints: HashMap<EndpointKey<'_>, HashSet<Dir>> = HashMap::new();
+    let mut shorts: Vec<ShortSegment<'_>> = Vec::new();
     for (start, end, layer, net) in records {
         let dx = end.0 - start.0;
         let dy = end.1 - start.1;

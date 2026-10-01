@@ -95,12 +95,13 @@ pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
         ));
     }
     if !args.dry_run && args.output.is_none() && !args.in_place {
-        return Ok(fail(
+        fail(
             as_json,
             &args.pcb,
-            "design edits require --output, --in-place, or --dry-run",
+            super::repair_common::DESIGN_EDIT_TARGET_ERROR,
             None,
-        ));
+        );
+        return Ok(super::repair_common::EXIT_NO_WRITE_TARGET);
     }
     let pcb_str = py_path_str(&args.pcb);
     let pcb_path = Path::new(&args.pcb);

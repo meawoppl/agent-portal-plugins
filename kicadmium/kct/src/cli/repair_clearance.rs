@@ -11,7 +11,9 @@ use clap::Parser;
 use super::repair_common::{py_path_str, MANUFACTURER_IDS};
 use super::runner::{find_kicad_cli, run_drc};
 use super::{parse_args, Globals};
-use crate::drc::repair_clearance::{ClearanceRepairer, FootprintNudgeResult, NudgeResult, RepairResult};
+use crate::drc::repair_clearance::{
+    ClearanceRepairer, FootprintNudgeResult, NudgeResult, RepairResult,
+};
 use crate::drc::violation::ViolationType;
 use crate::drc::DRCReport;
 use crate::jobj;
@@ -40,9 +42,12 @@ struct Args {
     /// Enable footprint nudging for pad-pad clearance violations
     #[arg(long)]
     nudge_footprints: bool,
-    /// Output file path (default: overwrite input)
+    /// Output file path (required unless --dry-run or --in-place)
     #[arg(short = 'o', long)]
     output: Option<String>,
+    /// Explicitly authorize overwriting the input PCB
+    #[arg(long, conflicts_with = "output")]
+    in_place: bool,
     /// Preview changes without modifying files
     #[arg(long)]
     dry_run: bool,
@@ -77,7 +82,10 @@ pub fn get_drc_report(drc_report: Option<&str>, pcb_path: &Path) -> Option<DRCRe
     };
     println!(
         "Running DRC on: {}",
-        pcb_path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default()
+        pcb_path
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_default()
     );
     let res = run_drc(pcb_path, None, "json", true, Some(&cli));
     if !res.success {
@@ -134,7 +142,10 @@ fn print_nudge(n: &NudgeResult) {
         "    Displacement: ({:+.4}, {:+.4}) mm = {:.4} mm",
         n.displacement_x, n.displacement_y, n.displacement_mm
     );
-    println!("    Clearance: {:.4} -> {:.4} mm", n.old_clearance_mm, n.new_clearance_mm);
+    println!(
+        "    Clearance: {:.4} -> {:.4} mm",
+        n.old_clearance_mm, n.new_clearance_mm
+    );
 }
 
 fn print_fp_nudge(f: &FootprintNudgeResult) {
@@ -144,7 +155,10 @@ fn print_fp_nudge(f: &FootprintNudgeResult) {
         "    Displacement: ({:+.4}, {:+.4}) mm = {:.4} mm",
         f.displacement_x, f.displacement_y, f.displacement_mm
     );
-    println!("    Clearance: {:.4} -> {:.4} mm", f.old_clearance_mm, f.new_clearance_mm);
+    println!(
+        "    Clearance: {:.4} -> {:.4} mm",
+        f.old_clearance_mm, f.new_clearance_mm
+    );
 }
 
 fn print_results(r: &RepairResult, format: &str, dry_run: bool, max_d: f64, mfr: Option<&str>) {
@@ -169,7 +183,10 @@ fn print_results(r: &RepairResult, format: &str, dry_run: bool, max_d: f64, mfr:
         }
         "summary" => {
             let action = if dry_run { "Would repair" } else { "Repaired" };
-            println!("{action} {}/{} clearance violations", r.repaired, r.total_violations);
+            println!(
+                "{action} {}/{} clearance violations",
+                r.repaired, r.total_violations
+            );
             let un = r.total_violations - r.repaired;
             if un > 0 {
                 println!("  {un} violations could not be repaired");
@@ -181,7 +198,9 @@ fn print_results(r: &RepairResult, format: &str, dry_run: bool, max_d: f64, mfr:
 
 fn print_text(r: &RepairResult, dry_run: bool, max_d: f64, mfr: Option<&str>) {
     let action = if dry_run { "Would repair" } else { "Repaired" };
-    let mfr_str = mfr.map(|m| format!(" (target: {})", m.to_uppercase())).unwrap_or_default();
+    let mfr_str = mfr
+        .map(|m| format!(" (target: {})", m.to_uppercase()))
+        .unwrap_or_default();
     let eq = "=".repeat(60);
     let dash = "-".repeat(60);
     println!("\n{eq}");
@@ -189,11 +208,18 @@ fn print_text(r: &RepairResult, dry_run: bool, max_d: f64, mfr: Option<&str>) {
     println!("{eq}");
     println!("Max displacement: {}mm", py_float_repr(max_d));
     println!("Mode: {}", if dry_run { "DRY RUN" } else { "APPLY" });
-    println!("\n{action} {}/{} clearance violations", r.repaired, r.total_violations);
+    println!(
+        "\n{action} {}/{} clearance violations",
+        r.repaired, r.total_violations
+    );
     if !r.nudges.is_empty() {
         println!("\n{dash}");
         println!("NUDGES:");
-        let shown = if r.nudges.len() <= 5 { &r.nudges[..] } else { &r.nudges[..3] };
+        let shown = if r.nudges.len() <= 5 {
+            &r.nudges[..]
+        } else {
+            &r.nudges[..3]
+        };
         shown.iter().for_each(print_nudge);
         if r.nudges.len() > 5 {
             println!("\n  ... and {} more", r.nudges.len() - 3);
@@ -228,7 +254,10 @@ fn print_text(r: &RepairResult, dry_run: bool, max_d: f64, mfr: Option<&str>) {
             (r.footprint_skipped_locked, "Footprint locked"),
             (r.footprint_skipped_connector, "Connector footprint"),
             (r.footprint_skipped_same_component, "Same-component pads"),
-            (r.footprint_skipped_exceeds_max, "Footprint exceeds max displacement"),
+            (
+                r.footprint_skipped_exceeds_max,
+                "Footprint exceeds max displacement",
+            ),
         ] {
             if n > 0 {
                 println!("  {label}: {n}");
@@ -239,9 +268,15 @@ fn print_text(r: &RepairResult, dry_run: bool, max_d: f64, mfr: Option<&str>) {
     if r.repaired == r.total_violations {
         println!("All clearance violations repaired!");
     } else {
-        println!("{} violation(s) require manual repair", r.total_violations - r.repaired);
+        println!(
+            "{} violation(s) require manual repair",
+            r.total_violations - r.repaired
+        );
         if r.skipped_exceeds_max > 0 {
-            println!("  Try increasing --max-displacement (currently {}mm)", py_float_repr(max_d));
+            println!(
+                "  Try increasing --max-displacement (currently {}mm)",
+                py_float_repr(max_d)
+            );
         }
         if r.skipped_infeasible > 0 {
             println!(
@@ -256,6 +291,13 @@ fn print_text(r: &RepairResult, dry_run: bool, max_d: f64, mfr: Option<&str>) {
 pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
     let mut args: Args = parse_args("repair-clearance", argv);
     args.quiet |= g.quiet;
+    if let Some(code) = super::repair_common::require_write_target(
+        args.dry_run,
+        args.output.as_deref(),
+        args.in_place,
+    ) {
+        return Ok(code);
+    }
     let pcb_path = Path::new(&args.pcb);
     if !pcb_path.exists() {
         eprintln!("Error: PCB file not found: {}", py_path_str(&args.pcb));
@@ -309,7 +351,13 @@ pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
         args.nudge_footprints,
     );
     if !args.quiet {
-        print_results(&result, &args.format, args.dry_run, args.max_displacement, args.mfr.as_deref());
+        print_results(
+            &result,
+            &args.format,
+            args.dry_run,
+            args.max_displacement,
+            args.mfr.as_deref(),
+        );
     }
     if result.repaired > 0 && !args.dry_run {
         let out = args.output.clone().unwrap_or_else(|| args.pcb.clone());
@@ -321,5 +369,9 @@ pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
             println!("\nSaved to: {}", py_path_str(&out));
         }
     }
-    Ok(if result.total_violations - result.repaired > 0 { 1 } else { 0 })
+    Ok(if result.total_violations - result.repaired > 0 {
+        1
+    } else {
+        0
+    })
 }

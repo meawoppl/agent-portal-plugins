@@ -225,9 +225,12 @@ fn print_results(
 pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
     let mut args: Args = parse_args("fix-silkscreen", argv);
     args.quiet |= g.quiet;
-    if !args.dry_run && args.output.is_none() && !args.in_place {
-        eprintln!("Error: design edits require --output, --in-place, or --dry-run");
-        return Ok(1);
+    if let Some(code) = super::repair_common::require_write_target(
+        args.dry_run,
+        args.output.as_deref(),
+        args.in_place,
+    ) {
+        return Ok(code);
     }
     let pcb_path = Path::new(&args.pcb);
     if !pcb_path.exists() {

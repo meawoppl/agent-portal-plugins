@@ -45,9 +45,12 @@ struct Args {
     /// Target via diameter in mm (overrides manufacturer rules)
     #[arg(long)]
     diameter: Option<f64>,
-    /// Output file path (default: overwrite input)
+    /// Output file path (required unless --dry-run or --in-place)
     #[arg(short = 'o', long)]
     output: Option<String>,
+    /// Explicitly authorize overwriting the input PCB
+    #[arg(long, conflicts_with = "output")]
+    in_place: bool,
     /// Preview changes without modifying files
     #[arg(long)]
     dry_run: bool,
@@ -175,7 +178,14 @@ pub fn get_design_rules(
     )
 }
 
-fn closest_point_on_segment(x1: f64, y1: f64, x2: f64, y2: f64, px: f64, py: f64) -> (f64, f64, f64) {
+fn closest_point_on_segment(
+    x1: f64,
+    y1: f64,
+    x2: f64,
+    y2: f64,
+    px: f64,
+    py: f64,
+) -> (f64, f64, f64) {
     let dx = x2 - x1;
     let dy = y2 - y1;
     let len_sq = dx * dx + dy * dy;
@@ -190,7 +200,10 @@ fn closest_point_on_segment(x1: f64, y1: f64, x2: f64, y2: f64, px: f64, py: f64
 
 fn xy(node: Option<&SExp>) -> Option<(f64, f64)> {
     let a = atoms_f64(node?);
-    Some((a.first().copied().unwrap_or(0.0), a.get(1).copied().unwrap_or(0.0)))
+    Some((
+        a.first().copied().unwrap_or(0.0),
+        a.get(1).copied().unwrap_or(0.0),
+    ))
 }
 
 /// All `(via ...)` nodes in document (pre-order) order.
@@ -625,7 +638,10 @@ fn print_fix_results(
         println!("    ... and {} more", fixes.len() - 3);
     }
     if !skips.is_empty() {
-        println!("\n  Skipped {} via(s) (would violate clearance):", skips.len());
+        println!(
+            "\n  Skipped {} via(s) (would violate clearance):",
+            skips.len()
+        );
         for s in skips.iter().take(5) {
             println!(
                 "    Via at ({:.2}, {:.2}): kept at {:.3}mm (enlarging to {:.3}mm would violate clearance: {})",
@@ -656,6 +672,13 @@ fn print_fix_results(
 pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
     let mut args: Args = parse_args("fix-vias", argv);
     args.quiet |= g.quiet;
+    if let Some(code) = super::repair_common::require_write_target(
+        args.dry_run,
+        args.output.as_deref(),
+        args.in_place,
+    ) {
+        return Ok(code);
+    }
     // The outer parser forwards --drill/--diameter only when truthy.
     args.drill = args.drill.filter(|d| *d != 0.0);
     args.diameter = args.diameter.filter(|d| *d != 0.0);
@@ -701,8 +724,13 @@ pub fn run(argv: Vec<OsString>, g: &Globals) -> Result<i32> {
             &args.format,
         );
     }
-    let (target_drill, target_diameter, ring, clearance) =
-        get_design_rules(Some(&args.mfr), layers, args.copper, args.drill, args.diameter);
+    let (target_drill, target_diameter, ring, clearance) = get_design_rules(
+        Some(&args.mfr),
+        layers,
+        args.copper,
+        args.drill,
+        args.diameter,
+    );
     let mut doc = match crate::sexp::parse_file(pcb_path) {
         Ok(d) => d,
         Err(e) => {

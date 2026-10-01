@@ -150,9 +150,7 @@ pub fn pick_rules(
 
 /// Numeric atoms of a node's direct children (Python `float(atom)`).
 pub fn atoms_f64(node: &crate::sexp::SExp) -> Vec<f64> {
-    node.atoms()
-        .map(|v| v.as_f64().unwrap_or(0.0))
-        .collect()
+    node.atoms().map(|v| v.as_f64().unwrap_or(0.0)).collect()
 }
 
 /// First atom as `f64` (0 when absent).
@@ -165,4 +163,16 @@ pub fn first_f64(node: Option<&crate::sexp::SExp>) -> f64 {
 /// First atom rendered as Python `str()` (empty when absent).
 pub fn first_str(node: Option<&crate::sexp::SExp>) -> String {
     node.and_then(|n| n.text_at(0)).unwrap_or_default()
+}
+
+pub const DESIGN_EDIT_TARGET_ERROR: &str =
+    "design edits require --output, --in-place, or --dry-run";
+pub const EXIT_NO_WRITE_TARGET: i32 = 2;
+
+pub fn require_write_target(dry_run: bool, output: Option<&str>, in_place: bool) -> Option<i32> {
+    if dry_run || output.is_some() || in_place {
+        return None;
+    }
+    eprintln!("Error: {DESIGN_EDIT_TARGET_ERROR}");
+    Some(EXIT_NO_WRITE_TARGET)
 }

@@ -152,8 +152,8 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "optim", about: "Placement / routing FOM tools (issue #3186)", wave: "E", run: Some(optim::run) },
 ];
 
-/// Exit code for commands that are not ported yet.
-pub const EXIT_NOT_PORTED: i32 = 3;
+/// Exit code for a command whose implementation is unavailable in this build.
+pub const EXIT_UNAVAILABLE: i32 = 3;
 
 fn usage() -> String {
     let mut out = format!(
@@ -162,12 +162,7 @@ fn usage() -> String {
         crate::UPSTREAM_VERSION
     );
     for c in COMMANDS {
-        let mark = if c.run.is_some() {
-            ""
-        } else {
-            "  [not yet ported]"
-        };
-        out.push_str(&format!("  {:<22} {}{mark}\n", c.name, c.about));
+        out.push_str(&format!("  {:<22} {}\n", c.name, c.about));
     }
     out
 }
@@ -225,11 +220,8 @@ where
             Ok(code)
         }
         None => {
-            eprintln!(
-                "kct {name}: not yet ported to Rust (wave {}; see kct/PORTING.md)",
-                spec.wave
-            );
-            Ok(EXIT_NOT_PORTED)
+            eprintln!("kct {name}: implementation unavailable in this build");
+            Ok(EXIT_UNAVAILABLE)
         }
     }
 }
@@ -255,10 +247,10 @@ mod tests {
     }
 
     #[test]
-    fn unported_commands_exit_3() {
-        let unported = COMMANDS.iter().find(|c| c.run.is_none()).map(|c| c.name);
-        if let Some(name) = unported {
-            assert_eq!(run([name]).unwrap(), EXIT_NOT_PORTED);
+    fn unavailable_commands_exit_3() {
+        let unavailable = COMMANDS.iter().find(|c| c.run.is_none()).map(|c| c.name);
+        if let Some(name) = unavailable {
+            assert_eq!(run([name]).unwrap(), EXIT_UNAVAILABLE);
         }
     }
 }

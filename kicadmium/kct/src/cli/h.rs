@@ -800,7 +800,7 @@ pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
                     .find(|x| x.name == command)
                     .and_then(|x| x.run)
                 else {
-                    eprintln!("Command not yet ported: {command}");
+                    eprintln!("Command unavailable in this build: {command}");
                     continue;
                 };
                 let mut argv = vec![path.clone().into_os_string()];
@@ -815,7 +815,7 @@ pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
                     continue;
                 };
                 let Some(run) = spec.run else {
-                    eprintln!("Command not yet ported: {cmd}");
+                    eprintln!("Command unavailable in this build: {cmd}");
                     continue;
                 };
                 if cmd == "interactive" {

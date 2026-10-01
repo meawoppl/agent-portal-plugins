@@ -17,6 +17,7 @@ pub mod datasheet;
 pub mod design;
 pub mod drc;
 pub mod erc;
+pub mod estimate;
 pub mod fabrication;
 pub mod footprint;
 pub mod h;
@@ -90,7 +91,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "validate", about: "Validation tools", wave: "B", run: Some(design::validate) },
     CommandSpec { name: "analyze", about: "PCB analysis tools", wave: "C", run: Some(analyze::run) },
     CommandSpec { name: "constraints", about: "Constraint conflict detection and management", wave: "E", run: None },
-    CommandSpec { name: "estimate", about: "Manufacturing cost estimation", wave: "C", run: None },
+    CommandSpec { name: "estimate", about: "Manufacturing cost estimation", wave: "C", run: Some(estimate::run) },
     CommandSpec { name: "audit", about: "Manufacturing readiness audit (ERC, DRC, connectivity, compatibility)", wave: "C", run: None },
     CommandSpec { name: "suggest", about: "Part suggestions and recommendations", wave: "G", run: Some(suggest::run) },
     CommandSpec { name: "net-status", about: "Report net connectivity status for a PCB", wave: "C", run: Some(net_status::run) },

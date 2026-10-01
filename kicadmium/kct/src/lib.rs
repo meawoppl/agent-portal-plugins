@@ -9,6 +9,7 @@
 pub mod cli;
 pub mod config;
 pub mod core;
+pub mod cost;
 pub mod drc;
 pub mod erc;
 pub mod exceptions;

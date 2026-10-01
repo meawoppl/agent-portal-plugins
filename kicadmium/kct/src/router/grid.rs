@@ -101,7 +101,10 @@ pub struct RoutingGrid {
     /// Pad-core owner per cell (0 = none).
     pub core: Vec<i32>,
     /// Routed nets whose halo covers the cell: (net, count).
-    pub dynamic: Vec<Vec<(i32, u16)>>,
+    /// First routed net covering the cell (net 0 = none) and its count.
+    pub dynamic: Vec<(i32, u16)>,
+    /// Further nets covering multi-occupied cells.
+    pub dynamic_extra: HashMap<usize, Vec<(i32, u16)>>,
     /// Negotiated-congestion history cost per cell.
     pub history: Vec<f32>,
     /// Cells where vias are not allowed (in addition to owner checks).
@@ -131,7 +134,8 @@ impl RoutingGrid {
             origin_y: origin.1,
             owner: vec![FREE; n],
             core: vec![0; n],
-            dynamic: vec![Vec::new(); n],
+            dynamic: vec![(0, 0); n],
+            dynamic_extra: HashMap::new(),
             history: vec![0.0; n],
             no_via: vec![false; cols * rows],
             via_block: vec![0; cols * rows],
@@ -294,25 +298,63 @@ impl RoutingGrid {
     /// Number of foreign nets whose routed halo covers the cell.
     #[inline]
     pub fn foreign_count(&self, i: usize, net: i32) -> usize {
-        self.dynamic[i].iter().filter(|(n, _)| *n != net).count()
+        let (n0, _) = self.dynamic[i];
+        if n0 == 0 {
+            return 0;
+        }
+        let mut c = usize::from(n0 != net);
+        if let Some(extra) = self.dynamic_extra.get(&i) {
+            c += extra.iter().filter(|(n, _)| *n != net).count();
+        }
+        c
     }
 
     pub fn add_dynamic(&mut self, i: usize, net: i32) {
-        let v = &mut self.dynamic[i];
-        if let Some(e) = v.iter_mut().find(|(n, _)| *n == net) {
-            e.1 += 1;
+        let slot = &mut self.dynamic[i];
+        if slot.0 == 0 {
+            *slot = (net, 1);
+        } else if slot.0 == net {
+            slot.1 = slot.1.saturating_add(1);
         } else {
-            v.push((net, 1));
+            let v = self.dynamic_extra.entry(i).or_default();
+            if let Some(e) = v.iter_mut().find(|(n, _)| *n == net) {
+                e.1 = e.1.saturating_add(1);
+            } else {
+                v.push((net, 1));
+            }
         }
     }
 
     pub fn remove_dynamic(&mut self, i: usize, net: i32) {
-        let v = &mut self.dynamic[i];
-        if let Some(pos) = v.iter().position(|(n, _)| *n == net) {
-            if v[pos].1 > 1 {
-                v[pos].1 -= 1;
-            } else {
-                v.swap_remove(pos);
+        if self.dynamic[i].0 == net {
+            if self.dynamic[i].1 > 1 {
+                self.dynamic[i].1 -= 1;
+                return;
+            }
+            // Promote an overflow occupant into the primary slot.
+            let promoted = match self.dynamic_extra.get_mut(&i) {
+                Some(v) => {
+                    let e = v.pop();
+                    if v.is_empty() {
+                        self.dynamic_extra.remove(&i);
+                    }
+                    e
+                }
+                None => None,
+            };
+            self.dynamic[i] = promoted.unwrap_or((0, 0));
+            return;
+        }
+        if let Some(v) = self.dynamic_extra.get_mut(&i) {
+            if let Some(pos) = v.iter().position(|(n, _)| *n == net) {
+                if v[pos].1 > 1 {
+                    v[pos].1 -= 1;
+                } else {
+                    v.swap_remove(pos);
+                }
+            }
+            if v.is_empty() {
+                self.dynamic_extra.remove(&i);
             }
         }
     }

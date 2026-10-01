@@ -22,6 +22,10 @@ use crate::router::core::{Autorouter, RouterConfig, RoutingStats};
 use crate::router::io::{load_pcb_for_routing, merge_routes_into_pcb, pads_by_net, BoardData};
 use crate::schema::pcb::{is_power_net, Pcb};
 
+/// Pin pitch (mm) below which a board counts as fine-pitch (0.65 mm
+/// TSSOP/QFN and finer get the 0.05 mm grid).
+pub const FINE_PITCH_MM: f64 = 0.7;
+
 /// Default wall-clock routing budget (seconds) when `--timeout` is absent.
 pub const DEFAULT_ROUTE_BUDGET_S: f64 = 300.0;
 
@@ -684,7 +688,7 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
         board0.bounds.2 - board0.bounds.0,
         board0.bounds.3 - board0.bounds.1,
     );
-    let fine = min_pad_pitch(&board0) < 0.65;
+    let fine = min_pad_pitch(&board0) < FINE_PITCH_MM;
     let grid = p
         .grid
         .unwrap_or_else(|| auto_grid(bw, bh, p.clearance, p.max_cells, fine));
@@ -740,12 +744,31 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
             }
         }
     }
+    // Each layer count gets the auto grid, then (when it falls short of
+    // 100%) a finer 0.05 mm retry if the cell budget allows.
+    let fine_grid = 0.05;
+    let fine_cells = ((bw / fine_grid).ceil() + 1.0) * ((bh / fine_grid).ceil() + 1.0);
+    let mut rungs: Vec<(usize, f64)> = Vec::new();
+    for &l in &ladder {
+        rungs.push((l, grid));
+        // Total (all-layer) cell budget for the retry: 32x --max-cells.
+        let fine_fits = fine_cells * l as f64 <= (p.max_cells * 32) as f64;
+        if p.grid.is_none() && grid > fine_grid + 1e-9 && fine_fits {
+            rungs.push((l, fine_grid));
+        }
+    }
     let mut best: Option<Attempt> = None;
     let mut budget_exhausted = false;
-    for (k, &layers) in ladder.iter().enumerate() {
+    let mut k = 0;
+    let mut skip_layers: Option<usize> = None;
+    for &(layers, grid) in &rungs {
+        if skip_layers == Some(layers) {
+            continue;
+        }
+        k += 1;
         if !quiet {
             println!("\n{}", "=".repeat(60));
-            println!("Attempt {}: {layers} layers", k + 1);
+            println!("Attempt {k}: {layers} layers (grid {grid}mm)");
             println!("{}", "=".repeat(60));
         }
         let plan = pour_plan(p, &pcb, layers, &pour_nets, &skip)?;
@@ -790,12 +813,28 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
         let better = best
             .as_ref()
             .is_none_or(|b| attempt.completion > b.completion + 1e-9);
-        let done = attempt.completion >= p.min_completion;
+        let complete = attempt.completion >= 1.0 - 1e-9;
         if better {
             best = Some(attempt);
         }
-        if done {
+        let best_c = best.as_ref().map_or(0.0, |b| b.completion);
+        if complete {
             break;
+        }
+        // Good enough at this layer count: allow only the same-layer finer
+        // grid retry, never more layers.
+        if best_c >= p.min_completion {
+            let next_same = rungs
+                .iter()
+                .skip_while(|r| **r != (layers, grid))
+                .nth(1)
+                .is_some_and(|r| r.0 == layers);
+            if !next_same {
+                break;
+            }
+            skip_layers = None;
+        } else if grid <= fine_grid + 1e-9 || p.grid.is_some() {
+            skip_layers = None;
         }
         if budget_exhausted {
             break;
@@ -1099,7 +1138,7 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         bh,
         params.clearance,
         params.max_cells,
-        min_pad_pitch(&board) < 0.65,
+        min_pad_pitch(&board) < FINE_PITCH_MM,
     );
     let skip: HashSet<String> = names
         .iter()

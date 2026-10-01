@@ -5,8 +5,6 @@ use std::ffi::OsString;
 use std::fs;
 use std::io::{self, BufRead, Read, Write};
 use std::net::{TcpListener, TcpStream};
-#[cfg(unix)]
-use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -108,8 +106,8 @@ fn setup_mcp(client: Client, dry_run: bool, format: Format) -> Result<i32> {
     let map = servers
         .as_object_mut()
         .context("mcpServers must be an object")?;
-    let replaced = map.contains_key("kicadmium");
-    map.insert("kicadmium".into(), server.clone());
+    let replaced = map.contains_key("kicad-tools");
+    map.insert("kicad-tools".into(), server.clone());
     if !dry_run {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
@@ -270,6 +268,8 @@ enum IpcCommand {
         pcb: PathBuf,
         #[arg(short, long)]
         socket: Option<PathBuf>,
+        #[arg(short, long)]
+        net: Option<String>,
         #[arg(long)]
         dry_run: bool,
         #[arg(long, value_enum, default_value = "text")]
@@ -289,75 +289,152 @@ pub fn ipc(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             println!("Usage: kct ipc <status|connect|push-routes>");
             Ok(0)
         }
-        Some(IpcCommand::Status(a)) | Some(IpcCommand::Connect(a)) => ipc_status(a),
+        Some(IpcCommand::Status(a)) => ipc_status("status", a),
+        Some(IpcCommand::Connect(a)) => ipc_status("connect", a),
         Some(IpcCommand::PushRoutes {
             pcb,
             socket,
+            net,
             dry_run,
             format,
         }) => {
             if !pcb.exists() {
                 bail!("PCB not found: {}", pcb.display());
             }
-            let (segments, vias) = count_forms(&fs::read_to_string(&pcb)?, &["segment", "via"]);
-            let sock = resolve_socket(socket);
-            let report = json!({"command":"push-routes","pcb":pcb,"socket":sock,"tracks":segments,"vias":vias,"dry_run":dry_run,"success":dry_run});
-            emit(format, &report);
-            if dry_run {
+            let (items, segments, vias) = route_items(&pcb, net.as_deref())?;
+            let sock = resolve_socket(socket.as_deref());
+            let summary = json!({"command":"push-routes","pcb":pcb,"net_filter":net,"socket":sock,"tracks":segments,"vias":vias,"dry_run":dry_run});
+            if dry_run || items.is_empty() {
+                let mut report = summary;
+                report["pushed"] = json!(0);
+                report["success"] = json!(true);
+                emit(format, &report);
                 Ok(0)
             } else {
-                eprintln!("KiCad IPC route mutation requires a negotiated KiCad API session; use --dry-run to inspect the transaction.");
-                Ok(1)
-            }
-        }
-    }
-}
-fn ipc_status(a: SocketArgs) -> Result<i32> {
-    let socket = resolve_socket(a.socket);
-    let connected = socket.as_deref().is_some_and(probe_socket);
-    let report = json!({"command":"status","socket":socket,"connected":connected,"instances":discover_sockets(),"success":connected});
-    emit(a.format, &report);
-    Ok(if connected { 0 } else { 1 })
-}
-fn resolve_socket(explicit: Option<PathBuf>) -> Option<PathBuf> {
-    explicit
-        .filter(|p| p.exists())
-        .or_else(|| discover_sockets().into_iter().next())
-}
-fn discover_sockets() -> Vec<PathBuf> {
-    let mut out = Vec::new();
-    for root in [
-        std::env::var_os("KICAD_API_SOCKET").map(PathBuf::from),
-        Some(PathBuf::from("/tmp")),
-    ]
-    .into_iter()
-    .flatten()
-    {
-        if root.is_file() {
-            out.push(root);
-            continue;
-        }
-        if let Ok(entries) = fs::read_dir(root) {
-            for e in entries.flatten() {
-                let p = e.path();
-                let s = p.to_string_lossy().to_lowercase();
-                if s.contains("kicad") && (s.ends_with(".sock") || s.contains("api")) {
-                    out.push(p);
+                let Some(sock) = sock else {
+                    let mut report = summary;
+                    report["pushed"] = json!(0);
+                    report["success"] = json!(false);
+                    report["error"] = json!("No KiCad IPC socket found.");
+                    emit(format, &report);
+                    return Ok(1);
+                };
+                match crate::ipc::Client::connect(&sock).and_then(|mut client| {
+                    client.create_items_transaction(
+                        &format!(
+                            "Push routes from {}",
+                            pcb.file_name().unwrap_or_default().to_string_lossy()
+                        ),
+                        items,
+                    )
+                }) {
+                    Ok(created) => {
+                        let mut report = summary;
+                        report["pushed"] = json!(created.len());
+                        report["success"] = json!(true);
+                        emit(format, &report);
+                        Ok(0)
+                    }
+                    Err(error) => {
+                        let mut report = summary;
+                        report["pushed"] = json!(0);
+                        report["success"] = json!(false);
+                        report["error"] = json!(error.to_string());
+                        emit(format, &report);
+                        Ok(1)
+                    }
                 }
             }
         }
     }
-    out.sort();
-    out.dedup();
-    out
 }
-#[cfg(unix)]
-fn probe_socket(path: &Path) -> bool {
-    UnixStream::connect(path).is_ok()
+fn ipc_status(command: &str, a: SocketArgs) -> Result<i32> {
+    let instances = crate::ipc::discover_sockets(a.socket.as_deref());
+    let socket = instances.first().cloned();
+    let result = socket
+        .as_deref()
+        .context("No KiCad IPC socket found.")
+        .and_then(|path| {
+            let mut client = crate::ipc::Client::connect(path)?;
+            if command == "status" && !client.ping()? {
+                bail!("Connected but KiCad is not responding to health checks.")
+            }
+            let version = client.version()?;
+            let docs = if command == "status" {
+                client.open_documents()?
+            } else {
+                vec![]
+            };
+            Ok((version, docs))
+        });
+    match result {
+        Ok((version, docs)) => {
+            let open: Vec<_> = docs
+                .iter()
+                .filter_map(|d| d.get("path").and_then(Value::as_str))
+                .collect();
+            emit(
+                a.format,
+                &json!({"command":command,"socket":socket,"connected":true,"kicad_version":version,"instances":instances,"open_documents":open,"success":true}),
+            );
+            Ok(0)
+        }
+        Err(error) => {
+            emit(
+                a.format,
+                &json!({"command":command,"socket":socket,"connected":false,"instances":instances,"error":error.to_string(),"success":false}),
+            );
+            Ok(1)
+        }
+    }
 }
-#[cfg(not(unix))]
-fn probe_socket(_: &Path) -> bool {
-    false
+fn resolve_socket(explicit: Option<&Path>) -> Option<PathBuf> {
+    crate::ipc::discover_sockets(explicit).into_iter().next()
+}
+
+fn route_items(path: &Path, net_filter: Option<&str>) -> Result<(Vec<Value>, usize, usize)> {
+    let root = crate::sexp::parse(&fs::read_to_string(path)?)?;
+    let nets: std::collections::HashMap<i64, String> = root
+        .children_named("net")
+        .filter_map(|n| Some((n.int_at(0)?, n.text_at(1)?)))
+        .collect();
+    let allowed = |n: i64| net_filter.is_none_or(|name| nets.get(&n).is_some_and(|v| v == name));
+    if let Some(name) = net_filter {
+        if !nets.values().any(|n| n == name) {
+            bail!("Net not found in {}: {name}", path.display())
+        }
+    }
+    let mut items = Vec::new();
+    let mut tracks = 0;
+    let mut vias = 0;
+    for segment in root.children_named("segment") {
+        let net = segment.get("net").and_then(|n| n.int_at(0)).unwrap_or(0);
+        if !allowed(net) {
+            continue;
+        }
+        let start = segment.get("start").context("segment missing start")?;
+        let end = segment.get("end").context("segment missing end")?;
+        items.push(json!({"type":"track","start":{"x":mm_nm(coord(start,0,"segment start x")?),"y":mm_nm(coord(start,1,"segment start y")?)},"end":{"x":mm_nm(coord(end,0,"segment end x")?),"y":mm_nm(coord(end,1,"segment end y")?)},"width":mm_nm(segment.child_f64("width").unwrap_or(0.25)),"layer":segment.child_str("layer").unwrap_or("F.Cu"),"net":net}));
+        tracks += 1;
+    }
+    for via in root.children_named("via") {
+        let net = via.get("net").and_then(|n| n.int_at(0)).unwrap_or(0);
+        if !allowed(net) {
+            continue;
+        }
+        let at = via.get("at").context("via missing at")?;
+        let layers = via.get("layers");
+        items.push(json!({"type":"via","position":{"x":mm_nm(coord(at,0,"via x")?),"y":mm_nm(coord(at,1,"via y")?)},"diameter":mm_nm(via.child_f64("size").unwrap_or(0.8)),"drill":mm_nm(via.child_f64("drill").unwrap_or(0.4)),"net":net,"start_layer":layers.and_then(|x|x.text_at(0)).unwrap_or_else(||"F.Cu".into()),"end_layer":layers.and_then(|x|x.text_at(1)).unwrap_or_else(||"B.Cu".into())}));
+        vias += 1;
+    }
+    Ok((items, tracks, vias))
+}
+fn mm_nm(value: f64) -> i64 {
+    (value * 1_000_000.0) as i64
+}
+fn coord(node: &crate::SExp, index: usize, what: &str) -> Result<f64> {
+    node.float_at(index)
+        .with_context(|| format!("missing {what}"))
 }
 
 #[derive(Parser)]
@@ -449,6 +526,7 @@ struct InteractiveArgs {
 pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
     let a = parse_args::<InteractiveArgs>("interactive", args);
     let mut loaded = a.project;
+    let mut output_dir = std::env::current_dir()?;
     eprintln!("kicadmium kct interactive — type `help` or `quit`");
     for line in io::stdin().lock().lines() {
         let line = line?;
@@ -459,7 +537,7 @@ pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
         match words[0].as_str() {
             "quit" | "exit" => break,
             "help" => {
-                println!("load <file> | status | output <dir> | <native-kct-command> ... | quit")
+                println!("load <file> | status | summary [sch|pcb] | output [dir] | clear | <native-kct-command> ... | quit")
             }
             "load" => {
                 let p = words.get(1).context("load requires a file")?;
@@ -472,11 +550,48 @@ pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
                 }
             }
             "status" => println!(
-                "Loaded: {}",
+                "Loaded: {}\nOutput directory: {}",
                 loaded
                     .as_deref()
-                    .map_or_else(|| "nothing".into(), |p| p.display().to_string())
+                    .map_or_else(|| "nothing".into(), |p| p.display().to_string()),
+                output_dir.display()
             ),
+            "output" => {
+                if let Some(path) = words.get(1) {
+                    output_dir = PathBuf::from(path);
+                    println!("Output directory set to: {}", output_dir.display())
+                } else {
+                    println!("Output directory: {}", output_dir.display())
+                }
+            }
+            "clear" => {
+                loaded = None;
+                println!("Session cleared.")
+            }
+            "summary" => {
+                let Some(path) = loaded.as_ref() else {
+                    eprintln!("Error: No file loaded. Use 'load <file>' first.");
+                    continue;
+                };
+                let command = if path.extension().and_then(|x| x.to_str()) == Some("kicad_pcb") {
+                    "pcb"
+                } else {
+                    "sch"
+                };
+                let Some(run) = COMMANDS
+                    .iter()
+                    .find(|x| x.name == command)
+                    .and_then(|x| x.run)
+                else {
+                    eprintln!("Command not yet ported: {command}");
+                    continue;
+                };
+                let mut argv = vec![path.clone().into_os_string()];
+                argv.push(OsString::from("summary"));
+                if let Err(error) = run(argv, globals) {
+                    eprintln!("Error: {error:#}")
+                }
+            }
             cmd => {
                 let Some(spec) = COMMANDS.iter().find(|x| x.name == cmd) else {
                     eprintln!("Unknown command: {cmd}");
@@ -490,7 +605,14 @@ pub fn interactive(args: Vec<OsString>, globals: &Globals) -> Result<i32> {
                     eprintln!("Already interactive");
                     continue;
                 }
-                let argv = words[1..].iter().map(OsString::from).collect();
+                let mut argv: Vec<OsString> = words[1..].iter().map(OsString::from).collect();
+                if matches!(cmd, "symbols" | "bom" | "nets") {
+                    let Some(path) = loaded.as_ref() else {
+                        eprintln!("Error: No schematic loaded. Use 'load <file>' first.");
+                        continue;
+                    };
+                    argv.insert(0, path.clone().into_os_string());
+                }
                 if let Err(e) = run(argv, globals) {
                     eprintln!("Error: {e:#}")
                 }
@@ -605,13 +727,6 @@ fn emit(format: Format, value: &Value) {
         Format::Text => println!("{}", serde_json::to_string_pretty(value).unwrap()),
     }
 }
-fn count_forms(text: &str, names: &[&str]) -> (usize, usize) {
-    let c = count_named_forms(text);
-    (
-        c.get(names[0]).copied().unwrap_or(0),
-        c.get(names[1]).copied().unwrap_or(0),
-    )
-}
 fn count_named_forms(text: &str) -> std::collections::HashMap<String, usize> {
     let mut map = std::collections::HashMap::new();
     let b = text.as_bytes();
@@ -682,5 +797,22 @@ mod tests {
     fn mcp_initialize() {
         let r = rpc(&json!({"jsonrpc":"2.0","id":1,"method":"initialize"}));
         assert_eq!(r["result"]["serverInfo"]["name"], "kicadmium-kct")
+    }
+    #[test]
+    fn route_items_match_ipc_units_and_filter() {
+        let dir = tempfile::tempdir().unwrap();
+        let pcb = dir.path().join("x.kicad_pcb");
+        fs::write(
+            &pcb,
+            r#"(kicad_pcb (net 1 "SIG") (net 2 "GND")
+          (segment (start 1.25 2.5) (end 3 4) (width 0.2) (layer "F.Cu") (net 1))
+          (segment (start 0 0) (end 1 1) (width 0.3) (layer "B.Cu") (net 2))
+          (via (at 5 6) (size 0.8) (drill 0.4) (layers "F.Cu" "B.Cu") (net 1)))"#,
+        )
+        .unwrap();
+        let (items, tracks, vias) = route_items(&pcb, Some("SIG")).unwrap();
+        assert_eq!((tracks, vias, items.len()), (1, 1, 2));
+        assert_eq!(items[0]["start"]["x"], 1_250_000);
+        assert_eq!(items[1]["position"]["y"], 6_000_000);
     }
 }

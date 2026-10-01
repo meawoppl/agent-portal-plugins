@@ -13,6 +13,7 @@ use anyhow::Result;
 use crate::units::{self, UnitFormatter};
 
 pub mod analyze;
+pub mod board_metrics;
 pub mod datasheet;
 pub mod design;
 pub mod drc;
@@ -97,7 +98,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "net-status", about: "Report net connectivity status for a PCB", wave: "C", run: Some(net_status::run) },
     CommandSpec { name: "fleet", about: "Fleet-wide PCB status and operations", wave: "C", run: None },
     CommandSpec { name: "render", about: "Render per-board 2D SVGs + 3D PNGs into output/renders/", wave: "C", run: Some(render::run) },
-    CommandSpec { name: "board-metrics", about: "Emit a normalized board.json per board from existing artifacts", wave: "C", run: None },
+    CommandSpec { name: "board-metrics", about: "Emit a normalized board.json per board from existing artifacts", wave: "C", run: Some(board_metrics::run) },
     CommandSpec { name: "readiness", about: "Run the manufacturing-readiness gates and write output/readiness.json", wave: "C", run: None },
     CommandSpec { name: "clean", about: "Clean up old/orphaned files from KiCad projects", wave: "G", run: Some(utility::clean) },
     CommandSpec { name: "impedance", about: "Transmission line impedance calculations", wave: "E", run: Some(impedance::run) },

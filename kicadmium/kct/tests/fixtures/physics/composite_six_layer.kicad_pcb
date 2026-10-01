@@ -1,0 +1,22 @@
+(kicad_pcb (version 20260206)
+      (general (thickness 1.6))
+      (layers (0 "F.Cu" signal) (1 "In1.Cu" power)
+        (2 "In2.Cu" signal) (3 "In3.Cu" signal)
+        (4 "In4.Cu" power) (31 "B.Cu" signal))
+      (setup (stackup
+        (layer "F.Cu" (type "copper") (thickness .035))
+        (layer "dielectric 1" (type "prepreg") (thickness .1164) (epsilon_r 4.16))
+        (layer "In1.Cu" (type "copper") (thickness .0152))
+        (layer "dielectric 2" (type "core") (thickness .13) (epsilon_r 4.6))
+        (layer "In2.Cu" (type "copper") (thickness .0152))
+        (layer "dielectric 3" (type "prepreg")
+          (thickness .1164) (material "FR4 2116") (epsilon_r 4.16) (loss_tangent .02)
+          addsublayer
+          (thickness .7) (material "FR4 core") (epsilon_r 4.6) (loss_tangent .018)
+          addsublayer
+          (thickness .1164) (material "FR4 2116") (epsilon_r 4.16) (loss_tangent .02))
+        (layer "In3.Cu" (type "copper") (thickness .0152))
+        (layer "dielectric 4" (type "core") (thickness .13) (epsilon_r 4.6))
+        (layer "In4.Cu" (type "copper") (thickness .0152))
+        (layer "dielectric 5" (type "prepreg") (thickness .1164) (epsilon_r 4.16))
+        (layer "B.Cu" (type "copper") (thickness .035)))))

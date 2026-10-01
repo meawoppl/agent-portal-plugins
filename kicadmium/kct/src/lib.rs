@@ -9,6 +9,7 @@
 pub mod cli;
 pub mod fsutil;
 pub mod manufacturers;
+pub mod physics;
 pub mod sexp;
 pub mod units;
 

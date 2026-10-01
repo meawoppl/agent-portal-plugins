@@ -1,0 +1,349 @@
+{
+ "usage": {
+  "args": [],
+  "code": 1,
+  "stdout": "Usage: kct impedance <command> [options] [board.kicad_pcb]\nCommands: stackup, width, calculate, diffpair, crosstalk\n",
+  "stderr": ""
+ },
+ "no_source": {
+  "args": [
+   "stackup"
+  ],
+  "code": 1,
+  "stdout": "Error: Provide either BOARD path or --preset option\n",
+  "stderr": ""
+ },
+ "stackup_jlcpcb4_text": {
+  "args": [
+   "stackup",
+   "--preset",
+   "jlcpcb-4"
+  ],
+  "code": 0,
+  "stdout": "Construction: jlcpcb-4-legacy\nLegacy numerical model; no factory ordering identifier.\n\nBoard Stackup (1.60mm total):\n\n┏━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━┓\n┃ Layer     ┃ Type       ┃      Thickness ┃   εr ┃ Material ┃\n┡━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━╇━━━━━━━━━━┩\n│ F.Cu      │ Copper     │ 35.0μm (1.0oz) │    - │ copper   │\n│ prepreg 1 │ Dielectric │        0.210mm │ 4.05 │ FR4 7628 │\n│ In1.Cu    │ Copper     │ 17.5μm (0.5oz) │    - │ copper   │\n│ core      │ Dielectric │        1.065mm │ 4.60 │ FR4      │\n│ In2.Cu    │ Copper     │ 17.5μm (0.5oz) │    - │ copper   │\n│ prepreg 2 │ Dielectric │        0.210mm │ 4.05 │ FR4 7628 │\n│ B.Cu      │ Copper     │ 35.0μm (1.0oz) │    - │ copper   │\n└───────────┴────────────┴────────────────┴──────┴──────────┘\n\nCopper finish: HASL\n",
+  "stderr": ""
+ },
+ "stackup_jlcpcb7628_json": {
+  "args": [
+   "stackup",
+   "--preset",
+   "jlcpcb-7628",
+   "--format",
+   "json"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"construction\": {\n    \"id\": \"JLC04161H-7628\",\n    \"factory_id\": \"JLC04161H-7628\",\n    \"manufacturer\": \"jlcpcb\",\n    \"source_url\": \"https://jlcpcb.com/impedance\",\n    \"verified_on\": \"2026-09-10\",\n    \"nominal_board_thickness_mm\": 1.6,\n    \"outer_copper_oz\": 1.0,\n    \"inner_copper_oz\": 0.5,\n    \"assumptions\": [\n      \"Loss tangent 0.02 is a model assumption, not a sourced factory limit.\"\n    ]\n  },\n  \"board_thickness_mm\": 1.6,\n  \"num_copper_layers\": 4,\n  \"copper_finish\": \"\",\n  \"layers\": [\n    {\n      \"name\": \"F.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.035,\n      \"material\": \"copper\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 1.0\n    },\n    {\n      \"name\": \"prepreg 1\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.2104,\n      \"material\": \"FR4 7628\",\n      \"epsilon_r\": 4.4,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"In1.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.0152,\n      \"material\": \"copper\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 0.5\n    },\n    {\n      \"name\": \"core\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 1.065,\n      \"material\": \"FR4\",\n      \"epsilon_r\": 4.6,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"In2.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.0152,\n      \"material\": \"copper\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 0.5\n    },\n    {\n      \"name\": \"prepreg 2\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.2104,\n      \"material\": \"FR4 7628\",\n      \"epsilon_r\": 4.4,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"B.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.035,\n      \"material\": \"copper\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 1.0\n    }\n  ]\n}\n",
+  "stderr": ""
+ },
+ "stackup_oshpark_text": {
+  "args": [
+   "stackup",
+   "-p",
+   "oshpark-4"
+  ],
+  "code": 0,
+  "stdout": "\nBoard Stackup (1.60mm total):\n\n┏━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━┓\n┃ Layer     ┃ Type       ┃      Thickness ┃   εr ┃ Material ┃\n┡━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━╇━━━━━━━━━━┩\n│ F.Cu      │ Copper     │ 35.0μm (1.0oz) │    - │ copper   │\n│ prepreg 1 │ Dielectric │        0.170mm │ 4.50 │ FR408    │\n│ In1.Cu    │ Copper     │ 17.5μm (0.5oz) │    - │ copper   │\n│ core      │ Dielectric │        1.200mm │ 4.50 │ FR408    │\n│ In2.Cu    │ Copper     │ 17.5μm (0.5oz) │    - │ copper   │\n│ prepreg 2 │ Dielectric │        0.170mm │ 4.50 │ FR408    │\n│ B.Cu      │ Copper     │ 35.0μm (1.0oz) │    - │ copper   │\n└───────────┴────────────┴────────────────┴──────┴──────────┘\n\nCopper finish: ENIG\n",
+  "stderr": ""
+ },
+ "stackup_composite_json": {
+  "args": [
+   "stackup",
+   "@physics/composite_six_layer.kicad_pcb",
+   "-f",
+   "json"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"construction\": null,\n  \"board_thickness_mm\": 1.5564,\n  \"num_copper_layers\": 6,\n  \"copper_finish\": \"\",\n  \"layers\": [\n    {\n      \"name\": \"F.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.035,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 1.0\n    },\n    {\n      \"name\": \"dielectric 1\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.1164,\n      \"material\": \"\",\n      \"epsilon_r\": 4.16,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"In1.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.0152,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 0.4342857142857142\n    },\n    {\n      \"name\": \"dielectric 2\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.13,\n      \"material\": \"\",\n      \"epsilon_r\": 4.6,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"In2.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.0152,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 0.4342857142857142\n    },\n    {\n      \"name\": \"dielectric 3\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.1164,\n      \"material\": \"FR4 2116\",\n      \"epsilon_r\": 4.16,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"dielectric 3 (sublayer 2)\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.7,\n      \"material\": \"FR4 core\",\n      \"epsilon_r\": 4.6,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"dielectric 3 (sublayer 3)\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.1164,\n      \"material\": \"FR4 2116\",\n      \"epsilon_r\": 4.16,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"In3.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.0152,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 0.4342857142857142\n    },\n    {\n      \"name\": \"dielectric 4\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.13,\n      \"material\": \"\",\n      \"epsilon_r\": 4.6,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"In4.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.0152,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 0.4342857142857142\n    },\n    {\n      \"name\": \"dielectric 5\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.1164,\n      \"material\": \"\",\n      \"epsilon_r\": 4.16,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"B.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.035,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 1.0\n    }\n  ]\n}\n",
+  "stderr": ""
+ },
+ "stackup_composite_text": {
+  "args": [
+   "stackup",
+   "@physics/composite_six_layer.kicad_pcb"
+  ],
+  "code": 0,
+  "stdout": "\nBoard Stackup (1.56mm total):\n\n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━┓\n┃ Layer                     ┃ Type       ┃      Thickness ┃   εr ┃ Material ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━╇━━━━━━━━━━┩\n│ F.Cu                      │ Copper     │ 35.0μm (1.0oz) │    - │ -        │\n│ dielectric 1              │ Dielectric │        0.116mm │ 4.16 │ -        │\n│ In1.Cu                    │ Copper     │ 15.2μm (0.4oz) │    - │ -        │\n│ dielectric 2              │ Dielectric │        0.130mm │ 4.60 │ -        │\n│ In2.Cu                    │ Copper     │ 15.2μm (0.4oz) │    - │ -        │\n│ dielectric 3              │ Dielectric │        0.116mm │ 4.16 │ FR4 2116 │\n│ dielectric 3 (sublayer 2) │ Dielectric │        0.700mm │ 4.60 │ FR4 core │\n│ dielectric 3 (sublayer 3) │ Dielectric │        0.116mm │ 4.16 │ FR4 2116 │\n│ In3.Cu                    │ Copper     │ 15.2μm (0.4oz) │    - │ -        │\n│ dielectric 4              │ Dielectric │        0.130mm │ 4.60 │ -        │\n│ In4.Cu                    │ Copper     │ 15.2μm (0.4oz) │    - │ -        │\n│ dielectric 5              │ Dielectric │        0.116mm │ 4.16 │ -        │\n│ B.Cu                      │ Copper     │ 35.0μm (1.0oz) │    - │ -        │\n└───────────────────────────┴────────────┴────────────────┴──────┴──────────┘\n",
+  "stderr": ""
+ },
+ "stackup_multilayer_zones_json": {
+  "args": [
+   "stackup",
+   "@projects/multilayer_zones.kicad_pcb",
+   "-f",
+   "json"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"construction\": null,\n  \"board_thickness_mm\": 1.56,\n  \"num_copper_layers\": 4,\n  \"copper_finish\": \"\",\n  \"layers\": [\n    {\n      \"name\": \"F.SilkS\",\n      \"type\": \"silk screen\",\n      \"thickness_mm\": 0.0,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"F.Paste\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.0,\n      \"material\": \"\",\n      \"epsilon_r\": 0.0,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"F.Mask\",\n      \"type\": \"solder mask\",\n      \"thickness_mm\": 0.01,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"F.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.035,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 1.0\n    },\n    {\n      \"name\": \"dielectric 1\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.2,\n      \"material\": \"FR4\",\n      \"epsilon_r\": 4.5,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"In1.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.035,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 1.0\n    },\n    {\n      \"name\": \"dielectric 2\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 1.0,\n      \"material\": \"FR4\",\n      \"epsilon_r\": 4.5,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"In2.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.035,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 1.0\n    },\n    {\n      \"name\": \"dielectric 3\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.2,\n      \"material\": \"FR4\",\n      \"epsilon_r\": 4.5,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"B.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.035,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 1.0\n    },\n    {\n      \"name\": \"B.Mask\",\n      \"type\": \"solder mask\",\n      \"thickness_mm\": 0.01,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"B.Paste\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 0.0,\n      \"material\": \"\",\n      \"epsilon_r\": 0.0,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"B.SilkS\",\n      \"type\": \"silk screen\",\n      \"thickness_mm\": 0.0,\n      \"material\": \"\",\n      \"epsilon_r\": null,\n      \"copper_oz\": null\n    }\n  ]\n}\n",
+  "stderr": ""
+ },
+ "stackup_default_2layer_json": {
+  "args": [
+   "stackup",
+   "@routing-diagnostic.kicad_pcb",
+   "-f",
+   "json"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"construction\": null,\n  \"board_thickness_mm\": 1.6,\n  \"num_copper_layers\": 2,\n  \"copper_finish\": \"\",\n  \"layers\": [\n    {\n      \"name\": \"F.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.035,\n      \"material\": \"copper\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 1.0\n    },\n    {\n      \"name\": \"core\",\n      \"type\": \"dielectric\",\n      \"thickness_mm\": 1.53,\n      \"material\": \"FR4\",\n      \"epsilon_r\": 4.5,\n      \"copper_oz\": null\n    },\n    {\n      \"name\": \"B.Cu\",\n      \"type\": \"copper\",\n      \"thickness_mm\": 0.035,\n      \"material\": \"copper\",\n      \"epsilon_r\": null,\n      \"copper_oz\": 1.0\n    }\n  ]\n}\n",
+  "stderr": ""
+ },
+ "width_fcu_text": {
+  "args": [
+   "width",
+   "-p",
+   "jlcpcb-4",
+   "-z",
+   "50",
+   "-l",
+   "F.Cu"
+  ],
+  "code": 0,
+  "stdout": "\nTrace Width for 50.0Ω on F.Cu (microstrip):\n\n  Target:     50.0Ω\n  Layer:      F.Cu (outer layer, microstrip)\n  Stackup:    0.210mm to reference, εr=4.05\n\n  Result:     15.2 mil (0.387 mm)\n\n  Verification:\n    Z₀ = 49.7Ω\n    εeff = 3.11\n    Delay = 5.9 ps/mm\n",
+  "stderr": ""
+ },
+ "width_in1_json": {
+  "args": [
+   "width",
+   "-p",
+   "jlcpcb-4",
+   "-z",
+   "50",
+   "-l",
+   "In1.Cu",
+   "-f",
+   "json"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"target_impedance_ohm\": 50.0,\n  \"layer\": \"In1.Cu\",\n  \"geometry\": \"stripline\",\n  \"width_mm\": 0.2722,\n  \"width_mil\": 10.72,\n  \"verification\": {\n    \"z0_ohm\": 50.06,\n    \"epsilon_eff\": 4.325,\n    \"delay_ps_per_mm\": 6.94\n  },\n  \"construction\": {\n    \"id\": \"jlcpcb-4-legacy\",\n    \"factory_id\": null,\n    \"compatibility_only\": true\n  }\n}\n",
+  "stderr": ""
+ },
+ "width_composite_in2_json": {
+  "args": [
+   "width",
+   "@physics/composite_six_layer.kicad_pcb",
+   "-z",
+   "50",
+   "-l",
+   "In2.Cu",
+   "-f",
+   "json"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"target_impedance_ohm\": 50.0,\n  \"layer\": \"In2.Cu\",\n  \"geometry\": \"stripline\",\n  \"width_mm\": 0.1682,\n  \"width_mil\": 6.62,\n  \"verification\": {\n    \"z0_ohm\": 49.8,\n    \"epsilon_eff\": 4.38,\n    \"delay_ps_per_mm\": 6.98\n  },\n  \"construction\": null\n}\n",
+  "stderr": ""
+ },
+ "calculate_fcu_text": {
+  "args": [
+   "calculate",
+   "-p",
+   "jlcpcb-4",
+   "-w",
+   "0.2",
+   "-l",
+   "F.Cu"
+  ],
+  "code": 0,
+  "stdout": "\nImpedance Calculation:\n\n  Geometry:   Microstrip\n  Width:      7.9 mil (0.200 mm)\n  Layer:      F.Cu\n  Height:     8.3 mil (0.210 mm) to reference\n  εr:         4.05\n\n  Results:\n    Z₀ = 68.2Ω\n    εeff = 2.98\n    Delay = 5.8 ps/mm (146 ps/inch)\n    Loss = 0.343 dB/inch @ 1.0GHz\n",
+  "stderr": ""
+ },
+ "calculate_in1_json": {
+  "args": [
+   "calculate",
+   "-p",
+   "jlcpcb-4",
+   "-w",
+   "0.15",
+   "-l",
+   "In1.Cu",
+   "-f",
+   "json",
+   "--frequency",
+   "5"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"geometry\": \"stripline\",\n  \"layer\": \"In1.Cu\",\n  \"width_mm\": 0.15,\n  \"width_mil\": 5.91,\n  \"height_mm\": 0.2104,\n  \"epsilon_r\": 4.32,\n  \"results\": {\n    \"z0_ohm\": 64.24,\n    \"epsilon_eff\": 4.325,\n    \"delay_ps_per_mm\": 6.94,\n    \"delay_ps_per_inch\": 176.2,\n    \"loss_db_per_m\": 19.023,\n    \"loss_db_per_inch\": 0.4832\n  },\n  \"construction\": {\n    \"id\": \"jlcpcb-4-legacy\",\n    \"factory_id\": null,\n    \"compatibility_only\": true\n  }\n}\n",
+  "stderr": ""
+ },
+ "calculate_cpwg_json": {
+  "args": [
+   "calculate",
+   "-p",
+   "jlcpcb-4",
+   "-w",
+   "0.25",
+   "-l",
+   "F.Cu",
+   "-m",
+   "cpwg",
+   "-g",
+   "0.15",
+   "-f",
+   "json"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"geometry\": \"cpwg\",\n  \"layer\": \"F.Cu\",\n  \"width_mm\": 0.25,\n  \"width_mil\": 9.84,\n  \"height_mm\": 0.2104,\n  \"epsilon_r\": 4.05,\n  \"results\": {\n    \"z0_ohm\": 80.62,\n    \"epsilon_eff\": 2.221,\n    \"delay_ps_per_mm\": 4.97,\n    \"delay_ps_per_inch\": 126.3,\n    \"loss_db_per_m\": 6.825,\n    \"loss_db_per_inch\": 0.1733\n  },\n  \"gap_mm\": 0.15,\n  \"construction\": {\n    \"id\": \"jlcpcb-4-legacy\",\n    \"factory_id\": null,\n    \"compatibility_only\": true\n  }\n}\n",
+  "stderr": ""
+ },
+ "calculate_cpwg_text": {
+  "args": [
+   "calculate",
+   "-p",
+   "jlcpcb-4",
+   "-w",
+   "0.25",
+   "-l",
+   "F.Cu",
+   "-m",
+   "cpwg",
+   "-g",
+   "0.15"
+  ],
+  "code": 0,
+  "stdout": "\nImpedance Calculation:\n\n  Geometry:   CPWG\n  Width:      9.8 mil (0.250 mm)\n  Layer:      F.Cu\n  Height:     8.3 mil (0.210 mm) to reference\n  εr:         4.05\n  Gap:        5.9 mil (0.150 mm)\n\n  Results:\n    Z₀ = 80.6Ω\n    εeff = 2.22\n    Delay = 5.0 ps/mm (126 ps/inch)\n    Loss = 0.173 dB/inch @ 1.0GHz\n",
+  "stderr": ""
+ },
+ "calculate_negative_width": {
+  "args": [
+   "calculate",
+   "-p",
+   "jlcpcb-4",
+   "-w",
+   "-1",
+   "-l",
+   "F.Cu"
+  ],
+  "code": 1,
+  "stdout": "",
+  "stderr": "Error: ValueError: Trace width must be positive, got -1.0\n"
+ },
+ "diffpair_target_text": {
+  "args": [
+   "diffpair",
+   "-p",
+   "jlcpcb-4",
+   "-w",
+   "0.3",
+   "-g",
+   "0.15",
+   "-l",
+   "F.Cu",
+   "-z",
+   "90"
+  ],
+  "code": 0,
+  "stdout": "\nDifferential Pair Analysis:\n\n  Geometry:   Edge-coupled microstrip\n  Width:      11.8 mil (0.300 mm) each\n  Gap:        5.9 mil (0.150 mm)\n  Layer:      F.Cu\n\n  Results:\n    Zdiff = 95.0Ω (✗ 5.5% from 90.0Ω target)\n    Zcommon = 33.9Ω\n    Z0_even = 67.7Ω\n    Z0_odd = 47.5Ω\n    Coupling k = 0.18\n\n  Recommendations:\n    ✓ Good for USB 2.0 (90Ω ±10%)\n    ✓ Good for LVDS (100Ω ±10%)\n    ✓ Good for HDMI (100Ω ±15%)\n",
+  "stderr": ""
+ },
+ "diffpair_stripline_json": {
+  "args": [
+   "diffpair",
+   "-p",
+   "jlcpcb-4",
+   "-w",
+   "0.15",
+   "-g",
+   "0.15",
+   "-l",
+   "In1.Cu",
+   "-z",
+   "100",
+   "-f",
+   "json"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"geometry\": \"edge-coupled_stripline\",\n  \"layer\": \"In1.Cu\",\n  \"width_mm\": 0.15,\n  \"gap_mm\": 0.15,\n  \"results\": {\n    \"zdiff_ohm\": 114.9,\n    \"zcommon_ohm\": 35.91,\n    \"z0_even_ohm\": 71.83,\n    \"z0_odd_ohm\": 57.45,\n    \"coupling_coefficient\": 0.111\n  },\n  \"target_zdiff_ohm\": 100.0,\n  \"target_met\": false,\n  \"construction\": {\n    \"id\": \"jlcpcb-4-legacy\",\n    \"factory_id\": null,\n    \"compatibility_only\": true\n  }\n}\n",
+  "stderr": ""
+ },
+ "crosstalk_excessive_text": {
+  "args": [
+   "crosstalk",
+   "-p",
+   "jlcpcb-4",
+   "-l",
+   "F.Cu",
+   "-w",
+   "0.2",
+   "-s",
+   "0.1",
+   "--length",
+   "50"
+  ],
+  "code": 0,
+  "stdout": "\nCrosstalk Analysis:\n\n  Spacing:        3.9 mil (0.100 mm)\n  Parallel:       50.0 mm\n  Width:          7.9 mil (0.200 mm) each\n  Layer:          F.Cu\n  Rise time:      1.0 ns\n\n  Results:\n    NEXT = 6.2% (-24.2 dB)\n    FEXT = 12.4% (-18.1 dB)\n    Saturation length: 87.1 mm\n\n  Crosstalk Risk: EXCESSIVE\n\n  Recommendation: Increase spacing to 0.20mm or more; Consider routing on \ndifferent layers with ground between\n",
+  "stderr": ""
+ },
+ "crosstalk_json": {
+  "args": [
+   "crosstalk",
+   "-p",
+   "jlcpcb-4",
+   "-l",
+   "In1.Cu",
+   "-w",
+   "0.15",
+   "-s",
+   "0.3",
+   "--length",
+   "30",
+   "--rise-time",
+   "0.5",
+   "-f",
+   "json"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"spacing_mm\": 0.3,\n  \"parallel_length_mm\": 30.0,\n  \"width_mm\": 0.15,\n  \"layer\": \"In1.Cu\",\n  \"rise_time_ns\": 0.5,\n  \"results\": {\n    \"next_percent\": 1.48,\n    \"next_db\": -36.6,\n    \"fext_percent\": 2.96,\n    \"fext_db\": -30.6,\n    \"saturation_length_mm\": 36.04\n  },\n  \"severity\": \"acceptable\",\n  \"recommendation\": null,\n  \"construction\": {\n    \"id\": \"jlcpcb-4-legacy\",\n    \"factory_id\": null,\n    \"compatibility_only\": true\n  }\n}\n",
+  "stderr": ""
+ },
+ "crosstalk_budget_text": {
+  "args": [
+   "crosstalk",
+   "-p",
+   "jlcpcb-4",
+   "-l",
+   "F.Cu",
+   "-w",
+   "0.2",
+   "--length",
+   "20",
+   "--max-percent",
+   "5"
+  ],
+  "code": 0,
+  "stdout": "\nSpacing for <5.0% Crosstalk:\n\n  Parallel length: 20.0 mm\n  Trace width:     7.9 mil (0.200 mm)\n  Max crosstalk:   5.0%\n  Rise time:       1.0 ns\n\n  Minimum spacing: 4.0 mil (0.102 mm)\n",
+  "stderr": ""
+ },
+ "crosstalk_budget_json": {
+  "args": [
+   "crosstalk",
+   "-p",
+   "jlcpcb-4",
+   "-l",
+   "In1.Cu",
+   "-w",
+   "0.2",
+   "--length",
+   "20",
+   "--max-percent",
+   "3",
+   "-f",
+   "json"
+  ],
+  "code": 0,
+  "stdout": "{\n  \"calculation\": \"spacing_for_budget\",\n  \"max_crosstalk_percent\": 3.0,\n  \"parallel_length_mm\": 20.0,\n  \"width_mm\": 0.2,\n  \"rise_time_ns\": 1.0,\n  \"layer\": \"In1.Cu\",\n  \"result\": {\n    \"minimum_spacing_mm\": 0.184,\n    \"minimum_spacing_mil\": 7.2\n  },\n  \"construction\": {\n    \"id\": \"jlcpcb-4-legacy\",\n    \"factory_id\": null,\n    \"compatibility_only\": true\n  }\n}\n",
+  "stderr": ""
+ },
+ "crosstalk_missing_args": {
+  "args": [
+   "crosstalk",
+   "-p",
+   "jlcpcb-4",
+   "-l",
+   "F.Cu",
+   "-w",
+   "0.2"
+  ],
+  "code": 1,
+  "stdout": "Error: For crosstalk analysis, provide --spacing, --length, and --width\n       Or use --max-percent, --length, and --width to calculate spacing\n",
+  "stderr": ""
+ }
+}

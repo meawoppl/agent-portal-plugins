@@ -12,6 +12,7 @@ use anyhow::Result;
 
 use crate::units::{self, UnitFormatter};
 
+pub mod impedance;
 pub mod mfr;
 
 /// Global flags accepted before the command name.
@@ -81,7 +82,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "board-metrics", about: "Emit a normalized board.json per board from existing artifacts", wave: "C", run: None },
     CommandSpec { name: "readiness", about: "Run the manufacturing-readiness gates and write output/readiness.json", wave: "C", run: None },
     CommandSpec { name: "clean", about: "Clean up old/orphaned files from KiCad projects", wave: "G", run: None },
-    CommandSpec { name: "impedance", about: "Transmission line impedance calculations", wave: "E", run: None },
+    CommandSpec { name: "impedance", about: "Transmission line impedance calculations", wave: "E", run: Some(impedance::run) },
     CommandSpec { name: "mcp", about: "MCP (Model Context Protocol) server for AI agents", wave: "H", run: None },
     CommandSpec { name: "ipc", about: "Interact with a running KiCad instance via IPC API (KiCad 9.0+)", wave: "H", run: None },
     CommandSpec { name: "init", about: "Initialize a KiCad project with manufacturer design rules", wave: "G", run: None },

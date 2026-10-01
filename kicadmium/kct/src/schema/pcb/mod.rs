@@ -642,8 +642,9 @@ impl Pcb {
         self.doc.path.as_deref()
     }
 
-    /// Save the tree (untouched text preserved like `Document::save`). A
-    /// given `path` becomes the stored path.
+    /// Save the tree (untouched text preserved). A given `path` becomes the
+    /// stored path. Like upstream `PCB.save` -> `save_pcb`, this checks the
+    /// KiCad lock and writes no trailing newline.
     pub fn save(&mut self, path: Option<&Path>) -> Result<()> {
         if !self.doc.root.has_tag("kicad_pcb") {
             bail!("Not a KiCad PCB (root is {:?})", self.doc.root.tag());
@@ -655,7 +656,8 @@ impl Pcb {
             ),
             None => {}
         }
-        self.doc.save(None).context("saving PCB")
+        let target = self.doc.path.clone().expect("path set above");
+        crate::core::sexp_file::save_pcb(&self.doc.root, &target).context("saving PCB")
     }
 
     /// Indices (into the root's children) of top-level footprint nodes, in

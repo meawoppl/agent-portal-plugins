@@ -1,0 +1,24 @@
+{
+  "manufacturer": "jlcpcb",
+  "dry_run": false,
+  "via_in_pad_supported_noop": false,
+  "moved": [
+    {
+      "old_x": 10.0,
+      "old_y": 10.0,
+      "new_x": 10.0,
+      "new_y": 10.727,
+      "net": 1,
+      "net_name": "SIG",
+      "pad": "U1-1",
+      "uuid": "11111111-1111-4111-8111-111111111111",
+      "stub_layers": [
+        "F.Cu",
+        "B.Cu"
+      ],
+      "kind": "signal"
+    }
+  ],
+  "skipped": [],
+  "unresolvable": []
+}

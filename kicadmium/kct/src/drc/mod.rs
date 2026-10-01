@@ -2,18 +2,21 @@
 //! geometric helpers of `kicad_tools.drc`: `geometric` (kicad-cli
 //! reconciliation), `incremental` (cached placement DRC with a spatial
 //! index, replacing the C++ backend), `predictive` (move warnings) and
-//! `different_net_short` (grid-independent short detection).
-//!
-//! Not ported here: the repair modules, `fixer`, and `local_rerouter`.
+//! `different_net_short` (grid-independent short detection and via-relocation
+//! repair), plus the repair modules: `fixer` (destructive delete-and-reroute),
+//! `repair_*`, `relocate_drill_clearance` (hole-to-hole post-pass) and
+//! `local_rerouter`.
 
 pub mod checker;
 pub mod compat;
 pub mod different_net_short;
+pub mod fixer;
 pub mod geometric;
 pub mod incremental;
 pub mod local_rerouter;
 pub mod net_compat;
 pub mod predictive;
+pub mod relocate_drill_clearance;
 pub mod repair_clearance;
 pub mod repair_drill_clearance;
 pub mod repair_silkscreen;

@@ -1,0 +1,16 @@
+Resizing vias to JLCPCB minimums (drill: 0.35mm, diameter: 0.7mm):
+  Updated 24 via(s)
+    Via at (131.10, 98.40): drill 0.300->0.350mm, diameter 0.600->0.700mm
+    Via at (157.90, 98.00): drill 0.300->0.350mm, diameter 0.600->0.700mm
+    Via at (132.20, 80.80): drill 0.300->0.350mm, diameter 0.600->0.700mm
+    ... and 21 more
+
+Warning: 22 via(s) may cause DRC violations after resize:
+  - Via at (131.10, 98.40) - -0.35mm clearance to track at (131.00, 98.40)
+  - Via at (131.10, 98.40) - 0.19mm clearance to track at (130.60, 98.00)
+  - Via at (133.00, 97.40) - -0.35mm clearance to track at (133.00, 97.50)
+  - Via at (157.10, 71.20) - 0.15mm clearance to track at (157.10, 70.60)
+  - Via at (148.00, 69.60) - -0.35mm clearance to track at (147.90, 69.60)
+  ... and 17 more
+
+Saved to: <WORK>/fv_charlie_text.out.kicad_pcb

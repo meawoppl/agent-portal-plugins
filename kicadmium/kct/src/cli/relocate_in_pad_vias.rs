@@ -585,7 +585,7 @@ impl RelocationResult {
     }
 }
 
-const PLANE_DIRECTIONS: [(f64, f64); 8] = [
+pub const PLANE_DIRECTIONS: [(f64, f64); 8] = [
     (1.0, 0.0),
     (0.0, 1.0),
     (-1.0, 0.0),
@@ -596,7 +596,7 @@ const PLANE_DIRECTIONS: [(f64, f64); 8] = [
     (0.707, -0.707),
 ];
 
-fn endpoint_at(seg: &Segment, x: f64, y: f64) -> Option<(f64, f64)> {
+pub fn endpoint_at(seg: &Segment, x: f64, y: f64) -> Option<(f64, f64)> {
     if (seg.start.0 - x).abs() < COINCIDENT_TOL && (seg.start.1 - y).abs() < COINCIDENT_TOL {
         return Some(seg.end);
     }
@@ -606,7 +606,7 @@ fn endpoint_at(seg: &Segment, x: f64, y: f64) -> Option<(f64, f64)> {
     None
 }
 
-fn pad_copper_layer(pad: &Pad) -> String {
+pub fn pad_copper_layer(pad: &Pad) -> String {
     pad.layers
         .iter()
         .find(|l| l.ends_with(".Cu") && !l.starts_with('*'))
@@ -1076,7 +1076,7 @@ fn first_offpad_candidate(
     Ok(None)
 }
 
-fn persist_via_with_stubs(
+pub fn persist_via_with_stubs(
     pcb: &mut Pcb,
     via_index: usize,
     target: (f64, f64),

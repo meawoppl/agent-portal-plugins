@@ -282,7 +282,7 @@ pub fn find_nearby_items(doc: &SExp, x: f64, y: f64, radius: f64) -> Vec<(String
     for fp in footprints {
         for pad in fp.find_all("pad") {
             if let Some((px, py)) = xy(pad.find("at")) {
-                let dist = ((px - x).powi(2) + (py - y).powi(2)).sqrt();
+                let dist = ((px - x).powi(2) + (py - y).powi(2)).powf(0.5);
                 if dist < radius {
                     let size = match pad.find("size") {
                         Some(s) => {
@@ -303,7 +303,7 @@ pub fn find_nearby_items(doc: &SExp, x: f64, y: f64, radius: f64) -> Vec<(String
             if (vx - x).abs() < 0.001 && (vy - y).abs() < 0.001 {
                 continue;
             }
-            let dist = ((vx - x).powi(2) + (vy - y).powi(2)).sqrt();
+            let dist = ((vx - x).powi(2) + (vy - y).powi(2)).powf(0.5);
             if dist < radius {
                 items.push(("via".to_string(), vx, vy, first_f64(via.find("size"))));
             }
@@ -442,7 +442,7 @@ pub fn fix_vias(
         if new_diameter - v.diameter > 0.0 {
             let radius = new_diameter / 2.0 + min_clearance * 2.0;
             for (kind, ix, iy, w) in find_nearby_items(doc, v.x, v.y, radius) {
-                let dist = ((ix - v.x).powi(2) + (iy - v.y).powi(2)).sqrt();
+                let dist = ((ix - v.x).powi(2) + (iy - v.y).powi(2)).powf(0.5);
                 let clearance = dist - new_diameter / 2.0 - w / 2.0;
                 if clearance < min_clearance {
                     via_warnings.push(ViaClearanceWarning {

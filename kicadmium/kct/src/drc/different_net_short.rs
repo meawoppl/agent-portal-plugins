@@ -2,9 +2,7 @@
 //! detection half of `kicad_tools.drc.different_net_short`).
 //!
 //! The repair pass (`repair_different_net_shorts`) relocates vias through
-//! the `relocate_drill_clearance` / `relocate_in_pad_vias` engine, which
-//! belongs to the routing-repair port; the result records are provided so
-//! that port can fill them.
+//! the shared `relocate_drill_clearance` / `relocate_in_pad_vias` engine.
 
 use crate::core::geometry::{point_to_segment_distance, segment_to_segment_distance};
 use crate::pyjson::py_round;
@@ -314,4 +312,101 @@ impl ShortRepairResult {
         }
         lines.join("\n")
     }
+}
+
+/// `repair_different_net_shorts`: relocate offending vias through the shared
+/// clearance-safe candidate ladder
+/// ([`crate::drc::relocate_drill_clearance::try_relocate`]). Pure
+/// segment-vs-segment shorts and boxed-in vias are reported as unresolved.
+pub fn repair_different_net_shorts(
+    pcb: &mut Pcb,
+    rules: &crate::manufacturers::DesignRules,
+    detect_clearance: f64,
+    dry_run: bool,
+) -> anyhow::Result<ShortRepairResult> {
+    use crate::cli::relocate_in_pad_vias::{collect_smd_pads_by_net, collect_tht_pads};
+    use crate::drc::relocate_drill_clearance::try_relocate;
+    use std::collections::{BTreeMap, BTreeSet};
+
+    let mut result = ShortRepairResult::default();
+    let (min_clearance, min_h2h) = (rules.min_clearance_mm, rules.min_hole_to_hole_mm);
+    let pads = collect_smd_pads_by_net(pcb);
+    let tht = collect_tht_pads(pcb);
+    let mut failed: BTreeSet<usize> = BTreeSet::new();
+
+    let max_iterations = 4 * pcb.vias().len().max(1);
+    for _ in 0..max_iterations {
+        let shorts = find_different_net_shorts(pcb, detect_clearance);
+        let mut counts: BTreeMap<usize, usize> = BTreeMap::new();
+        let mut order: Vec<usize> = Vec::new();
+        for s in shorts
+            .iter()
+            .filter(|s| s.via_a.is_some() || s.via_b.is_some())
+        {
+            for v in [s.via_a, s.via_b].into_iter().flatten() {
+                *counts.entry(v).or_default() += 1;
+                if !order.contains(&v) {
+                    order.push(v);
+                }
+            }
+        }
+        if order.is_empty() {
+            break;
+        }
+        let vias = pcb.vias();
+        order.sort_by(|&x, &y| {
+            counts[&y]
+                .cmp(&counts[&x])
+                .then(py_round(vias[x].position.0, 4).total_cmp(&py_round(vias[y].position.0, 4)))
+                .then(py_round(vias[x].position.1, 4).total_cmp(&py_round(vias[y].position.1, 4)))
+        });
+        let mut moved_this_pass = false;
+        for vi in order {
+            if failed.contains(&vi) || pcb.vias()[vi].net_number == 0 {
+                continue;
+            }
+            match try_relocate(pcb, vi, &pads, &tht, min_clearance, min_h2h, dry_run)? {
+                None => {
+                    failed.insert(vi);
+                }
+                Some(o) => {
+                    result.moved.push(ShortRepairMove {
+                        old_x: o.old_x,
+                        old_y: o.old_y,
+                        new_x: o.new_x,
+                        new_y: o.new_y,
+                        net_name: o.net_name,
+                        uuid: o.uuid,
+                        stub_layers: o.stub_layers,
+                    });
+                    moved_this_pass = true;
+                    if dry_run {
+                        failed.insert(vi);
+                    }
+                    break;
+                }
+            }
+        }
+        if !moved_this_pass {
+            break;
+        }
+    }
+
+    for s in find_different_net_shorts(pcb, detect_clearance) {
+        let reason = if s.via_a.is_none() && s.via_b.is_none() {
+            "segment-vs-segment overlap (no via to relocate)"
+        } else {
+            "no clearance-legal location for the offending via (boxed in)"
+        };
+        result.unresolved.push(ShortRepairUnresolved {
+            kind: s.kind.to_string(),
+            net_a_name: s.net_a_name,
+            net_b_name: s.net_b_name,
+            layer: s.layer,
+            x: s.x,
+            y: s.y,
+            reason: reason.into(),
+        });
+    }
+    Ok(result)
 }

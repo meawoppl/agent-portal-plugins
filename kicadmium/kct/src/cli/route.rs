@@ -75,6 +75,17 @@ fn project_default_class(pcb: &Path) -> Option<(f64, f64, f64, f64)> {
     ))
 }
 
+/// A numeric board design-settings rule from the sibling `.kicad_pro`.
+fn project_rule(pcb: &Path, key: &str) -> Option<f64> {
+    let text = std::fs::read_to_string(pcb.with_extension("kicad_pro")).ok()?;
+    let v: Json = serde_json::from_str(&text).ok()?;
+    v.get("board")?
+        .get("design_settings")?
+        .get("rules")?
+        .get(key)?
+        .as_f64()
+}
+
 fn split_names(s: Option<&str>) -> Vec<String> {
     s.map(|s| {
         s.split(',')
@@ -272,16 +283,6 @@ fn fmt(v: f64) -> String {
     crate::router::primitives::fmt_num(v)
 }
 
-/// Whether every pad of `net` has copper on `layer` (so a pour there
-/// connects the net without traces).
-fn pour_connects_all(board: &BoardData, net: &str, layer: &str) -> bool {
-    board
-        .pads
-        .iter()
-        .filter(|p| p.pad.net_name == net && !p.copper.is_empty())
-        .all(|p| p.copper.iter().any(|l| l == layer))
-}
-
 /// One routing attempt at a fixed layer count.
 pub struct Attempt {
     pub layers: usize,
@@ -372,6 +373,9 @@ fn run_attempt(
     }
     let mut cfg = make_config(p, layers, grid, skip, late);
     cfg.plane_layers = planes.to_vec();
+    if let Some(h) = project_rule(&p.pcb, "min_hole_to_hole") {
+        cfg.min_hole_to_hole = h;
+    }
     let mut router = Autorouter::new(board, cfg);
     if !p.quiet {
         println!(

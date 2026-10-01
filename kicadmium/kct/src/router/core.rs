@@ -42,6 +42,8 @@ pub struct RouterConfig {
     /// Reserved plane layers: (net name, inner layer name). Only the plane
     /// net reaches them (through vias); signals never route there.
     pub plane_layers: Vec<(String, String)>,
+    /// Minimum drill-to-drill edge spacing (mm).
+    pub min_hole_to_hole: f64,
     pub verbose: bool,
     pub quiet: bool,
 }
@@ -65,6 +67,7 @@ impl Default for RouterConfig {
             net_widths: HashMap::new(),
             allowed_layers: None,
             plane_layers: Vec::new(),
+            min_hole_to_hole: DEFAULT_MIN_HOLE_TO_HOLE,
             verbose: false,
             quiet: false,
         }
@@ -136,8 +139,8 @@ pub struct Autorouter {
 }
 
 const HALO_MARGIN_CELLS: f64 = 0.3;
-/// Minimum drill-to-drill edge spacing (mm) enforced between vias and holes.
-const MIN_HOLE_TO_HOLE: f64 = 0.5;
+/// Default drill-to-drill edge spacing (KiCad default rule).
+pub const DEFAULT_MIN_HOLE_TO_HOLE: f64 = 0.25;
 
 impl Autorouter {
     /// Build the grid and obstacle maps for `board`.
@@ -234,7 +237,7 @@ impl Autorouter {
                 .add_shape_halo(&bp.shape, &layers, owner, c + w / 2.0 + 0.25 * g);
             if bp.hole > 0.0 {
                 // Plated hole: keep via drills hole-to-hole clear of it.
-                let r = bp.hole / 2.0 + self.config.via_drill / 2.0 + 0.25;
+                let r = bp.hole / 2.0 + self.config.via_drill / 2.0 + self.config.min_hole_to_hole;
                 let (x0, y0, x1, y1) = self.grid.cell_range(
                     (bp.shape.cx, bp.shape.cy, bp.shape.cx, bp.shape.cy),
                     r + g,
@@ -302,7 +305,7 @@ impl Autorouter {
                 FixedCopper::Via { at, diameter, .. } => {
                     let shape = PadShape::circle(at.0, at.1, diameter / 2.0);
                     self.grid.add_shape_halo(&shape, &all, owner, c + w / 2.0);
-                    let r = self.config.via_drill + MIN_HOLE_TO_HOLE;
+                    let r = self.config.via_drill + self.config.min_hole_to_hole;
                     self.grid.block_via_hole(at.0, at.1, r, 1);
                 }
             }
@@ -771,7 +774,7 @@ impl Autorouter {
 
     /// Convert a cell path into segments/vias appended to `res`.
     fn via_hole_radius(&self) -> f64 {
-        self.config.via_drill + MIN_HOLE_TO_HOLE
+        self.config.via_drill + self.config.min_hole_to_hole
     }
 
     fn block_route_vias(&mut self, route: &Route, delta: i32) {

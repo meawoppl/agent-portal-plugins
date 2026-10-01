@@ -7,6 +7,7 @@
 //! router core; `Autorouter`/`RoutingGrid` implement them when ported.
 
 use std::collections::{HashMap, HashSet};
+use super::geometry::make_route;
 use std::path::Path;
 
 use anyhow::Result;
@@ -147,12 +148,12 @@ impl<'a> TraceOptimizer<'a> {
         if !endpoints_preserved(&pre, &optimized, &route.vias, tol) {
             optimized = route.segments.clone();
         }
-        let mut out = Route::new(route.net, &route.net_name, optimized, route.vias.clone());
+        let mut out = make_route(route.net, &route.net_name, optimized, route.vias.clone());
         if self.config.minimize_vias {
             out = self.via_optimizer.optimize_route(&out);
         }
         if !endpoints_preserved(&pre, &out.segments, &out.vias, tol) {
-            out = Route::new(
+            out = make_route(
                 route.net,
                 &route.net_name,
                 route.segments.clone(),

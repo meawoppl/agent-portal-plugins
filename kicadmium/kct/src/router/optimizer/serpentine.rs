@@ -6,10 +6,11 @@
 //! grid through the [`ReservationGrid`] trait.
 
 use std::collections::{HashMap, HashSet};
+use super::geometry::{make_route, SegmentExt};
 
 use super::geometry::segment_length;
 use crate::router::primitives::{Route, Segment};
-use crate::router::quantize::{dogleg_points, snap_direction_8};
+use crate::router::quantize::{dogleg, snap_direction_8};
 
 /// Style of serpentine pattern.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -244,7 +245,7 @@ impl SerpentineGenerator {
                 direction *= -1.0;
             }
         }
-        let exit = dogleg_points(cx, cy, segment.x2, segment.y2, false);
+        let exit = dogleg(cx, cy, segment.x2, segment.y2, false);
         for w in exit.windows(2) {
             if w[0] == w[1] {
                 continue;
@@ -299,7 +300,7 @@ impl SerpentineGenerator {
         segs.extend(result.new_segments.iter().cloned());
         segs.extend_from_slice(&route.segments[idx + 1..]);
         (
-            Route::new(route.net, &route.net_name, segs, route.vias.clone()),
+            make_route(route.net, &route.net_name, segs, route.vias.clone()),
             result,
         )
     }

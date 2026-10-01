@@ -1,6 +1,36 @@
 //! Port of `kicad_tools.router.optimizer.geometry`: segment helpers.
 
-use crate::router::primitives::Segment;
+use crate::router::primitives::{Route, Segment, Via};
+
+/// Optimizer-side constructors (upstream builds `Segment(...)` /
+/// `Route(...)` dataclasses inline with copied width/layer/net).
+pub trait SegmentExt {
+    /// Copy of this segment's width/layer/net/net_name with new endpoints.
+    fn with_points(&self, x1: f64, y1: f64, x2: f64, y2: f64) -> Segment;
+}
+
+impl SegmentExt for Segment {
+    fn with_points(&self, x1: f64, y1: f64, x2: f64, y2: f64) -> Segment {
+        Segment {
+            x1,
+            y1,
+            x2,
+            y2,
+            width: self.width,
+            layer: self.layer,
+            net: self.net,
+            net_name: self.net_name.clone(),
+        }
+    }
+}
+
+/// `Route(net=, net_name=, segments=, vias=)`.
+pub fn make_route(net: i64, net_name: &str, segments: Vec<Segment>, vias: Vec<Via>) -> Route {
+    let mut r = Route::new(net, net_name);
+    r.segments = segments;
+    r.vias = vias;
+    r
+}
 
 /// Direction of a segment in degrees (0-360); 0 for zero-length.
 pub fn segment_direction(seg: &Segment, tolerance: f64) -> f64 {

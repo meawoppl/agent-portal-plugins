@@ -6,6 +6,7 @@
 //! behaviours are reproduced.
 
 use std::cell::RefCell;
+use super::geometry::make_route;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 
@@ -284,7 +285,7 @@ impl<'a> ViaOptimizer<'a> {
         let singles_removed = self.remove_single_vias(&contexts, &mut segments, &mut vias, route);
         self.stats.borrow_mut().vias_removed_single += singles_removed;
 
-        let optimized = Route::new(
+        let optimized = make_route(
             route.net,
             &route.net_name,
             segments.into_iter().map(|t| t.seg).collect(),
@@ -447,7 +448,7 @@ impl<'a> ViaOptimizer<'a> {
                 return None;
             }
         }
-        Some(vec![Segment::new(x1, y1, x2, y2, width, layer, net, "")])
+        Some(vec![Segment::new(x1, y1, x2, y2, width, layer, net)])
     }
 
     fn remove_first_equal_via(vias: &mut Vec<TaggedVia>, via: &Via) {

@@ -2,13 +2,14 @@
 //! cleanup passes.
 
 use super::config::OptimizationConfig;
+use super::geometry::SegmentExt;
 use super::geometry::{
     is_90_degree_corner, is_connected, is_zigzag, perpendicular_direction,
     project_point_onto_line, same_direction, segment_direction, segment_length,
     shorten_segment_end, shorten_segment_start, translate_segment,
 };
 use crate::router::primitives::Segment;
-use crate::router::quantize::dogleg_points;
+use crate::router::quantize::dogleg;
 
 /// Optional collision predicate (`path_is_clear`).
 pub type PathIsClear<'a> = Option<&'a dyn Fn(&Segment) -> bool>;
@@ -266,7 +267,7 @@ fn point_near_any_pad(point: (f64, f64), pads: &[(f64, f64)], tolerance: f64) ->
 }
 
 fn make_legs(template: &Segment, sx: f64, sy: f64, ex: f64, ey: f64) -> Vec<Segment> {
-    let points = dogleg_points(sx, sy, ex, ey, false);
+    let points = dogleg(sx, sy, ex, ey, false);
     points
         .windows(2)
         .filter(|w| w[0] != w[1])

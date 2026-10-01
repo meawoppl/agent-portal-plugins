@@ -283,7 +283,7 @@ pub fn replace_segments(
     let mut new_sexps = Vec::new();
     for (_, segs) in optimized {
         for seg in segs {
-            new_sexps.push(seg.to_sexp(false)?);
+            new_sexps.push(seg.try_to_sexp(false)?);
         }
     }
     if !new_sexps.is_empty() {

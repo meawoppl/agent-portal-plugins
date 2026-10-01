@@ -2,6 +2,7 @@
 //! chains at junctions (degree >= 3 vertices), issue #2389.
 
 use std::collections::{HashMap, HashSet};
+use super::geometry::SegmentExt;
 
 use crate::router::primitives::Segment;
 

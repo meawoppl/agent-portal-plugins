@@ -4,6 +4,7 @@
 //! connectivity are unchanged.
 
 use std::collections::{HashMap, HashSet};
+use super::geometry::SegmentExt;
 
 use super::trace::{apply_route_transform_grid_synced, SyncedRouter};
 use crate::router::primitives::{Route, Segment};

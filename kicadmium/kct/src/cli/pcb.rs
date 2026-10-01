@@ -102,7 +102,7 @@ fn load(p: &PathBuf) -> Result<SExp> {
     }
     Ok(Document::load(p)?.root)
 }
-/// Structured board summary used by MCP without capturing process output.
+/// Structured board summary used by shell and library callers.
 pub fn summary_path(path: &std::path::Path) -> Result<Value> {
     let path = path.to_path_buf();
     Ok(query_summary(&load(&path)?))

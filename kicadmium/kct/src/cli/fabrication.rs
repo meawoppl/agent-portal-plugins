@@ -391,11 +391,16 @@ fn render_rect(root: &mut SExp, (x0, y0, x1, y1): (f64, f64, f64, f64)) {
     }
 }
 fn render_tab(root: &mut SExp, t: &Tab) {
+    let (box_w, box_h) = if t.horizontal {
+        (t.width, t.height)
+    } else {
+        (t.height, t.width)
+    };
     let (x0, x1, y0, y1) = (
-        t.x - t.width / 2.0,
-        t.x + t.width / 2.0,
-        t.y - t.height / 2.0,
-        t.y + t.height / 2.0,
+        t.x - box_w / 2.0,
+        t.x + box_w / 2.0,
+        t.y - box_h / 2.0,
+        t.y + box_h / 2.0,
     );
     if t.horizontal {
         root.children.push(gr_line(x0, y0, x0, y1));
@@ -423,16 +428,11 @@ fn gr_line(x0: f64, y0: f64, x1: f64, y1: f64) -> SExp {
     )
 }
 fn render_mousebites(root: &mut SExp, t: &Tab, diameter: f64, spacing: f64) {
-    let length = if t.horizontal { t.width } else { t.height };
-    // Match upstream's subtraction-derived vertical-tab extent.  Its two
-    // independently computed endpoints land one ulp inside the nominal tab
-    // width (observable in the established 2x2 golden output).
-    let effective = if t.horizontal {
-        length
-    } else {
-        length - f64::EPSILON * length.abs().max(1.0)
-    };
-    let count = ((effective / spacing).floor() as usize + 1).max(1);
+    // Upstream's `Tab.width` is the perforation-line dimension in both
+    // orientations: the tab bridge is wide along X when horizontal and along
+    // Y when vertical.
+    let length = t.width;
+    let count = ((length / spacing).floor() as usize + 1).max(1);
     for i in 0..count {
         let p = if count == 1 {
             0.0

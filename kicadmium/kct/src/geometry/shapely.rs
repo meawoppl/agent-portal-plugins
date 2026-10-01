@@ -347,26 +347,11 @@ pub fn box_buffer(minx: f64, miny: f64, maxx: f64, maxy: f64, r: f64) -> Geom {
     if w0 {
         return segment_buffer((minx, maxy), (minx, miny), r);
     }
-    use std::f64::consts::PI;
-    let mut sl = SegList::new(r);
-    // Clockwise, starting at the right end of the bottom edge offset.
-    let corner = |sl: &mut SegList, c: C, from: C, to: C| {
-        let mut start = (from.1 - c.1).atan2(from.0 - c.0);
-        let end = (to.1 - c.1).atan2(to.0 - c.0);
-        if start <= end {
-            start += 2.0 * PI;
-        }
-        sl.add(from);
-        directed_fillet(sl, c, start, end, true, r, QUAD_SEGS);
-        sl.add(to);
+    let Geom::Poly(bx) = box_poly(minx, miny, maxx, maxy) else {
+        unreachable!()
     };
-    sl.add((maxx, miny - r));
-    corner(&mut sl, (minx, miny), (minx, miny - r), (minx - r, miny));
-    corner(&mut sl, (minx, maxy), (minx - r, maxy), (minx, maxy + r));
-    corner(&mut sl, (maxx, maxy), (maxx, maxy + r), (maxx + r, maxy));
-    corner(&mut sl, (maxx, miny), (maxx + r, miny), (maxx, miny - r));
     Geom::Poly(Poly {
-        shell: sl.close(),
+        shell: convex_ring_offset(&bx.shell, r, QUAD_SEGS),
         holes: vec![],
     })
 }
@@ -1763,7 +1748,14 @@ pub fn convex_ring_offset(ring: &[C], d: f64, quad: usize) -> Vec<C> {
         corner_fillet(&mut sl, s1, o0p1, o1p0, o < 0.0, d, quad);
         sl.add(o1p0);
     }
-    sl.close()
+    let mut ring = sl.close();
+    // GEOS emits clockwise shells: a counter-clockwise raw offset curve is
+    // reversed in place, keeping its start vertex.
+    if ring.len() > 3 && ring_area(&ring) < 0.0 {
+        let n = ring.len();
+        ring[1..n - 1].reverse();
+    }
+    ring
 }
 
 /// `polygon.buffer(d)` for d > 0: exact GEOS vertex generation for convex

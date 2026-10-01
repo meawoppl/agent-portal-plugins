@@ -472,7 +472,7 @@ impl<'a> DRCChecker<'a> {
     }
 
     pub fn check_pin1_markers(&self) -> DRCResults {
-        let rule = rules::pin1_marker::Pin1MarkerRule;
+        let rule = rules::pin1_marker::Pin1MarkerRule::default();
         self.absolutize(rule.check(self.pcb, &self.design_rules))
     }
 

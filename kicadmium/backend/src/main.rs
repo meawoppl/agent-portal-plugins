@@ -54,7 +54,7 @@ use tower_http::trace::TraceLayer;
 use walkdir::WalkDir;
 use zip::{write::SimpleFileOptions, ZipWriter};
 
-/// Yew workbench plus vendored viewer runtimes (`frontend/dist`), served
+/// Yew workbench plus its retained upstream Three.js assets (`frontend/dist`), served
 /// pre-compressed with an SPA fallback. Embedded in release builds, read from
 /// disk in debug builds.
 fn frontend_router() -> Router {

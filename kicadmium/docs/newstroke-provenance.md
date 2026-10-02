@@ -1,8 +1,9 @@
 # Newstroke font provenance
 
-Research for the T3 schematic renderer (see `docs/javascript-triage.md`), done
-before any glyph data entered kicadmium. The 2015 table has since been imported
-as `kicad-strokes/src/glyphs.rs` under the rules below (see `docs/third-party.md`).
+This is the primary-source record created before any glyph data entered
+kicadmium. The completed Rust viewer stack now imports the 2015 table as
+`kicad-strokes/src/glyphs.rs` under the rules below (see
+`docs/third-party.md`).
 
 ## Primary source
 
@@ -42,10 +43,11 @@ as `kicad-strokes/src/glyphs.rs` under the rules below (see `docs/third-party.md
   1.1". That paraphrases KiCad's header.
 - **kicad-rs/kicad_newstroke_font** ships KiCad's header as its `LICENSE.txt`.
 
-## Comparison: vendored `glyph-full.js` vs the 2015 CC0 release
+## Historical comparison: retired `glyph-full.js` vs the 2015 CC0 release
 
 Over U+0020–U+2BFF (the CC0 release's whole range), using
-`frontend/static/kicad-viewer/glyph-full.js`:
+Before KiCanvas was removed, its then-vendored `glyph-full.js` was compared
+with the primary release:
 
 - **2,346 literal glyph strings:** 2,344 are byte-identical to the 2015 CC0
   table. Two differ, which means KiCad edited them after 2015:
@@ -60,7 +62,7 @@ Over U+0020–U+2BFF (the CC0 release's whole range), using
 - **U+3000 and above** (kana and CJK, from Lingdong Huang and Adobe) are outside
   the range this comparison or any planned import covers.
 
-## Conclusion and import rules for T3
+## Import rules used by `kicad-strokes`
 
 1. **Source:** take glyph data only from the author's 2015 CC0 release (the
    tarball above, checksum pinned), never from KiCad, KiCanvas or kicad-rs
@@ -79,7 +81,15 @@ Over U+0020–U+2BFF (the CC0 release's whole range), using
 4. **CJK out of scope:** U+3000+ (Lingdong Huang MIT code and Adobe Source Han
    Sans OFL glyphs) is not imported. Adding it later needs the MIT notice and the
    OFL text, and must respect the Reserved Font Name "Source".
-5. **Vendored `glyph-full.js`:** it is KiCanvas's copy of KiCad's table,
+5. **Retired `glyph-full.js`:** it was KiCanvas's copy of KiCad's table,
    including the two KiCad-modified glyphs and KiCad's shared-glyph
-   restructuring. It goes away when T3 replaces KiCanvas. Until then it's
-   redistributed as part of the KiCanvas bundle under KiCanvas's own notice.
+   restructuring. It was not used as an import source and was deleted with the
+   KiCanvas runtime.
+
+## Implemented parity
+
+`kicad-strokes/src/layout.rs` is original code fitted to `kicad-cli 10.0.6`
+PCB and schematic SVG output. The regression fixtures put every generated
+stroke point within 0.0002 mm of the KiCad plot; tests permit 0.001 mm. Text is
+therefore reified into `vector_view::Prim::Strokes` on the backend instead of
+shipping a browser font or layout engine.

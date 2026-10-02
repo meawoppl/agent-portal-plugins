@@ -1,111 +1,68 @@
 # JavaScript triage
 
-kicadmium's first-party code is Rust. The browser still runs JavaScript in
-`frontend/static/kicad-viewer/`, the viewer runtime inherited from the kicad-pcb
-plugin. This file tracks what remains, why, and the plan to shrink it.
+Status: **complete**. kicadmium's first-party browser code is Rust/WASM. The
+old KiCanvas, OCCT, iframe runtime, browser KiCad parser, Newstroke JavaScript
+table, and adapter modules have been removed.
 
-Budget at the time of writing (tracked `.js` under `frontend/static/kicad-viewer/`):
+## Current budget
 
-| Group | Lines | Status |
-|---|---|---|
-| three.js core + used addons | 53,834 | **Keep** (vendored upstream; not reimplementing three.js) |
-| KiCanvas bundle: `ecad-viewer.js`, `parser.worker.js`, `glyph-full.js` | 124,676 | **Replace** (T2, T3) |
-| `3d-viewer.js` (vendored ecad-viewer 3D component) | 1,175 | Keep for now (thin wrapper over three) |
-| First-party adapters | 4,901 | **Port to Rust/Yew** except a thin three bridge (T1) |
-| `occt/occt-import-js.wasm` | (wasm) | **Remove** (STEP remains an artifact/download; interactive 3D uses backend GLB) |
+`frontend/static/kicad-viewer/` is approximately 1.6 MiB and contains only:
 
-## T0: dead three.js decoders (done)
+| Asset | Purpose |
+|---|---|
+| `three/three.module.js` | Upstream Three.js renderer |
+| `three/addons/loaders/GLTFLoader.js` | Load backend-produced board GLB |
+| `three/addons/controls/OrbitControls.js` | Orbit, pan and zoom |
+| `three/addons/utils/BufferGeometryUtils.js` | Upstream geometry utility imported by the retained loader path |
+| `three/LICENSE` | Three.js MIT licence |
+| `american-embedded-dark.json` | Data-only layer palette; CC BY attribution is in the directory README |
+| `README.md` | Asset boundary and attribution |
 
-KiCad's GLB export has no `extensionsUsed` and no images (checked on bp-test
-boards), so the following were removed (~120k lines):
+There are no `.wasm` files, remote decoder fetches, first-party JavaScript
+bridges, browser-side STEP parsers, or browser-side KiCad parsers in that tree.
 
-- `three/addons/libs/draco/` (two Emscripten Draco decoder builds)
-- `three/addons/libs/basis/` (Basis transcoder)
-- `three/addons/libs/ktx-parse.module.js`, `zstddec.module.js`, `fflate.module.js`
+## Completed replacement
 
-`3d-viewer.js` imports `DRACOLoader`, `KTX2Loader`, `MeshoptDecoder` and
-`EXRLoader` statically. These are now small local stubs that fail with a clear
-error if a model ever needs them. This also removes the bundle's remote fetches
-of decoders from unpkg and EXR environment maps from storage.googleapis.com.
-The viewer keeps the built-in neutral `RoomEnvironment`. Verified by browser
-smoke: PCB, schematic and 3D (direction-led-tester and esp32-fpga-module) render
-with no page errors.
+KiCad source is parsed once on the Rust backend. Schematic, symbol and footprint
+data are reified into the generic `vector_view::Scene` contract: layers, stable
+item/group/net ids, properties, bounds and drawing primitives. The PCB endpoint
+similarly emits a typed, render-ready board model; its Rust Canvas2D component
+predates the generic scene extraction and remains provenance-documented in
+`third-party.md`. In generic scenes, text has already become geometry before
+the response reaches the browser. Yew/WASM owns Canvas2D drawing, hit testing, layer visibility,
+selection/highlighting and pointer/touch navigation.
 
-## T1: first-party adapters (owner: kc-codex)
+Board 3D uses the revision-keyed `/api/kicad/model.glb` artifact. The Yew
+`ModelView` binds directly to the retained Three.js ES modules through
+`wasm-bindgen`; Rust owns lifecycle and UI state. STEP remains an export or
+download artifact and is not parsed in the browser.
 
-Import graph and classification. "three refs" counts direct uses of three.js.
+Text geometry comes from the `kicad-strokes` crate. Its glyph table is generated
+from the pinned 2015 CC0 Newstroke release, never from KiCad or KiCanvas. Its
+layout was measured against `kicad-cli 10.0.6` PCB and schematic SVG plots;
+fixture points agree within 0.0002 mm (the regression threshold is 0.001 mm).
+See [Newstroke provenance](newstroke-provenance.md).
 
-| File | Lines | three refs | Imports | Plan |
-|---|---|---|---|---|
-| `runtime.js` + `runtime.html` | 230 + 295 | 0 | board-model, canvas-presentation, ecad-viewer, native-touch, properties-mobile, retained-native-viewer, schematic-sizing | Rust: postMessage protocol, state and mode switching |
-| `retained-native-viewer.js` | 1,158 | 0 | board-net-selection, native-layer-cache, native-source-index, schematic-compatibility, schematic-net | Rust (drives KiCanvas until T2/T3 retire it) |
-| `properties-mobile.js` | 569 | 0 | none | Rust/Yew properties panel |
-| `board-net-selection.js` | 254 | 0 | none | Rust (net graph from `kct::schema::pcb`) |
-| `schematic-net.js` | 253 | 0 | none | Rust (connectivity from `kct::schema`) |
-| `native-layer-cache.js` | 179 | 0 | none | Rust |
-| `canvas-presentation.js` | 147 | 0 | none | Rust |
-| `schematic-compatibility.js` | 114 | 0 | none | Move into backend source normalization |
-| `gesture-surface.js`, `native-touch.js` | 110 + 78 | 0 | gesture-surface | Rust (web-sys pointer events) |
-| `native-source-index.js` | 71 | 0 | none | Rust |
-| `schematic-sizing.js` | 65 | 0 | none | Rust |
-| `orthographic-camera.js` | 27 | 0 | none | Fold into the three bridge |
-| `board-model.js` | 508 | 22 | three, GLTFLoader, TrackballControls, cel-renderer, gesture-surface, model-* | Thin three bridge (typed command/event API) |
-| `model-selection.js` | 485 | 3 | three | Split: picking stays in the bridge, selection state goes to Rust |
-| `model-update.js` | 260 | 0 | three (module) | Split as above |
-| `model-appearance.js` | 146 | 2 | three, BufferGeometryUtils | Thin three bridge |
-| `cel-renderer.js` | 122 | 1 | three | Thin three bridge |
-| `step-viewer.js`, `step-scene.js`, `step-orientation.js`, `step-worker.js` | 125 | 9 | three, occt | Thin three/OCCT bridge |
+## Removed inventory
 
-Target: only upstream Three.js core, `GLTFLoader`, and one controls module
-remain. Rust/WASM binds to those modules directly; no first-party JS bridge or
-browser-side STEP/OCCT engine remains.
+The completed migration removed:
 
-## T2: PCB view on Rust (owner: kc-claude)
+- KiCanvas `ecad-viewer.js`, `parser.worker.js` and `glyph-full.js`;
+- `runtime.html`, `runtime.js`, the iframe/postMessage protocol and
+  `RuntimeFrame`;
+- all native-viewer, selection, layer-cache, source-index, gesture, sizing,
+  properties and presentation adapters;
+- the old `3d-viewer.js`, board-model/model-* and cel-renderer bridge;
+- `step-*`, OCCT JavaScript/WASM and all decoder/transcoder bundles.
 
-Replace KiCanvas for the PCB view with pastebom's Rust/WASM Canvas2D viewer
-(`crates/viewer`, `pcb-extract`), fed from `kct::schema::pcb`. Don't delete the
-KiCanvas PCB paths until it matches on all of: pads, tracks, zones, text,
-drills, pours/layer visibility, selection, net highlight, source identity
-(revision), and touch.
+The historical deletion contract and parity gates are retained in
+[Vendored viewer runtime retirement](runtime-retirement.md).
 
-Status: implemented as the PCB tab's only renderer. The parity-tested Rust
-Canvas2D path replaced the KiCanvas PCB fallback; KiCanvas remains temporarily
-only for schematics while T3 is completed.
+## Boundary going forward
 
-- Data: `/api/kicad/pcbview` (`backend/src/pcb_view.rs`) builds
-  `shared::pcb::PcbBoard` from `kct::schema::pcb` and the same `kct::sexp`
-  tree, at the project's current source revision. Text is sent as the raw
-  KiCad text plus position, rotation (after keep-upright), size, thickness,
-  justification, mirror, italic/bold, line spacing, layer and visibility.
-- View: `frontend/src/pcb_view/` (Canvas2D, Yew). Pad shapes, hit testing,
-  pointer handling and settings persistence are derived from pastebom's
-  viewer. Its author explicitly authorized the listed derived items under
-  kicadmium's MIT license; see `docs/third-party.md` for exact provenance.
-  They were copied in with attribution rather than taken as a crate
-  dependency: pastebom's viewer is a binary built around the iBOM `PcbData`
-  model, which merges KiCad layers into front/back silkscreen/fab and
-  cannot express per-layer visibility. Layer order, palette and blending
-  follow the KiCanvas view (bundled theme JSON).
-- **Visual-metric divergence (text):** no KiCad font data is shipped. The view
-  draws text with Canvas2D
-  `fillText` in the system monospace font, scaled so the cap height equals
-  the KiCad text height and stretched to the KiCad width/height ratio, with
-  stems thickened to the KiCad stroke width. It honours anchor, rotation,
-  mirror, horizontal/vertical justification (KiCad's line-position metrics),
-  multi-line spacing, italic and overbar/sub/superscript markup. Glyph
-  shapes and advance widths differ from KiCad's stroke font, so text runs
-  can be slightly longer or shorter than in KiCad or KiCanvas, and text
-  bounding boxes are not KiCad-exact.
-- Other deliberate differences: Beziers and arc segments in polygons are
-  drawn (KiCanvas skips or flattens them). Footprint values and fab/drawing
-  user text are toggles, off by default because KiCanvas never shows them.
-
-## T3: schematic view on Rust (later)
-
-A Rust schematic renderer over `kct::schema::{schematic,symbol,library,hierarchy}`.
-Before moving Newstroke glyphs into Rust, record the font's original upstream
-source, license, and required notice; do not infer provenance from KiCad's
-downstream file labels. A system-font fallback remains acceptable meanwhile.
-Required parity: hierarchy navigation, symbol graphics, text and fields, and
-selection. Once the renderer and font path are provenance-clean,
-`ecad-viewer.js`, `parser.worker.js` and `glyph-full.js` can all be deleted.
+- First-party UI and geometry code remains Rust.
+- KiCad and STEP source formats are never parsed in the browser.
+- Reified geometry contracts stay renderer-independent; backend subject ids may
+  support review or explicit edit requests, but rendering remains read-only.
+- New browser JavaScript/WASM assets require an explicit inventory, licence and
+  reason. Reimplementing Three.js, GLTF parsing or WebGL is a non-goal.

@@ -1754,7 +1754,7 @@ fn symbol_lib_text(symbols: &[Sexp], version: &str) -> String {
     format!("(kicad_symbol_lib (version {version}) (generator \"kicad-pcb-library\") {body})\n")
 }
 
-/// Minimal schematic placing one symbol, for the KiCanvas viewer.
+/// Minimal schematic placing one symbol for backend library-scene reification.
 fn symbol_sch_text(symbol: &Sexp, lib_id: &str, reference: &str, version: &str) -> String {
     let mut cached = symbol.clone();
     rename(&mut cached, lib_id);

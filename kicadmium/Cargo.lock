@@ -266,6 +266,7 @@ dependencies = [
  "tower-http 0.5.2",
  "tracing",
  "tracing-subscriber",
+ "vector-view",
  "walkdir",
  "zip",
 ]
@@ -4066,6 +4067,14 @@ name = "valuable"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
+
+[[package]]
+name = "vector-view"
+version = "1.9.1"
+source = "git+https://github.com/meawoppl/pastebom.com?rev=1b893dd#1b893dd08b40ee2fa1c25ebdf3e7b48908c03376"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "version_check"

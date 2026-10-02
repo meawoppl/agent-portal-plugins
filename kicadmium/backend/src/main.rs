@@ -9,6 +9,7 @@ mod pcb_view;
 mod profile;
 mod quality;
 mod revision;
+mod schematic_view;
 mod sexp;
 mod sexpr;
 mod thumbnails;
@@ -446,6 +447,7 @@ async fn main() -> Result<()> {
                 .merge(library::routes())
                 .merge(lint::routes())
                 .merge(pcb_view::routes())
+                .merge(schematic_view::routes())
                 .merge(jobs::routes())
                 .layer(TraceLayer::new_for_http())
                 .with_state(state)

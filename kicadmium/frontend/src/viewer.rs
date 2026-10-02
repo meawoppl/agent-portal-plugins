@@ -6,7 +6,7 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{HtmlIFrameElement, MessageEvent};
 use yew::prelude::*;
 
-use crate::{model_view::ModelView, pcb_view::PcbView};
+use crate::{model_view::ModelView, pcb_view::PcbView, schematic_view::SchematicView};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -75,6 +75,7 @@ pub fn viewer(props: &Props) -> Html {
     let pours = use_state(|| true);
     let is_pcb = props.kind.as_str() == "pcb";
     let is_model = props.kind.as_str() == "model";
+    let is_schematic = props.kind.as_str() == "schematic";
     {
         let node = node.clone();
         let project = props.project.to_string();
@@ -159,8 +160,10 @@ pub fn viewer(props: &Props) -> Html {
         html! {<PcbView project={props.project.clone()} revision={props.revision.clone()} pours={*pours}/>}
     } else if is_model {
         html! {<ModelView project={props.project.clone()} revision={props.revision.clone()} active={props.active}/>}
+    } else if is_schematic {
+        html! {<SchematicView project={props.project.clone()} revision={props.revision.clone()}/>}
     } else {
         html! {<iframe key={props.kind.to_string()} ref={node} class="native-viewer" data-kind={props.kind.clone()} title={format!("{} viewer",props.kind)} src="/kicad-viewer/runtime.html" />}
     };
-    html! {<div class={classes!("viewer-card", is_pcb.then_some("rust-pcb"), is_model.then_some("rust-model"))}>{options}{body}</div>}
+    html! {<div class={classes!("viewer-card", is_pcb.then_some("rust-pcb"), is_model.then_some("rust-model"), is_schematic.then_some("rust-schematic"))}>{options}{body}</div>}
 }

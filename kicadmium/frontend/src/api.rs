@@ -132,6 +132,11 @@ pub async fn gerbers(project: &str) -> Result<GerberSourcesResponse, String> {
     get_json("/api/kicad/gerbers", project).await
 }
 
+/// Backend-reified, source-format-independent schematic scene.
+pub async fn schematic(project: &str) -> Result<vector_view::Scene, String> {
+    get_json("/api/kicad/schematic", project).await
+}
+
 pub async fn build_status(project: &str) -> Result<BuildStatus, String> {
     get_json("/api/build/status", project).await
 }

@@ -12,7 +12,7 @@ Budget at the time of writing (tracked `.js` under `frontend/static/kicad-viewer
 | KiCanvas bundle: `ecad-viewer.js`, `parser.worker.js`, `glyph-full.js` | 124,676 | **Replace** (T2, T3) |
 | `3d-viewer.js` (vendored ecad-viewer 3D component) | 1,175 | Keep for now (thin wrapper over three) |
 | First-party adapters | 4,901 | **Port to Rust/Yew** except a thin three bridge (T1) |
-| `occt/occt-import-js.wasm` | (wasm) | **Keep** (C++ STEP import; no mature Rust STEP reader) |
+| `occt/occt-import-js.wasm` | (wasm) | **Remove** (STEP remains an artifact/download; interactive 3D uses backend GLB) |
 
 ## T0: dead three.js decoders (done)
 
@@ -56,8 +56,9 @@ Import graph and classification. "three refs" counts direct uses of three.js.
 | `cel-renderer.js` | 122 | 1 | three | Thin three bridge |
 | `step-viewer.js`, `step-scene.js`, `step-orientation.js`, `step-worker.js` | 125 | 9 | three, occt | Thin three/OCCT bridge |
 
-Target: only the three/OCCT bridge remains in JS, behind a small typed
-command/event interface (load model, set camera, highlight, pick → event).
+Target: only upstream Three.js core, `GLTFLoader`, and one controls module
+remain. Rust/WASM binds to those modules directly; no first-party JS bridge or
+browser-side STEP/OCCT engine remains.
 
 ## T2: PCB view on Rust (owner: kc-claude)
 

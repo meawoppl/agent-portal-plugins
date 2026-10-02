@@ -8,7 +8,6 @@ use std::rc::Rc;
 
 use gloo_events::EventListener;
 use gloo_timers::callback::Timeout;
-use serde_json::json;
 use shared::library::{LibraryPart, LibraryResponse, ThumbRef, ThumbStatus};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
@@ -17,7 +16,7 @@ use yew::prelude::*;
 
 use crate::api;
 use crate::model_view::ModelView;
-use crate::runtime_frame::RuntimeFrame;
+use crate::vector_scene::VectorSceneCanvas;
 
 const POLL_MS: u32 = 900;
 const KINDS: [(&str, &str); 3] = [
@@ -503,7 +502,8 @@ struct ModalProps {
 #[function_component(LibraryModal)]
 fn library_modal(props: &ModalProps) -> Html {
     let view = use_state(|| props.kind.clone());
-    let snapshot = use_state(|| None::<Rc<serde_json::Value>>);
+    let scene = use_state(|| None::<Rc<vector_view::Scene>>);
+    let selected = use_state(|| None::<vector_view::ItemId>);
     let failure = use_state(|| None::<String>);
     let part = props.part.clone();
     let states = props.states.clone();
@@ -511,30 +511,18 @@ fn library_modal(props: &ModalProps) -> Html {
     let t = (current != "render").then(|| effective(thumb(&part, &current), &states));
 
     {
-        let snapshot = snapshot.clone();
+        let scene = scene.clone();
+        let selected = selected.clone();
         let failure = failure.clone();
-        let part = part.clone();
         use_effect_with((current.clone(), t.clone()), move |(view, t)| {
-            snapshot.set(None);
+            scene.set(None);
+            selected.set(None);
             failure.set(None);
-            if let Some(t) = t.clone().filter(|t| t.key.is_some() && t.viewer.is_some()) {
-                let viewer = t.viewer.clone().unwrap_or_default();
-                if view != "model" {
-                    let view = view.clone();
+            if view != "model" {
+                if let Some(url) = t.as_ref().and_then(|thumb| thumb.scene.clone()) {
                     spawn_local(async move {
-                        match api::get_text(&viewer, "").await {
-                            Ok(content) => {
-                                let (ext, context) = if view == "symbol" {
-                                    ("kicad_sch", "schematic")
-                                } else {
-                                    ("kicad_pcb", "pcb")
-                                };
-                                snapshot.set(Some(Rc::new(json!({
-                                    "type": "kicad-pcb-snapshot", "kind": "native", "context": context,
-                                    "revision": t.key, "active": true,
-                                    "sources": [{"filename": format!("{}.{ext}", part.id), "content": content}],
-                                }))));
-                            }
+                        match api::get_json::<vector_view::Scene>(&url, "").await {
+                            Ok(value) => scene.set(Some(Rc::new(value))),
                             Err(err) => failure.set(Some(format!("Viewer failed: {err}"))),
                         }
                     });
@@ -574,10 +562,6 @@ fn library_modal(props: &ModalProps) -> Html {
             Some(t) if t.key.is_none() => {
                 html! { <div class="lib-stage-msg">{t.message.clone().unwrap_or_else(|| "Nothing to show".into())}</div> }
             }
-            Some(t) if t.viewer.is_none() => match (&t.url, t.state.as_str()) {
-                (Some(url), "ready") => html! { <img src={url.clone()} /> },
-                _ => html! { <div class="lib-stage-msg">{placeholder(t)}</div> },
-            },
             Some(t) if current == "model" => html! {
                 <>
                     if let Some(msg) = &*failure { <div class="lib-stage-msg">{msg}</div> }
@@ -586,12 +570,22 @@ fn library_modal(props: &ModalProps) -> Html {
                         url={t.viewer.clone().map(AttrValue::from)} active={true} />
                 </>
             },
-            _ => html! {
+            Some(t) if t.scene.is_some() => html! {
                 <>
                     if let Some(msg) = &*failure { <div class="lib-stage-msg">{msg}</div> }
-                    <RuntimeFrame snapshot={(*snapshot).clone()} title={format!("{current} viewer")} />
+                    if let Some(value) = &*scene {
+                        <VectorSceneCanvas scene={value.clone()} selected={*selected}
+                            on_select={{let selected=selected.clone();Callback::from(move |id|selected.set(id))}} />
+                    } else if (*failure).is_none() {
+                        <div class="lib-stage-msg">{"Loading vector geometry…"}</div>
+                    }
                 </>
             },
+            Some(t) => match (&t.url, t.state.as_str()) {
+                (Some(url), "ready") => html! { <img src={url.clone()} /> },
+                _ => html! { <div class="lib-stage-msg">{placeholder(t)}</div> },
+            },
+            None => Html::default(),
         }
     };
 

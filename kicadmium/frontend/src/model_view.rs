@@ -199,6 +199,16 @@ fn number(object: &JsValue, name: &str, value: f64) {
     let _ = Reflect::set(object, &name.into(), &value.into());
 }
 
+fn fit_distance(width: f64, height: f64, depth: f64, vertical_fov: f64, aspect: f64) -> f64 {
+    // Fit the bounding sphere against whichever viewport dimension has the
+    // tighter field of view. Unlike an arbitrary world-unit floor, this works
+    // for KiCad GLBs, whose coordinates are metres (a normal PCB spans ~0.1).
+    let radius = 0.5 * (width * width + height * height + depth * depth).sqrt();
+    let vertical_half = 0.5 * vertical_fov.to_radians();
+    let horizontal_half = (vertical_half.tan() * aspect.max(0.01)).atan();
+    radius / vertical_half.min(horizontal_half).sin().max(1.0e-6) * 1.12
+}
+
 fn resize(renderer: &Renderer, camera: &Camera, canvas: &HtmlCanvasElement) {
     let width = f64::from(canvas.client_width().max(1));
     let height = f64::from(canvas.client_height().max(1));
@@ -208,24 +218,63 @@ fn resize(renderer: &Renderer, camera: &Camera, canvas: &HtmlCanvasElement) {
 }
 
 fn frame(camera: &Camera, controls: &OrbitControls, model: &JsValue) {
+    // setFromObject walks only this GLTF scene. Lights and helper objects from
+    // our outer scene therefore cannot inflate the fitted bounds.
     let bounds = Box3::new_box().set_from_object(model);
     let size = bounds.get_size(&Vec3::new_vec3(0.0, 0.0, 0.0));
     let center = bounds.get_center(&Vec3::new_vec3(0.0, 0.0, 0.0));
-    let span = size.x().max(size.y()).max(size.z()).max(1.0);
+    let radius = 0.5
+        * (size.x() * size.x() + size.y() * size.y() + size.z() * size.z())
+            .sqrt()
+            .max(1.0e-9);
+    let aspect = Reflect::get(camera.as_ref(), &"aspect".into())
+        .ok()
+        .and_then(|v| v.as_f64())
+        .unwrap_or(1.0);
+    let distance = fit_distance(size.x(), size.y(), size.z(), 42.0, aspect);
+    // A stable oblique view shows both faces and component height while the
+    // bounding-sphere distance guarantees every orientation remains framed.
+    let direction = (0.65_f64, 0.4_f64, 0.65_f64);
+    let direction_length =
+        (direction.0 * direction.0 + direction.1 * direction.1 + direction.2 * direction.2).sqrt();
     if let Some(position) = property::<Vec3>(camera.as_ref(), "position") {
         position.set(
-            center.x() + span * 1.3,
-            center.y() + span,
-            center.z() + span * 1.3,
+            center.x() + distance * direction.0 / direction_length,
+            center.y() + distance * direction.1 / direction_length,
+            center.z() + distance * direction.2 / direction_length,
         );
     }
     if let Some(target) = property::<Vec3>(controls.as_ref(), "target") {
         target.set(center.x(), center.y(), center.z());
     }
-    number(camera.as_ref(), "near", (span / 10_000.0).max(0.001));
-    number(camera.as_ref(), "far", span * 100.0);
+    number(
+        camera.as_ref(),
+        "near",
+        (distance - radius * 1.5).max(radius / 10_000.0),
+    );
+    number(camera.as_ref(), "far", distance + radius * 4.0);
+    number(controls.as_ref(), "minDistance", radius * 0.05);
+    number(controls.as_ref(), "maxDistance", distance * 50.0);
     camera.update_projection();
     controls.update();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::fit_distance;
+
+    #[test]
+    fn fits_metre_scale_kicad_board_without_world_unit_floor() {
+        let distance = fit_distance(0.1253, 0.00355, 0.14995, 42.0, 16.0 / 9.0);
+        assert!(distance > 0.2 && distance < 0.4, "distance={distance}");
+    }
+
+    #[test]
+    fn portrait_view_needs_more_distance() {
+        let landscape = fit_distance(0.1, 0.01, 0.05, 42.0, 16.0 / 9.0);
+        let portrait = fit_distance(0.1, 0.01, 0.05, 42.0, 9.0 / 16.0);
+        assert!(portrait > landscape);
+    }
 }
 
 fn start(

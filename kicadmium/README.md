@@ -1,12 +1,13 @@
 # kicadmium
 
-> KiCad's toxic uncle everyone warned you about.
+> The heavy metal your PCBs were missing.
 
-He shows up uninvited, reads your whole board, tells you your vias are ugly,
-and he's right. kicadmium is a single Rust binary that wraps a real KiCad
-install with a browser workbench (schematic, PCB, Gerbers, 3D/STEP, BOM,
-libraries, checks), fabrication export, layout-quality audits, and a pile of
-agent skills. It does not ship KiCad. Bring your own; he'll judge it.
+Cadmium is a heavy metal; kicadmium is the one your boards needed. It reads
+your whole board, tells you your vias are ugly, and it's right. kicadmium is a
+single Rust binary that wraps a real KiCad install with a browser workbench
+(schematic, PCB, Gerbers, 3D/STEP, BOM, libraries, checks), fabrication export,
+layout-quality audits, and a pile of agent skills. It does not ship KiCad.
+Bring your own and turn it up.
 
 ## Quick start
 

@@ -1,6 +1,6 @@
 # Design principles
 
-Kicadmium is KiCad's toxic uncle everyone warned you about: blunt, fast,
+Kicadmium is the heavy metal your PCBs were missing: blunt, fast,
 opinionated, and willing to point at the ugly part of a board. It is an
 independent review and automation workbench. It does not ship KiCad, replace
 KiCad's native ERC/DRC, or turn a heuristic suggestion into electrical proof.

@@ -1,7 +1,7 @@
 schema_version = 1
 name = "kicadmium"
 display_name = "kicadmium"
-description = "KiCad's toxic uncle: workbench for KiCad review, checks, fabrication export, BOMs, Gerbers, panelization, and 3D/STEP inspection."
+description = "The heavy metal your PCBs were missing: workbench for KiCad review, checks, fabrication export, BOMs, Gerbers, panelization, and 3D/STEP inspection."
 homepage = "https://github.com/meawoppl/kicadmium"
 license = "MIT"
 

@@ -16,6 +16,7 @@ use web_sys::{HtmlInputElement, HtmlSelectElement, KeyboardEvent};
 use yew::prelude::*;
 
 use crate::api;
+use crate::model_view::ModelView;
 use crate::runtime_frame::RuntimeFrame;
 
 const POLL_MS: u32 = 900;
@@ -518,12 +519,7 @@ fn library_modal(props: &ModalProps) -> Html {
             failure.set(None);
             if let Some(t) = t.clone().filter(|t| t.key.is_some() && t.viewer.is_some()) {
                 let viewer = t.viewer.clone().unwrap_or_default();
-                if view == "model" {
-                    snapshot.set(Some(Rc::new(json!({
-                        "type": "kicad-pcb-snapshot", "kind": "model", "subject": "part",
-                        "url": viewer, "active": true,
-                    }))));
-                } else {
+                if view != "model" {
                     let view = view.clone();
                     spawn_local(async move {
                         match api::get_text(&viewer, "").await {
@@ -581,6 +577,14 @@ fn library_modal(props: &ModalProps) -> Html {
             Some(t) if t.viewer.is_none() => match (&t.url, t.state.as_str()) {
                 (Some(url), "ready") => html! { <img src={url.clone()} /> },
                 _ => html! { <div class="lib-stage-msg">{placeholder(t)}</div> },
+            },
+            Some(t) if current == "model" => html! {
+                <>
+                    if let Some(msg) = &*failure { <div class="lib-stage-msg">{msg}</div> }
+                    <ModelView project={props.project.clone()}
+                        revision={AttrValue::from(t.key.clone().unwrap_or_default())}
+                        url={t.viewer.clone().map(AttrValue::from)} active={true} />
+                </>
             },
             _ => html! {
                 <>

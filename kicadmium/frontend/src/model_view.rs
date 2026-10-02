@@ -100,6 +100,10 @@ extern "C" {
 pub struct Props {
     pub project: AttrValue,
     pub revision: AttrValue,
+    /// Explicit GLB endpoint for library/model previews. The board viewer
+    /// derives its revision-pinned endpoint when this is absent.
+    #[prop_or_default]
+    pub url: Option<AttrValue>,
     #[prop_or(true)]
     pub active: bool,
 }
@@ -358,31 +362,46 @@ pub fn model_view(props: &Props) -> Html {
         let canvas = canvas.clone();
         let project = props.project.to_string();
         let revision = props.revision.to_string();
+        let explicit_url = props.url.as_ref().map(ToString::to_string);
         let active = props.active;
         let status = status.clone();
         let runtime = runtime.clone();
-        use_effect_with((project.clone(), revision.clone(), active), move |_| {
-            runtime.borrow_mut().take();
-            status.set("Loading board model…".into());
-            if let Some(canvas) = canvas.cast::<HtmlCanvasElement>() {
-                let path = format!("/api/kicad/model.glb?rev={}", crate::api::encode(&revision));
-                match start(
-                    canvas,
-                    &crate::api::url(&path, &project),
-                    active,
-                    status.clone(),
-                ) {
-                    Ok(next) => *runtime.borrow_mut() = Some(next),
-                    Err(error) => status.set(format!(
-                        "Could not start 3D renderer: {}",
-                        error.as_string().unwrap_or_else(|| "unknown error".into())
-                    )),
-                }
-            }
-            move || {
+        use_effect_with(
+            (
+                project.clone(),
+                revision.clone(),
+                explicit_url.clone(),
+                active,
+            ),
+            move |_| {
                 runtime.borrow_mut().take();
-            }
-        });
+                status.set(if explicit_url.is_some() {
+                    "Loading library model…".into()
+                } else {
+                    "Loading board model…".into()
+                });
+                if let Some(canvas) = canvas.cast::<HtmlCanvasElement>() {
+                    let path = explicit_url.clone().unwrap_or_else(|| {
+                        format!("/api/kicad/model.glb?rev={}", crate::api::encode(&revision))
+                    });
+                    match start(
+                        canvas,
+                        &crate::api::url(&path, &project),
+                        active,
+                        status.clone(),
+                    ) {
+                        Ok(next) => *runtime.borrow_mut() = Some(next),
+                        Err(error) => status.set(format!(
+                            "Could not start 3D renderer: {}",
+                            error.as_string().unwrap_or_else(|| "unknown error".into())
+                        )),
+                    }
+                }
+                move || {
+                    runtime.borrow_mut().take();
+                }
+            },
+        );
     }
     html! { <div class="modelv">
         <canvas ref={canvas} class="modelv-canvas" aria-label="Interactive 3D board model" />

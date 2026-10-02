@@ -137,6 +137,11 @@ pub async fn schematic(project: &str) -> Result<vector_view::Scene, String> {
     get_json("/api/kicad/schematic", project).await
 }
 
+/// Backend-reified PCB scene (`/api/kicad/pcbscene`).
+pub async fn pcb_scene(project: &str) -> Result<vector_view::Scene, String> {
+    get_json("/api/kicad/pcbscene", project).await
+}
+
 pub async fn build_status(project: &str) -> Result<BuildStatus, String> {
     get_json("/api/build/status", project).await
 }

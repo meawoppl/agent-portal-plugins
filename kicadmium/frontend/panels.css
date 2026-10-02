@@ -82,7 +82,7 @@ details.raw summary{cursor:pointer;color:#7dcfff}
 .lib-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:24px;box-sizing:border-box}
 .lib-stage .lib-stage-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa5ce}
 .lib-dialog footer{padding:6px 12px;border-top:1px solid #3b4261;color:#9aa5ce;font-size:12px;display:flex;gap:12px;flex-wrap:wrap}
-/* Rust PCB view (pcb_view/mod.rs). */
+/* PCB tab (pcb_view.rs) over the shared vector scene canvas. */
 .viewer-options{display:flex;gap:16px;flex-wrap:wrap}
 .viewer-card.rust-pcb{display:flex;flex-direction:column;gap:4px}
 .viewer-card.rust-model{display:flex;flex-direction:column}
@@ -90,7 +90,9 @@ details.raw summary{cursor:pointer;color:#7dcfff}
 .modelv-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .modelv-status{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;color:#9aa5ce;pointer-events:none;text-align:center}
 .pcbv{position:relative;flex:1;min-height:480px;border-radius:6px;overflow:hidden;background:#1e1e1e}
-.pcbv-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.pcbv .vector-scene{position:absolute!important;inset:0;height:auto!important;min-height:0!important}
+.pcbv .vector-scene-canvas{width:100%;height:100%;min-height:0;border-radius:0;cursor:crosshair}
+.pcbv .vector-scene-fit{display:none}
 .pcbv-toolbar{position:absolute;top:10px;right:10px;display:flex;gap:2px;padding:4px;border:1px solid #3b4261;border-radius:6px;background:#1a1b26e6;font-family:ui-monospace,monospace}
 .pcbv-toolbar button{border:0;border-radius:4px;background:transparent;color:#c0caf5;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px}
 .pcbv-toolbar button:hover{background:#24283b}

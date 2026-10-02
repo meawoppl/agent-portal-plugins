@@ -1185,10 +1185,7 @@ mod tests {
         let arc = s.items.iter().find(|i| matches!(i.prim, Prim::Arc { .. }));
         match &arc.unwrap().prim {
             Prim::Arc {
-                center,
-                start,
-                end,
-                ..
+                center, start, end, ..
             } => {
                 assert!((center[0] - 122.0).abs() < 1e-6);
                 let mid = -PI / 2.0;
@@ -1215,7 +1212,11 @@ mod tests {
         let o = rect_outline([2.0, 1.0], 0.25, 0, 0.0);
         assert!(o.len() > 4);
         let ch = rect_outline([2.0, 2.0], 0.0, 1 | 8, 0.5);
-        assert!(!vector_view::hit::polygon_contains(&ch, &[], [-0.95, -0.95]));
+        assert!(!vector_view::hit::polygon_contains(
+            &ch,
+            &[],
+            [-0.95, -0.95]
+        ));
         assert!(vector_view::hit::polygon_contains(&ch, &[], [0.95, -0.95]));
         let pad = PcbPad {
             shape: "oval".into(),

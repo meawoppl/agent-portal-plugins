@@ -4,9 +4,9 @@
 //! This module deliberately produces the same `vector-view` contract as the
 //! project schematic; the browser never parses KiCad source files.
 
+use crate::pcb_model::{PcbBoard, PcbGraphic, PcbShape, PcbText};
 use anyhow::{anyhow, Result};
 use kct::schema::library::{LibrarySymbol, SymbolGraphic, SymbolLibrary};
-use crate::pcb_model::{PcbBoard, PcbGraphic, PcbShape, PcbText};
 use vector_view::{
     Group, GroupKind, Item, Layer, LayerKind, Prim, Prop, Role, Scene, SceneKind, Side,
 };

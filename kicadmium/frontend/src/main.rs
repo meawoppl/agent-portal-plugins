@@ -11,6 +11,7 @@ mod model_view;
 mod pcb_view;
 mod runtime_frame;
 mod schematic_view;
+mod vector_scene;
 mod viewer;
 
 use annotate::Annotator;

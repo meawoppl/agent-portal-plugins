@@ -73,6 +73,9 @@ Over U+0020–U+2BFF (the CC0 release's whole range), using
 3. **Exclude KiCad-modified glyphs:** don't copy KiCad's versions of U+007E or
    U+2126. Use the 2015 CC0 glyphs, accepting the small visual difference from
    current KiCad, or draw replacements ourselves.
+   In the 2015 table U+2126 is the placeholder box, so `kicad_strokes::glyph`
+   aliases U+2126 OHM SIGN to U+03A9 GREEK CAPITAL OMEGA (its canonical
+   equivalent, drawn in the same CC0 release).
 4. **CJK out of scope:** U+3000+ (Lingdong Huang MIT code and Adobe Source Han
    Sans OFL glyphs) is not imported. Adding it later needs the MIT notice and the
    OFL text, and must respect the Reserved Font Name "Source".

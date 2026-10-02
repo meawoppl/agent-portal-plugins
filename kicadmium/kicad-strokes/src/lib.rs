@@ -233,8 +233,18 @@ pub fn decode_glyph(data: &str) -> Glyph {
     g
 }
 
-/// The NewStroke glyph for `c`, or `None` outside U+0020..=U+2BFF.
+/// Code points whose 2015 NewStroke slot is the placeholder box but which
+/// have a visually identical, CC0-drawn glyph elsewhere in the same table.
+/// U+2126 OHM SIGN is canonically equivalent to U+03A9 GREEK CAPITAL OMEGA.
+const ALIASES: &[(char, char)] = &[('\u{2126}', '\u{03A9}')];
+
+/// The NewStroke glyph for `c` (after [`ALIASES`]), or `None` outside
+/// U+0020..=U+2BFF.
 pub fn glyph(c: char) -> Option<Glyph> {
+    let c = ALIASES
+        .iter()
+        .find(|(from, _)| *from == c)
+        .map_or(c, |(_, to)| *to);
     let i = (c as u32).checked_sub(glyphs::FIRST_CODE_POINT)? as usize;
     glyphs::GLYPHS.get(i).map(|s| decode_glyph(s))
 }

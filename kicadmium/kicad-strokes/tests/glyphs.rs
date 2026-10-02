@@ -93,3 +93,13 @@ fn outside_the_table_is_none() {
 fn placeholder_box_is_u2bff() {
     assert_eq!(GLYPHS[0x2BFF - 0x20], "F^K[KFYFY[K[");
 }
+
+#[test]
+fn ohm_sign_uses_cc0_greek_omega() {
+    let ohm = kicad_strokes::glyph('\u{2126}').unwrap();
+    let omega = kicad_strokes::glyph('\u{03A9}').unwrap();
+    assert_eq!(ohm, omega);
+    // and it is a real glyph, not the empty-box placeholder of the 2015 U+2126 slot
+    let placeholder = kicad_strokes::decode_glyph(kicad_strokes::glyphs::GLYPHS[0x2126 - 0x20]);
+    assert_ne!(ohm, placeholder);
+}

@@ -52,3 +52,28 @@ is drawn with the browser's system monospace font (see
 `docs/javascript-triage.md`, T2). Before any future Rust port of Newstroke,
 the original upstream source, license, and required notice must be recorded;
 KiCad's downstream file labels alone are not the provenance record.
+
+## NewStroke stroke font (`kicad-strokes`)
+
+- **What:** `kicad-strokes/src/glyphs.rs`, the NewStroke glyph table
+  (11,232 entries, U+0020–U+2BFF) used by `kicad-strokes` to turn KiCad text
+  into stroke polylines for the backend's PCB and schematic reifiers.
+- **Attribution:** NewStroke font by Vladimir Uryvaev (vovanium), CC0 1.0,
+  release 2015-11-19, <https://vovanium.ru/sledy/newstroke/en>.
+- **Source:** the author's release tarball
+  <https://vovanium.ru/_media/sledy/newstroke/newstroke-font.tgz>, SHA-256
+  `dba1c334834e21bdbd15395dc610ecc2bf2eb6675ba0c4585597b375b7bd099e`. Only the
+  glyph string literals of its `newstroke_font.cpp` are read; none of that
+  file's header or comment text is copied.
+- **Licence:** CC0 1.0 (public domain dedication, per the release's
+  `README.txt`). No notice is required; the attribution above is kept anyway.
+- **Generator:** `kicad-strokes/examples/gen_glyphs.rs` (original to
+  kicadmium) checks the tarball checksum and the glyph count and writes
+  `glyphs.rs`; the table checksum is pinned in `kicad-strokes/tests/glyphs.rs`.
+- **Not used:** KiCad's `newstroke_font.cpp`, KiCanvas's `glyph-full.js` and
+  kicad-rs. U+007E and U+2126 are the 2015 glyphs (in 2015 U+2126 was still the
+  placeholder box), not KiCad's later redraws. No CJK (U+3000+).
+  See `docs/newstroke-provenance.md`.
+- **Layout:** `kicad-strokes/src/layout.rs` is original. Its metrics were
+  measured from `kicad-cli` 10.0.6 SVG plots (fixtures in
+  `kicad-strokes/tests/fixtures/`), not taken from KiCad source.

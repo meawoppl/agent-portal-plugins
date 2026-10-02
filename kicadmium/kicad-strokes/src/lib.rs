@@ -5,7 +5,7 @@
 //! pen width, so 2D viewers never need a font engine. The glyph table is the
 //! author's 2015 CC0 release (see [`glyphs`] and `docs/newstroke-provenance.md`).
 //!
-//! ```no_run
+//! ```
 //! use kicad_strokes::{to_strokes, HJustify, TextSpec};
 //! let s = to_strokes(&TextSpec {
 //!     text: "R1".into(),
@@ -20,6 +20,17 @@
 //! ```
 
 pub mod glyphs;
+mod layout;
+
+pub use layout::{pen_width, ITALIC_TILT, LINE_PITCH, SCRIPT_SCALE, UNITS_PER_EM};
+
+/// Eeschema's default text pen width (mm), used when a schematic text item
+/// has no explicit thickness.
+pub const SCH_DEFAULT_PEN: f64 = 0.1524;
+
+/// Eeschema plots `(text ...)` items this far (mm) above their anchor, in
+/// screen -y at every angle. Labels and fields have their own offsets.
+pub const SCH_TEXT_OFFSET: f64 = 0.25;
 
 /// Horizontal justification of each line relative to [`TextSpec::pos`].
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -43,39 +54,76 @@ pub enum VJustify {
 ///
 /// Units are millimetres; the frame is KiCad's (x right, y down) unless
 /// [`y_down`](Self::y_down) is false.
+///
+/// # Metrics
+///
+/// Measured from `kicad-cli` 10.0.6 plots (see `tests/kicad_compare.rs`):
+///
+/// - One font unit is `size / 21` ([`UNITS_PER_EM`]); the cap height equals
+///   the text height and glyph advances come from the NewStroke bearings.
+/// - Baseline-to-baseline pitch is [`LINE_PITCH`]` × height × line_spacing`.
+///   Each line is justified on its own.
+/// - Overbars run 1.2776 × height above the baseline, inset 0.1 × width
+///   from each end of the overbarred run.
+/// - Sub/superscripts are drawn at [`SCRIPT_SCALE`] (0.8) size, their
+///   baseline 0.1105 × height below / 0.2895 × height above the main
+///   baseline. They don't nest: `^{a_{b}}` places `b` as a plain subscript.
+/// - Italic shears by [`ITALIC_TILT`] (1/8). The pen width shifts left- and
+///   right-justified lines inward by 0.658 × pen, and all text up by
+///   0.052 × pen.
+///
+/// # Schematic text
+///
+/// The layout is the same in Eeschema, with three differences callers handle:
+/// the default pen is [`SCH_DEFAULT_PEN`] (pass it as `thickness`), text is
+/// always kept upright (set [`keep_upright`](Self::keep_upright)), and
+/// `(text ...)` items are plotted [`SCH_TEXT_OFFSET`] mm above their anchor
+/// (screen -y at every angle; subtract it from `pos[1]`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct TextSpec {
     /// Text, possibly multi-line (`\n`), with KiCad markup: `~{overbar}`,
-    /// `_{subscript}`, `^{superscript}`. Tabs expand to the next 4-column stop.
+    /// `_{subscript}`, `^{superscript}`. A marker without a matching `}` is
+    /// drawn literally. Tabs advance to the next tab stop (stops every
+    /// 4 × width, at `4k − 5/21` widths, at least 9/21 width ahead).
+    /// Characters outside the NewStroke table (U+0020..=U+2BFF) are drawn as
+    /// the table's placeholder box.
     pub text: String,
     /// Anchor position (KiCad `(at x y)`).
     pub pos: [f64; 2],
-    /// Glyph size `[width, height]` (KiCad `(size h w)` is height first in the
-    /// file; pass `[w, h]` here). Height is the cap height.
+    /// Glyph size `[width, height]` in mm. KiCad files write `(size h w)`,
+    /// height first. Height is the cap height.
     pub size: [f64; 2],
-    /// Stroke (pen) width. `<= 0` selects KiCad's default for the size
-    /// (`height / 8`, or the bold width when [`bold`](Self::bold)).
+    /// Stroke (pen) width. `<= 0` selects KiCad's PCB default
+    /// (`width / 8`, or `width / 5` when [`bold`](Self::bold)). All
+    /// pens, bold or not, are clamped to `min(width, height) / 4`, as KiCad
+    /// plots them.
     pub thickness: f64,
     /// Rotation in degrees, counter-clockwise as seen on screen (KiCad
-    /// convention, also in the y-down frame).
+    /// convention, also in the y-down frame). Rotation is about `pos`.
     pub angle_deg: f64,
+    /// Horizontal justification of each line about `pos`.
     pub justify_h: HJustify,
+    /// Vertical justification of the whole block about `pos`.
     pub justify_v: VJustify,
-    /// Mirror horizontally about the anchor (KiCad `(justify mirror)`, back
-    /// layer text). Applied before rotation.
+    /// Mirror horizontally about the anchor, in the text's own frame, before
+    /// rotation (KiCad `(justify mirror)`, back-layer text).
     pub mirror: bool,
+    /// Italic: glyphs are sheared by [`ITALIC_TILT`].
     pub italic: bool,
-    /// Bold. A thickness given explicitly is kept, as KiCad stores the bold
-    /// pen width in the file; with `thickness <= 0` the bold default is used.
+    /// Bold. An explicit thickness is used as given (KiCad stores the bold pen
+    /// width in the file); with `thickness <= 0` the pen is `width / 5`.
     pub bold: bool,
-    /// Line spacing factor (KiCad `line_spacing`, default 1.0).
+    /// Line spacing factor (KiCad `line_spacing`, default 1.0). Note that
+    /// `kicad-cli` 10.0.6 plots stroke-font text with a factor of 1.0 even
+    /// when the file sets another value; pass 1.0 to match its plots.
     pub line_spacing: f64,
-    /// Turn text that would read upside down by 180 degrees (KiCad "keep
-    /// upright", footprint fields). Applies when the effective angle is in
-    /// (90, 270] degrees.
+    /// Keep the text readable: when the angle (mod 360) is in (90, 270], draw
+    /// it at `angle - 180` with the same justification, as KiCad does for
+    /// footprint fields and all schematic text.
     pub keep_upright: bool,
-    /// Output frame. `true` (default): y grows down, as in KiCad files.
-    /// `false`: the same picture in a y-up frame (y coordinates negated).
+    /// Frame of `pos` and of the output. `true` (default): y grows down, as in
+    /// KiCad files. `false`: y grows up; the result is the same picture with
+    /// y negated.
     pub y_down: bool,
 }
 
@@ -136,8 +184,7 @@ impl TextStrokes {
 
 /// Lays out `spec` and returns its strokes.
 pub fn to_strokes(spec: &TextSpec) -> TextStrokes {
-    let _ = spec;
-    TextStrokes::default()
+    layout::layout(spec)
 }
 
 /// A decoded NewStroke glyph in font units (1 unit = cap height / 21).

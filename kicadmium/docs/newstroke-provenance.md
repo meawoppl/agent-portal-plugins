@@ -1,7 +1,8 @@
 # Newstroke font provenance
 
 Research for the T3 schematic renderer (see `docs/javascript-triage.md`), done
-before any glyph data enters kicadmium. Nothing below has been imported yet.
+before any glyph data entered kicadmium. The 2015 table has since been imported
+as `kicad-strokes/src/glyphs.rs` under the rules below (see `docs/third-party.md`).
 
 ## Primary source
 

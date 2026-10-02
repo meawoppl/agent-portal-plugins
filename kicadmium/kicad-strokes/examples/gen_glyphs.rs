@@ -14,6 +14,9 @@
 //! Only the glyph string literals are read; none of the source file's comment
 //! or header text is copied. With `--tarball`, the tarball's SHA-256 is checked
 //! against the pinned value first.
+//!
+//! The example links the crate, so it needs a compiling `src/glyphs.rs`; restore
+//! the checked-in one from git before regenerating if it is missing or broken.
 
 use sha2::{Digest, Sha256};
 use std::fmt::Write as _;

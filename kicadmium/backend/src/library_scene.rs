@@ -4,7 +4,7 @@
 //! This module deliberately produces the same `vector-view` contract as the
 //! project schematic; the browser never parses KiCad source files.
 
-use crate::pcb_model::{PcbBoard, PcbGraphic, PcbShape, PcbText};
+use crate::pcb_model::PcbBoard;
 use anyhow::{anyhow, Result};
 use kct::schema::library::{LibrarySymbol, SymbolGraphic, SymbolLibrary};
 use vector_view::{
@@ -160,99 +160,11 @@ fn scene_from_symbol(symbol: &LibrarySymbol) -> Scene {
     scene
 }
 
+/// Footprint previews use the board reifier, so pads get the same full
+/// geometry (roundrect, chamfer, oval, trapezoid, custom) as the PCB tab.
 pub(crate) fn footprint_scene(board: &PcbBoard) -> Scene {
-    let mut scene = Scene::new(SceneKind::Footprint, true);
-    scene.layers = board
-        .layers
-        .iter()
-        .enumerate()
-        .map(|(index, source)| Layer {
-            id: index as u16,
-            name: source.name.clone(),
-            kind: pcb_layer_kind(&source.name),
-            side: if source.name.starts_with("F.") {
-                Side::Front
-            } else if source.name.starts_with("B.") {
-                Side::Back
-            } else {
-                Side::None
-            },
-            z: index as i32,
-            color: pcb_layer_color(&source.name),
-            visible: !source.disabled,
-        })
-        .collect();
-    let mut id = 1;
-    for footprint in &board.footprints {
-        scene.groups.push(Group {
-            id: 1,
-            kind: GroupKind::Footprint,
-            label: footprint.reference.clone(),
-            props: vec![
-                Prop::new("value", &footprint.value),
-                Prop::new("footprint", &footprint.footprint),
-            ],
-        });
-        for pad in &footprint.pads {
-            let radius = pad.size[0].min(pad.size[1]) / 2.0;
-            let prim = if pad.shape == "circle" {
-                Prim::Circle {
-                    center: pad.pos,
-                    radius,
-                    fill: true,
-                    stroke: 0.0,
-                }
-            } else {
-                let (w, h) = (pad.size[0] / 2.0, pad.size[1] / 2.0);
-                Prim::Polygon {
-                    outer: rotated_rect(pad.pos, w, h, pad.angle),
-                    holes: vec![],
-                    fill: true,
-                    stroke: 0.0,
-                }
-            };
-            for &layer in &pad.layers {
-                push_grouped(
-                    &mut scene,
-                    &mut id,
-                    layer,
-                    Role::Pad,
-                    prim.clone(),
-                    vec![
-                        Prop::new("number", &pad.number),
-                        Prop::new("type", &pad.kind),
-                    ],
-                );
-            }
-            if let Some(drill) = &pad.drill {
-                push_grouped(
-                    &mut scene,
-                    &mut id,
-                    pad.layers.first().copied().unwrap_or(0),
-                    Role::Hole,
-                    Prim::Hole {
-                        center: pad.pos,
-                        size: drill.size,
-                        rotation: pad.angle.to_radians(),
-                    },
-                    vec![Prop::new("pad", &pad.number)],
-                );
-            }
-        }
-        for graphic in &footprint.graphics {
-            add_graphic(&mut scene, &mut id, graphic);
-        }
-        for text in &footprint.texts {
-            add_pcb_text(&mut scene, &mut id, text);
-        }
-    }
-    for graphic in &board.graphics {
-        add_graphic(&mut scene, &mut id, graphic);
-    }
-    for text in &board.texts {
-        add_pcb_text(&mut scene, &mut id, text);
-    }
-    scene.recompute_bbox();
+    let mut scene = crate::pcb_scene::scene_from_board(board, "", "");
+    scene.kind = SceneKind::Footprint;
     scene
 }
 
@@ -294,16 +206,6 @@ fn push_item(
     });
     *id += 1;
 }
-fn push_grouped(
-    scene: &mut Scene,
-    id: &mut u32,
-    layer: u16,
-    role: Role,
-    prim: Prim,
-    props: Vec<Prop>,
-) {
-    push_item(scene, id, layer, role, prim, props);
-}
 
 fn add_text(
     scene: &mut Scene,
@@ -330,114 +232,6 @@ fn add_text(
             strokes.into_prim(),
             vec![Prop::new("text", text)],
         );
-    }
-}
-
-fn add_pcb_text(scene: &mut Scene, id: &mut u32, text: &PcbText) {
-    if !text.visible {
-        return;
-    }
-    let strokes = kicad_strokes::to_strokes(&kicad_strokes::TextSpec {
-        text: text.text.clone(),
-        pos: text.pos,
-        size: text.size,
-        thickness: text.thickness,
-        angle_deg: text.angle,
-        mirror: text.mirrored,
-        italic: text.italic,
-        bold: text.bold,
-        // KiCad 10 stores this field but its stroke-text plotter ignores it.
-        line_spacing: 1.0,
-        y_down: true,
-        ..Default::default()
-    });
-    if !strokes.strokes.is_empty() {
-        push_grouped(
-            scene,
-            id,
-            text.layer,
-            Role::Text,
-            strokes.into_prim(),
-            vec![Prop::new("text", &text.text), Prop::new("kind", &text.kind)],
-        );
-    }
-}
-
-fn add_graphic(scene: &mut Scene, id: &mut u32, graphic: &PcbGraphic) {
-    let prim = match &graphic.shape {
-        PcbShape::Segment { a, b } => Prim::Polyline {
-            points: vec![*a, *b],
-            width: graphic.width,
-        },
-        PcbShape::Polyline { pts } => Prim::Polyline {
-            points: pts.clone(),
-            width: graphic.width,
-        },
-        PcbShape::Polygon { pts } => Prim::Polygon {
-            outer: pts.clone(),
-            holes: vec![],
-            fill: graphic.filled,
-            stroke: graphic.width,
-        },
-        PcbShape::Circle { c, r } => Prim::Circle {
-            center: *c,
-            radius: *r,
-            fill: graphic.filled,
-            stroke: graphic.width,
-        },
-        PcbShape::Arc { c, r, start, end } => Prim::Arc {
-            center: *c,
-            radius: *r,
-            start: *start,
-            end: *end,
-            width: graphic.width,
-        },
-    };
-    push_grouped(
-        scene,
-        id,
-        graphic.layer,
-        if scene
-            .layers
-            .get(graphic.layer as usize)
-            .is_some_and(|l| l.kind == LayerKind::EdgeCuts)
-        {
-            Role::Outline
-        } else {
-            Role::Graphic
-        },
-        prim,
-        vec![],
-    );
-}
-
-fn rotated_rect(center: [f64; 2], hw: f64, hh: f64, degrees: f64) -> Vec<[f64; 2]> {
-    let (s, c) = degrees.to_radians().sin_cos();
-    [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]]
-        .into_iter()
-        .map(|[x, y]| [center[0] + x * c + y * s, center[1] - x * s + y * c])
-        .collect()
-}
-
-fn pcb_layer_kind(name: &str) -> LayerKind {
-    match name {
-        n if n.ends_with(".Cu") => LayerKind::Copper,
-        n if n.ends_with(".SilkS") => LayerKind::Silkscreen,
-        n if n.ends_with(".Mask") => LayerKind::SolderMask,
-        n if n.ends_with(".Paste") => LayerKind::Paste,
-        "Edge.Cuts" => LayerKind::EdgeCuts,
-        n if n.ends_with(".Fab") => LayerKind::Fabrication,
-        n if n.ends_with(".CrtYd") => LayerKind::Courtyard,
-        _ => LayerKind::Drawing,
-    }
-}
-fn pcb_layer_color(name: &str) -> [u8; 4] {
-    match pcb_layer_kind(name) {
-        LayerKind::Copper => [210, 80, 70, 220],
-        LayerKind::Silkscreen => [230, 230, 225, 255],
-        LayerKind::EdgeCuts => [230, 210, 70, 255],
-        LayerKind::SolderMask => [70, 150, 90, 120],
-        _ => [130, 150, 190, 230],
     }
 }
 
@@ -483,5 +277,29 @@ mod tests {
         assert_eq!(scene.kind, SceneKind::Symbol);
         assert!(scene.items.iter().any(|i| i.role == Role::Pin));
         assert!(!scene.bbox.is_empty());
+    }
+
+    #[test]
+    fn footprint_pads_keep_full_geometry() {
+        let text = r#"(kicad_pcb (version 20240108) (generator test)
+  (layers (0 "F.Cu" signal) (31 "B.Cu" signal) (37 "F.SilkS" user "F.Silkscreen"))
+  (footprint "Test:FP" (layer "F.Cu") (at 0 0)
+    (property "Reference" "REF**" (at 0 -2 0) (layer "F.SilkS") (effects (font (size 1 1) (thickness 0.15))))
+    (pad "1" smd roundrect (at -1 0) (size 1 1.4) (layers "F.Cu") (roundrect_rratio 0.25))
+    (pad "2" thru_hole oval (at 1 0) (size 1.2 2) (drill oval 0.6 1) (layers "*.Cu"))))"#;
+        let board = crate::pcb_view::build_board(text).unwrap();
+        let scene = footprint_scene(&board);
+        assert_eq!(scene.kind, SceneKind::Footprint);
+        let pads: Vec<_> = scene.items.iter().filter(|i| i.role == Role::Pad).collect();
+        assert!(!pads.is_empty());
+        // Rounded and oval outlines are arcs sampled into many vertices; the
+        // old preview emitted four-corner rectangles for every non-circle pad.
+        for pad in &pads {
+            if let Prim::Polygon { outer, .. } = &pad.prim {
+                assert!(outer.len() > 4, "pad flattened to a rectangle");
+            }
+        }
+        assert!(scene.items.iter().any(|i| i.role == Role::Hole));
+        assert!(scene.items.iter().any(|i| i.role == Role::Text));
     }
 }

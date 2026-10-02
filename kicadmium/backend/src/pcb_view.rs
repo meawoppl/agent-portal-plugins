@@ -1,5 +1,5 @@
-//! `/api/kicad/pcbview`: the project's board as a render-ready
-//! [`shared::pcb::PcbBoard`] for the Rust PCB view.
+//! KiCad `.kicad_pcb` to the intermediate [`crate::pcb_model::PcbBoard`],
+//! which `pcb_scene.rs` reifies into a `vector_view::Scene`.
 //!
 //! Parsing goes through `kct` only: [`kct::schema::pcb::Pcb`] supplies the
 //! layer table, nets, copper (tracks, arcs, vias, zones) and footprint
@@ -11,85 +11,12 @@
 
 use std::collections::HashMap;
 use std::f64::consts::TAU;
-use std::sync::{Arc, Mutex, OnceLock};
 
-use anyhow::{anyhow, Context, Result};
-use axum::{
-    extract::{Query, State},
-    http::header,
-    response::{IntoResponse, Response},
-    routing::get,
-    Router,
-};
+use anyhow::Result;
 use kct::schema::pcb::{arc_points_from_sexp, fill_token_is_filled, is_footprint_tag, Pcb};
 use kct::sexp::{SExp, Value};
-use shared::pcb::*;
 
-use crate::{
-    current_source_revision, pick_project_file, rel, selected_project, AppError, AppState,
-    ProjectContext, ProjectQuery,
-};
-
-pub(crate) fn routes() -> Router<AppState> {
-    Router::new().route("/api/kicad/pcbview", get(endpoint))
-}
-
-/// Serialized responses keyed by project id, reused while the revision holds.
-type Cache = Mutex<HashMap<String, (String, Arc<Vec<u8>>)>>;
-
-fn cache() -> &'static Cache {
-    static CACHE: OnceLock<Cache> = OnceLock::new();
-    CACHE.get_or_init(Default::default)
-}
-
-async fn endpoint(
-    State(state): State<AppState>,
-    Query(query): Query<ProjectQuery>,
-) -> Result<Response, AppError> {
-    let project = selected_project(&state, query.project.as_deref())?;
-    let body = tokio::task::spawn_blocking(move || response_bytes(&project)).await??;
-    Ok((
-        [
-            (header::CONTENT_TYPE, "application/json"),
-            (header::CACHE_CONTROL, "no-cache"),
-        ],
-        body.as_ref().clone(),
-    )
-        .into_response())
-}
-
-fn response_bytes(project: &ProjectContext) -> Result<Arc<Vec<u8>>> {
-    let path = pick_project_file(project, "kicad_pcb")?
-        .ok_or_else(|| anyhow!("project {} has no .kicad_pcb", project.id))?;
-    // Read between two identical revisions so the board matches the revision
-    // it is labelled with (an editor save can land mid-read).
-    for _ in 0..4 {
-        let before = current_source_revision(project)?;
-        if let Some((revision, body)) = cache().lock().unwrap().get(&project.id) {
-            if *revision == before {
-                return Ok(body.clone());
-            }
-        }
-        let text = std::fs::read_to_string(&path)
-            .with_context(|| format!("reading {}", path.display()))?;
-        if current_source_revision(project)? != before {
-            continue;
-        }
-        let response = PcbViewResponse {
-            ok: true,
-            revision: before.clone(),
-            filename: rel(&project.root, &path).unwrap_or_else(|_| path.display().to_string()),
-            board: build_board(&text)?,
-        };
-        let body = Arc::new(serde_json::to_vec(&response)?);
-        cache()
-            .lock()
-            .unwrap()
-            .insert(project.id.clone(), (before, body.clone()));
-        return Ok(body);
-    }
-    Err(anyhow!("{} kept changing while being read", path.display()))
-}
+use crate::pcb_model::*;
 
 // ------------------------------------------------------------------ helpers
 
@@ -344,7 +271,7 @@ struct Builder<'a> {
     net_index: HashMap<String, u32>,
 }
 
-fn copper_rank(name: &str) -> Option<usize> {
+pub(crate) fn copper_rank(name: &str) -> Option<usize> {
     match name {
         "F.Cu" => Some(0),
         "B.Cu" => Some(1000),

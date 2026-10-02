@@ -6,6 +6,8 @@ mod jobs;
 mod library;
 mod library_scene;
 mod lint;
+mod pcb_model;
+mod pcb_scene;
 mod pcb_view;
 mod profile;
 mod quality;
@@ -447,7 +449,7 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/libraries", get(libraries_endpoint))
                 .merge(library::routes())
                 .merge(lint::routes())
-                .merge(pcb_view::routes())
+                .merge(pcb_scene::routes())
                 .merge(schematic_view::routes())
                 .merge(jobs::routes())
                 .layer(TraceLayer::new_for_http())

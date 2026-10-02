@@ -6,7 +6,7 @@
 
 use anyhow::{anyhow, Result};
 use kct::schema::library::{LibrarySymbol, SymbolGraphic, SymbolLibrary};
-use shared::pcb::{PcbBoard, PcbGraphic, PcbShape, PcbText};
+use crate::pcb_model::{PcbBoard, PcbGraphic, PcbShape, PcbText};
 use vector_view::{
     Group, GroupKind, Item, Layer, LayerKind, Prim, Prop, Role, Scene, SceneKind, Side,
 };

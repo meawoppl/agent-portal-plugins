@@ -346,7 +346,8 @@ fn add_pcb_text(scene: &mut Scene, id: &mut u32, text: &PcbText) {
         mirror: text.mirrored,
         italic: text.italic,
         bold: text.bold,
-        line_spacing: text.line_spacing,
+        // KiCad 10 stores this field but its stroke-text plotter ignores it.
+        line_spacing: 1.0,
         y_down: true,
         ..Default::default()
     });

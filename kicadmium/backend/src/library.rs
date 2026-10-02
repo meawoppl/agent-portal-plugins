@@ -49,6 +49,7 @@ pub fn routes() -> Router<AppState> {
         .route("/api/kicad/library/status", get(status_endpoint))
         .route("/api/kicad/library/thumb/:file", get(thumb_endpoint))
         .route("/api/kicad/library/source/:file", get(source_endpoint))
+        .route("/api/kicad/library/scene/:file", get(scene_endpoint))
         .route("/api/kicad/library/model/:file", get(model_endpoint))
 }
 
@@ -231,6 +232,31 @@ async fn source_endpoint(UrlPath(file): UrlPath<String>) -> Response {
         .into_response()
 }
 
+async fn scene_endpoint(UrlPath(file): UrlPath<String>) -> Response {
+    let Some((key, "json")) = split_file(&file) else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    let Some(body) = viewer_scenes()
+        .lock()
+        .ok()
+        .and_then(|scenes| scenes.get(key).cloned())
+    else {
+        return (
+            StatusCode::NOT_FOUND,
+            "unknown library scene; reload the library",
+        )
+            .into_response();
+    };
+    (
+        [
+            (header::CONTENT_TYPE, "application/json"),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+        ],
+        body.as_ref().clone(),
+    )
+        .into_response()
+}
+
 async fn model_endpoint(
     State(state): State<AppState>,
     UrlPath(file): UrlPath<String>,
@@ -270,6 +296,11 @@ fn viewer_sources() -> &'static Mutex<HashMap<String, ViewerSource>> {
     SOURCES.get_or_init(Default::default)
 }
 
+fn viewer_scenes() -> &'static Mutex<HashMap<String, Arc<Vec<u8>>>> {
+    static SCENES: OnceLock<Mutex<HashMap<String, Arc<Vec<u8>>>>> = OnceLock::new();
+    SCENES.get_or_init(Default::default)
+}
+
 // ---------------------------------------------------------------------------
 // Inventory model (pure; no renderer state)
 
@@ -282,6 +313,10 @@ struct ThumbDraft {
     source: Option<String>,
     /// Viewer file (`.kicad_sch` / `.kicad_pcb`) served under the thumb key.
     viewer: Option<(&'static str, String)>,
+    /// Canonical, fully reified preview geometry. Serialized under the same
+    /// content key as the render job, so the URL is immutable and revision
+    /// pinned without exposing KiCad source to the browser.
+    scene: Option<vector_view::Scene>,
     /// On-demand GLB export for the interactive 3D viewer.
     glb: Option<RenderSpec>,
 }
@@ -293,6 +328,7 @@ impl ThumbDraft {
             placeholder: Some(reason.into()),
             source: None,
             viewer: None,
+            scene: None,
             glb: None,
         }
     }
@@ -389,6 +425,18 @@ fn register_thumb(renderer: &Renderer, draft: ThumbDraft, stats: &mut LibrarySta
         }
         viewer = Some(format!("/api/kicad/library/source/{key}.{extension}"));
     }
+    let mut scene_url = None;
+    if let Some(scene) = draft.scene {
+        if let Ok(body) = serde_json::to_vec(&scene) {
+            if let Ok(mut scenes) = viewer_scenes().lock() {
+                if scenes.len() > MAX_VIEWER_SOURCES {
+                    scenes.clear();
+                }
+                scenes.insert(key.clone(), Arc::new(body));
+            }
+            scene_url = Some(format!("/api/kicad/library/scene/{key}.json"));
+        }
+    }
     if let Some(glb) = draft.glb {
         let (glb_key, _) = renderer.register(glb, false);
         viewer = Some(format!("/api/kicad/library/model/{glb_key}.glb"));
@@ -399,6 +447,7 @@ fn register_thumb(renderer: &Renderer, draft: ThumbDraft, stats: &mut LibrarySta
         state: label.to_string(),
         message: message.or(draft.placeholder),
         viewer,
+        scene: scene_url,
         source: draft.source,
     }
 }
@@ -2234,11 +2283,13 @@ fn symbol_draft(
 ) -> ThumbDraft {
     let name = split_lib_id(lib_id).1.to_string();
     let viewer_symbol = chain.last().cloned();
+    let library_text = symbol_lib_text(&chain, lib_version);
+    let scene = crate::library_scene::symbol_scene(&library_text, &name).ok();
     ThumbDraft {
         spec: Some(RenderSpec {
             kind: RenderKind::Symbol,
             item: name,
-            input: symbol_lib_text(&chain, lib_version),
+            input: library_text,
             cache_identity: None,
             params: Vec::new(),
             model_files: Vec::new(),
@@ -2252,6 +2303,7 @@ fn symbol_draft(
                 symbol_sch_text(&symbol, lib_id, reference, sch_version),
             )
         }),
+        scene,
         glb: None,
     }
 }
@@ -2277,6 +2329,11 @@ fn footprint_drafts(
         placeholder: None,
         source: Some(origin.to_string()),
         viewer: Some(("kicad_pcb", viewer_pcb)),
+        scene: crate::pcb_view::build_board(&footprint_pcb_text(
+            node, fpid, "REF**", &ctx.pcb, "1.6",
+        ))
+        .ok()
+        .map(|board| crate::library_scene::footprint_scene(&board)),
         glb: None,
     };
 
@@ -2344,6 +2401,7 @@ fn footprint_drafts(
             placeholder: None,
             source: Some(origin.to_string()),
             viewer: None,
+            scene: None,
             glb: Some(RenderSpec {
                 kind: RenderKind::Glb,
                 item: String::new(),

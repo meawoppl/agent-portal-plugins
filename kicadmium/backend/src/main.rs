@@ -4,6 +4,7 @@ mod bom;
 mod jlc_corrections;
 mod jobs;
 mod library;
+mod library_scene;
 mod lint;
 mod pcb_view;
 mod profile;

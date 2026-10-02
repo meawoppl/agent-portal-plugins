@@ -25,12 +25,11 @@ bridges, browser-side STEP parsers, or browser-side KiCad parsers in that tree.
 
 KiCad source is parsed once on the Rust backend. Schematic, symbol and footprint
 data are reified into the generic `vector_view::Scene` contract: layers, stable
-item/group/net ids, properties, bounds and drawing primitives. The PCB endpoint
-similarly emits a typed, render-ready board model; its Rust Canvas2D component
-predates the generic scene extraction and remains provenance-documented in
-`third-party.md`. In generic scenes, text has already become geometry before
-the response reaches the browser. Yew/WASM owns Canvas2D drawing, hit testing, layer visibility,
-selection/highlighting and pointer/touch navigation.
+item/group/net ids, properties, bounds and drawing primitives. PCB uses that
+same contract, including backend-reified pad shapes, layer paint order and
+Newstroke text geometry. Yew/WASM owns Canvas2D drawing, hit testing, layer
+visibility, selection/highlighting and pointer/touch navigation through one
+shared scene host.
 
 Board 3D uses the revision-keyed `/api/kicad/model.glb` artifact. The Yew
 `ModelView` binds directly to the retained Three.js ES modules through

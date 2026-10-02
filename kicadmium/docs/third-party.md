@@ -35,23 +35,11 @@ palette. Its attribution and CC BY 4.0 notice are in the adjacent README.
 view, hit-test and input engine. It was extracted from pastebom's viewer and
 generalized from its front/back iBOM model to layer-aware PCB, schematic,
 symbol, footprint and Gerber geometry. kicadmium's backend produces
-`vector_view::Scene` for schematic and library views.
-
-## pastebom-derived PCB Canvas renderer
-
-The current PCB component predates `vector-view` and remains an authorized,
-layer-aware adaptation of pastebom's `crates/viewer` at revision
-`91ee2d7c9bad66bf85bec006f63d95d0f26c11c2`. The same author/rightsholder
-explicitly authorized these derived portions under kicadmium's MIT licence.
-Provenance headers remain in `frontend/src/pcb_view/`.
-
-The derived algorithms cover pad/drill outline construction, transforms and
-distance tests; prioritized hit testing; fit/pan/zoom math; Canvas2D path
-batching and highlighted-net rendering; pointer/pinch handling; and persisted
-layer/view settings. They were adapted from pastebom's merged front/back iBOM
-model to kicadmium's all-layer `shared::pcb` contract. Backend conversion,
-KiCad layer ordering/theme, text handling, properties UI and the layer-aware
-extensions are original kicadmium work.
+`vector_view::Scene` for PCB, schematic, symbol and footprint views. Geometry,
+text strokes, properties and paint order are reified on the backend; the Yew
+frontend supplies only declarative visibility, highlight, selection and camera
+state to the shared viewer. No pastebom renderer implementation is copied into
+this repository.
 
 ## NewStroke stroke font (`kicad-strokes`)
 

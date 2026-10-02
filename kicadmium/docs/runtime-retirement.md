@@ -29,9 +29,9 @@ decisions for future maintainers.
 The backend is the sole source of KiCad interpretation. Schematic, symbol and
 footprint views use the generic, renderer-independent `vector_view::Scene`
 contract with layer, item, group and net ids, properties, bounds, and drawing
-primitives. PCB also arrives as backend-reified typed geometry, through its
-older layer-aware board contract and Rust Canvas2D renderer. The browser does
-not receive KiCad sources for reparsing.
+primitives. PCB uses the same scene contract, with backend-reified pad shapes,
+layer ordering, properties and text strokes. The browser does not receive
+KiCad sources for reparsing.
 
 `kicad-strokes` converts schematic and library-preview text to `Prim::Strokes`
 on the backend. Its

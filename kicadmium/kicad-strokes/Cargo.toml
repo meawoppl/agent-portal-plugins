@@ -6,6 +6,7 @@ edition.workspace = true
 license = "MIT"
 
 [dependencies]
+vector-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "1b893dd" }
 
 [dev-dependencies]
 sha2 = { workspace = true }

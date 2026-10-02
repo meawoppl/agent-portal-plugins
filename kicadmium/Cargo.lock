@@ -2059,6 +2059,7 @@ name = "kicad-strokes"
 version = "0.1.0"
 dependencies = [
  "sha2",
+ "vector-view",
 ]
 
 [[package]]

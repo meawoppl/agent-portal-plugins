@@ -99,30 +99,45 @@ impl Default for TextSpec {
     }
 }
 
-/// Axis-aligned bounding box `[min, max]` in the output frame.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct BBox {
-    pub min: [f64; 2],
-    pub max: [f64; 2],
-}
+pub use vector_view::{BBox, Point, Prim};
 
-/// Result of [`to_strokes`].
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct Strokes {
-    /// Pen paths (stroke centre lines). Each is drawn with round caps and joins.
-    /// Single-point paths are dots.
-    pub strokes: Vec<Vec<[f64; 2]>>,
-    /// Pen width for every stroke.
+/// Result of [`to_strokes`]: one text item as stroke polylines.
+#[derive(Clone, Debug, PartialEq)]
+pub struct TextStrokes {
+    /// Pen paths (stroke centre lines), in the output frame. Each is drawn
+    /// with round caps and joins of [`width`](Self::width).
+    pub strokes: Vec<Vec<Point>>,
+    /// Pen width for every stroke (mm).
     pub width: f64,
-    /// Ink extents: stroke centre lines grown by `width / 2`. For text with
-    /// no ink (empty or spaces) this is the empty box at [`TextSpec::pos`].
+    /// Ink extents: stroke centre lines grown by `width / 2`.
+    /// [`BBox::EMPTY`] when the text has no ink (empty or only spaces).
     pub bbox: BBox,
 }
 
+impl Default for TextStrokes {
+    fn default() -> Self {
+        Self {
+            strokes: Vec::new(),
+            width: 0.0,
+            bbox: BBox::EMPTY,
+        }
+    }
+}
+
+impl TextStrokes {
+    /// Converts into a [`Prim::Strokes`] scene primitive.
+    pub fn into_prim(self) -> Prim {
+        Prim::Strokes {
+            strokes: self.strokes,
+            width: self.width,
+        }
+    }
+}
+
 /// Lays out `spec` and returns its strokes.
-pub fn to_strokes(spec: &TextSpec) -> Strokes {
+pub fn to_strokes(spec: &TextSpec) -> TextStrokes {
     let _ = spec;
-    Strokes::default()
+    TextStrokes::default()
 }
 
 /// A decoded NewStroke glyph in font units (1 unit = cap height / 21).

@@ -480,23 +480,24 @@ fn add_text(
     role: Role,
     group: Option<u32>,
 ) {
+    let strokes = kicad_strokes::to_strokes(&kicad_strokes::TextSpec {
+        text: text.to_owned(),
+        pos: [pos.0, pos.1],
+        angle_deg: rotation,
+        // The current schematic schema deliberately normalizes only the
+        // common placement fields. Preserve KiCad's standard schematic text
+        // metrics here until per-item effects are exposed by that schema.
+        size: [1.27, 1.27],
+        thickness: 0.12,
+        ..kicad_strokes::TextSpec::default()
+    });
     let mut props = identity(page, id);
     props.extend([
         Prop::new("text", text),
         Prop::new("at", format!("{},{}", pos.0, pos.1)),
         Prop::new("rotation", rotation.to_string()),
-    ]); /* kicad-strokes adapter fills this primitive once its pinned API lands. */
-    b.add(
-        TEXT,
-        role,
-        Prim::Strokes {
-            strokes: vec![],
-            width: 0.12,
-        },
-        net,
-        group,
-        props,
-    )
+    ]);
+    b.add(TEXT, role, strokes.into_prim(), net, group, props)
 }
 fn identity(page: &str, id: &str) -> Vec<Prop> {
     vec![Prop::new("page", page), Prop::new("uuid", id)]

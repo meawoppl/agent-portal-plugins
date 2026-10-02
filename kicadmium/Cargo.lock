@@ -251,6 +251,7 @@ dependencies = [
  "csv",
  "futures",
  "kct",
+ "kicad-strokes",
  "memory-serve",
  "mime_guess",
  "notify",

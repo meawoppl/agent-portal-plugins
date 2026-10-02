@@ -4081,9 +4081,10 @@ checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 [[package]]
 name = "vector-view"
 version = "1.9.1"
-source = "git+https://github.com/meawoppl/pastebom.com?rev=1b893dd#1b893dd08b40ee2fa1c25ebdf3e7b48908c03376"
+source = "git+https://github.com/meawoppl/pastebom.com?rev=72c551f#72c551fde90d03fa8be765563ca81b092a248599"
 dependencies = [
  "serde",
+ "web-sys",
 ]
 
 [[package]]

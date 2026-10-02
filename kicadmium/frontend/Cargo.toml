@@ -20,4 +20,4 @@ serde_json.workspace = true
 serde-wasm-bindgen = "0.6"
 shared = { path = "../shared" }
 gerber-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "a46380304c5ec2b116ffd08c24dd34294a8ec7ca" }
-vector-view.workspace = true
+vector-view = { workspace = true, features = ["canvas"] }

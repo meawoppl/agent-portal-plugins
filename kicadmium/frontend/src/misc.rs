@@ -1,4 +1,4 @@
-//! STEP, Analysis, and Panelization tabs: manifest-driven inventory views.
+//! Analysis and Panelization tabs: manifest-driven inventory views.
 
 use shared::ManifestResponse;
 use wasm_bindgen_futures::spawn_local;
@@ -37,29 +37,6 @@ fn loading_or_error(state: &Option<Result<ManifestResponse, String>>) -> Option<
         }
         Some(Ok(_)) => None,
     }
-}
-
-#[function_component(StepTab)]
-pub fn step_tab(props: &TabProps) -> Html {
-    let manifest = use_manifest(props.project.clone(), props.revision.clone());
-    let body = loading_or_error(&manifest).unwrap_or_else(|| {
-        let files: Vec<_> = manifest
-            .and_then(Result::ok)
-            .map(|m| m.files)
-            .unwrap_or_default()
-            .into_iter()
-            .filter(|f| f.kind == "model")
-            .collect();
-        if files.is_empty() {
-            return html! { <p class="muted">{"No STEP/GLB models in this project."}</p> };
-        }
-        html! {
-            <ul>
-                {for files.iter().map(|f| html! { <li><code>{&f.path}</code>{" "}<span class="muted">{&f.kind}</span></li> })}
-            </ul>
-        }
-    });
-    html! { <div class="card"><h2>{"STEP"}</h2>{body}</div> }
 }
 
 #[function_component(AnalysisTab)]

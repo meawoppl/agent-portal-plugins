@@ -67,8 +67,9 @@ KiCanvas PCB paths until it matches on all of: pads, tracks, zones, text,
 drills, pours/layer visibility, selection, net highlight, source identity
 (revision), and touch.
 
-Status: implemented behind the PCB tab's "Rust renderer" switch
-(`localStorage["kicadmium:pcb-renderer"] = "rust"`, default KiCanvas).
+Status: implemented as the PCB tab's only renderer. The parity-tested Rust
+Canvas2D path replaced the KiCanvas PCB fallback; KiCanvas remains temporarily
+only for schematics while T3 is completed.
 
 - Data: `/api/kicad/pcbview` (`backend/src/pcb_view.rs`) builds
   `shared::pcb::PcbBoard` from `kct::schema::pcb` and the same `kct::sexp`

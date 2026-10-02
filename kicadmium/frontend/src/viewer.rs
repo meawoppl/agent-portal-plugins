@@ -8,9 +8,6 @@ use yew::prelude::*;
 
 use crate::pcb_view::PcbView;
 
-/// `localStorage` key choosing the PCB renderer (`rust` or `kicanvas`).
-const RENDERER_KEY: &str = "kicadmium:pcb-renderer";
-
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub project: AttrValue,
@@ -35,12 +32,6 @@ fn stored(kind: &str) -> Value {
         })
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or_else(|| json!({}))
-}
-
-fn rust_renderer_saved() -> bool {
-    local_storage()
-        .and_then(|s| s.get_item(RENDERER_KEY).ok().flatten())
-        .is_some_and(|v| v == "rust")
 }
 
 async fn send_snapshot(
@@ -83,8 +74,6 @@ pub fn viewer(props: &Props) -> Html {
     let node = use_node_ref();
     let pours = use_state(|| true);
     let is_pcb = props.kind.as_str() == "pcb";
-    let rust = use_state(rust_renderer_saved);
-    let use_rust = is_pcb && *rust;
     {
         let node = node.clone();
         let project = props.project.to_string();
@@ -92,7 +81,7 @@ pub fn viewer(props: &Props) -> Html {
         let active = props.active;
         let pours = *pours;
         use_effect_with(
-            (project.clone(), kind.clone(), active, pours, use_rust),
+            (project.clone(), kind.clone(), active, pours, is_pcb),
             move |_| {
                 // The Rust PCB view renders no iframe.
                 let frame = node.cast::<HtmlIFrameElement>();
@@ -158,28 +147,17 @@ pub fn viewer(props: &Props) -> Html {
         let pours = pours.clone();
         Callback::from(move |_| pours.set(!*pours))
     };
-    let toggle_renderer = {
-        let rust = rust.clone();
-        Callback::from(move |_| {
-            let next = !*rust;
-            if let Some(s) = local_storage() {
-                let _ = s.set_item(RENDERER_KEY, if next { "rust" } else { "kicanvas" });
-            }
-            rust.set(next)
-        })
-    };
     let options = if is_pcb {
         html! {<div class="viewer-options">
             <label class="viewer-option"><input type="checkbox" checked={*pours} onchange={toggle}/>{" Polygon pours"}</label>
-            <label class="viewer-option" title="Render the PCB with the native Rust view instead of KiCanvas"><input type="checkbox" checked={*rust} onchange={toggle_renderer}/>{" Rust renderer"}</label>
         </div>}
     } else {
         Html::default()
     };
-    let body = if use_rust {
+    let body = if is_pcb {
         html! {<PcbView project={props.project.clone()} revision={props.revision.clone()} pours={*pours}/>}
     } else {
         html! {<iframe key={props.kind.to_string()} ref={node} class="native-viewer" data-kind={props.kind.clone()} title={format!("{} viewer",props.kind)} src="/kicad-viewer/runtime.html" />}
     };
-    html! {<div class={classes!("viewer-card", use_rust.then_some("rust-pcb"))}>{options}{body}</div>}
+    html! {<div class={classes!("viewer-card", is_pcb.then_some("rust-pcb"))}>{options}{body}</div>}
 }

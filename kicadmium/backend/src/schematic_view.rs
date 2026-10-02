@@ -488,7 +488,8 @@ fn add_text(
         // common placement fields. Preserve KiCad's standard schematic text
         // metrics here until per-item effects are exposed by that schema.
         size: [1.27, 1.27],
-        thickness: 0.12,
+        thickness: kicad_strokes::SCH_DEFAULT_PEN,
+        keep_upright: true,
         ..kicad_strokes::TextSpec::default()
     });
     let mut props = identity(page, id);

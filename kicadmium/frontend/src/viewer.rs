@@ -6,7 +6,7 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{HtmlIFrameElement, MessageEvent};
 use yew::prelude::*;
 
-use crate::pcb_view::PcbView;
+use crate::{model_view::ModelView, pcb_view::PcbView};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -74,6 +74,7 @@ pub fn viewer(props: &Props) -> Html {
     let node = use_node_ref();
     let pours = use_state(|| true);
     let is_pcb = props.kind.as_str() == "pcb";
+    let is_model = props.kind.as_str() == "model";
     {
         let node = node.clone();
         let project = props.project.to_string();
@@ -156,8 +157,10 @@ pub fn viewer(props: &Props) -> Html {
     };
     let body = if is_pcb {
         html! {<PcbView project={props.project.clone()} revision={props.revision.clone()} pours={*pours}/>}
+    } else if is_model {
+        html! {<ModelView project={props.project.clone()} revision={props.revision.clone()} active={props.active}/>}
     } else {
         html! {<iframe key={props.kind.to_string()} ref={node} class="native-viewer" data-kind={props.kind.clone()} title={format!("{} viewer",props.kind)} src="/kicad-viewer/runtime.html" />}
     };
-    html! {<div class={classes!("viewer-card", is_pcb.then_some("rust-pcb"))}>{options}{body}</div>}
+    html! {<div class={classes!("viewer-card", is_pcb.then_some("rust-pcb"), is_model.then_some("rust-model"))}>{options}{body}</div>}
 }

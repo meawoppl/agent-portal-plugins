@@ -1,0 +1,11 @@
+[package]
+name = "kicad-strokes"
+description = "KiCad text to stroke polylines (NewStroke font), so 2D viewers never need fonts"
+version.workspace = true
+edition.workspace = true
+license = "MIT"
+
+[dependencies]
+
+[dev-dependencies]
+sha2 = { workspace = true }

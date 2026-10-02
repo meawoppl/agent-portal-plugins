@@ -3,6 +3,7 @@ members = [
     "backend",
     "frontend",
     "kct",
+    "kicad-strokes",
     "pcb-lint",
     "shared",
 ]

@@ -38,6 +38,9 @@ pub struct VectorSceneCanvasProps {
     pub highlight: Highlight,
     #[prop_or_default]
     pub overlay: Option<Overlay>,
+    /// Filled primitives rendered as outlines, including in the overlay pass.
+    #[prop_or_default]
+    pub outline_items: HashSet<ItemId>,
     #[prop_or_default]
     pub theme: Theme,
     #[prop_or(Some([17, 19, 29, 255]))]
@@ -159,8 +162,35 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
         let mirrored = props.mirrored;
         let fit_bbox = props.fit_bbox;
         let on_view = props.on_view.clone();
+        // A scene replacement rebuilds the runtime. Capture and apply every
+        // declarative drawing prop here as well as in the config effect below:
+        // unchanged props do not retrigger that second effect after a live
+        // revision refresh.
+        let visibility = props.visibility.clone();
+        let hidden_items = props.hidden_items.clone();
+        let passes = props.passes.clone();
+        let highlight = props.highlight.clone();
+        let selected = props.selected;
+        let overlay = props.overlay.clone();
+        let outline_items = props.outline_items.clone();
+        let theme = props.theme.clone();
+        let background = props.background;
+        let grid = props.grid;
         use_effect_with(props.scene.clone(), move |_| {
-            *runtime.borrow_mut() = Runtime::new(&scene, initial_view, mirrored, fit_bbox);
+            let mut fresh = Runtime::new(&scene, initial_view, mirrored, fit_bbox);
+            fresh.state.visibility = visibility.clone();
+            fresh.state.hidden_items = hidden_items.clone();
+            fresh.state.passes = passes.clone();
+            fresh.state.highlight = selected.map_or_else(
+                || highlight.clone(),
+                |id| Highlight::Items(HashSet::from([id])),
+            );
+            fresh.state.overlay = overlay.clone();
+            fresh.state.outline_items = outline_items.clone();
+            fresh.state.theme = theme.clone();
+            fresh.state.background = background;
+            fresh.state.grid = grid;
+            *runtime.borrow_mut() = fresh;
             if let Some(c) = canvas.cast::<HtmlCanvasElement>() {
                 let mut r = runtime.borrow_mut();
                 redraw(&c, &scene, &mut r);
@@ -224,6 +254,7 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
             props.passes.clone(),
             props.highlight.clone(),
             props.overlay.clone(),
+            props.outline_items.clone(),
             props.theme.clone(),
             props.background,
             props.grid,
@@ -238,6 +269,7 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
                 passes,
                 highlight,
                 overlay,
+                outline_items,
                 theme,
                 background,
                 grid,
@@ -259,10 +291,8 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
                 |id| Highlight::Items(HashSet::from([id])),
             );
             r.state.overlay = overlay.clone();
+            r.state.outline_items = outline_items.clone();
             r.state.theme = theme.clone();
-            if r.state.theme.highlight.is_none() {
-                r.state.theme.highlight = Some([247, 118, 142, 255]);
-            }
             r.state.background = *background;
             r.state.grid = *grid;
             r.fit_bbox = *fit_bbox;

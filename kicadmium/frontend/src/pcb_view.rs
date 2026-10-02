@@ -39,8 +39,6 @@ const TEXT_USER: u8 = 4;
 
 /// Selection overlay colour and opacity (as the previous PCB view).
 const SELECTION: [u8; 4] = [64, 169, 255, 255];
-/// Net highlight colour; everything else dims.
-const NET_HIGHLIGHT: [u8; 4] = [255, 255, 255, 255];
 /// Board outline share of the viewport after a fit (KiCanvas framing).
 const FIT_FILL: f64 = 0.78;
 /// KiCanvas draws zone fills at this fraction of the copper opacity.
@@ -327,10 +325,8 @@ fn prepare(scene: &Scene) -> Prepared {
         order.retain(|id| !overlays.contains(id));
         order.extend(&overlays);
     }
-    let mut theme = Theme {
-        highlight: Some(NET_HIGHLIGHT),
-        ..Theme::default()
-    };
+    // A highlighted net keeps each layer's colour while unrelated items dim.
+    let mut theme = Theme::default();
     for l in &scene.layers {
         // Passes apply the layer alpha; items draw opaque.
         theme
@@ -754,10 +750,13 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
                 .map(|sel| overlay_items(scene, p, sel))
                 .filter(|ids| !ids.is_empty())
                 .map(|ids| Overlay {
-                    highlight: Highlight::Items(ids),
+                    highlight: Highlight::Items(ids.clone()),
                     color: SELECTION,
                     alpha: 0.55,
                 });
+            let outline_items = sel
+                .map(|sel| overlay_items(scene, p, sel))
+                .unwrap_or_default();
             let on_select = {
                 let selection = selection.clone();
                 let scene = scene.clone();
@@ -778,6 +777,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
             html! {
                 <VectorSceneCanvas scene={scene.clone()} {on_select} {visibility} {hidden_items}
                     mirrored={s.flipped} passes={Some(passes.clone())} {highlight} {overlay}
+                    {outline_items}
                     theme={p.theme.clone()} background={Some(p.background)} grid={Some(p.grid)}
                     fit_bbox={Some(fit_frame(p.outline, size.0, size.1))} initial_view={*initial_view} {on_view}/>
             }

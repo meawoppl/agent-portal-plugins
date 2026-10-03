@@ -49,7 +49,7 @@ pub struct Evaluation {
 }
 
 /// Read a lint `Config` JSON file, or the default when `path` is `None`.
-pub fn read_config(path: Option<&Path>) -> Result<Config> {
+fn read_config(path: Option<&Path>) -> Result<Config> {
     Ok(if let Some(p) = path {
         serde_json::from_str(
             &fs::read_to_string(p).with_context(|| format!("reading {}", p.display()))?,

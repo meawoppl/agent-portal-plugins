@@ -26,7 +26,7 @@ kicadmium doctor --json --cwd .          # what tools/projects he found
 kicadmium drc --json --cwd . --project board-a
 kicadmium erc --json --cwd .
 kicadmium quality --json --cwd .         # kct rules + in-house audits vs qualityProfile
-kicadmium lint --json --cwd .            # 101 evidence-aware heuristic checks
+kicadmium lint --json --cwd .            # = kct lint run on the project board
 kicadmium export gerbers --cwd . --out build/gerbers
 kicadmium export jlcpcb  --cwd . --out build/jlcpcb
 kicadmium setup                          # report the KiCad install he found

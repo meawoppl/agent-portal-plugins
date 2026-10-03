@@ -5,7 +5,7 @@
 //! paths (project-root relative) from `.kicad-pcb.json`. Findings are advisory
 //! heuristics, never native DRC, and never modify the board.
 
-use std::path::PathBuf;
+use std::{ffi::OsString, path::PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use axum::{
@@ -92,29 +92,50 @@ pub(crate) fn run(project: &ProjectContext) -> Result<LintRun> {
     })
 }
 
-pub(crate) fn fails(report: &Report, fail_on: FailOn) -> bool {
-    report.findings.iter().any(|f| {
-        f.state != "ignored"
-            && match fail_on {
-                FailOn::Never => false,
-                FailOn::Warning => f.severity == "warning" || f.severity == "error",
-                FailOn::Error => f.severity == "error",
-            }
-    })
+impl FailOn {
+    fn as_arg(self) -> &'static str {
+        match self {
+            FailOn::Never => "never",
+            FailOn::Warning => "warning",
+            FailOn::Error => "error",
+        }
+    }
 }
 
-pub(crate) fn summary(report: &Report) -> String {
-    let open = report
-        .findings
-        .iter()
-        .filter(|f| f.state != "ignored")
-        .count();
-    format!(
-        "{} findings: {open} actionable, {} ignored; {} coverage entries. Heuristics are not DRC.",
-        report.findings.len(),
-        report.findings.len() - open,
-        report.coverage.len()
-    )
+/// `kicadmium lint`: resolve the project's board and run `kct lint run` on it,
+/// so the CLI honours `<board>.lint.json` and prints exactly what kct does.
+pub(crate) fn run_cli(
+    project: &ProjectContext,
+    json: bool,
+    contact_sheet: Option<PathBuf>,
+    fail_on: FailOn,
+) -> Result<i32> {
+    let board = pick_project_file(project, "kicad_pcb")?
+        .ok_or_else(|| anyhow!("project {} has no .kicad_pcb to lint", project.id))?;
+    let settings = project.config.lint.clone().unwrap_or_default();
+    if !BoardLintFile::path_for(&board).exists()
+        && (settings.config.is_some() || settings.reviews.is_some())
+    {
+        eprintln!(
+            "warning: legacy .kicad-pcb.json lint.config/lint.reviews are not applied here \
+             (only the workbench reads them). Create {} with `kicadmium kct -- lint init` \
+             and move the settings into it.",
+            BoardLintFile::path_for(&board).display()
+        );
+    }
+    let mut args: Vec<OsString> = vec![
+        "lint".into(),
+        "run".into(),
+        board.into_os_string(),
+        "--format".into(),
+        if json { "json" } else { "text" }.into(),
+        "--fail-on".into(),
+        fail_on.as_arg().into(),
+    ];
+    if let Some(sheet) = contact_sheet {
+        args.extend(["--contact-sheet".into(), sheet.into_os_string()]);
+    }
+    kct::cli::run(args)
 }
 
 pub(crate) fn routes() -> Router<AppState> {

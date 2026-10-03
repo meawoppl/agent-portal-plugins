@@ -140,8 +140,10 @@ enum Commands {
         #[arg(long)]
         project: Option<String>,
     },
-    /// Read-only pcb-lint heuristics for the project board (advisory, not DRC).
+    /// Alias for `kct lint run` on the project's board (advisory, not DRC).
+    /// Uses `<board>.lint.json`; other lint commands: `kicadmium kct -- lint`.
     Lint {
+        /// Same as `kct lint run --format json`.
         #[arg(long)]
         json: bool,
         #[arg(long, default_value = ".")]
@@ -151,14 +153,9 @@ enum Commands {
         /// Write a self-contained HTML contact sheet of findings.
         #[arg(long, value_name = "HTML")]
         contact_sheet: Option<PathBuf>,
-        /// Exit 2 when an open finding meets this severity.
+        /// Exit 1 when an open finding meets this severity.
         #[arg(long, value_enum, default_value = "never")]
         fail_on: lint::FailOn,
-    },
-    /// Run the full embedded pcb-lint CLI (`inspect`, `rules`, `review`, etc.).
-    PcbLint {
-        #[arg(last = true)]
-        args: Vec<OsString>,
     },
     Export {
         #[command(subcommand)]
@@ -514,29 +511,7 @@ async fn main() -> Result<()> {
         } => {
             let cwd = cwd.canonicalize()?;
             let project = cli_project_context(&cwd, project.as_deref())?;
-            let run = lint::run(&project)?;
-            eprintln!("{}", lint::summary(&run.checked.report));
-            if let Some(sheet) = contact_sheet {
-                let html = kct::lint::contact_sheet::render(&run.source, &run.checked.report)?;
-                kct::lint::review::atomic_write(&sheet, html.as_bytes())?;
-                eprintln!("Contact sheet: {}", sheet.display());
-            }
-            if json {
-                print_json_or_debug(true, &run.checked.report)?;
-            } else {
-                for finding in &run.checked.report.findings {
-                    println!(
-                        "{:<8} {:<9} {:<32} {}",
-                        finding.severity, finding.state, finding.rule, finding.message
-                    );
-                }
-            }
-            if lint::fails(&run.checked.report, fail_on) {
-                std::process::exit(2);
-            }
-        }
-        Commands::PcbLint { args } => {
-            let code = kct::lint::cli::run(args)?;
+            let code = lint::run_cli(&project, json, contact_sheet, fail_on)?;
             if code != 0 {
                 std::process::exit(code);
             }

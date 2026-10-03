@@ -345,4 +345,3 @@ pub fn lint(input: &str, board_id: &str, config: Config) -> Result<Report> {
         review_audit: vec![],
     })
 }
-pub mod cli;

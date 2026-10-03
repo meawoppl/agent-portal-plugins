@@ -12,6 +12,10 @@ Agents, humans and CI all run the same commands:
 kicadmium kct -- lint <command> ...
 ```
 
+`kicadmium lint [--cwd DIR] [--project ID] [--json] [--fail-on ...]
+[--contact-sheet F]` is a shortcut. It resolves the project's board and runs
+`kct lint run` on it, with the same lint file, output and exit codes.
+
 ## Commands
 
 | Command | Effect |

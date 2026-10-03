@@ -46,7 +46,7 @@ run = "target/release/kicadmium quality --cwd {cwd} --json"
 
 [[commands]]
 name = "lint"
-description = "Run the integrated evidence-aware heuristic PCB review (advisory, not native DRC)."
+description = "Run `kct lint run` on the project board, honouring <board>.lint.json exceptions (advisory, not native DRC)."
 run = "target/release/kicadmium lint --cwd {cwd} --json"
 
 [[commands]]

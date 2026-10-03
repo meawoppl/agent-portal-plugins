@@ -37,6 +37,7 @@ pub mod footprint;
 pub mod footprint_validation;
 pub mod h;
 pub mod impedance;
+pub mod lint;
 pub mod mfr;
 pub mod net_status;
 pub mod optim;
@@ -90,6 +91,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "drc", about: "Parse DRC report", wave: "A", run: Some(drc::run) },
     CommandSpec { name: "bom", about: "Generate bill of materials", wave: "B", run: Some(design::bom) },
     CommandSpec { name: "check", about: "Native Rust PCB checks (no kicad-cli required)", wave: "A", run: Some(check::run) },
+    CommandSpec { name: "lint", about: "Evidence-aware board lint, exceptions, and CI artifacts", wave: "A", run: Some(lint::run) },
     CommandSpec { name: "creepage", about: "Conservative HV conductor-envelope clearance census", wave: "E", run: Some(creepage::run) },
     CommandSpec { name: "creepage-export-rules", about: "Export pairwise HV clearance clauses to a KiCad DRU file", wave: "E", run: Some(creepage_export_rules::run) },
     CommandSpec { name: "sch", about: "Schematic analysis tools", wave: "B", run: Some(design::sch) },

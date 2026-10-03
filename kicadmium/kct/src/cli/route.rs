@@ -799,13 +799,17 @@ pub fn run(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         p.ignored_flags.push(format!("--strategy {}", p.strategy));
     }
     warn_ignored("route", &p.ignored_flags);
-    route_main(&p)
+    let gate = ns.str_or("lint_gate", "never");
+    let input = std::fs::read_to_string(&p.pcb)?;
+    let code = route_main(&p)?;
+    lint_gate(&p.pcb, &p.output, &input, &gate, p.dry_run, code)
 }
 
 /// `route` options the native router honours (all others are accepted for
 /// upstream compatibility but have no effect yet).
 const ROUTE_IMPLEMENTED: &[&str] = &[
     "output",
+    "lint_gate",
     "format",
     "strategy",
     "skip_nets",
@@ -837,6 +841,7 @@ const ROUTE_IMPLEMENTED: &[&str] = &[
 
 /// `route-auto` options the native router honours.
 const ROUTE_AUTO_IMPLEMENTED: &[&str] = &[
+    "lint_gate",
     "net",
     "nets",
     "allow_partial",
@@ -849,6 +854,76 @@ const ROUTE_AUTO_IMPLEMENTED: &[&str] = &[
     "verbose",
     "format",
 ];
+
+/// Refuse newly introduced lint findings after routing and restore the original
+/// board bytes. Existing findings are deliberately not a gate: the router is
+/// responsible only for regressions it introduced.
+fn lint_gate(
+    input_path: &Path,
+    output_path: &Path,
+    input_source: &str,
+    threshold: &str,
+    dry_run: bool,
+    route_code: i32,
+) -> Result<i32> {
+    if threshold == "never" || dry_run || !output_path.exists() {
+        return Ok(route_code);
+    }
+    let policy_path = pcb_lint::board_file::BoardLintFile::path_for(input_path);
+    let board_id = input_path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("board");
+    let policy = pcb_lint::board_file::BoardLintFile::load_or_default(&policy_path, board_id)?;
+    let before = pcb_lint::board_file::lint_board(input_source, &policy, pcb_lint::review::now())?;
+    let output_source = std::fs::read_to_string(output_path)?;
+    let after = pcb_lint::board_file::lint_board(&output_source, &policy, pcb_lint::review::now())?;
+    for audit in after.stale() {
+        eprintln!(
+            "Warning: lint exception {} is {} after routing: {}",
+            audit.key, audit.status, audit.detail
+        );
+    }
+    let delta = pcb_lint::board_file::diff(&before.report, &after.report);
+    let regressions: Vec<_> = delta
+        .new
+        .iter()
+        .filter(|finding| {
+            finding.state != "ignored"
+                && match threshold {
+                    "error" => finding.severity == "error",
+                    _ => matches!(finding.severity.as_str(), "warning" | "error"),
+                }
+        })
+        .collect();
+    if regressions.is_empty() {
+        return Ok(route_code);
+    }
+    std::fs::write(output_path, input_source)?;
+    let _ = write_route_receipt_with(
+        output_path,
+        6,
+        Some(json!({
+            "action": "rollback",
+            "reason": "new lint findings",
+            "threshold": threshold,
+            "new_findings": regressions.len(),
+        })),
+    );
+    eprintln!(
+        "Error: lint gate found {} new {}-or-higher finding(s); restored {}",
+        regressions.len(),
+        threshold,
+        output_path.display()
+    );
+    for finding in regressions {
+        eprintln!(
+            "  {} {}: {}",
+            finding.severity, finding.rule, finding.message
+        );
+    }
+    Ok(6)
+}
 
 /// Explicitly passed options whose dest is not in `implemented` (first long
 /// option name, deduplicated, in table order).
@@ -1373,6 +1448,7 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         Err(code) => return Ok(code),
     };
     let pcb_path = PathBuf::from(&ns.positionals[0]);
+    let input_source = std::fs::read_to_string(&pcb_path).unwrap_or_default();
     let ignored = ignored_flags(&ns, ROUTE_AUTO_OPTS, ROUTE_AUTO_IMPLEMENTED);
     warn_ignored("route-auto", &ignored);
     let as_json = ns.get("format") == Some("json");
@@ -1607,9 +1683,17 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
     } else {
         println!("Saved: {}", output.display());
     }
-    Ok(if failed > 0 && !ns.flag("allow_partial") {
+    let code = if failed > 0 && !ns.flag("allow_partial") {
         1
     } else {
         0
-    })
+    };
+    lint_gate(
+        &pcb_path,
+        &output,
+        &input_source,
+        &ns.str_or("lint_gate", "never"),
+        params.dry_run,
+        code,
+    )
 }

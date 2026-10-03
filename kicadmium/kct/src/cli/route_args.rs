@@ -72,6 +72,12 @@ const fn f(
 /// `kct route` options (upstream `cli/parser.py` route subparser).
 pub static ROUTE_OPTS: &[Opt] = &[
     v(&["-o", "--output"], "output", None),
+    c(
+        &["--lint-gate"],
+        "lint_gate",
+        Some("never"),
+        &["never", "warning", "error"],
+    ),
     c(&["--format"], "format", Some("text"), &["text", "json"]),
     c(
         &["--strategy"],
@@ -434,6 +440,12 @@ pub static ROUTE_OPTS: &[Opt] = &[
 
 /// `kct route-auto` options.
 pub static ROUTE_AUTO_OPTS: &[Opt] = &[
+    c(
+        &["--lint-gate"],
+        "lint_gate",
+        Some("never"),
+        &["never", "warning", "error"],
+    ),
     v(&["--net"], "net", None),
     v(&["--nets"], "nets", None),
     v(&["--region"], "region", None),

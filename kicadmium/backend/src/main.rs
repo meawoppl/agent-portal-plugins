@@ -515,23 +515,23 @@ async fn main() -> Result<()> {
             let cwd = cwd.canonicalize()?;
             let project = cli_project_context(&cwd, project.as_deref())?;
             let run = lint::run(&project)?;
-            eprintln!("{}", lint::summary(&run.report));
+            eprintln!("{}", lint::summary(&run.checked.report));
             if let Some(sheet) = contact_sheet {
-                let html = pcb_lint::contact_sheet::render(&run.source, &run.report)?;
+                let html = pcb_lint::contact_sheet::render(&run.source, &run.checked.report)?;
                 pcb_lint::review::atomic_write(&sheet, html.as_bytes())?;
                 eprintln!("Contact sheet: {}", sheet.display());
             }
             if json {
-                print_json_or_debug(true, &run.report)?;
+                print_json_or_debug(true, &run.checked.report)?;
             } else {
-                for finding in &run.report.findings {
+                for finding in &run.checked.report.findings {
                     println!(
                         "{:<8} {:<9} {:<32} {}",
                         finding.severity, finding.state, finding.rule, finding.message
                     );
                 }
             }
-            if lint::fails(&run.report, fail_on) {
+            if lint::fails(&run.checked.report, fail_on) {
                 std::process::exit(2);
             }
         }

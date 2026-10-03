@@ -2040,6 +2040,7 @@ dependencies = [
  "num-bigint",
  "num-rational",
  "num-traits",
+ "pcb-lint",
  "pdf-extract",
  "regex",
  "reqwest",

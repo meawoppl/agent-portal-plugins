@@ -18,8 +18,8 @@ kicadmium kct -- lint <command> ...
 |---|---|
 | `lint run BOARD [--format text\|json] [--fail-on never\|warning\|error] [--contact-sheet F] [--exceptions-sheet F]` | Lint one board with its lint file. Prints findings plus an exception audit. Warns on stderr about stale exceptions. |
 | `lint init BOARD [--board-id ID] [--force]` | Create `<board>.lint.json` with the board id and default config. |
-| `lint waive BOARD KEY --reason R --reviewer W [--expires-at UNIX]` | Record a reviewed non-issue. The finding stops counting as open. |
-| `lint flag BOARD KEY --reason R --reviewer W [--expires-at UNIX]` | Record a reviewed finding that still needs work. It stays open, with the note attached. |
+| `lint waive BOARD KEY --reason R --reviewer W [--expires-at UNIX\|YYYY-MM-DD]` | Record a reviewed non-issue. The finding stops counting as open. |
+| `lint flag BOARD KEY --reason R --reviewer W [--expires-at UNIX\|YYYY-MM-DD]` | Record a reviewed finding that still needs work. It stays open, with the note attached. |
 | `lint clear BOARD KEY` | Remove one exception. |
 | `lint stale BOARD` | List orphaned, resolved and expired exceptions. Exits 1 if there are any. |
 | `lint prune BOARD [--apply] [--changed] [--keep-orphaned] [--keep-resolved] [--keep-expired]` | Remove stale exceptions. It is a dry run unless you pass `--apply`. |
@@ -76,10 +76,11 @@ for that board.
 - The rule, subjects, message, severity, location and nets are snapshotted, so
   a card can still be drawn after the geometry is gone.
 - Writes take `<file>.lock` and are atomic. Unknown fields are rejected.
-- Schema-1 inputs (a separate `--config` JSON plus `--reviews` ledger, or
-  `.kicad-pcb.json` `lint.config` / `lint.reviews`) are migrated. Migrated
+- The project-aware workbench reads legacy `.kicad-pcb.json` `lint.config` /
+  `lint.reviews` settings when no adjacent board lint file exists. Migrated
   entries stay `unverified` until a run that raises their finding fills in the
-  missing metadata.
+  missing metadata; save them into the adjacent file before retiring the legacy
+  paths.
 
 ## Exception statuses
 
@@ -107,8 +108,8 @@ them.
 lint-results/
   summary.md            index of all boards with open/stale counts and links
   findings.sarif        all boards, for GitHub code scanning
-  <board-stem>/
-    report.json         full pcb-lint report + exception audit
+  <board-path-slug>__<path-hash>/
+    report.json         full pcb-lint report, including review-audit statuses
     findings.html       contact sheet of findings: crops, highlights, filters
     exceptions.html     contact sheet of every exception: crop, reason,
                         reviewer, dates, status badge

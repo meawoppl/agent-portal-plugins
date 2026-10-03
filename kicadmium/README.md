@@ -33,8 +33,10 @@ kicadmium setup                          # report the KiCad install he found
 kicadmium kct --help                     # native Rust PCB automation
 kicadmium kct  --cwd . -- readiness . --format json
 kicadmium tool --cwd . -- kicad-cli version
-# integrated read-only heuristic review (also exposed as a library)
-pcb-lint lint board.kicad_pcb --board-id board-a --output lint.json
+# canonical board lint: adjacent policy, evidence-bound exceptions, CI bundle
+kicadmium kct -- lint run board.kicad_pcb --fail-on error
+kicadmium kct -- lint waive board.kicad_pcb FINDING_KEY --reason "intentional" --reviewer agent
+kicadmium kct -- lint ci boards/*.kicad_pcb --out lint-results --fail-on error
 ```
 
 Environment: `KICADMIUM_KICAD_CLI`/`KICAD_CLI` pick `kicad-cli`;
@@ -68,6 +70,9 @@ See [AGENTS.md](AGENTS.md). Rust workspace: `backend/` (Axum + CLI),
 `frontend/` (Yew and embedded viewers), `shared/` (typed protocols), and
 `pcb-lint/` (101 read-only, evidence-aware review rules). The linter is a
 heuristic reviewer, not native ERC/DRC and not permission to edit your board.
+Its canonical lifecycle is `kicadmium kct -- lint`; see
+[docs/lint.md](docs/lint.md) for board-local exceptions, routing gates, and CI
+artifacts.
 
 The design rules we stole on purpose—and the places where we refuse to fake
 certainty—are in [docs/design-principles.md](docs/design-principles.md).

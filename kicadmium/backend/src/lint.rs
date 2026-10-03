@@ -15,7 +15,10 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use pcb_lint::{review, Config, Report};
+use pcb_lint::{
+    board_file::{self, BoardLintFile, Checked},
+    review, Config, Report,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -41,7 +44,8 @@ pub(crate) enum FailOn {
 
 pub(crate) struct LintRun {
     pub source: String,
-    pub report: Report,
+    pub file: BoardLintFile,
+    pub checked: Checked,
 }
 
 pub(crate) fn run(project: &ProjectContext) -> Result<LintRun> {
@@ -49,8 +53,9 @@ pub(crate) fn run(project: &ProjectContext) -> Result<LintRun> {
         .ok_or_else(|| anyhow!("project {} has no .kicad_pcb to lint", project.id))?;
     let source =
         std::fs::read_to_string(&board).with_context(|| format!("reading {}", board.display()))?;
+    let policy_path = BoardLintFile::path_for(&board);
     let settings = project.config.lint.clone().unwrap_or_default();
-    let config = match &settings.config {
+    let legacy_config = match &settings.config {
         Some(path) => {
             let path = project.root.join(path);
             serde_json::from_str::<Config>(
@@ -61,14 +66,30 @@ pub(crate) fn run(project: &ProjectContext) -> Result<LintRun> {
         }
         None => Config::default(),
     };
-    let mut report = pcb_lint::lint(&source, &project.id, config)?;
-    if let Some(path) = &settings.reviews {
+    let legacy_ledger = if let Some(path) = &settings.reviews {
         let path = project.root.join(path);
         if path.exists() {
-            review::apply(&mut report, &review::load(&path)?, review::now());
+            Some(review::load(&path)?)
+        } else {
+            None
         }
+    } else {
+        None
+    };
+    let mut file = if policy_path.exists() {
+        BoardLintFile::load_or_default(&policy_path, &project.id)?
+    } else {
+        BoardLintFile::migrate(Some(legacy_config), legacy_ledger, &project.id)
+    };
+    let checked = board_file::lint_board(&source, &file, review::now())?;
+    if policy_path.exists() && board_file::backfill(&mut file, &checked.report) > 0 {
+        file.save(&policy_path)?;
     }
-    Ok(LintRun { source, report })
+    Ok(LintRun {
+        source,
+        file,
+        checked,
+    })
 }
 
 pub(crate) fn fails(report: &Report, fail_on: FailOn) -> bool {
@@ -100,6 +121,7 @@ pub(crate) fn routes() -> Router<AppState> {
     Router::new()
         .route("/api/kicad/lint", get(report_endpoint))
         .route("/api/kicad/lint/contact-sheet", get(contact_sheet_endpoint))
+        .route("/api/kicad/lint/exceptions", get(exceptions_sheet_endpoint))
 }
 
 async fn lint_blocking(state: &AppState, query: &ProjectQuery) -> Result<LintRun, AppError> {
@@ -111,7 +133,7 @@ async fn report_endpoint(
     State(state): State<AppState>,
     Query(query): Query<ProjectQuery>,
 ) -> Result<Json<Report>, AppError> {
-    Ok(Json(lint_blocking(&state, &query).await?.report))
+    Ok(Json(lint_blocking(&state, &query).await?.checked.report))
 }
 
 async fn contact_sheet_endpoint(
@@ -119,6 +141,20 @@ async fn contact_sheet_endpoint(
     Query(query): Query<ProjectQuery>,
 ) -> Result<Response, AppError> {
     let run = lint_blocking(&state, &query).await?;
-    let html = pcb_lint::contact_sheet::render(&run.source, &run.report)?;
+    let html = pcb_lint::contact_sheet::render(&run.source, &run.checked.report)?;
+    Ok(([(header::CACHE_CONTROL, "no-cache")], Html(html)).into_response())
+}
+
+async fn exceptions_sheet_endpoint(
+    State(state): State<AppState>,
+    Query(query): Query<ProjectQuery>,
+) -> Result<Response, AppError> {
+    let run = lint_blocking(&state, &query).await?;
+    let html = pcb_lint::contact_sheet::render_exceptions(
+        &run.source,
+        &run.checked.report,
+        &run.file,
+        &run.checked.audit,
+    )?;
     Ok(([(header::CACHE_CONTROL, "no-cache")], Html(html)).into_response())
 }

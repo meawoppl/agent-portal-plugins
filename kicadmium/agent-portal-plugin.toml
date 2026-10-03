@@ -50,11 +50,6 @@ description = "Run the integrated evidence-aware heuristic PCB review (advisory,
 run = "target/release/kicadmium lint --cwd {cwd} --json"
 
 [[commands]]
-name = "pcb-lint"
-description = "Access the complete embedded pcb-lint CLI after --."
-run = "target/release/kicadmium pcb-lint --"
-
-[[commands]]
 name = "export-gerbers"
 description = "Export fabrication artifacts into the session artifact directory."
 run = "target/release/kicadmium export gerbers --cwd {cwd} --out {artifact_dir}"
@@ -132,6 +127,11 @@ agents = ["claude", "codex"]
 [[skills]]
 name = "kicad-symbol"
 path = "skills/kistack/skills/symbol/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "kct-lint"
+path = "skills/kct-lint/SKILL.md"
 agents = ["claude", "codex"]
 
 [[prompts]]

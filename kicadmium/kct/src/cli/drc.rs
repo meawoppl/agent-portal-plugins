@@ -367,7 +367,8 @@ pub fn run_drc_on_pcb(pcb: &Path, output: Option<&Path>, keep_report: bool) -> O
         eprintln!("\nmacOS: brew install --cask kicad");
         return None;
     }
-    println!(
+    // Progress goes to stderr so `--format json` stdout stays one document.
+    eprintln!(
         "Running DRC on: {}",
         pcb.file_name().unwrap_or_default().to_string_lossy()
     );

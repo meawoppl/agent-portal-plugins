@@ -239,7 +239,8 @@ pub fn run_erc_on_schematic(
         eprintln!("\nmacOS: brew install --cask kicad");
         return None;
     }
-    println!(
+    // Progress goes to stderr so `--format json` stdout stays one document.
+    eprintln!(
         "Running ERC on: {}",
         schematic.file_name().unwrap_or_default().to_string_lossy()
     );

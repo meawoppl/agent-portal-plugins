@@ -80,7 +80,8 @@ pub fn get_drc_report(drc_report: Option<&str>, pcb_path: &Path) -> Option<DRCRe
         eprintln!("Provide a DRC report with --drc-report, or install KiCad 8.");
         return None;
     };
-    println!(
+    // Progress goes to stderr so `--format json` stdout stays one document.
+    eprintln!(
         "Running DRC on: {}",
         pcb_path
             .file_name()

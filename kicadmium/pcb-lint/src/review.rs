@@ -129,6 +129,34 @@ pub fn atomic_write(path: &Path, data: &[u8]) -> Result<()> {
     }
     result
 }
+/// Exclusive advisory lock held by creating `lock_path`; removed on drop.
+/// Stale locks are reported, never stolen.
+pub struct LockGuard(std::path::PathBuf);
+impl Drop for LockGuard {
+    fn drop(&mut self) {
+        let _ = fs::remove_file(&self.0);
+    }
+}
+pub fn lock(lock_path: &Path) -> Result<LockGuard> {
+    let parent = lock_path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    fs::create_dir_all(parent)?;
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(lock_path)
+        .with_context(|| {
+            format!(
+                "{} is locked; check running writers before removing a stale lock",
+                lock_path.display()
+            )
+        })?;
+    let guard = LockGuard(lock_path.to_owned());
+    writeln!(file, "pid={}", std::process::id())?;
+    Ok(guard)
+}
 /// Lock protects concurrent read-modify-write; stale locks are explicit, never stolen.
 pub fn update(
     path: &Path,
@@ -161,25 +189,8 @@ pub fn update(
     if expires_at.is_some_and(|t| t <= now()) {
         bail!("expiry must be in the future")
     }
-    let parent = path
-        .parent()
-        .filter(|p| !p.as_os_str().is_empty())
-        .unwrap_or(Path::new("."));
-    fs::create_dir_all(parent)?;
-    let lock = path.with_extension("lock");
-    let mut file = OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&lock)
+    let _guard = lock(&path.with_extension("lock"))
         .context("review ledger locked; check running writers before removing a stale .lock")?;
-    struct Guard(std::path::PathBuf);
-    impl Drop for Guard {
-        fn drop(&mut self) {
-            let _ = fs::remove_file(&self.0);
-        }
-    }
-    let _guard = Guard(lock);
-    writeln!(file, "pid={}", std::process::id())?;
     let mut ledger = load(path)?;
     ledger
         .decisions

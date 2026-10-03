@@ -113,6 +113,9 @@ pub struct DRCReport {
     pub violations: Vec<DRCViolation>,
     pub footprint_errors: i64,
     pub unconnected_items: Vec<DRCViolation>,
+    /// KiCad JSON `schematic_parity`; `None` when the report carries no
+    /// such array (parity was not requested).
+    pub schematic_parity: Option<Vec<DRCViolation>>,
     pub mask_copper_assessments: Vec<MaskCopperAssessment>,
 }
 
@@ -569,11 +572,16 @@ fn parse_kicad_cli_json(data: &Json, source_file: &str) -> Result<DRCReport> {
     if let Some(date) = data.get("date") {
         report.created_at = date.as_str().and_then(parse_isoformat);
     }
+    if data.get("schematic_parity").is_some() {
+        report.schematic_parity = Some(Vec::new());
+    }
+    // 0: geometric violation, 1: unconnected item, 2: schematic parity.
     let entries = arr(data.get("violations"))
         .iter()
-        .map(|v| (v, false))
-        .chain(arr(data.get("unconnected_items")).iter().map(|u| (u, true)));
-    for (item, is_connectivity) in entries {
+        .map(|v| (v, 0))
+        .chain(arr(data.get("unconnected_items")).iter().map(|u| (u, 1)))
+        .chain(arr(data.get("schematic_parity")).iter().map(|u| (u, 2)));
+    for (item, kind) in entries {
         let type_str = str_or(item.get("type"), "unknown");
         let message = str_or(item.get("description"), "");
         let severity = Severity::from_string(&str_or(item.get("severity"), "error"));
@@ -608,10 +616,10 @@ fn parse_kicad_cli_json(data: &Json, source_file: &str) -> Result<DRCReport> {
         v.nets = nets;
         extract_values(&mut v, &message)?;
         attach_suggestions(&mut v);
-        if is_connectivity {
-            report.unconnected_items.push(v);
-        } else {
-            report.violations.push(v);
+        match kind {
+            1 => report.unconnected_items.push(v),
+            2 => report.schematic_parity.get_or_insert_with(Vec::new).push(v),
+            _ => report.violations.push(v),
         }
     }
     report.footprint_errors = data

@@ -210,6 +210,8 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
                         pcb_name: report.pcb_name,
                         violations: result.kept,
                         footprint_errors: report.footprint_errors,
+                        unconnected_items: report.unconnected_items,
+                        schematic_parity: report.schematic_parity,
                         ..Default::default()
                     };
                 }
@@ -268,29 +270,38 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
         }
     }
 
+    let extra = Extra::from_report(&report, args.errors_only);
     match args.format.as_str() {
         "json" => output_json(
             &violations,
             &report,
+            &extra,
             args.suggest,
             filter_ignored,
             waiver_result.as_ref(),
         ),
-        "summary" => output_summary(&violations, &report, filter_ignored, waiver_result.as_ref()),
-        _ => output_table(
-            &violations,
-            &report,
-            args.verbose,
-            args.suggest,
-            args.layers,
-            filter_ignored,
-            waiver_result.as_ref(),
-        ),
+        "summary" => {
+            output_summary(&violations, &report, filter_ignored, waiver_result.as_ref());
+            print_extra(&extra, args.verbose, true);
+        }
+        _ => {
+            output_table(
+                &violations,
+                &report,
+                &extra,
+                args.verbose,
+                args.suggest,
+                args.layers,
+                filter_ignored,
+                waiver_result.as_ref(),
+            );
+        }
     }
 
-    let errors = violations.iter().filter(|v| v.is_error()).count();
+    let errors = violations.iter().filter(|v| v.is_error()).count() + extra.error_count();
     let waived = violations.iter().filter(|v| v.is_waived()).count();
-    let warnings = violations.len() - errors - waived;
+    let warnings =
+        violations.len() - (errors - extra.error_count()) - waived + extra.warning_count();
     Ok(if errors > 0 {
         1
     } else if warnings > 0 && args.strict {
@@ -450,9 +461,80 @@ fn group_counts<'a>(
     out
 }
 
+/// KiCad findings outside `violations`: unconnected items (always part of a
+/// KiCad DRC) and schematic parity (present when it was requested).
+struct Extra {
+    unconnected: Vec<DRCViolation>,
+    parity: Option<Vec<DRCViolation>>,
+}
+
+impl Extra {
+    fn from_report(report: &DRCReport, errors_only: bool) -> Self {
+        let keep = |v: &Vec<DRCViolation>| -> Vec<DRCViolation> {
+            v.iter()
+                .filter(|x| !errors_only || x.is_error())
+                .cloned()
+                .collect()
+        };
+        Extra {
+            unconnected: keep(&report.unconnected_items),
+            parity: report.schematic_parity.as_ref().map(keep),
+        }
+    }
+    fn all(&self) -> impl Iterator<Item = &DRCViolation> {
+        self.unconnected.iter().chain(self.parity.iter().flatten())
+    }
+    fn error_count(&self) -> usize {
+        self.all().filter(|v| v.is_error()).count()
+    }
+    fn warning_count(&self) -> usize {
+        self.all().filter(|v| !v.is_error()).count()
+    }
+    fn is_empty(&self) -> bool {
+        self.all().next().is_none()
+    }
+}
+
+/// Text rendering of unconnected items and schematic parity.
+fn print_extra(extra: &Extra, verbose: bool, counts_only: bool) {
+    if counts_only {
+        println!("  Unconnected items: {}", extra.unconnected.len());
+        match &extra.parity {
+            Some(p) => println!("  Schematic parity:  {}", p.len()),
+            None => println!("  Schematic parity:  not requested"),
+        }
+        return;
+    }
+    let dash = "-".repeat(60);
+    let groups: [(&str, &[DRCViolation]); 2] = [
+        ("UNCONNECTED ITEMS", &extra.unconnected),
+        ("SCHEMATIC PARITY", extra.parity.as_deref().unwrap_or(&[])),
+    ];
+    for (label, items) in groups {
+        if items.is_empty() {
+            continue;
+        }
+        println!("\n{dash}");
+        println!("{label} ({}):", items.len());
+        let shown = if verbose {
+            items.len()
+        } else {
+            items.len().min(10)
+        };
+        for v in &items[..shown] {
+            print_single(v, verbose, false, "  ");
+        }
+        if shown < items.len() {
+            println!("\n  ... and {} more (use --verbose)", items.len() - shown);
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
 fn output_table(
     violations: &[DRCViolation],
     report: &DRCReport,
+    extra: &Extra,
     verbose: bool,
     show_suggestions: bool,
     layers: i64,
@@ -482,7 +564,8 @@ fn output_table(
     if filtered > 0 {
         println!("  Filtered:   {filtered} violations filtered");
     }
-    if violations.is_empty() {
+    print_extra(extra, verbose, true);
+    if violations.is_empty() && extra.is_empty() {
         println!("\n{eq}");
         println!("DRC PASSED - No violations found");
         print_unused_waivers(waivers);
@@ -551,14 +634,15 @@ fn output_table(
         }
     }
     print_unused_waivers(waivers);
+    print_extra(extra, verbose, false);
 
     println!("\n{eq}");
-    if !errors.is_empty() {
+    if !errors.is_empty() || extra.error_count() > 0 {
         println!("DRC FAILED - Fix errors before manufacturing");
         if let Some(hint) = manufacturer_compatibility_hint(violations, layers) {
             println!("{hint}");
         }
-    } else if !warnings.is_empty() {
+    } else if !warnings.is_empty() || extra.warning_count() > 0 {
         println!("DRC WARNING - Review warnings");
     } else {
         println!("DRC PASSED - No unwaived violations");
@@ -620,6 +704,7 @@ fn print_single(v: &DRCViolation, verbose: bool, show_suggestions: bool, indent:
 fn output_json(
     violations: &[DRCViolation],
     report: &DRCReport,
+    extra: &Extra,
     show_suggestions: bool,
     filtered: usize,
     waivers: Option<&WaiverApplication>,
@@ -645,11 +730,36 @@ fn output_json(
     if filtered > 0 {
         summary.set("filtered", filtered);
     }
+    let to_json = |items: &[DRCViolation]| {
+        Json::Arr(
+            items
+                .iter()
+                .map(|v| {
+                    let mut d = v.to_json();
+                    d.remove("suggestions");
+                    d
+                })
+                .collect(),
+        )
+    };
+    // KiCad keeps unconnected items and schematic parity outside
+    // `violations`; report them with explicit counts (`null` parity means
+    // the report did not include a parity check).
+    summary.set("unconnected_items", extra.unconnected.len());
+    summary.set(
+        "schematic_parity",
+        extra
+            .parity
+            .as_ref()
+            .map_or(Json::Null, |p| Json::Int(p.len() as i64)),
+    );
     let mut data = jobj! {
         "source" => report.source_file.as_str(),
         "pcb_name" => report.pcb_name.as_str(),
         "summary" => summary,
         "violations" => Json::Arr(data_violations),
+        "unconnected_items" => to_json(&extra.unconnected),
+        "schematic_parity" => extra.parity.as_deref().map_or(Json::Null, to_json),
     };
     if let Some(w) = waivers.filter(|w| !w.unused.is_empty()) {
         data.set("unused_waivers", w.to_json_list());

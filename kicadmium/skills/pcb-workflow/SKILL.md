@@ -12,7 +12,7 @@ other electronics design artifacts and the KiCad PCB Portal plugin is available.
    preferences: via rules, octilinear routing, silkscreen policy, and
    decoupling distance.
 2. Open the `kicadmium` Agent Portal surface when visual context would help.
-   The surface has tabs for schematic, PCB, Gerbers, 3D, STEP, BOM, libraries,
+   The surface has tabs for schematic, PCB, Gerbers, 3D, BOM, libraries,
    analysis, panelization, and checks, plus a build strip.
 3. Run the plugin `doctor` command before promising native KiCad or `kct`
    checks.
@@ -24,7 +24,7 @@ other electronics design artifacts and the KiCad PCB Portal plugin is available.
 5. **Use native `kct` rather than ad-hoc automation.** Check
    `kicadmium kct --help` and its subcommand help for an existing query, audit, or fix
    (`check`, `detect-mistakes`, `optimize-traces --dry-run`, `net-status`,
-   `validate --sync`, `fix-vias`, `place-silk-refs`, and others). Write a
+   `validate --sync`, `fix-vias`, `place-silk-refs`, `lint`, and others).
    If native kct cannot do the job, report the capability gap rather than
    introducing a Python or shell runtime.
 6. Use the surface for visual claims. Point at the board, schematic, layer,
@@ -40,7 +40,11 @@ layout quality. Before you call layout work complete:
    Read it from the Checks tab **Layout quality** card, from
    `/api/kicad/quality`, or from the `quality` command. Severities come from
    the workspace `qualityProfile`. Fix errors. Justify any warning you keep.
-3. Walk the repo's review checklist (e.g. `docs/pcb-playbook/review-checklist.md`)
+3. `kct lint` has no open findings at the CI gate severity, every waiver has a
+   specific reason, and `lint stale` is empty. Board repos run lint in CI
+   (`.github/workflows/kct-lint.yml`), which publishes findings and exceptions
+   contact sheets. Load `kct-lint` for the find/fix/waive/prune loop.
+4. Walk the repo's review checklist (e.g. `docs/pcb-playbook/review-checklist.md`)
    for items no tool checks: stubs, kinks, pad exits, pin-1 marks, and 3D
    models. Say which items you checked by eye.
 
@@ -68,7 +72,8 @@ layout quality. Before you call layout work complete:
 A good PCB turn ends with:
 
 - changed files by category (schematic, PCB, libraries, fab, docs);
-- ERC, DRC, and quality results, with counts and any accepted findings;
+- ERC, DRC, quality and lint results, with counts and any accepted findings;
+- new or pruned lint exceptions, with reasons;
 - checklist items reviewed by eye;
 - published artifacts as links, or a clear reason there are none.
 

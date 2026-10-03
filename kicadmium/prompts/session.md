@@ -7,6 +7,10 @@ KiCad PCB is available for this session. Use it for PCB and electronics work:
   for PCB changes. Read the workspace `qualityProfile` first. "DRC clean" is
   not done until the layout-quality stage and the review checklist pass;
 - prefer `kct` commands over ad-hoc pcbnew scripts;
+- lint layout changes with `kct lint` (skill `kct-lint`). Board CI runs it and
+  publishes findings plus your exceptions as contact sheets, so record
+  non-issues in `<board>.lint.json` with specific reasons, and prune stale
+  exceptions after geometry edits;
 - produce fab outputs with the build strip's Publish, not ad-hoc exports.
   Check the stale badge, then post the Gerber ZIP, BOM, and CPL as separate
   `portal://file/...` links;

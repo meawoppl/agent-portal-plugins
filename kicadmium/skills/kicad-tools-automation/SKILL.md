@@ -36,7 +36,9 @@ edits:
 1. inspect `git status --short`;
 2. resolve the project and authoritative board from `.kicad-pcb.json`;
 3. establish a clean branch or explicit snapshot;
-4. run the narrowest `kicadmium kct` command;
+4. run the narrowest `kicadmium kct` command. For `route` / `route-auto`, pass
+   `--lint-gate error` (or `warning`) so a route that adds lint findings rolls
+   back;
 5. inspect the changed file and relevant workbench views;
 6. rerun verification.
 
@@ -46,8 +48,12 @@ Verification baseline:
 kicadmium erc --json --cwd <repo> --project <project-id>
 kicadmium drc --json --cwd <repo> --project <project-id>
 kicadmium quality --json --cwd <repo> --project <project-id>
-kicadmium lint --json --cwd <repo> --project <project-id>
+kicadmium kct --cwd <repo> -- lint run <board.kicad_pcb> --format json
+kicadmium kct --cwd <repo> -- lint stale <board.kicad_pcb>
 ```
+
+Lint exceptions live in `<board>.lint.json` next to the board. Load `kct-lint`
+before waiving, flagging or pruning them.
 
 For fabrication, use Kicadmium's publish/export flow, confirm that outputs are
 not stale, and visually review Schematic, PCB, Gerbers, 3D, BOM, Libraries, and

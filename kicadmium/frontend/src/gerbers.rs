@@ -92,13 +92,34 @@ pub fn gerber_tab(props: &GerberTabProps) -> Html {
             (props.project.clone(), props.revision.clone()),
             move |(project, _)| {
                 let project = project.to_string();
+                status.set("Loading Gerber viewer...".to_string());
+                sources.set(None);
+                summary.set(Value::Null);
+                {
+                    let mut current = state.borrow_mut();
+                    if let Some(viewer) = current.viewer.take() {
+                        viewer.destroy();
+                    }
+                    current.on_change = None;
+                    current.source_key.clear();
+                }
+                let token = crate::request::RequestToken::default();
+                let task_token = token.clone();
                 spawn_local(async move {
-                    if let Err(err) = load(&project, &host, &state, &sources, &summary).await {
+                    if let Err(err) =
+                        load(&project, &host, &state, &sources, &summary, &task_token).await
+                    {
+                        if !task_token.current() {
+                            return;
+                        }
                         status.set(format!("Gerber viewer failed: {err}"));
                         return;
                     }
-                    status.set(String::new());
+                    if task_token.current() {
+                        status.set(String::new());
+                    }
                 });
+                move || token.cancel()
             },
         );
     }
@@ -187,14 +208,21 @@ async fn load(
     state: &Rc<RefCell<Viewer>>,
     sources: &UseStateHandle<Option<GerberSourcesResponse>>,
     summary: &UseStateHandle<Value>,
+    token: &crate::request::RequestToken,
 ) -> Result<(), String> {
     let next = api::gerbers(project).await?;
+    if !token.current() {
+        return Ok(());
+    }
     let key = source_key(&next);
     sources.set(Some(next.clone()));
     if next.files.is_empty() || state.borrow().source_key == key {
         return Ok(());
     }
     let files = payload(&next).await?;
+    if !token.current() {
+        return Ok(());
+    }
     if state.borrow().viewer.is_none() {
         let element = host
             .cast::<HtmlElement>()
@@ -227,6 +255,9 @@ async fn load(
     let project = JsFuture::from(promise)
         .await
         .map_err(|err| format!("{err:?}"))?;
+    if !token.current() {
+        return Ok(());
+    }
     summary.set(to_json(&project));
     let mut state = state.borrow_mut();
     if let Some(viewer) = &state.viewer {

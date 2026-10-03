@@ -20,14 +20,19 @@ pub fn bom_tab(props: &BomTabProps) -> Html {
         use_effect_with(
             (props.project.clone(), props.revision.clone()),
             move |(project, _)| {
+                body.set(Err("Loading BOM/assembly artifacts...".into()));
                 let project = project.to_string();
+                let token = crate::request::RequestToken::default();
+                let task_token = token.clone();
                 spawn_local(async move {
-                    body.set(
-                        api::bom_html(&project)
-                            .await
-                            .map_err(|err| format!("Unable to load BOM: {err}")),
-                    );
+                    let next = api::bom_html(&project)
+                        .await
+                        .map_err(|err| format!("Unable to load BOM: {err}"));
+                    if task_token.current() {
+                        body.set(next);
+                    }
                 });
+                move || token.cancel()
             },
         );
     }

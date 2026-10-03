@@ -162,15 +162,30 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
     let modal = use_state(|| None::<(Rc<LibraryPart>, String)>);
     let links = use_state(|| None::<String>);
     let poll_round = use_state(|| 0u32);
+    let active_project = use_mut_ref(|| props.project.to_string());
+    *active_project.borrow_mut() = props.project.to_string();
 
     {
         let data = data.clone();
         let error = error.clone();
         let states = states.clone();
+        let links = links.clone();
+        let modal = modal.clone();
         use_effect_with(props.project.clone(), move |project| {
+            data.set(None);
+            error.set(None);
+            states.set(BTreeMap::new());
+            links.set(None);
+            modal.set(None);
             let project = project.to_string();
+            let token = crate::request::RequestToken::default();
+            let task_token = token.clone();
             spawn_local(async move {
-                match api::library(&project).await {
+                let response = api::library(&project).await;
+                if !task_token.current() {
+                    return;
+                }
+                match response {
                     Ok(next) => {
                         states.set(BTreeMap::new());
                         data.set(Some(Rc::new(next)));
@@ -179,6 +194,7 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
                     Err(err) => error.set(Some(err)),
                 }
             });
+            move || token.cancel()
         });
     }
 
@@ -229,7 +245,9 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
         let poll_round = poll_round.clone();
         let project = props.project.to_string();
         let pending = pending.clone();
-        use_effect_with((pending.len(), *poll_round), move |_| {
+        use_effect_with((project.clone(), pending.len(), *poll_round), move |_| {
+            let token = crate::request::RequestToken::default();
+            let task_token = token.clone();
             let timeout = (!pending.is_empty()).then(|| {
                 Timeout::new(if *poll_round == 0 { 100 } else { POLL_MS }, move || {
                     let mut keys: Vec<String> = pending.iter().map(|(k, _)| k.clone()).collect();
@@ -242,7 +260,11 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
                         .take(60)
                         .collect();
                     spawn_local(async move {
-                        if let Ok(response) = api::library_status(&project, &keys, &visible).await {
+                        let response = api::library_status(&project, &keys, &visible).await;
+                        if !task_token.current() {
+                            return;
+                        }
+                        if let Ok(response) = response {
                             let mut next = (*states).clone();
                             next.extend(response.states);
                             states.set(next);
@@ -251,7 +273,10 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
                     });
                 })
             });
-            move || drop(timeout)
+            move || {
+                token.cancel();
+                drop(timeout);
+            }
         });
     }
 
@@ -420,15 +445,21 @@ pub fn library_tab(props: &LibraryTabProps) -> Html {
     let on_links = {
         let links = links.clone();
         let project = props.project.to_string();
+        let active_project = active_project.clone();
         Callback::from(move |_: Event| {
             if links.is_some() {
                 return;
             }
             let links = links.clone();
             let project = project.clone();
+            let active_project = active_project.clone();
             links.set(Some("Loading...".into()));
             spawn_local(async move {
-                links.set(Some(match api::library_links_html(&project).await {
+                let response = api::library_links_html(&project).await;
+                if *active_project.borrow() != project {
+                    return;
+                }
+                links.set(Some(match response {
                     Ok(html) => html,
                     Err(err) => format!("Unable to load: {err}"),
                 }));
@@ -514,21 +545,31 @@ fn library_modal(props: &ModalProps) -> Html {
         let scene = scene.clone();
         let selected = selected.clone();
         let failure = failure.clone();
-        use_effect_with((current.clone(), t.clone()), move |(view, t)| {
-            scene.set(None);
-            selected.set(None);
-            failure.set(None);
-            if view != "model" {
-                if let Some(url) = t.as_ref().and_then(|thumb| thumb.scene.clone()) {
-                    spawn_local(async move {
-                        match api::get_json::<vector_view::Scene>(&url, "").await {
-                            Ok(value) => scene.set(Some(Rc::new(value))),
-                            Err(err) => failure.set(Some(format!("Viewer failed: {err}"))),
-                        }
-                    });
+        use_effect_with(
+            (props.project.clone(), current.clone(), t.clone()),
+            move |(_, view, t)| {
+                scene.set(None);
+                selected.set(None);
+                failure.set(None);
+                let token = crate::request::RequestToken::default();
+                if view != "model" {
+                    if let Some(url) = t.as_ref().and_then(|thumb| thumb.scene.clone()) {
+                        let task_token = token.clone();
+                        spawn_local(async move {
+                            let response = api::get_json::<vector_view::Scene>(&url, "").await;
+                            if !task_token.current() {
+                                return;
+                            }
+                            match response {
+                                Ok(value) => scene.set(Some(Rc::new(value))),
+                                Err(err) => failure.set(Some(format!("Viewer failed: {err}"))),
+                            }
+                        });
+                    }
                 }
-            }
-        });
+                move || token.cancel()
+            },
+        );
     }
 
     let tabs = KINDS.iter().chain(&[("render", "Large render")]).map(|(id, label)| {

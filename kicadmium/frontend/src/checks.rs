@@ -50,6 +50,9 @@ fn card(props: &CardProps) -> Html {
         let project = props.project.to_string();
         let lint = props.lint;
         use_effect_with((kind.clone(), project.clone()), move |_| {
+            result.set(None);
+            let token = crate::request::RequestToken::default();
+            let task_token = token.clone();
             spawn_local(async move {
                 let value = if lint {
                     api::lint(&project).await
@@ -58,9 +61,11 @@ fn card(props: &CardProps) -> Html {
                         .await
                         .and_then(|c| serde_json::to_value(c).map_err(|e| e.to_string()))
                 };
-                result.set(Some(value.unwrap_or_else(|e| json!({"message":e}))));
+                if task_token.current() {
+                    result.set(Some(value.unwrap_or_else(|e| json!({"message":e}))));
+                }
             });
-            || ()
+            move || token.cancel()
         });
     }
     let value = result.as_ref();

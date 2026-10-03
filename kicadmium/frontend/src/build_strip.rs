@@ -50,18 +50,30 @@ pub fn build_strip(props: &BuildStripProps) -> Html {
     let message = use_state(String::new);
     let busy_action = use_state(|| false);
     let tick = use_state(|| 0u32);
+    let active_project = use_mut_ref(|| props.project.to_string());
+    *active_project.borrow_mut() = props.project.to_string();
 
     {
         let status = status.clone();
         let message = message.clone();
+        let busy_action = busy_action.clone();
         use_effect_with(props.project.clone(), move |project| {
+            status.set(None);
+            message.set(String::new());
+            busy_action.set(false);
             let project = project.to_string();
+            let token = crate::request::RequestToken::default();
+            let task_token = token.clone();
             spawn_local(async move {
-                match api::build_status(&project).await {
-                    Ok(next) => status.set(Some(next)),
-                    Err(err) => message.set(format!("status failed: {err}")),
+                let response = api::build_status(&project).await;
+                if task_token.current() {
+                    match response {
+                        Ok(next) => status.set(Some(next)),
+                        Err(err) => message.set(format!("status failed: {err}")),
+                    }
                 }
             });
+            move || token.cancel()
         });
     }
     // live.rs re-dispatches `ServerEvent::Build` as a `kicadmium-build`
@@ -104,30 +116,33 @@ pub fn build_strip(props: &BuildStripProps) -> Html {
         let status = status.clone();
         let message = message.clone();
         let busy_action = busy_action.clone();
+        let active_project = active_project.clone();
         Callback::from(move |_: MouseEvent| {
             let project = project.clone();
             let status = status.clone();
             let message = message.clone();
             let busy_action = busy_action.clone();
+            let active_project = active_project.clone();
             busy_action.set(true);
             spawn_local(async move {
-                match kind {
-                    "publish" => match api::build_publish(&project).await {
-                        Ok(report) => message.set(format!(
+                let action_result = match kind {
+                    "publish" => api::build_publish(&project).await.map(|report| {
+                        format!(
                             "published {} files",
                             report.get("files").cloned().unwrap_or_default()
-                        )),
-                        Err(err) => message.set(err),
-                    },
-                    _ => match api::build_run(&project, true).await {
-                        Ok(next) => {
-                            status.set(Some(next));
-                            message.set(String::new());
-                        }
-                        Err(err) => message.set(err),
-                    },
+                        )
+                    }),
+                    _ => api::build_run(&project, true).await.map(|_| String::new()),
+                };
+                let refreshed = api::build_status(&project).await;
+                if *active_project.borrow() != project {
+                    return;
                 }
-                if let Ok(next) = api::build_status(&project).await {
+                match action_result {
+                    Ok(text) => message.set(text),
+                    Err(err) => message.set(err),
+                }
+                if let Ok(next) = refreshed {
                     status.set(Some(next));
                 }
                 busy_action.set(false);

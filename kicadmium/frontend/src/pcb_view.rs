@@ -494,8 +494,22 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
             (props.project.clone(), props.revision.clone()),
             move |(project, _)| {
                 let project = project.to_string();
+                status.set("Loading board…".to_string());
+                if loaded
+                    .as_ref()
+                    .is_some_and(|current| current.project != project)
+                {
+                    loaded.set(None);
+                    selection.set(None);
+                }
+                let token = crate::request::RequestToken::default();
+                let task_token = token.clone();
                 spawn_local(async move {
-                    match crate::api::pcb_scene(&project).await {
+                    let response = crate::api::pcb_scene(&project).await;
+                    if !task_token.current() {
+                        return;
+                    }
+                    match response {
                         Ok(scene) if scene.version != SCENE_VERSION => status.set(format!(
                             "Unsupported PCB scene version {} (viewer expects {SCENE_VERSION})",
                             scene.version
@@ -536,6 +550,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
                         Err(err) => status.set(format!("PCB view failed: {err}")),
                     }
                 });
+                move || token.cancel()
             },
         );
     }

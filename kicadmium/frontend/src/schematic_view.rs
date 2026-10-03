@@ -28,8 +28,14 @@ pub fn schematic_view(props: &SchematicViewProps) -> Html {
                 state.set(LoadState::Loading);
                 selected.set(None);
                 let project = project.to_string();
+                let token = crate::request::RequestToken::default();
+                let task_token = token.clone();
                 spawn_local(async move {
-                    state.set(match crate::api::schematic(&project).await {
+                    let response = crate::api::schematic(&project).await;
+                    if !task_token.current() {
+                        return;
+                    }
+                    state.set(match response {
                         Ok(scene) if scene.version == SCENE_VERSION => {
                             LoadState::Ready(Rc::new(scene))
                         }
@@ -40,6 +46,7 @@ pub fn schematic_view(props: &SchematicViewProps) -> Html {
                         Err(e) => LoadState::Error(e),
                     });
                 });
+                move || token.cancel()
             },
         );
     }

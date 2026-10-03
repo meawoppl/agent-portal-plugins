@@ -9,6 +9,7 @@ mod live;
 mod misc;
 mod model_view;
 mod pcb_view;
+mod request;
 mod schematic_view;
 mod vector_scene;
 mod viewer;
@@ -65,10 +66,15 @@ fn app() -> Html {
         let manifest = manifest.clone();
         let p = (*project).clone();
         use_effect_with(p.clone(), move |_| {
+            let token = request::RequestToken::default();
+            let task_token = token.clone();
             spawn_local(async move {
-                manifest.set(api::manifest(&p).await.ok());
+                let next = api::manifest(&p).await.ok();
+                if task_token.current() {
+                    manifest.set(next);
+                }
             });
-            || ()
+            move || token.cancel()
         });
     }
     // Latest live revision; LiveStatus keeps the callback from its first
@@ -81,7 +87,9 @@ fn app() -> Html {
         .unwrap_or_else(|| "loading".to_owned());
     let change_project = {
         let project = project.clone();
+        let live_revision = live_revision.clone();
         Callback::from(move |e: InputEvent| {
+            live_revision.set(None);
             project.set(e.target_unchecked_into::<HtmlInputElement>().value())
         })
     };

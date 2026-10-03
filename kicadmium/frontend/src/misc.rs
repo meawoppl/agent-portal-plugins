@@ -22,8 +22,17 @@ fn use_manifest(
     {
         let manifest = manifest.clone();
         use_effect_with((project, revision), move |(project, _)| {
+            manifest.set(None);
             let project = project.to_string();
-            spawn_local(async move { manifest.set(Some(api::manifest(&project).await)) });
+            let token = crate::request::RequestToken::default();
+            let task_token = token.clone();
+            spawn_local(async move {
+                let next = api::manifest(&project).await;
+                if task_token.current() {
+                    manifest.set(Some(next));
+                }
+            });
+            move || token.cancel()
         });
     }
     (*manifest).clone()

@@ -64,6 +64,17 @@ Fabricator refinements with no KiCad board setting keep the profile values;
 `--mfr` keeps upstream's fab-capability semantics and ignores project minima.
 The rule source is logged to stderr. See `manufacturers::project_rules`.
 
+### `kct validate --sync` / `--connectivity`
+
+Upstream `validate --sync` only compares component references and global-label
+name variants (its pad-net check is a placeholder). Kicadmium keeps the
+upstream JSON contract (`in_sync`, `summary`, `issues[]`) but also compares
+every matched pad net, pin/pad numbering and footprint library IDs against
+`kicad-cli sch export netlist`. Without kicad-cli those net checks are
+reported as a `coverage` warning rather than passing. Comparison modes exit 1
+when either input is missing. `--connectivity` runs the native
+`ConnectivityValidator` with upstream's refill-time kicad-cli reconciliation.
+
 ### `kct run` migration
 
 Upstream `kct run FILE.py -- ARGS...` executes arbitrary Python in the

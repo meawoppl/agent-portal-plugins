@@ -2851,22 +2851,38 @@ pub fn lib(args: Vec<OsString>, _: &Globals) -> Result<i32> {
 }
 
 #[derive(Parser)]
+#[command(
+    about = "Validate KiCad files, schematic/PCB synchronization, or PCB connectivity",
+    long_about = "Without a mode flag, checks that each file parses as the expected KiCad \
+                  type (syntax only). --sync compares schematic and PCB (components, \
+                  footprints, pad nets); --connectivity checks routed copper on a PCB. \
+                  Comparison modes need both a schematic and a PCB, given positionally \
+                  (SCH PCB or PROJECT.kicad_pro) or with --schematic/--pcb."
+)]
 struct ValidateArgs {
+    /// .kicad_sch, .kicad_pcb or .kicad_pro files
     files: Vec<PathBuf>,
+    /// Check schematic-to-PCB synchronization (components, footprints, pad nets)
     #[arg(long)]
     sync: bool,
+    /// Check routed copper connectivity on the PCB (unrouted/partial nets)
     #[arg(long)]
     connectivity: bool,
+    /// Check schematic-to-PCB consistency (components, nets, properties)
     #[arg(long)]
     consistency: bool,
+    /// Check BOM components are placed on the PCB
     #[arg(long)]
     placement: bool,
+    /// Layout-vs-schematic reference matching
     #[arg(long)]
     lvs: bool,
     #[arg(long, default_value_t = 0.0)]
     min_confidence: f64,
+    /// Schematic (overrides positional files)
     #[arg(short, long)]
     schematic: Option<PathBuf>,
+    /// PCB (overrides positional files)
     #[arg(short, long)]
     pcb: Option<PathBuf>,
     #[arg(long, default_value = "table")]
@@ -2878,17 +2894,69 @@ struct ValidateArgs {
     #[arg(short, long)]
     verbose: bool,
 }
+fn ext_of(p: &Path) -> &str {
+    p.extension().and_then(|x| x.to_str()).unwrap_or("")
+}
 pub fn validate(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     let a: ValidateArgs = super::parse_args("validate", args);
-    let mut files = a.files;
-    let mut schematic = a.schematic;
-    let mut pcb = a.pcb;
-    for f in &files {
-        if f.extension().and_then(|x| x.to_str()) == Some("kicad_pro") {
-            let stem = f.file_stem().unwrap_or_default();
-            let dir = f.parent().unwrap_or(Path::new("."));
-            schematic.get_or_insert_with(|| dir.join(stem).with_extension("kicad_sch"));
-            pcb.get_or_insert_with(|| dir.join(stem).with_extension("kicad_pcb"));
+    let mut files = a.files.clone();
+    // Positional files fill in whatever --schematic/--pcb did not name.
+    let mut schematic = a.schematic.clone();
+    let mut pcb = a.pcb.clone();
+    for f in &a.files {
+        match ext_of(f) {
+            "kicad_sch" => {
+                schematic.get_or_insert_with(|| f.clone());
+            }
+            "kicad_pcb" => {
+                pcb.get_or_insert_with(|| f.clone());
+            }
+            "kicad_pro" => {
+                schematic.get_or_insert_with(|| f.with_extension("kicad_sch"));
+                pcb.get_or_insert_with(|| f.with_extension("kicad_pcb"));
+            }
+            _ => {}
+        }
+    }
+    if a.connectivity {
+        let Some(pcb) = pcb else {
+            eprintln!("Error: --connectivity needs a .kicad_pcb (positional or --pcb)");
+            return Ok(1);
+        };
+        return validate_connectivity(&pcb, &a);
+    }
+    if a.sync || a.consistency || a.placement || a.lvs {
+        let mode = if a.consistency {
+            "--consistency"
+        } else if a.lvs {
+            "--lvs"
+        } else if a.placement {
+            "--placement"
+        } else {
+            "--sync"
+        };
+        let mut missing = false;
+        for (what, path) in [("schematic", &schematic), ("PCB", &pcb)] {
+            match path {
+                None => {
+                    eprintln!(
+                        "Error: {mode} needs a {what}: pass SCH PCB, a .kicad_pro, or \
+                         --schematic/--pcb"
+                    );
+                    missing = true;
+                }
+                Some(p) if !p.is_file() => {
+                    eprintln!("Error: {what} not found: {}", p.display());
+                    missing = true;
+                }
+                _ => {}
+            }
+        }
+        if missing {
+            return Ok(1);
+        }
+        if a.sync && !(a.consistency || a.lvs || a.placement) {
+            return validate_sync_mode(schematic.as_ref().unwrap(), pcb.as_ref().unwrap(), &a);
         }
     }
     if let Some(s) = &schematic {
@@ -3024,6 +3092,139 @@ pub fn validate(args: Vec<OsString>, _: &Globals) -> Result<i32> {
     Ok(if errors {
         1
     } else if warnings && a.strict {
+        2
+    } else {
+        0
+    })
+}
+/// `kct validate --sync` (upstream `validate_sync_cmd` output contract).
+fn validate_sync_mode(sch: &Path, pcb_path: &Path, a: &ValidateArgs) -> Result<i32> {
+    use crate::validate::netlist as sync;
+    let components = sync::schematic_components(sch)?;
+    let pcb = crate::schema::pcb::Pcb::load(pcb_path)?;
+    let netlist = match sync::kicad_netlist(sch) {
+        Ok(n) => Some(n),
+        Err(e) => {
+            eprintln!("WARNING: schematic netlist export failed ({e}); pad nets not compared");
+            None
+        }
+    };
+    let mut result = sync::validate_sync(&components, &pcb, netlist.as_ref());
+    if a.errors_only {
+        result.issues.retain(|i| i.is_error());
+    }
+    let summary = serde_json::json!({
+        "errors": result.error_count(),
+        "warnings": result.warning_count(),
+        "missing_on_pcb": result.count("missing_on_pcb"),
+        "orphaned_on_pcb": result.count("orphaned_on_pcb"),
+        "net_mismatches": result.count("net_mismatch"),
+        "pin_mismatches": result.count("pin_mismatch"),
+        "footprint_mismatches": result.count("footprint_mismatch"),
+    });
+    match a.format.as_str() {
+        "json" => json(&serde_json::json!({
+            "schematic": sch,
+            "pcb": pcb_path,
+            "in_sync": result.in_sync(),
+            "netlist_source": result.netlist_source,
+            "summary": summary,
+            "issues": result.issues,
+        }))?,
+        _ => {
+            println!("NETLIST SYNC VALIDATION");
+            println!("Schematic: {}", sch.display());
+            println!("PCB:       {}", pcb_path.display());
+            println!("Schematic netlist: {}", result.netlist_source);
+            println!(
+                "Errors: {}  Warnings: {}",
+                result.error_count(),
+                result.warning_count()
+            );
+            for i in &result.issues {
+                let tag = if i.is_error() { "ERROR" } else { "WARNING" };
+                println!("  [{tag}] {}: {}", i.category, i.message);
+                if a.verbose {
+                    println!("      Fix: {}", i.suggestion);
+                }
+            }
+            println!(
+                "{}",
+                if result.in_sync() {
+                    if result.issues.is_empty() {
+                        "NETLIST IN SYNC"
+                    } else {
+                        "NETLIST SYNC WARNING - Review warnings"
+                    }
+                } else {
+                    "NETLIST OUT OF SYNC"
+                }
+            );
+        }
+    }
+    Ok(if result.error_count() > 0 {
+        1
+    } else if result.warning_count() > 0 && a.strict {
+        2
+    } else {
+        0
+    })
+}
+
+/// `kct validate --connectivity` (upstream `validate_connectivity_cmd`).
+fn validate_connectivity(pcb_path: &Path, a: &ValidateArgs) -> Result<i32> {
+    use crate::validate::connectivity::{ConnectivityResult, ConnectivityValidator};
+    if !pcb_path.is_file() {
+        eprintln!("Error: PCB not found: {}", pcb_path.display());
+        return Ok(1);
+    }
+    let mut v = ConnectivityValidator::from_path(pcb_path)?;
+    let full = v.validate(true);
+    let result = ConnectivityResult {
+        issues: full
+            .issues
+            .iter()
+            .filter(|i| !a.errors_only || i.is_error())
+            .cloned()
+            .collect(),
+        ..full
+    };
+    let of = |t: &str| result.issues.iter().filter(|i| i.issue_type == t).count();
+    match a.format.as_str() {
+        "json" => {
+            let issues: Vec<crate::pyjson::Json> =
+                result.issues.iter().map(|i| i.to_dict()).collect();
+            let data = crate::jobj! {
+                "pcb" => pcb_path.display().to_string(),
+                "is_fully_routed" => result.is_fully_routed(),
+                "summary" => crate::jobj! {
+                    "total_nets" => result.total_nets,
+                    "connected_nets" => result.connected_nets,
+                    "errors" => result.error_count(),
+                    "warnings" => result.warning_count(),
+                    "unrouted_count" => of("unrouted"),
+                    "partial_count" => of("partial"),
+                    "isolated_count" => of("isolated"),
+                    "zone_island_count" => of("zone_island"),
+                    "unconnected_pads" => result.unconnected_pad_count(),
+                },
+                "issues" => crate::pyjson::Json::Arr(issues),
+            };
+            println!("{}", crate::pyjson::dumps_indent(&data, 2));
+        }
+        _ => {
+            println!("NET CONNECTIVITY VALIDATION");
+            println!("PCB: {}", pcb_path.display());
+            println!("{}", result.summary());
+            for i in &result.issues {
+                let tag = if i.is_error() { "ERROR" } else { "WARNING" };
+                println!("  [{tag}] {}", i.message);
+            }
+        }
+    }
+    Ok(if result.error_count() > 0 {
+        1
+    } else if result.warning_count() > 0 && a.strict {
         2
     } else {
         0

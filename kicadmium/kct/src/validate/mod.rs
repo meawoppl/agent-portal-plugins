@@ -16,6 +16,7 @@ pub mod impedance_specs;
 pub mod manifest;
 pub mod mask_copper;
 pub mod match_group_skew;
+pub mod netlist;
 pub mod rules;
 pub mod spatial;
 pub mod violations;

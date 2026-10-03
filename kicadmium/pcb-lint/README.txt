@@ -90,12 +90,19 @@ do not use a revision hash as its identity. Reordering segments does not change
 the finding key. Geometry-only fallback IDs and synthetic contract subjects
 are not eligible for persistent ignore.
 
-Evidence is separate: configuration, relevant geometry/context and rule-engine
-version are hashed. Advanced checks conservatively include the normalized whole
-board and parsed extra geometry. Consequently unrelated board edits can require
-advanced reviews to be renewed. This favors reopening a review over silently
-hiding changed electrical context. Exact key plus exact evidence plus unexpired
-review is required for suppression. Changed, expired and unobserved entries
+Evidence is separate and rule-scoped (engine-3, src/evidence.rs): the subjects
+(with footprint fields, pad thermals and footprint copper), every object within
+5 mm of the finding or its subject geometry regardless of net, zones that are
+nearby or share a finding net, and only the config fields the rule reads.
+Whole-net rules (connectivity, islands, stubs, length/skew, decoupling loops,
+net contracts; see WHOLE_NET) also hash all copper on the finding's nets.
+Metadata rules (BOM, CPL, schematic, release; see METADATA) hash only their
+subjects. Distant unrelated edits therefore keep reviews applied; nearby edits
+or a change to the rule's own thresholds reopen them. Upgrading from engine-2
+changes every evidence hash once: existing reviews read as changed and need a
+single re-review (re-waive or re-flag with kct lint).
+
+Exact key plus exact evidence plus unexpired review is required for suppression. Changed, expired and unobserved entries
 are reported in review audit. Unobserved does not mean resolved.
 
 Recreated UUIDs receive new keys. review.reattach_candidate suggests nearby

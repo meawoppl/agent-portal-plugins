@@ -4,6 +4,7 @@ pub mod ci;
 pub mod contact_sheet;
 pub mod copper;
 pub mod design;
+pub mod evidence;
 pub mod intent;
 pub mod manufacturing;
 pub mod model;
@@ -212,7 +213,6 @@ pub struct Emitter<'a> {
     pub findings: Vec<Finding>,
     pub coverage: BTreeMap<String, String>,
     pub source_sha256: String,
-    pub extra_context: String,
 }
 impl Emitter<'_> {
     #[allow(clippy::too_many_arguments)]
@@ -237,67 +237,14 @@ impl Emitter<'_> {
                 .iter()
                 .all(|s| !s.starts_with("fallback:") && !s.starts_with("contract:"));
         let key = hash(&serde_json::to_string(&(self.board_id, rule, &subjects, slot)).unwrap());
-        // Same-net copper plus all nearby foreign objects form the conservative dependency set.
-        // This deliberately invalidates some reviews after distant same-net edits.
-        let selected = |id: &String, n: &String, p: Point| {
-            subjects.contains(id) || nets.contains(n) || p.distance(at) < 5.
-        };
-        let mut context = Vec::new();
-        for t in &self.board.tracks {
-            if selected(&t.id, &t.net, t.a)
-                || selected(&t.id, &t.net, t.b)
-                || model::line_distance(at, t.a, t.b) < 5. + t.width
-            {
-                let mut t = t.clone();
-                if (t.a.x, t.a.y) > (t.b.x, t.b.y) {
-                    std::mem::swap(&mut t.a, &mut t.b)
-                }
-                context.push(serde_json::to_string(&t).unwrap());
-            }
-        }
-        for v in &self.board.vias {
-            if selected(&v.id, &v.net, v.at) {
-                context.push(serde_json::to_string(v).unwrap());
-            }
-        }
-        for p in &self.board.pads {
-            if selected(&p.id, &p.net, p.at) || model::pad_distance(at, p) < 5. {
-                context.push(serde_json::to_string(p).unwrap());
-            }
-        }
-        for p in &self.board.parts {
-            if subjects.contains(&p.id) || p.at.distance(at) < 5. {
-                context.push(serde_json::to_string(p).unwrap());
-            }
-        }
-        context.sort();
-        let mut zones: Vec<_> = self
-            .board
-            .zones
-            .iter()
-            .map(|z| serde_json::to_string(z).unwrap())
-            .collect();
-        zones.sort();
-        let evidence = hash(
-            &serde_json::to_string(&(
-                "engine-2",
-                &self.extra_context,
-                &self.board.copper_layers,
-                &self.board.unmodeled_geometry,
-                &context,
-                &zones,
-                self.config,
-                metrics,
-            ))
-            .unwrap(),
-        );
+        // Evidence is assigned after all rules run; see `evidence`.
         let r = rules::catalog_cached()
             .iter()
             .find(|r| r.id == rule)
             .expect("registered rule");
         self.findings.push(Finding {
             key,
-            evidence,
+            evidence: String::new(),
             rule: rule.into(),
             severity: r.severity.clone(),
             confidence: r.confidence.clone(),
@@ -326,14 +273,15 @@ pub fn lint(input: &str, board_id: &str, config: Config) -> Result<Report> {
         findings: vec![],
         coverage: BTreeMap::new(),
         source_sha256: hash(input),
-        extra_context: String::new(),
     };
     rules::run(&mut e);
     advanced::run(&mut e, input)?;
     e.findings.retain(|f| config.enabled(&f.rule));
     e.findings.sort_by(|a, b| a.key.cmp(&b.key));
     e.findings.dedup_by(|a, b| a.key == b.key);
-    let findings = e.findings;
+    let mut findings = e.findings;
+    let extra = copper::Extra::read(input, &board)?;
+    evidence::assign(&board, &extra, &config, &mut findings);
     let rule_coverage = e.coverage;
     let mut limitations=vec!["Heuristics, not KiCad DRC/ERC or fabrication sign-off. No edits are made.".into(),"Core trace endpoint checks ignore planes and arcs. Via attachment and layer-excursion screening use saved polygon fills and tessellated arcs; unsupported geometry withholds uncertain conclusions. Saved fills must be refreshed after layout edits. See coverage per rule.".into(),"Detour ratios use unobstructed octilinear distance as a lower bound, not a proven legal replacement route. Explicit thermal and reference-plane contracts provide screening only, not impedance or thermal proof.".into(),"Missing UUIDs use geometry fallback identities and cannot be ignored persistently. Board identity is caller-supplied; do not reuse across independent designs.".into()];
     for (k, v) in &board.unsupported {

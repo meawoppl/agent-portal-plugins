@@ -203,6 +203,28 @@ pub struct Board {
     pub copper_layers: Vec<String>,
     pub unsupported: BTreeMap<String, usize>,
     pub unmodeled_geometry: Vec<String>,
+    /// Located copy of `unmodeled_geometry` for local evidence scoping.
+    #[serde(skip)]
+    pub unmodeled_located: Vec<Unmodeled>,
+}
+#[derive(Debug, Clone, Serialize)]
+pub struct Unmodeled {
+    pub hash: String,
+    /// Footprint origin or first coordinate; `None` when no position could be read.
+    pub at: Option<Point>,
+    /// Owning footprint id, empty for board-level items.
+    pub owner: String,
+}
+/// First readable coordinate of a board graphic.
+fn anchor(s: &Sexp) -> Option<Point> {
+    for k in ["start", "center", "at"] {
+        if let Some(p) = s.child(k).and_then(|c| point(c).ok()) {
+            return Some(p);
+        }
+    }
+    s.child("pts")
+        .and_then(|p| p.child("xy"))
+        .and_then(|c| point(c).ok())
 }
 fn identity(s: &Sexp, parent: &str) -> (String, bool) {
     let id = if s.get("uuid").is_empty() {
@@ -260,6 +282,14 @@ fn required_point(s: &Sexp, k: &str) -> Result<Point> {
     )
 }
 impl Board {
+    fn unmodeled(&mut self, hash: String, at: Option<Point>, owner: &str) {
+        self.unmodeled_geometry.push(hash.clone());
+        self.unmodeled_located.push(Unmodeled {
+            hash,
+            at,
+            owner: owner.into(),
+        });
+    }
     pub fn read(input: &str) -> Result<Self> {
         let root = parse(input)?;
         if root.tag() != "kicad_pcb" {
@@ -289,6 +319,7 @@ impl Board {
             copper_layers,
             unsupported: BTreeMap::new(),
             unmodeled_geometry: vec![],
+            unmodeled_located: vec![],
         };
         for s in root.items() {
             let (id, stable) = identity(s, "");
@@ -344,15 +375,13 @@ impl Board {
                         .iter()
                         .filter(|g| g.get("layer").ends_with(".Cu") && g.tag().starts_with("fp_"))
                     {
-                        b.unmodeled_geometry
-                            .push(crate::hash(&format!("{g:?}:{at:?}:{a}")));
+                        b.unmodeled(crate::hash(&format!("{g:?}:{at:?}:{a}")), Some(at), &id);
                         *b.unsupported
                             .entry("footprint copper graphics".into())
                             .or_default() += 1;
                     }
                     for z in s.children("zone") {
-                        b.unmodeled_geometry
-                            .push(crate::hash(&format!("{z:?}:{at:?}:{a}")));
+                        b.unmodeled(crate::hash(&format!("{z:?}:{at:?}:{a}")), Some(at), &id);
                         *b.unsupported.entry("footprint zones".into()).or_default() += 1;
                     }
                     let reference = property("Reference");
@@ -428,13 +457,13 @@ impl Board {
                     });
                 }
                 "arc" => {
-                    b.unmodeled_geometry.push(crate::hash(&format!("{s:?}")));
+                    b.unmodeled(crate::hash(&format!("{s:?}")), anchor(s), "");
                     *b.unsupported
                         .entry("copper arcs (not analyzed)".into())
                         .or_default() += 1;
                 }
                 tag if tag.starts_with("gr_") && s.get("layer").ends_with(".Cu") => {
-                    b.unmodeled_geometry.push(crate::hash(&format!("{s:?}")));
+                    b.unmodeled(crate::hash(&format!("{s:?}")), anchor(s), "");
                     *b.unsupported
                         .entry("board copper graphics".into())
                         .or_default() += 1;

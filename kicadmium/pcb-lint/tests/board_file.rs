@@ -227,7 +227,7 @@ fn prune_removes_only_selected_statuses() {
             changed: true,
         },
     );
-    // fp-1 evidence also shifts (board-wide manufacturing context), so it is changed too.
+    // Only trace-2 sits next to the new track; fp-1 stays applied.
     let changed: Vec<_> = c
         .audit
         .iter()
@@ -235,6 +235,7 @@ fn prune_removes_only_selected_statuses() {
         .map(|a| a.key.clone())
         .collect();
     assert!(changed.contains(&key_for(&r, "trace-2")));
+    assert_eq!(changed.len(), 1);
     assert_eq!(
         removed.iter().map(|e| e.key.clone()).collect::<Vec<_>>(),
         changed

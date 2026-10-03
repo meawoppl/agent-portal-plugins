@@ -1,4 +1,4 @@
-use crate::{Emitter, copper::*, hash, intent::*, model::*};
+use crate::{Emitter, copper::*, intent::*, model::*};
 use anyhow::Result;
 use geo::{Contains, Intersects};
 use petgraph::graph::NodeIndex;
@@ -139,11 +139,6 @@ pub fn angle(a: f64, b: f64) -> f64 {
 }
 pub fn run(e: &mut Emitter, input: &str) -> Result<()> {
     let extra = Extra::read(input, e.board)?;
-    e.extra_context = hash(&format!(
-        "{}:{}",
-        extra.digest,
-        serde_json::to_string(e.board)?
-    ));
     let g = Geometry::new(e.board, extra, &e.config.intent.route);
     for id in IDS {
         e.coverage.insert((*id).into(), "needs_input".into());
@@ -156,15 +151,6 @@ pub fn run(e: &mut Emitter, input: &str) -> Result<()> {
     placement(e, &g);
     crate::design::run(e, &g);
     crate::manufacturing::run(e, &g);
-    // Extended context includes all native copper and metadata, preventing topology reviews from
-    // surviving unrelated-looking bridge/zone edits. Core geometric findings retain local context.
-    for f in e
-        .findings
-        .iter_mut()
-        .filter(|f| IDS.contains(&f.rule.as_str()))
-    {
-        f.evidence = hash(&format!("{}:{}", f.evidence, g.extra.digest));
-    }
     Ok(())
 }
 // Screen the existing path moved to a common departure/return layer, without

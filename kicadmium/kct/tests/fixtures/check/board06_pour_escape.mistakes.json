@@ -1,7 +1,7 @@
 {
  "summary": {
   "errors": 1,
-  "warnings": 2,
+  "warnings": 0,
   "info": 0
  },
  "mistakes": [
@@ -17,36 +17,6 @@
    "explanation": "USB2_D+ is 2.4mm, USB2_D- is 5.5mm (3.2mm difference). Usb 2.0 High-Speed requires < 2.0mm length difference to maintain signal timing. Mismatched lengths cause timing skew that degrades signal quality.",
    "fix_suggestion": "Add serpentine to USB2_D+ to match USB2_D- length, or shorten the USB2_D- routing path. Target: 5.5mm for both traces.",
    "learn_more_url": "docs/mistakes/differential-pair-matching.md"
-  },
-  {
-   "category": "power_trace",
-   "severity": "warning",
-   "title": "Power trace too narrow",
-   "components": [
-    "USB2_D+"
-   ],
-   "location": [
-    112.75,
-    56.0
-   ],
-   "explanation": "Power trace on USB2_D+ is only 0.25mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
-   "fix_suggestion": "Increase trace width on USB2_D+ to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
-   "learn_more_url": "docs/mistakes/power-trace-width.md"
-  },
-  {
-   "category": "power_trace",
-   "severity": "warning",
-   "title": "Power trace too narrow",
-   "components": [
-    "USB3_TX1+"
-   ],
-   "location": [
-    110.0,
-    56.6
-   ],
-   "explanation": "Power trace on USB3_TX1+ is only 0.28mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
-   "fix_suggestion": "Increase trace width on USB3_TX1+ to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
-   "learn_more_url": "docs/mistakes/power-trace-width.md"
   }
  ],
  "coverage": [

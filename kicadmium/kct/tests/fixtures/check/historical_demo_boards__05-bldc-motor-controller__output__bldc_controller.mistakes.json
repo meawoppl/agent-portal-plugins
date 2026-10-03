@@ -1,40 +1,10 @@
 {
  "summary": {
-  "errors": 2,
+  "errors": 0,
   "warnings": 152,
   "info": 4
  },
  "mistakes": [
-  {
-   "category": "decoupling",
-   "severity": "error",
-   "title": "Missing decoupling capacitor",
-   "components": [
-    "U3"
-   ],
-   "location": [
-    24.0,
-    50.0
-   ],
-   "explanation": "U3 has a power pin on net 'ISENSE_A+', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
-   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from ISENSE_A+ to the nearest ground return, placed within a few mm of U3's power pin.",
-   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
-  },
-  {
-   "category": "decoupling",
-   "severity": "error",
-   "title": "Missing decoupling capacitor",
-   "components": [
-    "U3"
-   ],
-   "location": [
-    24.0,
-    50.0
-   ],
-   "explanation": "U3 has a power pin on net 'ISENSE_B+', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
-   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from ISENSE_B+ to the nearest ground return, placed within a few mm of U3's power pin.",
-   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
-  },
   {
    "category": "bypass_capacitor",
    "severity": "warning",

@@ -1,40 +1,10 @@
 {
  "summary": {
-  "errors": 2,
-  "warnings": 178,
+  "errors": 0,
+  "warnings": 176,
   "info": 6
  },
  "mistakes": [
-  {
-   "category": "decoupling",
-   "severity": "error",
-   "title": "Missing decoupling capacitor",
-   "components": [
-    "U2"
-   ],
-   "location": [
-    38.0,
-    10.5
-   ],
-   "explanation": "U2 has a power pin on net 'USB_D+', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
-   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from USB_D+ to the nearest ground return, placed within a few mm of U2's power pin.",
-   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
-  },
-  {
-   "category": "decoupling",
-   "severity": "error",
-   "title": "Missing decoupling capacitor",
-   "components": [
-    "U1"
-   ],
-   "location": [
-    38.0,
-    28.0
-   ],
-   "explanation": "U1 has a power pin on net 'USB_MCU_D+', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
-   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from USB_MCU_D+ to the nearest ground return, placed within a few mm of U1's power pin.",
-   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
-  },
   {
    "category": "bypass_capacitor",
    "severity": "warning",
@@ -1422,36 +1392,6 @@
    ],
    "explanation": "Power trace on GND is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
    "fix_suggestion": "Increase trace width on GND to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
-   "learn_more_url": "docs/mistakes/power-trace-width.md"
-  },
-  {
-   "category": "power_trace",
-   "severity": "warning",
-   "title": "Power trace too narrow",
-   "components": [
-    "USB_D+"
-   ],
-   "location": [
-    37.57499999999999,
-    4.450000000000003
-   ],
-   "explanation": "Power trace on USB_D+ is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
-   "fix_suggestion": "Increase trace width on USB_D+ to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
-   "learn_more_url": "docs/mistakes/power-trace-width.md"
-  },
-  {
-   "category": "power_trace",
-   "severity": "warning",
-   "title": "Power trace too narrow",
-   "components": [
-    "USB_MCU_D+"
-   ],
-   "location": [
-    39.82499999999999,
-    21.599999999999994
-   ],
-   "explanation": "Power trace on USB_MCU_D+ is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
-   "fix_suggestion": "Increase trace width on USB_MCU_D+ to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
    "learn_more_url": "docs/mistakes/power-trace-width.md"
   },
   {

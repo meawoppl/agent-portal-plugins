@@ -294,13 +294,42 @@ pub fn trace_length<'a>(segments: impl IntoIterator<Item = &'a Segment>) -> f64 
     total
 }
 
+/// Supply-rail heuristic used by the decoupling, power-trace-width,
+/// pull-up and LED checks.
+///
+/// Upstream matches name fragments anywhere (including any `+`), which
+/// classifies `/USB_D+`, `/PG_3V3` (power-good) and `TRIGGER_5V` as rails
+/// and then demands bypass capacitors and 0.5 mm traces on data and
+/// control signals. Here, after the same fragment test:
+/// - only a leading `+` marks a rail (`+3V3`); a trailing `+`/`-` is the
+///   polarity of a signal pair (`USB_D+`, `SIG-`);
+/// - `unconnected-(...)` nets are never rails;
+/// - a name token naming a control/status/data role (power-good, enable,
+///   trigger, USB `DP`/`DM`) marks a signal even when it also names a
+///   voltage (`PG_3V3`, `EN_5V`, `TRIGGER_3V3`).
 pub fn is_power_net(net_name: &str) -> bool {
     const PATTERNS: &[&str] = &[
-        "VCC", "VDD", "VIN", "VOUT", "3V3", "3.3V", "5V", "12V", "VBAT", "VSYS", "+", "PWR",
-        "POWER",
+        "VCC", "VDD", "VIN", "VOUT", "3V3", "3.3V", "5V", "12V", "VBAT", "VSYS", "PWR", "POWER",
     ];
-    let up = net_name.to_uppercase();
-    PATTERNS.iter().any(|p| up.contains(p))
+    const SIGNAL_TOKENS: &[&str] = &[
+        "PG", "PGOOD", "PWRGD", "PWROK", "GOOD", "EN", "ENA", "ENABLE", "TRIG", "TRIGGER", "DP",
+        "DM",
+    ];
+    // Hierarchical sheet prefixes (`/sheet/NET`) do not name the net.
+    let name = net_name.trim_end_matches('/');
+    let name = name.rsplit('/').next().unwrap_or(name);
+    let up = name.to_uppercase();
+    if up.starts_with("UNCONNECTED-") {
+        return false;
+    }
+    if !up.starts_with('+') && (up.ends_with('+') || up.ends_with('-')) {
+        return false;
+    }
+    if !(up.starts_with('+') || PATTERNS.iter().any(|p| up.contains(p))) {
+        return false;
+    }
+    !up.split(|c: char| !c.is_ascii_alphanumeric() && c != '.')
+        .any(|tok| SIGNAL_TOKENS.contains(&tok))
 }
 
 pub fn is_ground_net(net_name: &str) -> bool {
@@ -352,4 +381,51 @@ pub fn is_differential_pair_net(net_name: &str) -> (bool, Option<String>) {
         return (true, Some(up[..up.len() - 2].to_string()));
     }
     (false, None)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_power_net;
+
+    #[test]
+    fn supply_rails_are_power() {
+        for n in [
+            "+3.3V",
+            "+3V3",
+            "/+5V",
+            "+1.2V_PLL",
+            "VIN_5V",
+            "+12V_BIAS",
+            "VBAT_24V",
+            "ESP_VDD3P3",
+            "+3V3_GPS",
+            "ANT_PWR",
+            "VCC",
+            "/sheet/VDD_CPU_MAIN",
+        ] {
+            assert!(is_power_net(n), "{n}");
+        }
+    }
+
+    #[test]
+    fn data_status_and_trigger_signals_are_not_power() {
+        for n in [
+            "/USB_D+",
+            "USB_D+",
+            "USB_D-",
+            "/SIG+",
+            "/PG_3V3",
+            "PGOOD_5V",
+            "EN_3V3",
+            "TRIGGER_3V3",
+            "TRIGGER_5V",
+            "TRIGGER",
+            "USB_DP",
+            "unconnected-(U11-D+-Pad2)",
+            "GND",
+            "/LED_DRV",
+        ] {
+            assert!(!is_power_net(n), "{n}");
+        }
+    }
 }

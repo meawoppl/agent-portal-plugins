@@ -1,40 +1,10 @@
 {
  "summary": {
-  "errors": 2,
-  "warnings": 155,
+  "errors": 0,
+  "warnings": 152,
   "info": 3
  },
  "mistakes": [
-  {
-   "category": "decoupling",
-   "severity": "error",
-   "title": "Missing decoupling capacitor",
-   "components": [
-    "U3"
-   ],
-   "location": [
-    14.0,
-    50.0
-   ],
-   "explanation": "U3 has a power pin on net 'ISENSE_A+', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
-   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from ISENSE_A+ to the nearest ground return, placed within a few mm of U3's power pin.",
-   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
-  },
-  {
-   "category": "decoupling",
-   "severity": "error",
-   "title": "Missing decoupling capacitor",
-   "components": [
-    "U3"
-   ],
-   "location": [
-    14.0,
-    50.0
-   ],
-   "explanation": "U3 has a power pin on net 'ISENSE_B+', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
-   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from ISENSE_B+ to the nearest ground return, placed within a few mm of U3's power pin.",
-   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
-  },
   {
    "category": "bypass_capacitor",
    "severity": "warning",
@@ -2224,51 +2194,6 @@
    "explanation": "Crystal trace OSC_OUT is 11.2mm long. Crystal oscillator traces should be kept under 10.0mm to minimize parasitic capacitance and EMI. Long traces can affect frequency accuracy and increase noise emissions.",
    "fix_suggestion": "Move the microcontroller closer to Y1, or reroute OSC_OUT to shorten the trace. Place load capacitors close to the crystal pins.",
    "learn_more_url": "docs/mistakes/crystal-layout.md"
-  },
-  {
-   "category": "power_trace",
-   "severity": "warning",
-   "title": "Power trace too narrow",
-   "components": [
-    "ISENSE_A+"
-   ],
-   "location": [
-    10.217500000000001,
-    76.82390000000001
-   ],
-   "explanation": "Power trace on ISENSE_A+ is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
-   "fix_suggestion": "Increase trace width on ISENSE_A+ to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
-   "learn_more_url": "docs/mistakes/power-trace-width.md"
-  },
-  {
-   "category": "power_trace",
-   "severity": "warning",
-   "title": "Power trace too narrow",
-   "components": [
-    "ISENSE_B+"
-   ],
-   "location": [
-    10.575199999999995,
-    62.513000000000005
-   ],
-   "explanation": "Power trace on ISENSE_B+ is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
-   "fix_suggestion": "Increase trace width on ISENSE_B+ to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
-   "learn_more_url": "docs/mistakes/power-trace-width.md"
-  },
-  {
-   "category": "power_trace",
-   "severity": "warning",
-   "title": "Power trace too narrow",
-   "components": [
-    "ISENSE_C+"
-   ],
-   "location": [
-    42.53999999999999,
-    76.0
-   ],
-   "explanation": "Power trace on ISENSE_C+ is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
-   "fix_suggestion": "Increase trace width on ISENSE_C+ to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
-   "learn_more_url": "docs/mistakes/power-trace-width.md"
   },
   {
    "category": "manufacturability",

@@ -9,6 +9,9 @@
 //! `.kicad_pro`/`.kicad_dru` minima over the auto-selected profile (see
 //! `manufacturers::project_rules`), so the `default` goldens of fixtures with
 //! project rules (conformance issue5398, issue-5362 witness) are native.
+//! Likewise `explain::mistakes::is_power_net` no longer treats signal-pair
+//! polarity (`USB_D+`, `ISENSE_A+`) as supply rails, so four `mistakes`
+//! goldens drop exactly those decoupling / power-trace findings.
 
 use std::path::PathBuf;
 

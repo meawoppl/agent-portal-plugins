@@ -4,6 +4,11 @@
 //! Goldens in `fixtures/check/` were captured from the upstream Python CLI
 //! (`<key>.<variant>.json`, exit codes in `index.json`); the `file` field is
 //! normalised to `<FIXTURES>/<relative path>`.
+//!
+//! Intentional divergence: without `--mfr`, kicadmium enforces a board's own
+//! `.kicad_pro`/`.kicad_dru` minima over the auto-selected profile (see
+//! `manufacturers::project_rules`), so the `default` goldens of fixtures with
+//! project rules (conformance issue5398, issue-5362 witness) are native.
 
 use std::path::PathBuf;
 

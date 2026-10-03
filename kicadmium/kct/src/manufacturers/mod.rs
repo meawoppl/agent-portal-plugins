@@ -9,6 +9,7 @@ pub mod dru_generator;
 pub mod fabrication_overrides;
 pub mod fabrication_process;
 pub mod project_generator;
+pub mod project_rules;
 
 use std::collections::BTreeMap;
 

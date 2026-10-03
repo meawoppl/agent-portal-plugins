@@ -50,6 +50,20 @@ with HPWL, overlap, and board-boundary penalties. Upstream uses CMA-ES. The
 native command is useful and reproducible on real boards today; CMA-ES remains
 a future fidelity improvement rather than a claim of algorithmic parity.
 
+### Project design rules in `kct check`
+
+Upstream `kct check` always measures the board against a manufacturer profile
+(the `jlcpcb` default when nothing selects one). Kicadmium treats the board's
+own KiCad constraints as authoritative instead: `<board>.kicad_pro`
+`board.design_settings.rules` minima, net-class clearances, and unconditional
+`<board>.kicad_dru` rules replace the profile's generic minima (clearance,
+track, via, drill, hole-to-hole, copper-to-edge, text height) whenever the
+profile was auto-selected (default, `fab_profile.json`, `project.kct`).
+Fabricator refinements with no KiCad board setting keep the profile values;
+`min_pad_size` is capped at the project's minimum track width. An explicit
+`--mfr` keeps upstream's fab-capability semantics and ignores project minima.
+The rule source is logged to stderr. See `manufacturers::project_rules`.
+
 ### `kct run` migration
 
 Upstream `kct run FILE.py -- ARGS...` executes arbitrary Python in the

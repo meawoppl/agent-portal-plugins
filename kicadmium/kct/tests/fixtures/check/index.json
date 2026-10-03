@@ -33,7 +33,7 @@
   "board": "conformance/issue5398-seg-via-0p18-order-seed5398.kicad_pcb",
   "key": "conformance__issue5398-seg-via-0p18-order-seed5398",
   "codes": {
-   "default": 0,
+   "default": 2,
    "jlcpcb": 0,
    "pcbway": 0,
    "mistakes": 0

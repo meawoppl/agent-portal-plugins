@@ -385,6 +385,47 @@ pub fn resolve_effective_check_mfr(
     (default.to_string(), messages, "default")
 }
 
+/// Make the board's own `.kicad_pro` / `.kicad_dru` minima authoritative
+/// over an auto-selected manufacturer profile (kicadmium divergence, see
+/// `manufacturers::project_rules`). An explicit `--mfr` keeps upstream's
+/// fab-capability semantics: the board is measured against that profile.
+/// The rule source is always logged to stderr.
+pub fn apply_project_rule_minima(
+    pcb_path: &Path,
+    rules: &manufacturers::DesignRules,
+    mfr: &str,
+    mfr_source: &str,
+    layers: i64,
+) -> manufacturers::DesignRules {
+    let project = manufacturers::project_rules::load_project_rules(pcb_path);
+    for w in &project.warnings {
+        eprintln!("WARNING: {w}");
+    }
+    let profile = format!("{mfr} {layers}-layer profile");
+    if project.is_empty() {
+        eprintln!(
+            "[INFO] design rules: {profile} (no project minima in {})",
+            pcb_path.with_extension("kicad_pro").display()
+        );
+        return rules.clone();
+    }
+    if mfr_source == "cli" {
+        eprintln!(
+            "[INFO] design rules: {profile} (explicit --mfr fab-capability check; project \
+             minima from {} not applied -- omit --mfr to check against them)",
+            project.source_names()
+        );
+        return rules.clone();
+    }
+    eprintln!(
+        "[INFO] design rules: project minima from {} ({}) take precedence over the {profile}; \
+         the profile fills only fields the project does not set",
+        project.source_names(),
+        project.describe()
+    );
+    project.apply(rules)
+}
+
 fn profile_supports_via_in_pad(mfr: &str) -> bool {
     manufacturers::rules(mfr, 4, 1.0)
         .map(|r| r.via_in_pad_supported)
@@ -1996,6 +2037,13 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
         };
         eprintln!("{prefix}{m}");
     }
+    checker.design_rules = apply_project_rule_minima(
+        &pcb_path,
+        &checker.design_rules,
+        &effective_mfr,
+        mfr_source,
+        layers,
+    );
 
     let (pad_grid_threshold, pad_grid_auto_derive) = if let Some(t) = args.pad_grid_tolerance {
         (Some(t), false)

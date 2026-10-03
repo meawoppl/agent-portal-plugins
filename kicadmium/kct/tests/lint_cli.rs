@@ -100,3 +100,172 @@ fn sheet_output_cannot_alias_report() {
     assert!(err.contains("output aliases"));
     assert!(!out.exists());
 }
+
+// ---- `kct lint` subcommands ported from the legacy CLI ----
+
+fn kct_lint(args: &[&str]) -> Result<i32, String> {
+    kct::cli::run(std::iter::once("lint").chain(args.iter().copied())).map_err(|e| format!("{e:#}"))
+}
+fn bad_board(dir: &std::path::Path) -> std::path::PathBuf {
+    let board = dir.join("board.kicad_pcb");
+    fs::write(&board, include_str!("fixtures/lint/advanced-bad.kicad_pcb")).unwrap();
+    board
+}
+
+#[test]
+fn kct_lint_inspect_dumps_model_json_and_counts() {
+    let dir = tempfile::tempdir().unwrap();
+    let board = bad_board(dir.path());
+    let model = kct::lint::model::Board::read(include_str!("fixtures/lint/advanced-bad.kicad_pcb"))
+        .unwrap();
+    let json = dir.path().join("objects.json");
+    assert_eq!(
+        kct_lint(&[
+            "inspect",
+            board.to_str().unwrap(),
+            "--format",
+            "json",
+            "-o",
+            json.to_str().unwrap(),
+        ]),
+        Ok(0)
+    );
+    let v: serde_json::Value = serde_json::from_str(&fs::read_to_string(&json).unwrap()).unwrap();
+    // Same document the legacy `inspect` emitted: the serialized model.
+    assert_eq!(v, serde_json::to_value(&model).unwrap());
+    assert!(!v["tracks"].as_array().unwrap().is_empty());
+
+    let text = dir.path().join("objects.txt");
+    assert_eq!(
+        kct_lint(&[
+            "inspect",
+            board.to_str().unwrap(),
+            "-o",
+            text.to_str().unwrap()
+        ]),
+        Ok(0)
+    );
+    let text = fs::read_to_string(text).unwrap();
+    assert!(text.contains(&format!("tracks: {}", model.tracks.len())));
+    assert!(text.contains(&format!("footprints: {}", model.parts.len())));
+}
+
+#[test]
+fn kct_lint_inspect_output_cannot_replace_board() {
+    let dir = tempfile::tempdir().unwrap();
+    let board = bad_board(dir.path());
+    let err = kct_lint(&[
+        "inspect",
+        board.to_str().unwrap(),
+        "--format",
+        "json",
+        "-o",
+        board.to_str().unwrap(),
+    ])
+    .unwrap_err();
+    assert!(err.contains("refusing to overwrite"));
+    assert_eq!(
+        fs::read_to_string(board).unwrap(),
+        include_str!("fixtures/lint/advanced-bad.kicad_pcb")
+    );
+}
+
+#[test]
+fn kct_lint_corpus_passes_smoke_manifest() {
+    let dir = tempfile::tempdir().unwrap();
+    let out = dir.path().join("evaluation.json");
+    let manifest = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/fixtures/lint/corpus.json"
+    );
+    assert_eq!(
+        kct_lint(&["corpus", manifest, "-o", out.to_str().unwrap()]),
+        Ok(0)
+    );
+    let v: serde_json::Value = serde_json::from_str(&fs::read_to_string(out).unwrap()).unwrap();
+    assert_eq!(v[0]["name"], "seventy-deliberate-faults");
+    assert_eq!(v[0]["passed"], true);
+}
+
+#[test]
+fn kct_lint_corpus_mismatch_exits_2() {
+    let dir = tempfile::tempdir().unwrap();
+    bad_board(dir.path());
+    let manifest = dir.path().join("corpus.json");
+    fs::write(
+        &manifest,
+        r#"{"schema":1,"cases":[{"name":"too-strict","board":"board.kicad_pcb",
+        "board_id":"fixture","expected":[{"rule":"trace.short_segment","min":10000,"max":10000}]}]}"#,
+    )
+    .unwrap();
+    let out = dir.path().join("evaluation.json");
+    assert_eq!(
+        kct_lint(&[
+            "corpus",
+            manifest.to_str().unwrap(),
+            "-o",
+            out.to_str().unwrap()
+        ]),
+        Ok(2)
+    );
+    let v: serde_json::Value = serde_json::from_str(&fs::read_to_string(&out).unwrap()).unwrap();
+    assert_eq!(v[0]["passed"], false);
+    assert!(!v[0]["mismatches"].as_array().unwrap().is_empty());
+    // The output may not alias a case input, and malformed manifests are errors.
+    let case_board = dir.path().join("board.kicad_pcb");
+    assert!(kct_lint(&[
+        "corpus",
+        manifest.to_str().unwrap(),
+        "-o",
+        case_board.to_str().unwrap()
+    ])
+    .is_err());
+    fs::write(&manifest, r#"{"schema":2,"cases":[]}"#).unwrap();
+    assert!(kct_lint(&["corpus", manifest.to_str().unwrap()])
+        .unwrap_err()
+        .contains("unsupported corpus schema"));
+}
+
+#[test]
+fn kct_lint_init_print_default_config_needs_no_board() {
+    assert_eq!(kct_lint(&["init", "--print-default-config"]), Ok(0));
+    // What it prints round-trips through the strict (deny_unknown_fields) parser.
+    let printed = serde_json::to_string(&kct::lint::Config::default()).unwrap();
+    serde_json::from_str::<kct::lint::Config>(&printed).unwrap();
+}
+
+#[test]
+fn kct_lint_run_sheets_cannot_alias_board_policy_or_each_other() {
+    let dir = tempfile::tempdir().unwrap();
+    let board = bad_board(dir.path());
+    let policy = dir.path().join("board.lint.json");
+    let sheet = dir.path().join("sheet.html");
+    for (flag, target) in [("--contact-sheet", &board), ("--exceptions-sheet", &policy)] {
+        fs::write(&policy, "keep").unwrap();
+        let err = kct_lint(&[
+            "run",
+            board.to_str().unwrap(),
+            flag,
+            target.to_str().unwrap(),
+        ])
+        .unwrap_err();
+        assert!(err.contains("output aliases") || err.contains("refusing to overwrite"));
+        assert_eq!(fs::read_to_string(&policy).unwrap(), "keep");
+    }
+    fs::remove_file(&policy).unwrap();
+    let err = kct_lint(&[
+        "run",
+        board.to_str().unwrap(),
+        "--contact-sheet",
+        sheet.to_str().unwrap(),
+        "--exceptions-sheet",
+        sheet.to_str().unwrap(),
+    ])
+    .unwrap_err();
+    assert!(err.contains("output aliases"));
+    assert!(!sheet.exists());
+    assert_eq!(
+        fs::read_to_string(board).unwrap(),
+        include_str!("fixtures/lint/advanced-bad.kicad_pcb")
+    );
+}

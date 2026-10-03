@@ -1,7 +1,7 @@
-use crate::lint::{lint, review, rules, Config, Report};
+use crate::lint::{corpus, lint, review, rules, Config, Report};
 use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand, ValueEnum};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::{
     collections::BTreeMap,
     ffi::OsString,
@@ -91,42 +91,10 @@ enum FailOn {
     Error,
 }
 fn config(p: Option<&Path>) -> Result<Config> {
-    Ok(if let Some(p) = p {
-        serde_json::from_str(
-            &fs::read_to_string(p).with_context(|| format!("reading {}", p.display()))?,
-        )?
-    } else {
-        Config::default()
-    })
+    corpus::read_config(p)
 }
 fn protect(output: Option<&Path>, inputs: &[&Path]) -> Result<()> {
-    if let Some(out) = output {
-        if out
-            .extension()
-            .is_some_and(|e| e == "kicad_pcb" || e == "kicad_sch" || e == "kicad_pro")
-        {
-            bail!("refusing to overwrite a KiCad design with JSON")
-        }
-        let identity = |p: &Path| -> Result<PathBuf> {
-            if p.exists() {
-                Ok(p.canonicalize()?)
-            } else {
-                let abs = if p.is_absolute() {
-                    p.to_owned()
-                } else {
-                    std::env::current_dir()?.join(p)
-                };
-                Ok(abs)
-            }
-        };
-        let target = identity(out)?;
-        for input in inputs {
-            if target == identity(input)? {
-                bail!("output aliases an input: {}", input.display())
-            }
-        }
-    }
-    Ok(())
+    review::protect_output(output, inputs)
 }
 fn output<T: Serialize>(v: &T, path: Option<&Path>) -> Result<()> {
     if let Some(p) = path {
@@ -136,38 +104,6 @@ fn output<T: Serialize>(v: &T, path: Option<&Path>) -> Result<()> {
         println!("{}", serde_json::to_string_pretty(v)?);
         Ok(())
     }
-}
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Manifest {
-    schema: u32,
-    cases: Vec<Case>,
-}
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Case {
-    name: String,
-    board: PathBuf,
-    board_id: String,
-    config: Option<PathBuf>,
-    expected: Vec<Expectation>,
-}
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Expectation {
-    rule: String,
-    min: usize,
-    max: usize,
-    #[serde(default)]
-    subjects: Vec<String>,
-}
-#[derive(Serialize)]
-struct Evaluation {
-    name: String,
-    passed: bool,
-    counts: BTreeMap<String, usize>,
-    mismatches: Vec<String>,
-    error: Option<String>,
 }
 /// Run the complete pcb-lint CLI inside another Rust binary.
 ///
@@ -286,92 +222,12 @@ where
             output: p,
         } => {
             protect(p.as_deref(), &[&manifest])?;
-            let m: Manifest = serde_json::from_str(&fs::read_to_string(&manifest)?)?;
-            if m.schema != 1 {
-                bail!("unsupported corpus schema")
-            }
-            if m.cases.is_empty() {
-                bail!("corpus must have at least one case")
-            }
+            let m = corpus::Manifest::load(&manifest)?;
             let base = manifest.parent().unwrap_or(Path::new("."));
-            for case in &m.cases {
-                protect(p.as_deref(), &[&base.join(&case.board)])?;
-                if let Some(cp) = &case.config {
-                    protect(p.as_deref(), &[&base.join(cp)])?;
-                }
+            for input in m.inputs(base) {
+                protect(p.as_deref(), &[input.as_path()])?;
             }
-            let catalog = rules::catalog();
-            let mut names = std::collections::BTreeSet::new();
-            let mut results = vec![];
-            for case in m.cases {
-                if !names.insert(case.name.clone()) || case.expected.is_empty() {
-                    bail!("case names must be unique and each case needs expectations")
-                }
-                for x in &case.expected {
-                    if x.min > x.max
-                        || !catalog
-                            .iter()
-                            .any(|r| r.id == x.rule && r.status == "implemented")
-                    {
-                        bail!("invalid expectation {}", x.rule)
-                    }
-                }
-                let result = (|| {
-                    let text = fs::read_to_string(base.join(&case.board))?;
-                    lint(
-                        &text,
-                        &case.board_id,
-                        config(case.config.as_ref().map(|p| base.join(p)).as_deref())?,
-                    )
-                })();
-                match result {
-                    Ok(r) => {
-                        let mut counts = BTreeMap::new();
-                        for f in &r.findings {
-                            *counts.entry(f.rule.clone()).or_default() += 1;
-                        }
-                        let mut mismatches = vec![];
-                        for x in case.expected {
-                            if !r
-                                .coverage
-                                .iter()
-                                .any(|c| c.rule == x.rule && c.status == "evaluated")
-                            {
-                                mismatches.push(format!("{} not evaluated", x.rule));
-                                continue;
-                            }
-                            let n = r
-                                .findings
-                                .iter()
-                                .filter(|f| {
-                                    f.rule == x.rule
-                                        && x.subjects.iter().all(|s| f.subjects.contains(s))
-                                })
-                                .count();
-                            if n < x.min || n > x.max {
-                                mismatches.push(format!(
-                                    "{}: found {n}, expected {}..={} on {:?}",
-                                    x.rule, x.min, x.max, x.subjects
-                                ));
-                            }
-                        }
-                        results.push(Evaluation {
-                            name: case.name,
-                            passed: mismatches.is_empty(),
-                            counts,
-                            mismatches,
-                            error: None,
-                        });
-                    }
-                    Err(err) => results.push(Evaluation {
-                        name: case.name,
-                        passed: false,
-                        counts: BTreeMap::new(),
-                        mismatches: vec![],
-                        error: Some(format!("{err:#}")),
-                    }),
-                }
-            }
+            let results = m.evaluate(base)?;
             let failed = results.iter().any(|r| !r.passed);
             output(&results, p.as_deref())?;
             Ok(if failed { 2 } else { 0 })

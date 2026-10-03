@@ -17,7 +17,7 @@ kicadmium kct -- lint <command> ...
 | Command | Effect |
 |---|---|
 | `lint run BOARD [--format text\|json] [--fail-on never\|warning\|error] [--contact-sheet F] [--exceptions-sheet F]` | Lint one board with its lint file. Prints findings plus an exception audit. Warns on stderr about stale exceptions. |
-| `lint init BOARD [--board-id ID] [--force]` | Create `<board>.lint.json` with the board id and default config. |
+| `lint init BOARD [--board-id ID] [--force]` | Create `<board>.lint.json` with the board id and default config. `lint init --print-default-config` prints the full default config (every threshold and intent field) instead. |
 | `lint waive BOARD KEY --reason R --reviewer W [--expires-at UNIX\|YYYY-MM-DD]` | Record a reviewed non-issue. The finding stops counting as open. |
 | `lint flag BOARD KEY --reason R --reviewer W [--expires-at UNIX\|YYYY-MM-DD]` | Record a reviewed finding that still needs work. It stays open, with the note attached. |
 | `lint clear BOARD KEY` | Remove one exception. |
@@ -26,8 +26,11 @@ kicadmium kct -- lint <command> ...
 | `lint diff BEFORE.kicad_pcb AFTER.kicad_pcb [--format ...]` | Show findings that are new or fixed between two board revisions. |
 | `lint rules [--format ...]` | The rule catalogue: ids, severity, confidence, suggested action. |
 | `lint ci BOARD... [--out lint-results] [--fail-on error]` | Write the CI bundle for every board and exit non-zero on failure. |
+| `lint inspect BOARD [--format text\|json] [-o FILE]` | Parse the board read-only. Text gives object counts; json gives the full normalized model with UUIDs and exact net and reference names. |
+| `lint corpus MANIFEST [-o FILE]` | Check a labelled corpus manifest against expected finding counts. Exits 2 if any case fails. |
 
-Every command that takes `BOARD` also accepts `--file PATH` to override the lint
+Every command that reads a lint file (all but `init`, `inspect`, `diff`,
+`rules`, `ci` and `corpus`) also accepts `--file PATH` to override the lint
 file next to the board. A `KEY` can be the full finding key or a unique prefix
 of at least 8 characters.
 
@@ -176,9 +179,10 @@ replacement for native KiCad ERC/DRC, a field solver, or manufacturing review.
 every contract category. It is deliberately paired with a faulty board, so do
 not copy its electrical values into a real design.
 
-Use the parsed model to get pad, trace and via UUIDs and exact net and
-reference names. Config supports `enabled_only` and `disabled` rule-id lists,
-thresholds, and explicit pin, net and placement contracts. Intent includes:
+Run `kct lint inspect BOARD --format json` to get pad, trace and via UUIDs and
+exact net and reference names. Config supports `enabled_only` and `disabled`
+rule-id lists, thresholds, and explicit pin, net and placement contracts.
+Intent includes:
 
 - route bounds, keepouts, roles, tuned nets and search limits;
 - placement partners, channel mappings, repeated spacing and signal flow;
@@ -331,12 +335,12 @@ fail the `--fail-on` threshold.
 
 ### Regression and corpus evaluation
 
-`cargo test -p kct --test 'lint_*'` runs the engine suite. The corpus fixture
-`kct/tests/fixtures/lint/corpus.json` runs the deliberately faulty board
-against every one of the 70 added checks. The integration tests also cover
-clean contracts, valid 12+12 V and 24 V modes, review invalidation, graph
-cutouts, stale native data, unsupported geometry, independence from selection,
-and bounded search.
+`cargo test -p kct --test 'lint_*'` runs the engine suite. The smoke corpus,
+`kct lint corpus kct/tests/fixtures/lint/corpus.json`, runs the deliberately
+faulty board against every one of the 70 added checks. The integration tests
+also cover clean contracts, valid 12+12 V and 24 V modes, review invalidation,
+graph cutouts, stale native data, unsupported geometry, independence from
+selection, and bounded search.
 
 A corpus manifest uses schema 1. Each case has `name`, `board`, `board_id`, an
 optional `config`, and `expected` entries of `{rule, min, max, subjects: []}`.

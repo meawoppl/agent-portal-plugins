@@ -13,6 +13,7 @@ pub mod board_file;
 pub mod ci;
 pub mod contact_sheet;
 pub mod copper;
+pub mod corpus;
 pub mod design;
 pub mod evidence;
 pub mod intent;

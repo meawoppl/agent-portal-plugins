@@ -95,6 +95,35 @@ pub fn apply(r: &mut Report, l: &Ledger, at: u64) {
         });
     }
 }
+/// Refuse to write `output` over a KiCad design file or over any of `inputs`
+/// (compared by canonical path, so `./a` and `a` alias).
+pub fn protect_output(output: Option<&Path>, inputs: &[&Path]) -> Result<()> {
+    let Some(out) = output else {
+        return Ok(());
+    };
+    if out
+        .extension()
+        .is_some_and(|e| e == "kicad_pcb" || e == "kicad_sch" || e == "kicad_pro")
+    {
+        bail!("refusing to overwrite a KiCad design with JSON")
+    }
+    let identity = |p: &Path| -> Result<std::path::PathBuf> {
+        if p.exists() {
+            Ok(p.canonicalize()?)
+        } else if p.is_absolute() {
+            Ok(p.to_owned())
+        } else {
+            Ok(std::env::current_dir()?.join(p))
+        }
+    };
+    let target = identity(out)?;
+    for input in inputs {
+        if target == identity(input)? {
+            bail!("output aliases an input: {}", input.display())
+        }
+    }
+    Ok(())
+}
 pub fn atomic_json<T: Serialize>(path: &Path, data: &T) -> Result<()> {
     atomic_write(path, &serde_json::to_vec_pretty(data)?)
 }

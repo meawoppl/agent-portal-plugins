@@ -33,6 +33,12 @@ enum Command {
     Diff(DiffArgs),
     Rules(FormatArgs),
     Ci(CiArgs),
+    /// Parse a board and dump its normalized geometry model (json) or object
+    /// counts (text). Use it to find UUIDs and exact net/reference names.
+    Inspect(InspectArgs),
+    /// Evaluate a labelled corpus manifest against expected finding counts.
+    /// Exits 2 when any case fails.
+    Corpus(CorpusArgs),
 }
 #[derive(Debug, Clone, Args)]
 struct BoardArgs {
@@ -57,11 +63,33 @@ struct RunArgs {
 }
 #[derive(Debug, Clone, Args)]
 struct InitArgs {
-    board: PathBuf,
+    #[arg(required_unless_present = "print_default_config")]
+    board: Option<PathBuf>,
     #[arg(long)]
     board_id: Option<String>,
     #[arg(long)]
     force: bool,
+    /// Print the complete default lint config (every threshold and intent
+    /// field) as JSON instead of creating a lint file.
+    #[arg(long, conflicts_with_all = ["board", "board_id", "force"])]
+    print_default_config: bool,
+}
+#[derive(Debug, Clone, Args)]
+struct InspectArgs {
+    board: PathBuf,
+    #[arg(long, value_enum, default_value_t = OutputFormat::Text)]
+    format: OutputFormat,
+    /// Write to this file instead of stdout.
+    #[arg(short, long)]
+    output: Option<PathBuf>,
+}
+#[derive(Debug, Clone, Args)]
+struct CorpusArgs {
+    /// Corpus manifest (schema 1); case paths resolve relative to it.
+    manifest: PathBuf,
+    /// Write the evaluation JSON to this file instead of stdout.
+    #[arg(short, long)]
+    output: Option<PathBuf>,
 }
 #[derive(Debug, Clone, Args)]
 struct DecisionArgs {
@@ -148,10 +176,7 @@ fn board_id(board: &Path) -> String {
 fn load(args: &BoardArgs) -> Result<(String, PathBuf, BoardLintFile, board_file::Checked)> {
     let source = fs::read_to_string(&args.board)
         .with_context(|| format!("reading {}", args.board.display()))?;
-    let path = args
-        .file
-        .clone()
-        .unwrap_or_else(|| BoardLintFile::path_for(&args.board));
+    let path = policy_path(args);
     let file = BoardLintFile::load_or_default(&path, &board_id(&args.board))?;
     let checked = board_file::lint_board(&source, &file, review::now())?;
     Ok((source, path, file, checked))
@@ -177,7 +202,84 @@ fn open_at(report: &crate::lint::Report, threshold: FailOn) -> usize {
         })
         .count()
 }
+/// Sheets must not overwrite the board, its lint file, or each other.
+fn protect_sheets(args: &RunArgs) -> Result<()> {
+    let policy = policy_path(&args.board);
+    let inputs = [args.board.board.as_path(), policy.as_path()];
+    review::protect_output(args.contact_sheet.as_deref(), &inputs)?;
+    review::protect_output(args.exceptions_sheet.as_deref(), &inputs)?;
+    if let (Some(findings), Some(exceptions)) = (&args.contact_sheet, &args.exceptions_sheet) {
+        review::protect_output(Some(exceptions), &[findings])?;
+    }
+    Ok(())
+}
+fn policy_path(args: &BoardArgs) -> PathBuf {
+    args.file
+        .clone()
+        .unwrap_or_else(|| BoardLintFile::path_for(&args.board))
+}
+/// Write `text` to `path` (refusing to alias `inputs`), or print it.
+fn emit(text: &str, path: Option<&Path>, inputs: &[&Path]) -> Result<()> {
+    match path {
+        Some(path) => {
+            review::protect_output(Some(path), inputs)?;
+            review::atomic_write(path, text.as_bytes())
+        }
+        None => {
+            println!("{text}");
+            Ok(())
+        }
+    }
+}
+fn inspect(args: InspectArgs) -> Result<i32> {
+    review::protect_output(args.output.as_deref(), &[&args.board])?;
+    let source = fs::read_to_string(&args.board)
+        .with_context(|| format!("reading {}", args.board.display()))?;
+    let board = crate::lint::model::Board::read(&source)?;
+    let text = match args.format {
+        OutputFormat::Json => serde_json::to_string_pretty(&board)?,
+        OutputFormat::Text => {
+            let mut out = format!(
+                "{}\n  tracks: {}\n  vias: {}\n  pads: {}\n  footprints: {}\n  zones: {}\n  copper layers: {} ({})\n  unmodeled geometry: {}",
+                args.board.display(),
+                board.tracks.len(),
+                board.vias.len(),
+                board.pads.len(),
+                board.parts.len(),
+                board.zones.len(),
+                board.copper_layers.len(),
+                board.copper_layers.join(", "),
+                board.unmodeled_geometry.len(),
+            );
+            for (kind, n) in &board.unsupported {
+                out.push_str(&format!("\n  unsupported {kind}: {n}"));
+            }
+            out
+        }
+    };
+    emit(&text, args.output.as_deref(), &[&args.board])?;
+    Ok(0)
+}
+fn corpus(args: CorpusArgs) -> Result<i32> {
+    review::protect_output(args.output.as_deref(), &[&args.manifest])?;
+    let manifest = crate::lint::corpus::Manifest::load(&args.manifest)?;
+    let base = args.manifest.parent().unwrap_or(Path::new("."));
+    let inputs = manifest.inputs(base);
+    for input in &inputs {
+        review::protect_output(args.output.as_deref(), &[input])?;
+    }
+    let results = manifest.evaluate(base)?;
+    let failed = results.iter().filter(|r| !r.passed).count();
+    eprintln!("{} corpus case(s), {failed} failed", results.len());
+    emit(
+        &serde_json::to_string_pretty(&results)?,
+        args.output.as_deref(),
+        &[&args.manifest],
+    )?;
+    Ok(if failed > 0 { 2 } else { 0 })
+}
 fn run_board(args: RunArgs) -> Result<i32> {
+    protect_sheets(&args)?;
     let (source, policy, mut file, checked) = load(&args.board)?;
     if board_file::backfill(&mut file, &checked.report) > 0 {
         file.save(&policy)?;
@@ -433,12 +535,20 @@ pub fn run(args: Vec<OsString>, _globals: &Globals) -> Result<i32> {
     match parse_args::<Cli>("lint", args).command {
         Command::Run(a) => run_board(a),
         Command::Init(a) => {
-            fs::metadata(&a.board).with_context(|| format!("reading {}", a.board.display()))?;
-            let path = BoardLintFile::path_for(&a.board);
+            if a.print_default_config {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&crate::lint::Config::default())?
+                );
+                return Ok(0);
+            }
+            let board = a.board.context("BOARD is required")?;
+            fs::metadata(&board).with_context(|| format!("reading {}", board.display()))?;
+            let path = BoardLintFile::path_for(&board);
             if path.exists() && !a.force {
                 bail!("{} already exists (use --force)", path.display());
             }
-            BoardLintFile::new(a.board_id.as_deref().unwrap_or(&board_id(&a.board))).save(&path)?;
+            BoardLintFile::new(a.board_id.as_deref().unwrap_or(&board_id(&board))).save(&path)?;
             println!("created {}", path.display());
             Ok(0)
         }
@@ -484,6 +594,8 @@ pub fn run(args: Vec<OsString>, _globals: &Globals) -> Result<i32> {
             Ok(0)
         }
         Command::Ci(a) => ci(a),
+        Command::Inspect(a) => inspect(a),
+        Command::Corpus(a) => corpus(a),
     }
 }
 

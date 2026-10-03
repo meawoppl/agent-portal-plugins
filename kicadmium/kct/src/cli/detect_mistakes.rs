@@ -262,7 +262,8 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
         eprintln!("Error: Expected .kicad_pcb file, got {suffix}");
         return Ok(1);
     }
-    println!(
+    // Progress goes to stderr so `--format json` stdout stays one document.
+    eprintln!(
         "Analyzing: {}",
         path.file_name()
             .map(|n| n.to_string_lossy().into_owned())

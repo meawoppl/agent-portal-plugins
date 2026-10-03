@@ -124,3 +124,20 @@ fn check_json_stdout_is_pure_json() {
     let v = parse_json(&stdout);
     assert!(v.get("violations").is_some(), "{v}");
 }
+
+#[test]
+fn detect_mistakes_json_stdout_is_pure_json() {
+    let tmp = tempfile::tempdir().unwrap();
+    let cli = stub_kicad_cli(
+        tmp.path(),
+        &fixtures().join("drc/kicad_cli_drc_golden.json"),
+    );
+    let pcb = fixtures().join("drc/orphan_island.kicad_pcb");
+    let (_, stdout, stderr) = run_child(
+        &["detect-mistakes", pcb.to_str().unwrap(), "--format", "json"],
+        &cli,
+    );
+    let v = parse_json(&stdout);
+    assert!(v.get("mistakes").is_some(), "{v}");
+    assert!(stderr.contains("Analyzing:"), "{stderr}");
+}

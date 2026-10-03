@@ -12,6 +12,8 @@
 //! Likewise `explain::mistakes::is_power_net` no longer treats signal-pair
 //! polarity (`USB_D+`, `ISENSE_A+`) as supply rails, so four `mistakes`
 //! goldens drop exactly those decoupling / power-trace findings.
+//! The LED series-resistor check accepts one resistor shared by several
+//! LEDs, so the charlieplex goldens no longer flag their nine LEDs.
 
 use std::path::PathBuf;
 

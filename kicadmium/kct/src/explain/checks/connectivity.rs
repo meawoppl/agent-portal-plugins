@@ -127,13 +127,20 @@ fn has_series_resistor(pcb: &Pcb, led: &Footprint, led_nets: &BTreeSet<&str>) ->
         if is_power_net(junction) || is_ground_net(junction) {
             continue;
         }
-        let terminals: usize = pcb
-            .footprints()
-            .iter()
-            .flat_map(|c| c.pads.iter())
-            .filter(|p| p.net_name == junction)
-            .count();
-        if terminals == 2 {
+        // The junction must carry only this resistor and LEDs: one LED in
+        // series (2 terminals), or LEDs sharing one series resistor, e.g.
+        // an anti-parallel bicolour pair (kicadmium extension; upstream
+        // required exactly 2 terminals).
+        let mut terminals = 0usize;
+        let mut only_resistor_and_leds = true;
+        for c in pcb.footprints() {
+            let n = c.pads.iter().filter(|p| p.net_name == junction).count();
+            terminals += n;
+            if n > 0 && !std::ptr::eq(c, fp) && !is_led(c) {
+                only_resistor_and_leds = false;
+            }
+        }
+        if terminals == 2 || (terminals > 2 && only_resistor_and_leds) {
             return true;
         }
     }

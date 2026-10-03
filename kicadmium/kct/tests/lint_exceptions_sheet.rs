@@ -1,5 +1,6 @@
+#[path = "lint_common/mod.rs"]
 mod common;
-use pcb_lint::{
+use kct::lint::{
     board_file::{BoardLintFile, ExceptionStatus},
     contact_sheet::{self, ORPHANED_NOTE},
 };
@@ -60,7 +61,7 @@ fn exceptions_sheet_has_every_card_and_status() {
 #[test]
 fn empty_exceptions_sheet() {
     let f = BoardLintFile::new("x");
-    let c = pcb_lint::board_file::lint_board(common::BOARD, &f, 0).unwrap();
+    let c = kct::lint::board_file::lint_board(common::BOARD, &f, 0).unwrap();
     let html = contact_sheet::render_exceptions(common::BOARD, &c.report, &f, &c.audit).unwrap();
     assert!(html.contains("No exceptions recorded"));
     assert!(contact_sheet::render_exceptions("(kicad_pcb)", &c.report, &f, &c.audit).is_err());

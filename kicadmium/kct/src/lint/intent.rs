@@ -1,5 +1,5 @@
 //! Reviewed facts and design requirements. These are inputs, never asserted pass/fail results.
-use crate::model::Point;
+use crate::lint::model::Point;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

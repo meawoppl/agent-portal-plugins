@@ -1,8 +1,8 @@
-use crate::{
-    Emitter,
+use crate::lint::{
     advanced::{contract, emit, part, pin, ready},
     copper::*,
     model::*,
+    Emitter,
 };
 use geo::{Area, Intersects, Line};
 use petgraph::{algo::has_path_connecting, graphmap::DiGraphMap};
@@ -28,14 +28,15 @@ fn path(b: &Board, g: &Geometry, ids: &[String]) -> Option<Vec<Point>> {
         return None;
     }
     let mut out = chunks.remove(0);
-    if let Some(next) = chunks.first()
-        && out[0]
+    let closer_to_start = chunks.first().is_some_and(|next| {
+        out[0]
             .distance(next[0])
             .min(out[0].distance(*next.last().unwrap()))
             < out[1]
                 .distance(next[0])
                 .min(out[1].distance(*next.last().unwrap()))
-    {
+    });
+    if closer_to_start {
         out.reverse();
     }
     for mut p in chunks {

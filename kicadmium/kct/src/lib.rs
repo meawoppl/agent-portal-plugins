@@ -23,6 +23,7 @@ pub mod fsutil;
 pub mod geometry;
 pub mod intent;
 pub mod ipc;
+pub mod lint;
 pub mod lvs;
 pub mod manufacturers;
 pub mod operations;

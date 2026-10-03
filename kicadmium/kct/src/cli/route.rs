@@ -869,22 +869,24 @@ fn lint_gate(
     if threshold == "never" || dry_run || !output_path.exists() {
         return Ok(route_code);
     }
-    let policy_path = pcb_lint::board_file::BoardLintFile::path_for(input_path);
+    let policy_path = crate::lint::board_file::BoardLintFile::path_for(input_path);
     let board_id = input_path
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("board");
-    let policy = pcb_lint::board_file::BoardLintFile::load_or_default(&policy_path, board_id)?;
-    let before = pcb_lint::board_file::lint_board(input_source, &policy, pcb_lint::review::now())?;
+    let policy = crate::lint::board_file::BoardLintFile::load_or_default(&policy_path, board_id)?;
+    let before =
+        crate::lint::board_file::lint_board(input_source, &policy, crate::lint::review::now())?;
     let output_source = std::fs::read_to_string(output_path)?;
-    let after = pcb_lint::board_file::lint_board(&output_source, &policy, pcb_lint::review::now())?;
+    let after =
+        crate::lint::board_file::lint_board(&output_source, &policy, crate::lint::review::now())?;
     for audit in after.stale() {
         eprintln!(
             "Warning: lint exception {} is {} after routing: {}",
             audit.key, audit.status, audit.detail
         );
     }
-    let delta = pcb_lint::board_file::diff(&before.report, &after.report);
+    let delta = crate::lint::board_file::diff(&before.report, &after.report);
     let regressions: Vec<_> = delta
         .new
         .iter()

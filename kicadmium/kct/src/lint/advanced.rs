@@ -1,4 +1,4 @@
-use crate::{Emitter, copper::*, intent::*, model::*};
+use crate::lint::{copper::*, intent::*, model::*, Emitter};
 use anyhow::Result;
 use geo::{Contains, Intersects};
 use petgraph::graph::NodeIndex;
@@ -149,8 +149,8 @@ pub fn run(e: &mut Emitter, input: &str) -> Result<()> {
     geometry(e, &g);
     passive_alignment(e);
     placement(e, &g);
-    crate::design::run(e, &g);
-    crate::manufacturing::run(e, &g);
+    crate::lint::design::run(e, &g);
+    crate::lint::manufacturing::run(e, &g);
     Ok(())
 }
 // Screen the existing path moved to a common departure/return layer, without

@@ -3,9 +3,9 @@
   "cases": [
     {
       "name": "seventy-deliberate-faults",
-      "board": "../tests/fixtures/advanced-bad.kicad_pcb",
+      "board": "advanced-bad.kicad_pcb",
       "board_id": "fault-fixture",
-      "config": "../tests/fixtures/advanced-bad.json",
+      "config": "advanced-bad.json",
       "expected": [
         {
           "rule": "copper.island",

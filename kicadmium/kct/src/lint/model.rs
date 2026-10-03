@@ -1,4 +1,4 @@
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -9,10 +9,18 @@ pub enum Sexp {
 }
 impl Sexp {
     pub fn atom(&self) -> &str {
-        if let Self::Atom(s) = self { s } else { "" }
+        if let Self::Atom(s) = self {
+            s
+        } else {
+            ""
+        }
     }
     pub fn items(&self) -> &[Self] {
-        if let Self::List(v) = self { v } else { &[] }
+        if let Self::List(v) = self {
+            v
+        } else {
+            &[]
+        }
     }
     pub fn tag(&self) -> &str {
         self.items().first().map_or("", Self::atom)
@@ -236,7 +244,7 @@ fn identity(s: &Sexp, parent: &str) -> (String, bool) {
         (id.to_owned(), true)
     } else {
         (
-            format!("fallback:{}", crate::hash(&format!("{parent}:{s:?}"))),
+            format!("fallback:{}", crate::lint::hash(&format!("{parent}:{s:?}"))),
             false,
         )
     }
@@ -375,13 +383,21 @@ impl Board {
                         .iter()
                         .filter(|g| g.get("layer").ends_with(".Cu") && g.tag().starts_with("fp_"))
                     {
-                        b.unmodeled(crate::hash(&format!("{g:?}:{at:?}:{a}")), Some(at), &id);
+                        b.unmodeled(
+                            crate::lint::hash(&format!("{g:?}:{at:?}:{a}")),
+                            Some(at),
+                            &id,
+                        );
                         *b.unsupported
                             .entry("footprint copper graphics".into())
                             .or_default() += 1;
                     }
                     for z in s.children("zone") {
-                        b.unmodeled(crate::hash(&format!("{z:?}:{at:?}:{a}")), Some(at), &id);
+                        b.unmodeled(
+                            crate::lint::hash(&format!("{z:?}:{at:?}:{a}")),
+                            Some(at),
+                            &id,
+                        );
                         *b.unsupported.entry("footprint zones".into()).or_default() += 1;
                     }
                     let reference = property("Reference");
@@ -410,7 +426,7 @@ impl Board {
                                 .or_default() += 1;
                         }
                         b.pads.push(Pad {
-                            geometry_hash: crate::hash(&format!("{p:?}")),
+                            geometry_hash: crate::lint::hash(&format!("{p:?}")),
                             id: pid,
                             stable: ps,
                             reference: reference.clone(),
@@ -453,17 +469,17 @@ impl Board {
                     b.zones.push(Zone {
                         net: n,
                         layers: layers(s),
-                        geometry_hash: crate::hash(&format!("{s:?}")),
+                        geometry_hash: crate::lint::hash(&format!("{s:?}")),
                     });
                 }
                 "arc" => {
-                    b.unmodeled(crate::hash(&format!("{s:?}")), anchor(s), "");
+                    b.unmodeled(crate::lint::hash(&format!("{s:?}")), anchor(s), "");
                     *b.unsupported
                         .entry("copper arcs (not analyzed)".into())
                         .or_default() += 1;
                 }
                 tag if tag.starts_with("gr_") && s.get("layer").ends_with(".Cu") => {
-                    b.unmodeled(crate::hash(&format!("{s:?}")), anchor(s), "");
+                    b.unmodeled(crate::lint::hash(&format!("{s:?}")), anchor(s), "");
                     *b.unsupported
                         .entry("board copper graphics".into())
                         .or_default() += 1;

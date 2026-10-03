@@ -1,5 +1,5 @@
-use crate::{Config, Report, lint, review, rules};
-use anyhow::{Context, Result, bail};
+use crate::lint::{lint, review, rules, Config, Report};
+use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -181,7 +181,7 @@ where
         Command::Inspect { board, output: p } => {
             protect(p.as_deref(), &[&board])?;
             output(
-                &crate::model::Board::read(&fs::read_to_string(board)?)?,
+                &crate::lint::model::Board::read(&fs::read_to_string(board)?)?,
                 p.as_deref(),
             )?;
             Ok(0)
@@ -251,7 +251,7 @@ where
                     }
             });
             if let Some(sheet) = contact_sheet {
-                let html = crate::contact_sheet::render(&input, &r)?;
+                let html = crate::lint::contact_sheet::render(&input, &r)?;
                 review::atomic_write(&sheet, html.as_bytes())?;
                 eprintln!("Contact sheet: {}", sheet.display());
             }

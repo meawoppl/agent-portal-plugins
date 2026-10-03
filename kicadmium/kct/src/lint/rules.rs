@@ -1,4 +1,4 @@
-use crate::{Config, Emitter, model::*};
+use crate::lint::{model::*, Config, Emitter};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -16,7 +16,7 @@ pub struct Rule {
 pub fn catalog_cached() -> &'static Vec<Rule> {
     static RULES: std::sync::OnceLock<Vec<Rule>> = std::sync::OnceLock::new();
     RULES.get_or_init(|| {
-        serde_json::from_str(include_str!("../catalog.json")).expect("valid embedded catalog")
+        serde_json::from_str(include_str!("catalog.json")).expect("valid embedded catalog")
     })
 }
 pub fn catalog() -> Vec<Rule> {
@@ -504,9 +504,7 @@ fn contracts(e: &mut Emitter) {
             );
         }
         for t in tracks {
-            if let Some(w) = rule.min_width_mm
-                && t.width < w
-            {
+            if let Some(w) = rule.min_width_mm.filter(|&w| t.width < w) {
                 e.emit(
                     "contract.net_width",
                     vec![t.id.clone()],
@@ -533,9 +531,7 @@ fn contracts(e: &mut Emitter) {
                 );
             }
         }
-        if let Some(max) = rule.max_vias
-            && vias.len() > max
-        {
+        if let Some(max) = rule.max_vias.filter(|&max| vias.len() > max) {
             e.emit(
                 "contract.via_budget",
                 vias.iter().map(|v| v.id.clone()).collect(),

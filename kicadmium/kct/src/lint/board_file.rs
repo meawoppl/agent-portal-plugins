@@ -1,10 +1,10 @@
 //! Per-board lint file (`<pcb_stem>.lint.json`, schema 2): configuration plus
 //! evidence-bound exceptions, committed next to the board as the single source of
 //! truth. Exceptions are audited against every run so stale entries surface.
-use crate::{
-    Config, Finding, Report, copper::Extra, lint, model::Board, model::Point, review, rules,
+use crate::lint::{
+    copper::Extra, lint, model::Board, model::Point, review, rules, Config, Finding, Report,
 };
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize, Serializer};
 use std::{
     collections::{BTreeMap, BTreeSet},

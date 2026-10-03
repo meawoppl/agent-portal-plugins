@@ -1,10 +1,9 @@
-use pcb_lint::{
-    Config,
+use kct::lint::{
     board_file::{
-        self, Action, BoardLintFile, ExceptionStatus, PruneSet, clear, diff, lint_board, prune,
-        upsert,
+        self, clear, diff, lint_board, prune, upsert, Action, BoardLintFile, ExceptionStatus,
+        PruneSet,
     },
-    review,
+    review, Config,
 };
 
 pub const BOARD: &str = r#"(kicad_pcb
@@ -32,7 +31,7 @@ fn file() -> BoardLintFile {
     f
 }
 
-fn key_for(r: &pcb_lint::Report, subject: &str) -> String {
+fn key_for(r: &kct::lint::Report, subject: &str) -> String {
     r.findings
         .iter()
         .find(|f| f.subjects == [subject])
@@ -42,7 +41,7 @@ fn key_for(r: &pcb_lint::Report, subject: &str) -> String {
 }
 
 /// File with ignore exceptions on trace-1, trace-2 and the footprint.
-fn reviewed() -> (BoardLintFile, pcb_lint::Report) {
+fn reviewed() -> (BoardLintFile, kct::lint::Report) {
     let mut f = file();
     let r = lint_board(BOARD, &f, 0).unwrap().report;
     assert_eq!(r.findings.len(), 3, "{:#?}", r.findings);

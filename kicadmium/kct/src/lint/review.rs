@@ -1,5 +1,5 @@
-use crate::Report;
-use anyhow::{Context, Result, bail};
+use crate::lint::Report;
+use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, OpenOptions},

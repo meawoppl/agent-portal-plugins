@@ -1,7 +1,7 @@
-use pcb_lint::{
-    Config, lint,
-    model::{Board, Point, pad_distance},
-    review,
+use kct::lint::{
+    lint,
+    model::{pad_distance, Board, Point},
+    review, Config,
 };
 fn board(body: &str) -> String {
     format!(
@@ -19,10 +19,10 @@ fn via(id: &str, x: f64, y: f64) -> String {
         "(via (at {x} {y}) (size 0.5) (drill 0.25) (layers \"F.Cu\" \"B.Cu\") (net \"N\") (uuid \"{id}\"))"
     )
 }
-fn report(s: &str) -> pcb_lint::Report {
+fn report(s: &str) -> kct::lint::Report {
     lint(&board(s), "test-board", Config::default()).unwrap()
 }
-fn count(r: &pcb_lint::Report, rule: &str) -> usize {
+fn count(r: &kct::lint::Report, rule: &str) -> usize {
     r.findings.iter().filter(|f| f.rule == rule).count()
 }
 #[test]
@@ -80,11 +80,11 @@ fn malformed_nonfinite_and_depth_fail() {
         assert!(Board::read(s).is_err());
     }
     assert!(Board::read(&board(&seg("a", (f64::NAN, 0.), (1., 0.), 0.3, "F.Cu"))).is_err());
-    assert!(pcb_lint::model::parse(&"(".repeat(150)).is_err());
+    assert!(kct::lint::model::parse(&"(".repeat(150)).is_err());
 }
 #[test]
 fn escapes_and_unicode() {
-    let s = pcb_lint::model::parse(r#"(property "Value" "µF \"quote\" \\ path")"#).unwrap();
+    let s = kct::lint::model::parse(r#"(property "Value" "µF \"quote\" \\ path")"#).unwrap();
     assert_eq!(s.val(2), "µF \"quote\" \\ path");
 }
 #[test]
@@ -98,18 +98,16 @@ fn fallback_identity_cannot_ignore() {
         .unwrap();
     assert!(!f.stable_identity);
     let d = tempfile::tempdir().unwrap();
-    assert!(
-        review::update(
-            &d.path().join("r.json"),
-            &r,
-            &f.key,
-            "ignore",
-            "intentional",
-            "tester",
-            None
-        )
-        .is_err()
-    );
+    assert!(review::update(
+        &d.path().join("r.json"),
+        &r,
+        &f.key,
+        "ignore",
+        "intentional",
+        "tester",
+        None
+    )
+    .is_err());
 }
 #[test]
 fn identity_survives_format_order_and_endpoint_reversal() {
@@ -169,7 +167,7 @@ fn ignores_change_expire_and_do_not_cross_boards() {
 fn neighbor_edit_reopens_but_unrelated_edit_does_not() {
     let a = seg("a", (0., 0.), (10., 3.), 0.3, "F.Cu");
     let r = report(&a);
-    let get = |r: pcb_lint::Report| {
+    let get = |r: kct::lint::Report| {
         r.findings
             .into_iter()
             .find(|f| f.rule == "trace.off_angle" && f.subjects == ["a"])
@@ -294,16 +292,14 @@ fn bad_configuration_and_duplicate_uuid_rejected() {
 #[test]
 fn coverage_is_not_a_pass_claim() {
     let r = report(r#"(arc (start 0 0) (mid 1 1) (end 2 0) (layer "F.Cu") (net "N") (width 0.3))"#);
-    assert!(
-        r.limitations
-            .iter()
-            .any(|s| s.contains("arcs (not analyzed): 1"))
-    );
-    assert!(
-        r.coverage
-            .iter()
-            .any(|r| r.rule == "source.series_parallel" && r.status == "needs_input")
-    );
+    assert!(r
+        .limitations
+        .iter()
+        .any(|s| s.contains("arcs (not analyzed): 1")));
+    assert!(r
+        .coverage
+        .iter()
+        .any(|r| r.rule == "source.series_parallel" && r.status == "needs_input"));
 }
 
 fn pour(id: &str, net: &str, layer: &str, points: &str) -> String {
@@ -413,7 +409,7 @@ fn via_attachment_fill_edit_invalidates_review_without_changing_key() {
     let s = via("v", 0., 0.) + &pour("z", "N", "F.Cu", FILL);
     let a = report(&s);
     let b = report(&s.replace("xy 2 2", "xy 3 2"));
-    let get = |r: pcb_lint::Report| {
+    let get = |r: kct::lint::Report| {
         r.findings
             .into_iter()
             .find(|f| f.rule == "via.low_attachment")
@@ -587,7 +583,7 @@ fn overshoot() -> String {
         + &seg("upper", (0., 0.), (4., 0.), 0.3, "F.Cu")
         + &seg("lower", (4., 0.), (0., 4.), 0.3, "B.Cu")
 }
-fn overshoot_report(body: &str, tuned: bool) -> pcb_lint::Report {
+fn overshoot_report(body: &str, tuned: bool) -> kct::lint::Report {
     let mut c = Config::default();
     c.intent.route.outline = vec![
         Point { x: -5., y: -5. },

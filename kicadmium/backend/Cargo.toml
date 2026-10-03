@@ -37,7 +37,6 @@ memory-serve = "0.6"
 alloc-stdlib = "=0.2.2"
 
 shared = { path = "../shared" }
-pcb-lint = { path = "../pcb-lint" }
 kct = { path = "../kct" }
 kicad-strokes = { path = "../kicad-strokes" }
 vector-view.workspace = true

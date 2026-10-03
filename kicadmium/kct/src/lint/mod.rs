@@ -1,3 +1,13 @@
+//! Read-only, evidence-aware KiCad layout lint engine behind `kct lint`.
+//!
+//! Parses a `.kicad_pcb` into a normalized geometry model ([`model`]), runs the
+//! rule catalog ([`rules`], `catalog.json`) and returns a versioned [`Report`]
+//! whose findings carry stable review keys and rule-scoped evidence hashes
+//! ([`evidence`]). Per-board policy and exceptions live in `<board>.lint.json`
+//! ([`board_file`]); [`contact_sheet`] and [`ci`] render reviewable artifacts.
+//! Findings are advisory heuristics, not DRC, and nothing here edits a design.
+//! Formerly the standalone `pcb-lint` crate; see `docs/lint.md`.
+
 pub mod advanced;
 pub mod board_file;
 pub mod ci;
@@ -10,7 +20,7 @@ pub mod manufacturing;
 pub mod model;
 pub mod review;
 pub mod rules;
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use model::{Board, Point};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};

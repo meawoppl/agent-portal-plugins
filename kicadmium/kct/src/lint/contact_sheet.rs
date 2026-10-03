@@ -1,14 +1,14 @@
 //! Self-contained, paged HTML contact sheets. Geometry is the linter's board-space
 //! approximation, never a claim to be a native KiCad render.
-use crate::{
-    Report,
+use crate::lint::{
     board_file::{self, BoardLintFile, ExceptionAudit, ExceptionStatus},
     copper::{self, Extra},
     hash,
     intent::Rect,
     model::{Board, Point},
+    Report,
 };
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use geo::MultiPolygon;
 use serde::Serialize;
 use std::{
@@ -95,7 +95,7 @@ struct Frame {
 }
 #[derive(Serialize)]
 struct Card {
-    finding: crate::Finding,
+    finding: crate::lint::Finding,
     #[serde(flatten)]
     frame: Frame,
 }
@@ -104,7 +104,7 @@ struct Data<'a> {
     board: &'a str,
     source_sha256: &'a str,
     findings: Vec<Card>,
-    coverage: &'a [crate::Coverage],
+    coverage: &'a [crate::lint::Coverage],
     limitations: Vec<String>,
     layers: &'a [String],
 }
@@ -166,7 +166,7 @@ impl Scene {
                 layers: b
                     .copper_layers
                     .iter()
-                    .filter(|l| crate::model::on_layer(&p.layers, l))
+                    .filter(|l| crate::lint::model::on_layer(&p.layers, l))
                     .cloned()
                     .collect(),
                 class: if p.kind == "np_thru_hole" {

@@ -1,5 +1,5 @@
 //! Assembly, release and independent-check contracts; no generated pass assertions.
-use crate::{Emitter, advanced::*, copper::*, design::canonical, model::*};
+use crate::lint::{advanced::*, copper::*, design::canonical, model::*, Emitter};
 use geo::{Area, BooleanOps, Buffer, Contains, Intersects, MultiPolygon};
 use std::collections::BTreeSet;
 pub fn run(e: &mut Emitter, g: &Geometry) {

@@ -1,13 +1,13 @@
 //! Pure CI renderers over a [`Checked`] run: a pass/fail summary, a GitHub
 //! step-summary markdown table and SARIF 2.1.0. `write_bundle` is an optional
 //! convenience that writes the standard artifact set for one board.
-use crate::{
+use crate::lint::{
     board_file::{BoardLintFile, Checked, ExceptionAudit, ExceptionStatus},
     contact_sheet, review, rules,
 };
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::{collections::BTreeMap, fmt::Write, path::Path, str::FromStr};
 
 pub const SEVERITIES: [&str; 3] = ["error", "warning", "info"];

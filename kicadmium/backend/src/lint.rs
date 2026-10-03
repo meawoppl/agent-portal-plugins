@@ -15,7 +15,7 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use pcb_lint::{
+use kct::lint::{
     board_file::{self, BoardLintFile, Checked},
     review, Config, Report,
 };
@@ -141,7 +141,7 @@ async fn contact_sheet_endpoint(
     Query(query): Query<ProjectQuery>,
 ) -> Result<Response, AppError> {
     let run = lint_blocking(&state, &query).await?;
-    let html = pcb_lint::contact_sheet::render(&run.source, &run.checked.report)?;
+    let html = kct::lint::contact_sheet::render(&run.source, &run.checked.report)?;
     Ok(([(header::CACHE_CONTROL, "no-cache")], Html(html)).into_response())
 }
 
@@ -150,7 +150,7 @@ async fn exceptions_sheet_endpoint(
     Query(query): Query<ProjectQuery>,
 ) -> Result<Response, AppError> {
     let run = lint_blocking(&state, &query).await?;
-    let html = pcb_lint::contact_sheet::render_exceptions(
+    let html = kct::lint::contact_sheet::render_exceptions(
         &run.source,
         &run.checked.report,
         &run.file,

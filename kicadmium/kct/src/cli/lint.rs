@@ -1,12 +1,12 @@
 //! `kct lint`: canonical evidence-aware PCB lint workflow.
 
 use super::{parse_args, Globals};
-use anyhow::{bail, Context, Result};
-use clap::{Args, Parser, Subcommand, ValueEnum};
-use pcb_lint::{
+use crate::lint::{
     board_file::{self, Action, BoardLintFile, ExceptionStatus, PruneSet},
     review, rules,
 };
+use anyhow::{bail, Context, Result};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::{
@@ -134,7 +134,7 @@ enum FailOn {
 struct RunOutput<'a> {
     board: &'a Path,
     policy: &'a Path,
-    report: &'a pcb_lint::Report,
+    report: &'a crate::lint::Report,
     exceptions: &'a [board_file::ExceptionAudit],
 }
 
@@ -163,7 +163,7 @@ fn warn_audit(checked: &board_file::Checked) {
         }
     }
 }
-fn open_at(report: &pcb_lint::Report, threshold: FailOn) -> usize {
+fn open_at(report: &crate::lint::Report, threshold: FailOn) -> usize {
     report
         .findings
         .iter()
@@ -186,13 +186,13 @@ fn run_board(args: RunArgs) -> Result<i32> {
     if let Some(path) = &args.contact_sheet {
         fs::write(
             path,
-            pcb_lint::contact_sheet::render(&source, &checked.report)?,
+            crate::lint::contact_sheet::render(&source, &checked.report)?,
         )?;
     }
     if let Some(path) = &args.exceptions_sheet {
         fs::write(
             path,
-            pcb_lint::contact_sheet::render_exceptions(
+            crate::lint::contact_sheet::render_exceptions(
                 &source,
                 &checked.report,
                 &file,
@@ -343,7 +343,7 @@ fn prune(args: PruneArgs) -> Result<i32> {
     Ok(0)
 }
 fn diff(args: DiffArgs) -> Result<i32> {
-    let mk = |board: &Path| -> Result<pcb_lint::Report> {
+    let mk = |board: &Path| -> Result<crate::lint::Report> {
         let source = fs::read_to_string(board)?;
         let policy =
             BoardLintFile::load_or_default(&BoardLintFile::path_for(board), &board_id(board))?;
@@ -376,14 +376,14 @@ fn ci(args: CiArgs) -> Result<i32> {
         warn_audit(&checked);
         let stem = artifact_key(&board);
         let dir = args.out.join(&stem);
-        let summary = pcb_lint::ci::write_bundle(&dir, &board, &source, &checked, &file)?;
+        let summary = crate::lint::ci::write_bundle(&dir, &board, &source, &checked, &file)?;
         let open: usize = summary.open_by_severity.values().sum();
         let stale = summary.stale_exceptions.len();
         index.push_str(&format!("- **{stem}**: {open} open findings, {stale} stale exceptions ([findings](./{stem}/findings.html) · [exceptions](./{stem}/exceptions.html))\n"));
         let fail_on = match args.fail_on {
-            FailOn::Never => pcb_lint::ci::FailOn::Never,
-            FailOn::Warning => pcb_lint::ci::FailOn::Warning,
-            FailOn::Error => pcb_lint::ci::FailOn::Error,
+            FailOn::Never => crate::lint::ci::FailOn::Never,
+            FailOn::Warning => crate::lint::ci::FailOn::Warning,
+            FailOn::Error => crate::lint::ci::FailOn::Error,
         };
         failed |= !summary.passed(fail_on);
         retained.push((board, checked));
@@ -395,7 +395,7 @@ fn ci(args: CiArgs) -> Result<i32> {
         .collect();
     fs::write(
         args.out.join("findings.sarif"),
-        serde_json::to_vec_pretty(&pcb_lint::ci::sarif(&boards))?,
+        serde_json::to_vec_pretty(&crate::lint::ci::sarif(&boards))?,
     )?;
     Ok(if failed { 1 } else { 0 })
 }

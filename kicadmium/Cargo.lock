@@ -255,7 +255,6 @@ dependencies = [
  "memory-serve",
  "mime_guess",
  "notify",
- "pcb-lint",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -2040,8 +2039,8 @@ dependencies = [
  "num-bigint",
  "num-rational",
  "num-traits",
- "pcb-lint",
  "pdf-extract",
+ "petgraph",
  "regex",
  "reqwest",
  "resvg",
@@ -2454,21 +2453,6 @@ dependencies = [
  "tar",
  "thiserror 2.0.21",
  "zip",
-]
-
-[[package]]
-name = "pcb-lint"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "geo",
- "petgraph",
- "regex",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
 ]
 
 [[package]]

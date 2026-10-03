@@ -1,4 +1,4 @@
-use pcb_lint::{Config, contact_sheet, lint};
+use kct::lint::{contact_sheet, lint, Config};
 use serde_json::Value;
 const SOURCE: &str = r#"(kicad_pcb
 (version 20240108) (generator "test")
@@ -7,7 +7,7 @@ const SOURCE: &str = r#"(kicad_pcb
 (segment (start 10 20) (end 10.1 20) (width 0.2) (layer "F.Cu") (net 1) (uuid "trace-1"))
 (segment (start 100 200) (end 100.1 200) (width 0.2) (layer "B.Cu") (net 1) (uuid "trace-2"))
 )"#;
-fn report() -> pcb_lint::Report {
+fn report() -> kct::lint::Report {
     let mut c = Config::default();
     c.enabled_only.insert("trace.short_segment".into());
     lint(SOURCE, "test", c).unwrap()
@@ -50,13 +50,11 @@ fn unlocated_findings_are_labeled_overviews() {
     r.findings[0].subjects = vec!["contract:external-fact".into()];
     let h = contact_sheet::render(SOURCE, &r).unwrap();
     let d = data(&h);
-    assert!(
-        d["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|c| c["spatial"] == false)
-    );
+    assert!(d["findings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|c| c["spatial"] == false));
     assert!(h.contains("no spatial subject available"));
 }
 #[test]
@@ -68,13 +66,11 @@ fn markup_and_template_tokens_cannot_escape_data() {
     assert!(!h.contains("<img src=x"));
     assert!(!h.contains("<script>alert('x')"));
     assert_eq!(data(&h)["board"], r.board_id);
-    assert!(
-        data(&h)["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|c| c["finding"]["message"] == r.findings[0].message)
-    );
+    assert!(data(&h)["findings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|c| c["finding"]["message"] == r.findings[0].message));
 }
 #[test]
 fn ignored_and_flagged_states_are_retained() {

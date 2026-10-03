@@ -1,6 +1,7 @@
+#[path = "lint_common/mod.rs"]
 mod common;
-use pcb_lint::{
-    board_file::{BoardLintFile, lint_board},
+use kct::lint::{
+    board_file::{lint_board, BoardLintFile},
     ci::{self, CiSummary, FailOn},
 };
 use std::path::Path;
@@ -87,12 +88,10 @@ fn sarif_shape() {
             loc["physicalLocation"]["artifactLocation"]["uri"],
             "boards/mixed.kicad_pcb"
         );
-        assert!(
-            loc["logicalLocations"][0]["name"]
-                .as_str()
-                .unwrap()
-                .ends_with(" mm")
-        );
+        assert!(loc["logicalLocations"][0]["name"]
+            .as_str()
+            .unwrap()
+            .ends_with(" mm"));
         assert_eq!(r["fingerprints"]["pcbLintKey/v1"], f.key);
         assert_eq!(r["suppressions"].is_array(), f.state == "ignored");
     }
@@ -120,7 +119,7 @@ fn bundle_writes_all_artifacts() {
     ] {
         assert!(dir.path().join(name).is_file(), "{name}");
     }
-    let report: pcb_lint::Report =
+    let report: kct::lint::Report =
         serde_json::from_str(&std::fs::read_to_string(dir.path().join("report.json")).unwrap())
             .unwrap();
     assert_eq!(report.board_id, "mixed-board");

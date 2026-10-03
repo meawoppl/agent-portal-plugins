@@ -1,5 +1,5 @@
 //! Copper geometry and bounded route search. Arc tessellation error <= 0.005 mm.
-use crate::{
+use crate::lint::{
     hash,
     intent::{Rect, Region, RoutePolicy},
     model::*,
@@ -9,7 +9,7 @@ use geo::{
     Area, BooleanOps, BoundingRect, Buffer, Contains, Intersects, LineString, MultiPolygon,
     Polygon, Validation,
 };
-use petgraph::{Graph, Undirected, algo::astar, graph::NodeIndex};
+use petgraph::{algo::astar, graph::NodeIndex, Graph, Undirected};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 #[derive(Clone)]
@@ -66,10 +66,10 @@ pub struct Extra {
 }
 pub fn polygon(p: &[Point]) -> Polygon<f64> {
     let mut c: Vec<_> = p.iter().map(|p| (p.x, p.y)).collect();
-    if c.first() != c.last()
-        && let Some(v) = c.first().copied()
-    {
-        c.push(v);
+    if c.first() != c.last() {
+        if let Some(v) = c.first().copied() {
+            c.push(v);
+        }
     }
     Polygon::new(LineString::from(c), vec![])
 }
@@ -404,9 +404,10 @@ impl Extra {
                         {
                             if !t.items().iter().any(|x| {
                                 x.atom() == "hide" || x.tag() == "hide" && x.val(1) == "yes"
-                            }) && let Some(t) = text(t, Some(f))
-                            {
-                                out.texts.push(t)
+                            }) {
+                                if let Some(t) = text(t, Some(f)) {
+                                    out.texts.push(t)
+                                }
                             }
                         }
                         for z in s.children("zone") {
@@ -696,9 +697,7 @@ impl Geometry {
                 {
                     continue;
                 }
-                if let (Some(a), Some(z)) = (&bounds[i], &bounds[j])
-                    && !overlaps(a, z)
-                {
+                if matches!((&bounds[i], &bounds[j]), (Some(a), Some(z)) if !overlaps(a, z)) {
                     continue;
                 }
                 if a.poly.intersects(&z.poly) {

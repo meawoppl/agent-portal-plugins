@@ -4,7 +4,6 @@ members = [
     "frontend",
     "kct",
     "kicad-strokes",
-    "pcb-lint",
     "shared",
 ]
 resolver = "2"

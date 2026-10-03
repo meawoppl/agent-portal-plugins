@@ -1,10 +1,10 @@
 //! Shared fixture: a small board and a lint file whose exceptions cover every
 //! audit status.
 #![allow(dead_code)]
-use pcb_lint::{
-    Config,
-    board_file::{Action, BoardLintFile, Checked, Exception, lint_board, upsert},
+use kct::lint::{
+    board_file::{lint_board, upsert, Action, BoardLintFile, Checked, Exception},
     model::Point,
+    Config,
 };
 
 pub const BOARD: &str = r#"(kicad_pcb

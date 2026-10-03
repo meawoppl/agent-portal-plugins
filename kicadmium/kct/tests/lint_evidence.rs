@@ -1,9 +1,10 @@
 //! Engine-3 evidence: unrelated distant edits keep reviews applied; nearby
 //! geometry and the rule's own config reopen them.
+#[path = "lint_common/mod.rs"]
 mod common;
-use pcb_lint::{
+use kct::lint::{
+    board_file::{lint_board, upsert, Action, BoardLintFile, ExceptionStatus},
     Config,
-    board_file::{Action, BoardLintFile, ExceptionStatus, lint_board, upsert},
 };
 
 fn waive_all(src: &str, mut f: BoardLintFile) -> BoardLintFile {
@@ -103,11 +104,9 @@ fn own_threshold_reopens_unrelated_config_does_not() {
     unrelated.config.angle_tolerance_deg = 2.;
     unrelated.config.intent.labels = vec![];
     unrelated.config.disabled.insert("via.cluster".to_owned());
-    assert!(
-        statuses(common::BOARD, &unrelated)
-            .iter()
-            .all(|(_, _, s)| *s == ExceptionStatus::Applied)
-    );
+    assert!(statuses(common::BOARD, &unrelated)
+        .iter()
+        .all(|(_, _, s)| *s == ExceptionStatus::Applied));
     // The BOM rule's own config slice reopens only it.
     let mut bom = f;
     bom.config
@@ -129,7 +128,7 @@ fn own_threshold_reopens_unrelated_config_does_not() {
 
 #[test]
 fn fixture_distant_delete_keeps_unrelated_reviews() {
-    let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/");
+    let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/lint/");
     let src = std::fs::read_to_string(format!("{dir}advanced-bad.kicad_pcb")).unwrap();
     let config: Config =
         serde_json::from_str(&std::fs::read_to_string(format!("{dir}advanced-bad.json")).unwrap())

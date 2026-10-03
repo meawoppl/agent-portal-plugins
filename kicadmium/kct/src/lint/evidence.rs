@@ -16,11 +16,11 @@
 //!
 //! Upgrading from engine 2 changes every evidence hash once: existing
 //! exceptions read as `changed` and need one re-review (re-waive/re-flag).
-use crate::{
-    Config, Finding,
+use crate::lint::{
     copper::Extra,
     hash,
-    model::{Board, Point, line_distance},
+    model::{line_distance, Board, Point},
+    Config, Finding,
 };
 use serde::Serialize;
 use serde_json::Value;

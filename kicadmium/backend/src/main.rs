@@ -517,8 +517,8 @@ async fn main() -> Result<()> {
             let run = lint::run(&project)?;
             eprintln!("{}", lint::summary(&run.checked.report));
             if let Some(sheet) = contact_sheet {
-                let html = pcb_lint::contact_sheet::render(&run.source, &run.checked.report)?;
-                pcb_lint::review::atomic_write(&sheet, html.as_bytes())?;
+                let html = kct::lint::contact_sheet::render(&run.source, &run.checked.report)?;
+                kct::lint::review::atomic_write(&sheet, html.as_bytes())?;
                 eprintln!("Contact sheet: {}", sheet.display());
             }
             if json {
@@ -536,7 +536,7 @@ async fn main() -> Result<()> {
             }
         }
         Commands::PcbLint { args } => {
-            let code = pcb_lint::cli::run(args)?;
+            let code = kct::lint::cli::run(args)?;
             if code != 0 {
                 std::process::exit(code);
             }

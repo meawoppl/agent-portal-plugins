@@ -1,8 +1,8 @@
-use pcb_lint::{Config, Report, lint};
+use kct::lint::{lint, Config, Report};
 use serde_json::json;
-const BAD: &str = include_str!("fixtures/advanced-bad.kicad_pcb");
+const BAD: &str = include_str!("fixtures/lint/advanced-bad.kicad_pcb");
 fn configuration() -> Config {
-    serde_json::from_str(include_str!("fixtures/advanced-bad.json")).unwrap()
+    serde_json::from_str(include_str!("fixtures/lint/advanced-bad.json")).unwrap()
 }
 fn count(r: &Report, id: &str) -> usize {
     r.findings.iter().filter(|f| f.rule == id).count()
@@ -102,13 +102,13 @@ detection!(review_reattach, "review.reattach");
 detection!(annotation_stale, "annotation.stale");
 #[test]
 fn all_101_are_registered_and_executable() {
-    let catalog = pcb_lint::rules::catalog();
+    let catalog = kct::lint::rules::catalog();
     assert_eq!(catalog.len(), 101);
-    assert_eq!(pcb_lint::advanced::IDS.len(), 70);
+    assert_eq!(kct::lint::advanced::IDS.len(), 70);
     assert!(catalog.iter().all(|r| r.status == "implemented"));
     let r = lint(BAD, "fixture", configuration()).unwrap();
     assert_eq!(r.coverage.len(), 101);
-    for id in pcb_lint::advanced::IDS {
+    for id in kct::lint::advanced::IDS {
         assert!(count(&r, id) > 0, "{id}");
     }
 }
@@ -190,11 +190,10 @@ fn insufficient_search_budget_is_visible() {
       (segment (uuid "b") (net "N") (layer "F.Cu") (width 0.3) (start 2 0) (end 2 2))
       (segment (uuid "block") (net "OTHER") (layer "F.Cu") (width 1.2) (start 0.8 0.8) (end 1.2 1.2)))"#;
     let r = lint(board, "fixture", c).unwrap();
-    assert!(
-        r.coverage
-            .iter()
-            .any(|r| r.rule == "route.legal_shortcut" && r.status == "budget_exhausted")
-    );
+    assert!(r
+        .coverage
+        .iter()
+        .any(|r| r.rule == "route.legal_shortcut" && r.status == "budget_exhausted"));
 }
 #[test]
 fn fixed_pins_are_not_swap_candidates() {
@@ -210,7 +209,7 @@ fn fixed_pins_are_not_swap_candidates() {
 #[test]
 fn known_good_contracts_stay_quiet() {
     let mut c = configuration();
-    let b = pcb_lint::model::Board::read(BAD).unwrap();
+    let b = kct::lint::model::Board::read(BAD).unwrap();
     let i = &mut c.intent;
     i.features.as_mut().unwrap().allowed_references =
         b.parts.iter().map(|p| p.reference.clone()).collect();
@@ -240,7 +239,7 @@ fn known_good_contracts_stay_quiet() {
     i.assembly.as_mut().unwrap().placements = b
         .parts
         .iter()
-        .map(|p| pcb_lint::intent::Cpl {
+        .map(|p| kct::lint::intent::Cpl {
             reference: p.reference.clone(),
             at: p.at,
             angle_deg: p.angle,
@@ -250,7 +249,7 @@ fn known_good_contracts_stay_quiet() {
     i.netlist = Some(
         b.pads
             .iter()
-            .map(|p| pcb_lint::intent::Pin {
+            .map(|p| kct::lint::intent::Pin {
                 reference: p.reference.clone(),
                 pad: p.number.clone(),
                 net: p.net.clone(),
@@ -259,17 +258,17 @@ fn known_good_contracts_stay_quiet() {
     );
     i.observations[0].predicted = false;
     i.annotations[0].subjects = vec!["U1".into()];
-    i.annotations[0].source_sha256 = pcb_lint::hash(BAD);
+    i.annotations[0].source_sha256 = kct::lint::hash(BAD);
     i.artifacts[0].actual_sha256 = "a".into();
-    i.artifacts[0].built_from_sha256 = pcb_lint::hash(BAD);
+    i.artifacts[0].built_from_sha256 = kct::lint::hash(BAD);
     i.release
         .as_mut()
         .unwrap()
         .checks
-        .push(pcb_lint::intent::CheckRun {
+        .push(kct::lint::intent::CheckRun {
             tool: "DRC".into(),
             version: "10".into(),
-            source_sha256: pcb_lint::hash(BAD),
+            source_sha256: kct::lint::hash(BAD),
             unwaived_errors: 0,
         });
     let r = lint(BAD, "fixture", c).unwrap();
@@ -304,17 +303,17 @@ fn known_good_contracts_stay_quiet() {
 #[test]
 fn arc_connectivity_and_outline_cutouts() {
     let s = r#"(kicad_pcb (layers (0 "F.Cu" signal)) (gr_rect (start -5 -5) (end 5 5) (layer "Edge.Cuts")) (gr_rect (start -1 -1) (end 1 1) (layer "Edge.Cuts")) (arc (start -2 0) (mid 0 2) (end 2 0) (width .2) (layer "F.Cu") (net "N") (uuid "arc")) (footprint "X" (layer "F.Cu") (at -2 0) (uuid "f") (property "Reference" "J") (pad "1" smd circle (at 0 0) (size 1 1) (layers "F.Cu") (net "N") (uuid "p"))))"#;
-    let b = pcb_lint::model::Board::read(s).unwrap();
-    let g = pcb_lint::copper::Geometry::new(
+    let b = kct::lint::model::Board::read(s).unwrap();
+    let g = kct::lint::copper::Geometry::new(
         &b,
-        pcb_lint::copper::Extra::read(s, &b).unwrap(),
+        kct::lint::copper::Extra::read(s, &b).unwrap(),
         &Default::default(),
     );
     assert_eq!(g.islands().len(), 1);
     assert!(!g.legal(
         &[
-            pcb_lint::model::Point { x: -2., y: 0. },
-            pcb_lint::model::Point { x: 2., y: 0. }
+            kct::lint::model::Point { x: -2., y: 0. },
+            kct::lint::model::Point { x: 2., y: 0. }
         ],
         0.2,
         "N",

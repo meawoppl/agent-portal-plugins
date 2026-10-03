@@ -1,5 +1,6 @@
 pub mod advanced;
 pub mod board_file;
+pub mod ci;
 pub mod contact_sheet;
 pub mod copper;
 pub mod design;

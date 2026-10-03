@@ -41,7 +41,7 @@ Bend runtime.
   validated against canonical files and native tools.
 
 `kct` is a native workspace crate dispatched inside the Kicadmium binary.
-Kicadmium's server, UI, parsers, review engine, and `pcb-lint` are Rust; only
+Kicadmium's server, UI, parsers, review engine, and `kct lint` are Rust; only
 KiCad's own `kicad-cli` remains an external runtime dependency.
 
 ## Heuristic lint contract

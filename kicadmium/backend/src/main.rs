@@ -285,7 +285,8 @@ struct ProjectConfig {
     inherit_libraries: Option<bool>,
     /// Project-root-relative quality profile; overrides the workspace one.
     quality_profile: Option<PathBuf>,
-    /// pcb-lint config and review ledger paths.
+    /// Legacy kct lint config and review ledger paths (superseded by
+    /// `<board>.lint.json`; still read by the workbench API).
     lint: Option<lint::LintConfig>,
 }
 

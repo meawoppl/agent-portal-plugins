@@ -68,7 +68,8 @@ fallback for parts without fields, and part fields win over table entries.
 
 See [AGENTS.md](AGENTS.md). Rust workspace: `backend/` (Axum + CLI),
 `frontend/` (Yew and embedded viewers), `shared/` (typed protocols), and
-`pcb-lint/` (101 read-only, evidence-aware review rules). The linter is a
+`kct/` (the native kicad-tools port, including the `kct lint` engine with 101
+read-only, evidence-aware review rules). The linter is a
 heuristic reviewer, not native ERC/DRC and not permission to edit your board.
 Its canonical lifecycle is `kicadmium kct -- lint`; see
 [docs/lint.md](docs/lint.md) for board-local exceptions, routing gates, and CI

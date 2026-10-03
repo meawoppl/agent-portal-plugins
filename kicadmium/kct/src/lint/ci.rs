@@ -100,7 +100,7 @@ fn cell(s: &str) -> String {
 pub fn summary_markdown(checked: &Checked, file: &BoardLintFile, links: &[(&str, &str)]) -> String {
     let s = CiSummary::from(checked);
     let mut md = String::new();
-    let _ = writeln!(md, "### pcb-lint · `{}`\n", cell(&file.board_id));
+    let _ = writeln!(md, "### kct lint · `{}`\n", cell(&file.board_id));
     let open: usize = s.open_by_severity.values().sum();
     let _ = writeln!(md, "| Open findings | error | warning | info | total |");
     let _ = writeln!(md, "|---|---:|---:|---:|---:|");
@@ -249,7 +249,7 @@ pub fn sarif(boards: &[(&Path, &Checked)]) -> Value {
         "version": "2.1.0",
         "runs": [{
             "tool": {"driver": {
-                "name": "pcb-lint",
+                "name": "kct-lint",
                 "version": env!("CARGO_PKG_VERSION"),
                 "informationUri": "https://github.com/meawoppl/kicadmium",
                 "rules": rules

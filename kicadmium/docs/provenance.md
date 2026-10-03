@@ -13,7 +13,8 @@ excluded.
 - Electronics workflow skills: `American-Embedded/kistack`, pinned revision
   recorded in `skills/kistack/kistack.bundle.json`.
 - Read-only heuristic linter and independent evidence: `bp-test-reflection`
-  handoff, retained in `pcb-lint/` and `docs/pcb-lint-independent-review/`.
+  handoff, retained in `docs/pcb-lint-independent-review/`. The `pcb-lint`
+  crate it produced is now `kct lint` (`kct/src/lint/`).
 - Viewer-specific upstream notices remain beside the embedded assets.
 
 The original projects retain their own copyrights. See their license files

@@ -35,7 +35,7 @@ fn summary_markdown_contents() {
             ("exceptions", "exceptions.html"),
         ],
     );
-    assert!(md.contains("### pcb-lint · `mixed-board`"));
+    assert!(md.contains("### kct lint · `mixed-board`"));
     assert!(md.contains("| Open findings | error | warning | info | total |"));
     assert!(md.contains(
         "| Exceptions | applied | changed | resolved | orphaned | expired | unverified | total |"
@@ -63,7 +63,7 @@ fn sarif_shape() {
     let v: serde_json::Value = serde_json::from_str(&text).unwrap();
     assert_eq!(v["version"], "2.1.0");
     let run = &v["runs"][0];
-    assert_eq!(run["tool"]["driver"]["name"], "pcb-lint");
+    assert_eq!(run["tool"]["driver"]["name"], "kct-lint");
     let results = run["results"].as_array().unwrap();
     assert_eq!(results.len(), c.report.findings.len());
     let rules: Vec<_> = run["tool"]["driver"]["rules"]

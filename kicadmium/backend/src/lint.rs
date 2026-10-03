@@ -1,4 +1,4 @@
-//! Project-aware wrapper around the `pcb-lint` heuristic engine.
+//! Project-aware wrapper around the `kct lint` heuristic engine (`kct::lint`).
 //!
 //! Resolves the project's canonical `.kicad_pcb`, uses the project id as the
 //! stable board identity, and reads optional `lint.config` / `lint.reviews`
@@ -28,7 +28,7 @@ use crate::{
 /// `lint` section of a project in `.kicad-pcb.json`.
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub(crate) struct LintConfig {
-    /// pcb-lint JSON `Config`; omitted fields use pcb-lint defaults.
+    /// kct lint JSON `Config`; omitted fields use kct lint defaults.
     pub config: Option<PathBuf>,
     /// Evidence-bound review ledger; stale evidence is not reused.
     pub reviews: Option<PathBuf>,

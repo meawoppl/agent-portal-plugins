@@ -1,6 +1,11 @@
 Independent pcb-lint usability review
 =====================================
 
+Note: pcb-lint is now `kct lint` (the kct::lint module, `kicadmium kct -- lint`).
+This record is kept as written, under its original tool name; the `review`,
+`--reviews` and `--board-id` CLI it exercises are superseded by `kct lint
+waive|flag|clear` and the per-board `<board>.lint.json` file.
+
 Scope and provenance
 --------------------
 Ran the supplied prebuilt binary from /home/meawoppl/repos/bp-test/.worktrees/bp-test-reflection/tools/pcb-lint/target/release/pcb-lint against the SIX primary boards in /home/meawoppl/repos/bp-test, including the imported mainboard-reference. Used defaults, no intent contracts, and initially no review ledger. Board IDs were bp-test/<project-name>. All output is in this temporary directory. No repository files were edited. Hashes of 39 top-level/per-board KiCad files, including boards, schematics and projects, are identical before and after all checks. I did not apply suggestions, refill zones, or rerun native DRC.

@@ -1,6 +1,6 @@
 # Board lint with `kct lint`
 
-`kct lint` is kicadmium's layout-review toolchain. It runs the pcb-lint
+`kct lint` is kicadmium's layout-review toolchain. It runs the `kct::lint`
 heuristic engine, records reviewed non-issues next to each board, flags those
 records once they go stale, and writes viewable CI results. It is advisory:
 KiCad ERC/DRC/parity stay the ground truth, and a lint finding is a candidate
@@ -53,7 +53,7 @@ for that board.
 {
   "schema": 2,
   "board_id": "esp32-fpga-module",
-  "config": { "...": "only fields that differ from pcb-lint defaults" },
+  "config": { "...": "only fields that differ from kct lint defaults" },
   "exceptions": [
     {
       "key": "889f69e50c2c…",
@@ -116,7 +116,7 @@ lint-results/
   summary.md            index of all boards with open/stale counts and links
   findings.sarif        all boards, for GitHub code scanning
   <board-path-slug>__<path-hash>/
-    report.json         full pcb-lint report, including review-audit statuses
+    report.json         full kct lint report, including review-audit statuses
     findings.html       contact sheet of findings: crops, highlights, filters
     exceptions.html     contact sheet of every exception: crop, reason,
                         reviewer, dates, status badge

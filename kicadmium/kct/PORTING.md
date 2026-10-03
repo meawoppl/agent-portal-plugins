@@ -86,3 +86,10 @@ arguments and `${NAME}` expands values from the workflow's `env` map.
 `--dry-run` prints every resolved command without executing it. This covers
 sequencing, arguments, variables, and error policy, but does not execute Python
 language constructs or imports; those must become native kct commands.
+
+### `kct lint` (kicadmium extension)
+
+`kct lint` has no upstream counterpart. Its engine, `kct::lint`
+(`kct/src/lint/`), was the standalone `pcb-lint` crate. Its tests are
+`kct/tests/lint_*.rs` with fixtures in `kct/tests/fixtures/lint/`. See
+`docs/lint.md`.

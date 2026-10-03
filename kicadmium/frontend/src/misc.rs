@@ -73,7 +73,7 @@ pub fn analysis_tab(props: &TabProps) -> Html {
                     <tbody>{for kinds.iter().map(|(kind, n)| html! { <tr><td>{*kind}</td><td>{*n}</td></tr> })}</tbody>
                 </table>
                 <p class="muted">
-                    {"Layout-quality audits, DRC/ERC, and pcb-lint heuristics live on the Checks tab; "}
+                    {"Layout-quality audits, DRC/ERC, and kct lint heuristics live on the Checks tab; "}
                     {"deeper analysis runs through "}<code>{"kicadmium kct -- <command>"}</code>{" (rjwalters/kicad-tools)."}
                 </p>
             </>

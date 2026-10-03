@@ -40,7 +40,9 @@ workflow file before claiming CI coverage. If it is missing, offer to add it.
    Never waive just to turn CI green, and never waive an `error` without saying
    why it is safe. Board-wide intent such as net classes or deliberate stubs
    belongs in the `config` of `<board>.lint.json` (create it with
-   `lint init <board>`), not in dozens of waivers.
+   `lint init <board>`; `lint init --print-default-config` lists every field
+   and `lint inspect <board> --format json` gives UUIDs and exact net names),
+   not in dozens of waivers.
 4. **Keep exceptions honest** after every geometry change:
    - `kicadmium kct -- lint stale <board>` lists `orphaned` (geometry deleted),
      `resolved` (finding gone) and `expired` exceptions.

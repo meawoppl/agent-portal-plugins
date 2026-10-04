@@ -91,3 +91,5 @@ It steals ideas shamelessly from:
 - Thea Flowers' [KiCanvas](https://github.com/theacodes/kicanvas) and [Gingerbread](https://github.com/wntrblm/Gingerbread), for making KiCad designs genuinely useful in the browser and treating PCB output as a creative, inspectable medium.
 - [American-Embedded/kistack](https://github.com/American-Embedded/kistack), for the practical KiCad agent workflows vendored here.
 - [pastebom.com](https://github.com/meawoppl/pastebom.com), for reusable Rust PCB extraction and Gerber-viewing machinery.
+- [punkfab/circuit-skills](https://github.com/punkfab/circuit-skills), for its simulate-then-lay-out workflow and its record of verification gates that gave false passes. Ideas only: the repository has no licence, so none of its code or text is used.
+- [parisxmas/fastroute](https://github.com/parisxmas/fastroute), a Rust port of Freerouting, for its unrouted-connection diagnosis, best-so-far checkpoints and benchmark boards. It is GPL-3.0-or-later, so if kicadmium uses it, it runs as a separate, discovered program; none of its code is linked or vendored.

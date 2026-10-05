@@ -1,3 +1,8 @@
+---
+name: kct-lint
+description: Lint PCB layouts with kct lint: find issues, route with --lint-gate, record reviewed non-issues in <board>.lint.json, prune stale exceptions, and understand the CI lint results and contact sheets.
+---
+
 # kct lint: find, fix, waive, prune
 
 Use this skill when you change board geometry (routing, placement, silkscreen,

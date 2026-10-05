@@ -1,3 +1,8 @@
+---
+name: kicad-tools-automation
+description: Use native kct (kicadmium kct -- ...) for structured KiCad analysis and edits: routing, placement, manufacturer rules, sync, repairs, readiness and JSON output. Load before any mutating kct command.
+---
+
 # Native kct Automation
 
 Use this skill when a KiCad task needs structured analysis or edits beyond

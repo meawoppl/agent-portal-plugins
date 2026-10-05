@@ -1,3 +1,8 @@
+---
+name: pcb-workflow
+description: Start here for any KiCad, PCB, schematic, Gerber or BOM work in a repo with the kicadmium plugin: workbench, ERC/DRC/quality/lint gates, publishing fab outputs, and what done means.
+---
+
 # KiCad PCB Workflow
 
 Use this skill when a repo contains KiCad, Gerber, BOM, schematic, footprint, or

@@ -209,6 +209,21 @@ fn fit_distance(width: f64, height: f64, depth: f64, vertical_fov: f64, aspect: 
     radius / vertical_half.min(horizontal_half).sin().max(1.0e-6) * 1.12
 }
 
+/// Depth range for an orbiting camera around a model with `radius`.
+///
+/// The old near plane was derived from the initial fitted camera distance.
+/// It therefore sat more than a radius in front of the camera and cut through
+/// the board as soon as OrbitControls zoomed closer.  Keep the near plane near
+/// the camera instead, and make the far plane cover the controls' complete
+/// zoom-out range.  Scaling both by the model radius keeps this useful for
+/// metre-scale board GLBs and millimetre-scale library previews alike.
+fn clip_planes(radius: f64, fitted_distance: f64) -> (f64, f64) {
+    let radius = radius.max(1.0e-9);
+    let near = radius / 1_000.0;
+    let far = fitted_distance * 50.0 + radius * 2.0;
+    (near, far.max(near * 10.0))
+}
+
 fn resize(renderer: &Renderer, camera: &Camera, canvas: &HtmlCanvasElement) {
     let width = f64::from(canvas.client_width().max(1));
     let height = f64::from(canvas.client_height().max(1));
@@ -247,12 +262,9 @@ fn frame(camera: &Camera, controls: &OrbitControls, model: &JsValue) {
     if let Some(target) = property::<Vec3>(controls.as_ref(), "target") {
         target.set(center.x(), center.y(), center.z());
     }
-    number(
-        camera.as_ref(),
-        "near",
-        (distance - radius * 1.5).max(radius / 10_000.0),
-    );
-    number(camera.as_ref(), "far", distance + radius * 4.0);
+    let (near, far) = clip_planes(radius, distance);
+    number(camera.as_ref(), "near", near);
+    number(camera.as_ref(), "far", far);
     number(controls.as_ref(), "minDistance", radius * 0.05);
     number(controls.as_ref(), "maxDistance", distance * 50.0);
     camera.update_projection();
@@ -261,7 +273,7 @@ fn frame(camera: &Camera, controls: &OrbitControls, model: &JsValue) {
 
 #[cfg(test)]
 mod tests {
-    use super::fit_distance;
+    use super::{clip_planes, fit_distance};
 
     #[test]
     fn fits_metre_scale_kicad_board_without_world_unit_floor() {
@@ -274,6 +286,19 @@ mod tests {
         let landscape = fit_distance(0.1, 0.01, 0.05, 42.0, 16.0 / 9.0);
         let portrait = fit_distance(0.1, 0.01, 0.05, 42.0, 9.0 / 16.0);
         assert!(portrait > landscape);
+    }
+
+    #[test]
+    fn clipping_plane_stays_close_when_orbiting_into_the_model() {
+        let radius = 0.1;
+        let distance = fit_distance(radius * 2.0, 0.01, radius * 2.0, 42.0, 16.0 / 9.0);
+        let (near, far) = clip_planes(radius, distance);
+
+        // OrbitControls permits a distance of radius * 0.05.  The near plane
+        // must remain comfortably closer than that instead of being tied to
+        // the much farther initial fit.
+        assert!(near < radius * 0.05, "near={near}");
+        assert!(far > distance * 50.0, "far={far}");
     }
 }
 

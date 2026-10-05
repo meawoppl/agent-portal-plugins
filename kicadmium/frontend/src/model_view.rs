@@ -311,6 +311,9 @@ fn start(
     let options = Object::new();
     Reflect::set(&options, &"canvas".into(), canvas.as_ref())?;
     Reflect::set(&options, &"antialias".into(), &JsValue::TRUE)?;
+    // Annotation snapshots are captured after Three.js has presented the frame.
+    // Retain the drawing buffer so `canvas.toDataURL()` does not return black.
+    Reflect::set(&options, &"preserveDrawingBuffer".into(), &JsValue::TRUE)?;
     let renderer = Rc::new(Renderer::new_renderer(&options));
     renderer.set_pixel_ratio(web_sys::window().map_or(1.0, |w| w.device_pixel_ratio().min(2.0)));
     let clear: Function =

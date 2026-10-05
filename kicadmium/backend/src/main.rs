@@ -324,6 +324,17 @@ struct CommandOutput {
     stderr: String,
 }
 
+/// One-shot CLI commands should exit quietly when their output pipe closes
+/// (`kicadmium kct -- lint run ... | head`) instead of panicking on EPIPE.
+/// The server keeps Rust's default of ignoring SIGPIPE.
+fn restore_default_sigpipe() {
+    #[cfg(unix)]
+    // SAFETY: called once at startup before any output is written.
+    unsafe {
+        libc::signal(libc::SIGPIPE, libc::SIG_DFL);
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt()
@@ -334,6 +345,9 @@ async fn main() -> Result<()> {
         .init();
 
     let cli = Cli::parse();
+    if !matches!(cli.command, Commands::Serve { .. }) {
+        restore_default_sigpipe();
+    }
     match cli.command {
         Commands::Setup { json } => {
             let response = serde_json::json!({

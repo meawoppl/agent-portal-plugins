@@ -1,0 +1,75 @@
+{
+ "file": "<FIXTURES>/test_kicad10_save_board.kicad_pcb",
+ "manufacturer": "pcbway",
+ "layers": 2,
+ "summary": {
+  "errors": 0,
+  "warnings": 1,
+  "infos": 1,
+  "waived": 0,
+  "rules_checked": 45,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": true
+ },
+ "violations": [
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J1 (Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical): 4.15mm from nearest board edge",
+   "location": [
+    141.0,
+    87.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 4.1499999999999995,
+   "required_value": null,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "D1 (LED_THT:LED_D5.0mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    154.73,
+    87.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "D1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": [],
+ "fabrication_process": {
+  "process_id": "pcbway-via-in-pad",
+  "name": "PCBWay Via-in-Pad (epoxy-filled & capped)",
+  "min_layer_count": 2,
+  "min_via_drill_mm": 0.15,
+  "max_via_drill_mm": 0.5,
+  "min_annular_ring_mm": 0.15,
+  "requires_filled_and_capped": true,
+  "min_component_hole_distance_mm": 0.5,
+  "source": "https://www.pcbway.com/capabilities.html",
+  "ordering_instructions": "Order the PCBWay Via-in-Pad (epoxy-filled & capped) process (pcbway-via-in-pad): a >= 2-layer stackup with epoxy-filled and copper-capped (plated-over) vias, via drills between 0.15 and 0.5 mm, annular ring >= 0.15 mm, and in-pad vias kept >= 0.5 mm from any other component's drilled hole. Do not substitute ordinary open or merely tented vias. Source: https://www.pcbway.com/capabilities.html"
+ }
+}

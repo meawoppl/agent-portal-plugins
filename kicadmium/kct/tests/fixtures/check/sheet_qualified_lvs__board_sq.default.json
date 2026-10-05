@@ -1,0 +1,151 @@
+{
+ "file": "<FIXTURES>/sheet_qualified_lvs/board_sq.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 6,
+  "warnings": 0,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 42,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net '/AUX/DBG_LED' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    131.0,
+    100.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R4.2"
+   ],
+   "nets": [
+    "/AUX/DBG_LED"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net '/BUS' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    139.0,
+    100.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R10.1"
+   ],
+   "nets": [
+    "/BUS"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net '/MCU/DBG_LED' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    111.0,
+    100.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R2.2"
+   ],
+   "nets": [
+    "/MCU/DBG_LED"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net '/SENSE' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    159.0,
+    100.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R12.1"
+   ],
+   "nets": [
+    "/SENSE"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GLOBAL_NET' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    151.0,
+    100.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R11.2"
+   ],
+   "nets": [
+    "GLOBAL_NET"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GND' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    141.0,
+    100.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R10.2"
+   ],
+   "nets": [
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

@@ -1,0 +1,112 @@
+# kct lint for a KiCad board repository.
+#
+# Copy to .github/workflows/kct-lint.yml in the board repo. On every push and
+# pull request it lints each committed board against its <board>.lint.json and
+# publishes the results:
+#   - the job summary shows open findings and stale exceptions per board;
+#   - the "kct-lint-results" artifact holds findings.html and exceptions.html
+#     contact sheets for each board (self-contained, open offline);
+#   - with code scanning enabled, findings.sarif annotates the PR.
+#
+# kicadmium is private. Add a repository secret KICADMIUM_TOKEN: a fine-grained
+# token with read-only Contents access to meawoppl/kicadmium.
+name: kct lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write # SARIF upload; remove with that step if unused
+
+env:
+  # Boards to lint (bash globstar). Each may have an adjacent <stem>.lint.json.
+  BOARDS: "**/*.kicad_pcb"
+  # never | warning | error: open findings at or above this fail the job.
+  FAIL_ON: error
+  KICADMIUM_REF: main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: trunk
+
+      - name: Cache kicadmium build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/kicadmium
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+          key: kicadmium-${{ runner.os }}-${{ env.KICADMIUM_REF }}-${{ github.run_id }}
+          restore-keys: kicadmium-${{ runner.os }}-${{ env.KICADMIUM_REF }}-
+
+      - name: Install kicadmium
+        env:
+          KICADMIUM_TOKEN: ${{ secrets.KICADMIUM_TOKEN }}
+        run: |
+          git config --global url."https://x-access-token:${KICADMIUM_TOKEN}@github.com/".insteadOf "https://github.com/"
+          cargo install --locked --git https://github.com/meawoppl/kicadmium \
+            --branch "$KICADMIUM_REF" backend
+          git config --global --unset-all url."https://x-access-token:${KICADMIUM_TOKEN}@github.com/".insteadOf
+          kicadmium kct -- lint rules --format json > /dev/null
+
+      - name: Lint boards
+        id: lint
+        shell: bash
+        run: |
+          shopt -s globstar nullglob
+          boards=($BOARDS)
+          # Skip KiCad autosave and backup copies.
+          boards=($(printf '%s\n' "${boards[@]}" | grep -v -E '(^|/)(_autosave-|.*-backups/)' || true))
+          if [ ${#boards[@]} -eq 0 ]; then echo "no boards found"; exit 0; fi
+          set +e
+          kicadmium kct -- lint ci "${boards[@]}" --out lint-results --fail-on "$FAIL_ON"
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          shopt -s nullglob
+          [ -f lint-results/summary.md ] || exit 0
+          {
+            cat lint-results/summary.md
+            echo
+            for s in lint-results/*/summary.md; do cat "$s"; echo; done
+            echo "Download **kct-lint-results** for the findings and exceptions contact sheets."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload contact sheets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kct-lint-results
+          path: lint-results/
+          if-no-files-found: ignore
+
+      - name: Upload SARIF
+        if: always() && hashFiles('lint-results/findings.sarif') != ''
+        continue-on-error: true # needs code scanning enabled on the repo
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: lint-results/findings.sarif
+          category: kct-lint
+
+      - name: Gate
+        if: steps.lint.outputs.status != '0'
+        run: |
+          echo "::error::kct lint failed (open findings at or above '$FAIL_ON'). See the job summary and the kct-lint-results artifact."
+          exit 1

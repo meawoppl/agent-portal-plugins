@@ -1,0 +1,18 @@
+{
+  "manufacturer": "jlcpcb",
+  "dry_run": false,
+  "via_in_pad_supported_noop": false,
+  "moved": [],
+  "skipped": [
+    {
+      "x": 10.0,
+      "y": 10.0,
+      "net": 1,
+      "net_name": "SIG",
+      "pad": "-1",
+      "reason": "hole-to-copper 0.242mm to track on In2.Cu",
+      "uuid": "11111111-1111-4111-8111-111111111111"
+    }
+  ],
+  "unresolvable": []
+}

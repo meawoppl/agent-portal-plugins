@@ -1,0 +1,126 @@
+{
+ "file": "<FIXTURES>/u3_wide_copper_contact.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 1,
+  "warnings": 4,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 47,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "silkscreen_over_pad",
+   "type": "silkscreen_over_pad",
+   "severity": "warning",
+   "message": "Silkscreen text may overlap exposed pad on U3",
+   "location": [
+    8.0,
+    6.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U3",
+    "pad 4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_over_pad",
+   "type": "silkscreen_over_pad",
+   "severity": "warning",
+   "message": "Silkscreen text may overlap exposed pad on J1",
+   "location": [
+    8.0,
+    12.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1",
+    "pad 1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen J1 (reference) overlaps exposed copper of J1 pad 1",
+   "location": [
+    8.0,
+    12.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J1 (reference)",
+    "J1 pad 1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U3 (reference) overlaps exposed copper of U3 pad 4",
+   "location": [
+    8.0,
+    6.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U3 (reference)",
+    "U3 pad 4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'REF_1V65' has only 1 pad on U3-5 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    8.0,
+    5.05
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U3-5"
+   ],
+   "nets": [
+    "REF_1V65"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

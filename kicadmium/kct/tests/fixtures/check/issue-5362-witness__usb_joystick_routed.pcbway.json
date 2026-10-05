@@ -1,0 +1,2641 @@
+{
+ "file": "<FIXTURES>/issue-5362-witness/usb_joystick_routed.kicad_pcb",
+ "manufacturer": "pcbway",
+ "layers": 4,
+ "summary": {
+  "errors": 108,
+  "warnings": 19,
+  "infos": 2,
+  "waived": 0,
+  "rules_checked": 49,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "diffpair_clearance_intra": 2,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J1 (Connector_USB:USB_C_Receptacle_GCT_USB4085): 0.00mm from nearest board edge",
+   "location": [
+    149.475,
+    63.3
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.0,
+   "required_value": null,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J2 (Connector_JST:JST_PH_S5B-PH-SM4-TB_1x05-1MP_P2.00mm_Horizontal): 7.40mm from nearest board edge",
+   "location": [
+    123.5,
+    99.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 7.4,
+   "required_value": null,
+   "items": [
+    "J2"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    167.35,
+    97.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    153.325,
+    103.925
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    141.338,
+    87.1
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    173.65,
+    97.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    157.325,
+    103.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN3"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    155.35,
+    107.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN3"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    141.338,
+    87.9
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN3"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    140.838,
+    88.7
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN4"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    167.05,
+    105.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN4"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    162.1,
+    102.65
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN4"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    167.35,
+    107.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "BTN4"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    176.0,
+    101.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    143.08,
+    83.9
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.88,
+    67.1
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    162.88,
+    68.9
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    138.28,
+    79.53
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    156.28,
+    77.53
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    129.82,
+    85.04
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    169.32,
+    78.04
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    151.53,
+    65.67
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    132.67,
+    93.9
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    144.88,
+    74.1
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    154.25,
+    76.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    171.91,
+    89.87
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    142.5,
+    88.92
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    169.7,
+    101.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    147.3,
+    77.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    140.47,
+    65.67
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    137.6,
+    88.55
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    156.28,
+    90.47
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    164.0,
+    101.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    158.25,
+    91.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    176.0,
+    111.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    177.0,
+    88.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    141.88,
+    93.1
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    157.7,
+    101.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.92,
+    88.7
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    164.0,
+    111.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    148.72,
+    95.1
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    169.7,
+    111.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    157.7,
+    111.4
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "GND"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    142.5,
+    79.838
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "ISP_MISO"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    161.024,
+    72.96
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "ISP_MISO"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    143.3,
+    79.838
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "ISP_MOSI"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    165.976,
+    75.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "ISP_MOSI"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    165.325,
+    94.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "JOY_BTN"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    144.25,
+    95.3
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "JOY_BTN"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    168.35,
+    84.6
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "RESET"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    140.838,
+    82.3
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "RESET"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.7,
+    88.1
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "RESET"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    147.95,
+    74.99
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "USB_D+"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    145.55,
+    69.138
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "USB_D+"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    145.55,
+    66.862
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "USB_D+"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    147.45,
+    69.138
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "USB_D-"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    147.45,
+    66.862
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "USB_D-"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    149.05,
+    74.99
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "USB_D-"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    145.7,
+    79.338
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VBUS"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    130.75,
+    102.35
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    150.72,
+    78.47
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    151.68,
+    105.47
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    143.3,
+    91.162
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    141.371,
+    94.854
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    157.68,
+    90.47
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    147.675,
+    103.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    154.72,
+    91.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    163.68,
+    96.47
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    151.675,
+    103.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    155.68,
+    103.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    152.162,
+    89.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    143.05,
+    97.71
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    154.72,
+    93.47
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.675,
+    103.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    159.68,
+    101.53
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    155.68,
+    105.47
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    152.75,
+    79.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "dimension_annular_ring",
+   "type": "dimension_annular_ring",
+   "severity": "error",
+   "message": "Annular ring 0.125mm < minimum 0.150mm",
+   "location": [
+    147.68,
+    105.47
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.125,
+   "required_value": 0.15,
+   "items": [
+    "VCC"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    149.05,
+    63.3
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-A1:GND",
+    "J1-A4:VBUS"
+   ],
+   "nets": [
+    "GND",
+    "VBUS"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    148.2,
+    63.3
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-A4:VBUS",
+    "J1-A5:USB_CC1"
+   ],
+   "nets": [
+    "VBUS",
+    "USB_CC1"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    147.35,
+    63.3
+   ],
+   "layer": null,
+   "actual_value": 0.44999999999999435,
+   "required_value": 0.5,
+   "items": [
+    "J1-A5:USB_CC1",
+    "J1-A6:USB_D+"
+   ],
+   "nets": [
+    "USB_CC1",
+    "USB_D+"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    146.5,
+    63.3
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-A6:USB_D+",
+    "J1-A7:USB_D-"
+   ],
+   "nets": [
+    "USB_D+",
+    "USB_D-"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    145.65,
+    63.3
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-A7:USB_D-",
+    "J1-A8:net:0"
+   ],
+   "nets": [
+    "USB_D-",
+    "net:0"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    144.8,
+    63.3
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-A8:net:0",
+    "J1-A9:VBUS"
+   ],
+   "nets": [
+    "net:0",
+    "VBUS"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    143.95,
+    63.3
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-A9:VBUS",
+    "J1-A12:GND"
+   ],
+   "nets": [
+    "VBUS",
+    "GND"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    143.95,
+    61.95
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-B1:GND",
+    "J1-B4:VBUS"
+   ],
+   "nets": [
+    "GND",
+    "VBUS"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    144.8,
+    61.95
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-B4:VBUS",
+    "J1-B5:USB_CC2"
+   ],
+   "nets": [
+    "VBUS",
+    "USB_CC2"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    145.65,
+    61.95
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-B5:USB_CC2",
+    "J1-B6:USB_D+"
+   ],
+   "nets": [
+    "USB_CC2",
+    "USB_D+"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    146.5,
+    61.95
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-B6:USB_D+",
+    "J1-B7:USB_D-"
+   ],
+   "nets": [
+    "USB_D+",
+    "USB_D-"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    147.35,
+    61.95
+   ],
+   "layer": null,
+   "actual_value": 0.44999999999999435,
+   "required_value": 0.5,
+   "items": [
+    "J1-B7:USB_D-",
+    "J1-B8:net:0"
+   ],
+   "nets": [
+    "USB_D-",
+    "net:0"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    148.2,
+    61.95
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-B8:net:0",
+    "J1-B9:VBUS"
+   ],
+   "nets": [
+    "net:0",
+    "VBUS"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "hole_to_hole_clearance",
+   "type": "hole_to_hole_clearance",
+   "severity": "warning",
+   "message": "(same-footprint) Hole-to-hole clearance 0.450mm < minimum 0.500mm",
+   "location": [
+    149.05,
+    61.95
+   ],
+   "layer": null,
+   "actual_value": 0.45000000000000145,
+   "required_value": 0.5,
+   "items": [
+    "J1-B9:VBUS",
+    "J1-B12:GND"
+   ],
+   "nets": [
+    "VBUS",
+    "GND"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U2 (Package_TO_SOT_SMD:SOT-23-6) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    147.45,
+    66.862
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U1 (Package_QFP:TQFP-44_10x10mm_P0.8mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    150.5,
+    79.837
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J2 (Connector_JST:JST_PH_S5B-PH-SM4-TB_1x05-1MP_P2.00mm_Horizontal) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    127.5,
+    102.35
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Y1 (Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    135.4,
+    86.35
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "Y1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J3 (Joystick:Samtec_TSM-103-01-T-DV) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    161.023,
+    72.96
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (58.850, 40.100) drilled inside pad SW2-1 (net 'BTN2') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    167.35,
+    97.6
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-25535815",
+    "SW2-1"
+   ],
+   "nets": [
+    "BTN2"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (44.825, 46.425) drilled inside pad R13-2 (net 'BTN2') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    153.325,
+    103.925
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-58649a2e",
+    "R13-2"
+   ],
+   "nets": [
+    "BTN2"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (32.838, 29.600) drilled inside pad U1-19 (net 'BTN2') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    141.338,
+    87.1
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-63bcd2d0",
+    "U1-19"
+   ],
+   "nets": [
+    "BTN2"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (65.150, 40.100) drilled inside pad SW2-1 (net 'BTN2') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    173.65,
+    97.6
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-7e61b1b3",
+    "SW2-1"
+   ],
+   "nets": [
+    "BTN2"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (48.825, 46.000) drilled inside pad R14-2 (net 'BTN3') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    157.325,
+    103.5
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-0cf0144b",
+    "R14-2"
+   ],
+   "nets": [
+    "BTN3"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (46.850, 50.100) drilled inside pad SW3-1 (net 'BTN3') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    155.35,
+    107.6
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-f04ba5ec",
+    "SW3-1"
+   ],
+   "nets": [
+    "BTN3"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (32.838, 30.400) drilled inside pad U1-20 (net 'BTN3') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    141.338,
+    87.9
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-f76e0345",
+    "U1-20"
+   ],
+   "nets": [
+    "BTN3"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (32.338, 31.200) drilled inside pad U1-21 (net 'BTN4') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    140.838,
+    88.7
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-085acfc8",
+    "U1-21"
+   ],
+   "nets": [
+    "BTN4"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (58.850, 50.100) drilled inside pad SW4-1 (net 'BTN4') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    167.35,
+    107.6
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-9f94fdf8",
+    "SW4-1"
+   ],
+   "nets": [
+    "BTN4"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (34.000, 22.338) drilled inside pad U1-11 (net 'ISP_MISO') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    142.5,
+    79.838
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-5446776d",
+    "U1-11"
+   ],
+   "nets": [
+    "ISP_MISO"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (52.524, 15.460) drilled inside pad J3-1 (net 'ISP_MISO') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    161.024,
+    72.96
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-a52f3e85",
+    "J3-1"
+   ],
+   "nets": [
+    "ISP_MISO"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (34.800, 22.338) drilled inside pad U1-10 (net 'ISP_MOSI') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    143.3,
+    79.838
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-2544bef6",
+    "U1-10"
+   ],
+   "nets": [
+    "ISP_MOSI"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (57.476, 18.000) drilled inside pad J3-4 (net 'ISP_MOSI') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    165.976,
+    75.5
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-31172fcb",
+    "J3-4"
+   ],
+   "nets": [
+    "ISP_MOSI"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (56.825, 37.000) drilled inside pad R16-2 (net 'JOY_BTN') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    165.325,
+    94.5
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-4b044903",
+    "R16-2"
+   ],
+   "nets": [
+    "JOY_BTN"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (59.850, 27.100) drilled inside pad SW5-1 (net 'RESET') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    168.35,
+    84.6
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-7cc95663",
+    "SW5-1"
+   ],
+   "nets": [
+    "RESET"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (32.338, 24.800) drilled inside pad U1-13 (net 'RESET') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    140.838,
+    82.3
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-8fb3d1b6",
+    "U1-13"
+   ],
+   "nets": [
+    "RESET"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (51.200, 30.600) drilled inside pad R5-2 (net 'RESET') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    159.7,
+    88.1
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-ebd60017",
+    "R5-2"
+   ],
+   "nets": [
+    "RESET"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (39.450, 17.490) drilled inside pad R4-1 (net 'USB_D+') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    147.95,
+    74.99
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-2211d1d3",
+    "R4-1"
+   ],
+   "nets": [
+    "USB_D+"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (37.050, 11.638) drilled inside pad U2-4 (net 'USB_D+') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    145.55,
+    69.138
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-a242f6d9",
+    "U2-4"
+   ],
+   "nets": [
+    "USB_D+"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (37.050, 9.362) drilled inside pad U2-3 (net 'USB_D+') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    145.55,
+    66.862
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-c7ed3167",
+    "U2-3"
+   ],
+   "nets": [
+    "USB_D+"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (38.950, 11.638) drilled inside pad U2-6 (net 'USB_D-') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    147.45,
+    69.138
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-3354b25a",
+    "U2-6"
+   ],
+   "nets": [
+    "USB_D-"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (38.950, 9.362) drilled inside pad U2-1 (net 'USB_D-') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    147.45,
+    66.862
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-6d1bfcf3",
+    "U2-1"
+   ],
+   "nets": [
+    "USB_D-"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (40.550, 17.490) drilled inside pad R3-1 (net 'USB_D-') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    149.05,
+    74.99
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-759add73",
+    "R3-1"
+   ],
+   "nets": [
+    "USB_D-"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (37.200, 21.838) drilled inside pad U1-7 (net 'VBUS') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    145.7,
+    79.338
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-61f3939e",
+    "U1-7"
+   ],
+   "nets": [
+    "VBUS"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (34.800, 33.662) drilled inside pad U1-24 (net 'VCC') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    143.3,
+    91.162
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-5a597377",
+    "U1-24"
+   ],
+   "nets": [
+    "VCC"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (32.871, 37.354) drilled inside pad C5-1 (net 'VCC') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    141.371,
+    94.854
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-6756a199",
+    "C5-1"
+   ],
+   "nets": [
+    "VCC"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (39.175, 46.000) drilled inside pad R12-1 (net 'VCC') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    147.675,
+    103.5
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-8015097c",
+    "R12-1"
+   ],
+   "nets": [
+    "VCC"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (46.220, 34.000) drilled inside pad C4-1 (net 'VCC') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    154.72,
+    91.5
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-86477417",
+    "C4-1"
+   ],
+   "nets": [
+    "VCC"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (43.175, 46.000) drilled inside pad R13-1 (net 'VCC') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    151.675,
+    103.5
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-98c34f8e",
+    "R13-1"
+   ],
+   "nets": [
+    "VCC"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (47.180, 46.000) drilled inside pad R14-1 (net 'VCC') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    155.68,
+    103.5
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-b32f4f4a",
+    "R14-1"
+   ],
+   "nets": [
+    "VCC"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (43.662, 32.000) drilled inside pad U1-34 (net 'VCC') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    152.162,
+    89.5
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-c3fc7c47",
+    "U1-34"
+   ],
+   "nets": [
+    "VCC"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_in_pad_process_ineligible",
+   "type": "unknown",
+   "severity": "error",
+   "message": "Via at (51.175, 46.000) drilled inside pad R15-1 (net 'VCC') does not meet the declared process 'pcbway-via-in-pad' (PCBWay Via-in-Pad (epoxy-filled & capped)) eligibility requirements: via annular ring 0.125mm is below process minimum 0.150mm. Source: https://www.pcbway.com/capabilities.html",
+   "location": [
+    159.675,
+    103.5
+   ],
+   "layer": null,
+   "actual_value": 0.2,
+   "required_value": 0.15,
+   "items": [
+    "Via-dc161ee4",
+    "R15-1"
+   ],
+   "nets": [
+    "VCC"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": [],
+ "fabrication_process": {
+  "process_id": "pcbway-via-in-pad",
+  "name": "PCBWay Via-in-Pad (epoxy-filled & capped)",
+  "min_layer_count": 2,
+  "min_via_drill_mm": 0.15,
+  "max_via_drill_mm": 0.5,
+  "min_annular_ring_mm": 0.15,
+  "requires_filled_and_capped": true,
+  "min_component_hole_distance_mm": 0.5,
+  "source": "https://www.pcbway.com/capabilities.html",
+  "ordering_instructions": "Order the PCBWay Via-in-Pad (epoxy-filled & capped) process (pcbway-via-in-pad): a >= 2-layer stackup with epoxy-filled and copper-capped (plated-over) vias, via drills between 0.15 and 0.5 mm, annular ring >= 0.15 mm, and in-pad vias kept >= 0.5 mm from any other component's drilled hole. Do not substitute ordinary open or merely tented vias. Source: https://www.pcbway.com/capabilities.html"
+ }
+}

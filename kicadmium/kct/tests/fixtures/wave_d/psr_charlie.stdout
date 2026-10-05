@@ -1,0 +1,234 @@
+{
+  "clearance_mm": 0.15,
+  "dry_run": false,
+  "total_moved": 0,
+  "total_unchanged": 14,
+  "total_unplaceable": 0,
+  "total_under_component_fallback": 0,
+  "placements": [
+    {
+      "footprint_ref": "D1",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        17.0,
+        8.5
+      ],
+      "new_position_mm": [
+        17.0,
+        8.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "D2",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        25.0,
+        8.5
+      ],
+      "new_position_mm": [
+        25.0,
+        8.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "D3",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        33.0,
+        8.5
+      ],
+      "new_position_mm": [
+        33.0,
+        8.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "D4",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        17.0,
+        16.5
+      ],
+      "new_position_mm": [
+        17.0,
+        16.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "D5",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        25.0,
+        16.5
+      ],
+      "new_position_mm": [
+        25.0,
+        16.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "D6",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        33.0,
+        16.5
+      ],
+      "new_position_mm": [
+        33.0,
+        16.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "D7",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        17.0,
+        24.5
+      ],
+      "new_position_mm": [
+        17.0,
+        24.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "D8",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        25.0,
+        24.5
+      ],
+      "new_position_mm": [
+        25.0,
+        24.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "D9",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        33.0,
+        24.5
+      ],
+      "new_position_mm": [
+        33.0,
+        24.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "R1",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        8.0,
+        36.5
+      ],
+      "new_position_mm": [
+        8.0,
+        36.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "R2",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        18.0,
+        36.5
+      ],
+      "new_position_mm": [
+        18.0,
+        36.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "R3",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        32.0,
+        36.5
+      ],
+      "new_position_mm": [
+        32.0,
+        36.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "R4",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        42.0,
+        36.5
+      ],
+      "new_position_mm": [
+        42.0,
+        36.5
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "U1",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        25.0,
+        42.0
+      ],
+      "new_position_mm": [
+        25.0,
+        42.0
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    }
+  ]
+}

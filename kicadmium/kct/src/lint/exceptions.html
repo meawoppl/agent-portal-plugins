@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>kct lint exceptions · %%TITLE%%</title>
+<style>
+%%STYLE%%
+.status{font-weight:600}.status-applied{color:#9ece6a}.status-changed{color:#e0af68}.status-resolved{color:#7dcfff}
+.status-orphaned{color:#f7768e}.status-expired{color:#bb9af7}.status-unverified{color:#a9b1d6}
+.gone{padding:14px;background:#1a1b26;aspect-ratio:4/3;overflow:auto}.gone ul{margin:4px 0;padding-left:18px;font-size:.8rem}
+dt{color:#a9b1d6}
+</style></head><body>
+%%DEFS%%
+<header>
+%%HEADER%%
+<p class="muted">Exceptions recorded in the board lint file, audited against this run. Geometry preview · top view, millimeters.</p>
+<div class="legend"><span class="front">● Front copper</span><span class="back">● Back copper</span><span class="inner">● Inner copper</span><span class="multi">● Multilayer pads / vias</span><span class="selected">● Exception subjects</span></div>
+<div class="controls">
+<label>Search reasons, rules, keys<input id="search" type="search" placeholder="rule, reviewer, key…"></label>
+<label>Status<select id="status"><option value="">All statuses</option>%%OPTIONS%%</select></label>
+<button id="print">Print</button>
+</div>
+<details><summary>Rendering limitations</summary><p>%%NOTE%%</p></details>
+</header>
+<main id="grid" class="grid">%%CARDS%%</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+function filter(){
+ const q=$('search').value.toLowerCase(),s=$('status').value;
+ for(const a of document.querySelectorAll('article'))a.hidden=!!(s&&a.dataset.status!==s)||!!(q&&!a.textContent.toLowerCase().includes(q));
+}
+$('search').oninput=filter;$('status').onchange=filter;$('print').onclick=()=>window.print();
+</script></body></html>

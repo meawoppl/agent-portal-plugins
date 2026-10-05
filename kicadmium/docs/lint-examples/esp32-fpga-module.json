@@ -1,0 +1,5675 @@
+{
+  "schema": 1,
+  "tool_version": "0.1.0",
+  "board_id": "esp32-fpga-module",
+  "source_sha256": "441d492ca44e15825f883397baa316bb4cc7ad006db7818a43be6ab2683e6361",
+  "config": {
+    "intent": {
+      "roles": {},
+      "route": {
+        "clearance_mm": 0.15,
+        "grid_mm": 0.25,
+        "search_margin_mm": 3.0,
+        "max_nodes": 15000,
+        "minimum_saving_mm": 1.0,
+        "edge_clearance_mm": 0.25,
+        "outline": [],
+        "keepouts": [],
+        "tuned_nets": [],
+        "width_ratio": 1.5,
+        "grazing_margin_mm": 0.025,
+        "max_return_via_mm": 1.0
+      },
+      "placement": [],
+      "passive_alignment": {
+        "max_gap_mm": 5.0,
+        "max_offset_mm": 0.5,
+        "tolerance_mm": 0.1,
+        "angle_tolerance_deg": 2.0,
+        "min_group": 3,
+        "exclude_references": []
+      },
+      "peers": [],
+      "channels": [],
+      "flows": [],
+      "corridors": [],
+      "sensitive": [],
+      "loops": [],
+      "schematic": null,
+      "netlist": null,
+      "baseline": null,
+      "currents": [],
+      "features": null,
+      "swaps": [],
+      "naming": [],
+      "interfaces": [],
+      "mating": [],
+      "probes": [],
+      "bodies": [],
+      "pairs": [],
+      "references": [],
+      "launches": [],
+      "pin_roles": [],
+      "straps": [],
+      "modes": [],
+      "capacitors": [],
+      "packages": [],
+      "access": [],
+      "thermals": [],
+      "assembly": null,
+      "labels": [],
+      "artifacts": [],
+      "release": null,
+      "native": null,
+      "observations": [],
+      "annotations": []
+    },
+    "disabled": [],
+    "enabled_only": [],
+    "min_trace_mm": 0.1,
+    "min_drill_mm": 0.2,
+    "min_annulus_mm": 0.1,
+    "short_segment_mm": 0.2,
+    "angle_tolerance_deg": 1.0,
+    "join_tolerance_mm": 0.001,
+    "via_cluster_mm": 0.7,
+    "detour_ratio": 1.5,
+    "detour_excess_mm": 2.0,
+    "narrow_run_mm": 1.0,
+    "bend_threshold": 6,
+    "net_rules": [],
+    "pin_nets": [],
+    "proximity": [],
+    "groups": []
+  },
+  "limitations": [
+    "Heuristics, not KiCad DRC/ERC or fabrication sign-off. No edits are made.",
+    "Core trace endpoint checks ignore planes and arcs. Via attachment and layer-excursion screening use saved polygon fills and tessellated arcs; unsupported geometry withholds uncertain conclusions. Saved fills must be refreshed after layout edits. See coverage per rule.",
+    "Detour ratios use unobstructed octilinear distance as a lower bound, not a proven legal replacement route. Explicit thermal and reference-plane contracts provide screening only, not impedance or thermal proof.",
+    "Missing UUIDs use geometry fallback identities and cannot be ignored persistently. Board identity is caller-supplied; do not reuse across independent designs.",
+    "footprint zones: 1",
+    "7 zones present; isolated-copper candidates may be plane-connected."
+  ],
+  "objects": {
+    "footprints": 52,
+    "pads": 297,
+    "tracks": 647,
+    "vias": 150
+  },
+  "findings": [
+    {
+      "key": "02ce6309719a66b1ee1bdac39e2b092adc8f6ac263294964cb90f0c481df0dca",
+      "evidence": "84f31f2b8be779b2fbf4691a383a1d0e6109d614f484c16f0ef7c7d37d8ff1ca",
+      "rule": "trace.width_transition",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Trace width changes at a joint; confirm neck/clearance intent",
+      "suggestion": "Document required clearance neck, taper or class change",
+      "subjects": [
+        "17a85467-b280-4907-af41-779dfda5ccc4",
+        "2519a10b-76fb-4b14-9a1a-d096b492c78e"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 108.65,
+        "y": 133.65
+      },
+      "metrics": {
+        "narrow_mm": 0.2,
+        "wide_mm": 0.25
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "0317e0a49614d06e9bed45ddb03e6992ba8d395bb86354cfa753305c928a03d5",
+      "evidence": "c0e206edd00d5f261586908d406596d67219757aac6f14dc2b48a27233042dc9",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "3fe2d85f-81bb-437a-81e1-e3ff6bcf6d54"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 113.1692,
+        "y": 110.2
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "0503a5e494387e7d501901ab964ade70cd269166a75da3808b87cee003d3d604",
+      "evidence": "555eab6fd2ec6abe9ec56eb7548b7562c023b8d95289bca34ee9946b89809f23",
+      "rule": "copper.stale_stub",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Leaf copper can be removed without changing modeled pad equivalence classes; verify intended analog/RF function",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "bd8d7c4b-1369-4499-b18b-cdddf627d7bf"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 104.45,
+        "y": 120.075
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "064ee6c99a29958a103b4086a49d5edaeea3346f1a224f030049db217f5946df",
+      "evidence": "afe7d99e5e414f190ba5d2e9cfb35ad87c6c0fa8f15006294eabe8e8ad796d88",
+      "rule": "pad.grazing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Trace barely touches pad envelope without a centerline endpoint landing",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "40349f32-0fd5-4543-b6dd-2f052cfa3cdb",
+        "61b146a1-4f51-44fc-b75d-bd31c87f717f"
+      ],
+      "nets": [
+        "/FPGA_IOT_43A"
+      ],
+      "at": {
+        "x": 106.2,
+        "y": 139.395
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "08a7e48f804f1c6b6e40d7cb2d367238cf244111df8a48389715ff3dd9f1ba25",
+      "evidence": "51489a8d5c41331e9b49a7139cc8ea0f0b62259ece73d0a6846f8d420604cb16",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.025 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "f8e076a0-8f44-4d20-994c-c8896b008fe6"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 114.375,
+        "y": 117.3
+      },
+      "metrics": {
+        "length_mm": 0.025000000000005684
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "0b6818c751e1d589374bed1313bc68ae62711461eaf3ebf0c12173c57925d80b",
+      "evidence": "7227ff4e98e04848a53a570295007a79922fdc365b14955c88310ee419095ff6",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "dda70941-4bf3-4374-880f-3695918e975a"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 114.2,
+        "y": 125.9
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "0b7056157375af1a7e0df584f5739fa739613ab442a9aaae78f75f858d5b29b4",
+      "evidence": "9a0812145ee06a6a6c85e0119bb8f84c753f0cb85f239af8040b404606644c85",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from L4.2",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "842fe329-9c58-4b91-893d-81018f615ab1",
+        "845fe9a1-20fe-4881-95cd-b557c36db99b"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.375,
+        "y": 126.2
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "0c60057cc49446f7ebdf7c5f8844e9feb38655b806b3213bcc7ed87774c60ce4",
+      "evidence": "b5ad1e4698819b6ea020d2acaecbbfc8154ee802900c58f84c83377b299572b1",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J1.9",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "2e0cdb0f-eceb-4117-b2df-170962655944",
+        "e46fe075-ca75-4bbd-9d80-fca756045433"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 110.6,
+        "y": 113.88
+      },
+      "metrics": {
+        "deviation_deg": 44.999999999997954
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "0cf9f89a276620e74d0868f4b43bb61a3f387132bd545bed59cceba28a2120c2",
+      "evidence": "75589f2a74ef7d491cfac00b873a5f7c75aa5eb0fb1c26104fba0abbee1e597f",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "df5a5142-9e34-4802-8241-552821288a32"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 104.075,
+        "y": 143.6
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "0dbd505da7b049d87b466c1ec79c400c13fb7f1a2f189001ecbd3e9fef27558d",
+      "evidence": "a4ae38d77f7e8055bf6fe46804937392ccd4422ea91634955546d1b51a117210",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from D1.P$4",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "82477899-f0dc-4742-a9c9-08240bb49ccd",
+        "ec2fea7b-7902-4ca7-8b7a-a3a59394e444"
+      ],
+      "nets": [
+        "/FPGA_RGB2"
+      ],
+      "at": {
+        "x": 117.47,
+        "y": 143.67
+      },
+      "metrics": {
+        "deviation_deg": 44.999999999997726
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "0e38b8a09a0a8854b873b54fd2d3ce1e4e69550de6b2c47e8ec110e3128d90bf",
+      "evidence": "64a9d8fb687e8977dd520a8bfd59a948006a54e9485436e881ac751a0f033dd3",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "b05cea9e-f223-48f7-a64a-7aec2c04ccad"
+      ],
+      "nets": [
+        "/FPGA_IOT_50B"
+      ],
+      "at": {
+        "x": 107.75,
+        "y": 142.155
+      },
+      "metrics": {
+        "length_mm": 0.07071067811866079
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "10fd6fd0d573f75250f3ae2241979be69ec84e6ae194a5ea2dff257139c02a6a",
+      "evidence": "1d6d057ff4cb4aae1e51fde9c9885d6730d754f86ed17aec8d3f50f0b5933a0b",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.100 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "cee02f52-6f04-4dce-87c6-a947be902679"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 116.1154,
+        "y": 117.8
+      },
+      "metrics": {
+        "length_mm": 0.10000000000000853
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "112de8b961347d3d3f80546727d9e03c735ff64469fbe1a71f459c80588aff74",
+      "evidence": "959f8ebddcee033ada8173966df2e8baefdbabbf19f76736f0c3a5126dc40435",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "471ef292-8940-4fb6-9d73-19f33a06fa4c"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 105.4875,
+        "y": 136.11148
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "1133849b00c475506a7aa88a4b6d078d389eefe478cec662a00c9574f886767c",
+      "evidence": "4b3162f93f11026f902fbc937ffb6732086a8a4085a6581fdf427d7436a529ed",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "d4cd584d-62f4-49b5-8354-3d4dcd63bc3d"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 105.175,
+        "y": 114.925
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "119e35e71c8664f370e050c4c58782374db32d8d284c353d4fac93a4960df762",
+      "evidence": "d5cd8ae5b1dbc67d7560915ec28ed96ccfd8a3a20d40376ea33221c69e22fe5e",
+      "rule": "copper.stale_stub",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Leaf copper can be removed without changing modeled pad equivalence classes; verify intended analog/RF function",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "96eac9c8-0b6d-4df8-80b5-538a014c544d"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 104.45,
+        "y": 120.05
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "135402d11caaca1e785c01c49e965208a95f940c1e8e3c7541343a9dc4b3dcb9",
+      "evidence": "defc008afb4dcc2121ad4b1a4f9b609f701f295244680fa553bca5d1aae00b58",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.050 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "3a904561-ab47-45ac-a473-37abfc66dbb9"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.725,
+        "y": 112.75
+      },
+      "metrics": {
+        "length_mm": 0.04999999999999716
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "1526f4fe60fb0c79ce34793166931ce59a28adc49334b3e01a340185ae1b4a28",
+      "evidence": "e969c921bf4762c02a98067b1e494c66fc6805650752a993bf5627d0805261cb",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C46.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "703f2910-cca4-42d4-b611-1e168c04f33c",
+        "a4617507-d1f4-440c-8ea5-e27900ac2904"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 103.7846,
+        "y": 141.25
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "17a8cda6231f5e1be9c1761fc9e62775d68087e22133c99117e3984959bb7078",
+      "evidence": "90d8df10d7770c1022821adc4e0c3ea85fc45279a9736beb4f2e825f28aad332",
+      "rule": "pad.grazing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Trace barely touches pad envelope without a centerline endpoint landing",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "84749bbb-93da-429e-9938-6b54dd86db49",
+        "ec2fea7b-7902-4ca7-8b7a-a3a59394e444"
+      ],
+      "nets": [
+        "/FPGA_RGB2"
+      ],
+      "at": {
+        "x": 117.47,
+        "y": 143.67
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "19422a3df41f7d0d0ad37def96fa5134ceef5d2d6ad0cffd56ec20284c2e93ad",
+      "evidence": "d540f4ddedc1744c58b65f17769729e77666a79fedee9db910ce727d3584c565",
+      "rule": "trace.width_transition",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Trace width changes at a joint; confirm neck/clearance intent",
+      "suggestion": "Document required clearance neck, taper or class change",
+      "subjects": [
+        "3b2ee183-980b-472d-9cb3-ecb7811cd3af",
+        "64bafdc5-8b95-4dbd-ab8d-e641629140fb"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 107.175,
+        "y": 119.925
+      },
+      "metrics": {
+        "narrow_mm": 0.15,
+        "wide_mm": 0.2
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "19c7bf35c096c630f6ad98d62bc77548b5fec67daa549e40637ef8eca17071cb",
+      "evidence": "a5274ea9dc51d8256af9a5c358fd0b0b27c6165b042bcb0a0f51837a8b640640",
+      "rule": "trace.open_end",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Endpoint has no modeled same-net copper attachment; inspect for a stub or unfinished route",
+      "suggestion": "Inspect local copper and remove only if proven unnecessary",
+      "subjects": [
+        "46173b14-8a42-4700-b437-e9d4215e4075"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 113.825,
+        "y": 133.2
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "19d1376a9c0b206e9c912e666b0e69296aa822a871e234f6c98128d6369ffdea",
+      "evidence": "8b0a3d345d3fdae1de419f23cba791c0c3963510110aa170c76f007a6f167766",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.150 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "319914c3-5f9a-47f9-84cd-a07971bd4484"
+      ],
+      "nets": [
+        "/ESP_GPIO42"
+      ],
+      "at": {
+        "x": 114.3,
+        "y": 116.5
+      },
+      "metrics": {
+        "length_mm": 0.15000000000000568
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "1a06333f03406d3771255e78a3ef307c533164bcefb9cf474d143875da9a3c6c",
+      "evidence": "20920f49cb31dd45ed9a852c1795a5c6c75c22684744b3c0900e2d0f5ec3bf82",
+      "rule": "copper.stale_stub",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Leaf copper can be removed without changing modeled pad equivalence classes; verify intended analog/RF function",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "f8e076a0-8f44-4d20-994c-c8896b008fe6"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 114.375,
+        "y": 117.3
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "1a8f1b9e1fc2875cc2cbbf1683ebdf2447e471aff8648fb88b175ec3b7cadfe9",
+      "evidence": "803f6a3838ca67a2cf23a1652850200b20fa75eeb5fcadb99b1c87774596b8ed",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J2.38",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "1c42fcab-eb93-4b32-bb05-f744e1a954d1",
+        "610f1019-3874-459d-b9e5-71fc8eb16e2e"
+      ],
+      "nets": [
+        "/FPGA_IOB_9B"
+      ],
+      "at": {
+        "x": 113.0,
+        "y": 142.402
+      },
+      "metrics": {
+        "deviation_deg": 44.999999999997954
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "1d5b7182afc351c35813f1ace949f94add4296c3fde1e7f737aed888011e5bb5",
+      "evidence": "4cc1a18eda53d09cb73b17b7a392e07b6759f5b6fd020678d7617d98c1afee75",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C37.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "23e017bd-7c37-459b-95aa-4d7d74e60e40",
+        "b4895ddc-1ffc-4108-aa0e-224f9cfc3ddd"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 114.0154,
+        "y": 111.4
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999898
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "1f21af9c73cc84877ed650e7e1a4a5047e70a9ac30b9894a2e53fb98d1ba5382",
+      "evidence": "4ea156b7d6d18c755136b9b3576171b792407a7e00ec87816b06e33f9ac1a611",
+      "rule": "trace.open_end",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Endpoint has no modeled same-net copper attachment; inspect for a stub or unfinished route",
+      "suggestion": "Inspect local copper and remove only if proven unnecessary",
+      "subjects": [
+        "62986820-eb51-4bc6-802a-f3e1d22137a2"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 110.199999,
+        "y": 117.77
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "1f42821fa6562e2aa963320e98880b4fc6bd0dcdbe34e48ce4572e7fb6906c9d",
+      "evidence": "c8933efe0a57ad0ea5f5c17a87bd5abe189dd3cd7cfea5a0cf0129e63a8a629b",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "cd64d957-471e-4e51-bfff-19d717fa7247"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 114.25,
+        "y": 114.9
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "201694f44b46b01f7c448794275980a81597de1efcbd048812b71c111d51a88b",
+      "evidence": "867906201909caf6a96d39713bb21f7f172a030d4e36f527aad26f62f8bc8cbc",
+      "rule": "route.detour",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Chain takes a long path relative to unobstructed 45° lower bound; inspect obstacles and tuning",
+      "suggestion": "Search for shorter legal route then refill and run native DRC",
+      "subjects": [
+        "00bc1d6e-c9aa-4802-85c5-ddacc28ed13a",
+        "2cadf58b-6919-4907-b189-25130bb6d221",
+        "32a44e7c-073b-4e1c-8742-88dd60581d72",
+        "4f48af01-fd30-4733-be31-457a2f20cdcc",
+        "5b154109-a362-4458-8e60-d269102d215b",
+        "8df4e110-f700-4b29-86d5-94a0d5d25caf",
+        "9b29c553-ceb5-42ae-b14e-5b5788a42188",
+        "cdde9770-4645-41a7-b0c8-a71763405bf6",
+        "e1225182-1d1b-4c0f-947f-fe5c15d05d26",
+        "fd9a2eee-2121-41cd-8ce4-1de0ca7c6772"
+      ],
+      "nets": [
+        "/FPGA_IOB_13B"
+      ],
+      "at": {
+        "x": 113.4798,
+        "y": 139.75
+      },
+      "metrics": {
+        "length_mm": 7.079388309203688,
+        "lower_bound_mm": 2.2344135623730947,
+        "ratio": 3.1683428835282
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "20b9e7bb141850a499da674634dcf92e440f1f2b66d2678e941c995b45a10d14",
+      "evidence": "f451c179175129e7f820a26c9e9e2b6c3f537eb3c55e0caf0efb55933dbbe2cd",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C49.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "af40fad4-2dde-4623-ab40-8dac7083b0e2",
+        "fce6daa2-9718-4e52-b987-13c2bc66c0e6"
+      ],
+      "nets": [
+        "+1.2V"
+      ],
+      "at": {
+        "x": 103.7846,
+        "y": 139.95
+      },
+      "metrics": {
+        "deviation_deg": 44.9999999999994
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "20c17fea48f3f26bd910a72b907c62a569f8d52362d3fe8cd0f2dcaec64e87a9",
+      "evidence": "08c1177b23a55f4e188fd9809c9147c902b30a19e646364c6414c52c9ed89560",
+      "rule": "trace.mergeable",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Collinear same-width segments share an endpoint",
+      "suggestion": "Consider merging to simplify topology",
+      "subjects": [
+        "044357da-fcbf-4029-bcec-d2b1e5946891",
+        "49477ec4-f727-4e14-b67a-e09667dbb371"
+      ],
+      "nets": [
+        "+1.2V"
+      ],
+      "at": {
+        "x": 104.3846,
+        "y": 139.95
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "20f9c65a8077289fde791a92f2e9a4a546b845a1d86289b6880874cdec3a31c3",
+      "evidence": "2f6fac4aefcc3cba55b34c678b1c06be522db36b6053aa1bff7313fe00a593ec",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "9b87a585-b197-4e03-9081-55cfa2821877"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 105.7,
+        "y": 135.2
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "2106860b75f88089001b333b0d4e8f7948a2e9199251fdcfbf40db5745b644fa",
+      "evidence": "c6ff4c7b6e81ec0840473629ae9dda4761e2c8b626e8a5e56cdef85303966941",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.141 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "5b154109-a362-4458-8e60-d269102d215b"
+      ],
+      "nets": [
+        "/FPGA_IOB_13B"
+      ],
+      "at": {
+        "x": 116.85,
+        "y": 139.775
+      },
+      "metrics": {
+        "length_mm": 0.14142135623731153
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "2174192d5d2eeff5747678bfc002dfa0e266671f4cf157d3285eecf3336e142a",
+      "evidence": "0920ea5bca8b4f3798a85299c14b16c78e7886d872feccbac0748b44a3022e09",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "82cc8422-a4df-4a68-b43c-27d6a8bda364"
+      ],
+      "nets": [
+        "/FPGA_IOT_49A"
+      ],
+      "at": {
+        "x": 110.199999,
+        "y": 142.105
+      },
+      "metrics": {
+        "length_mm": 0.07071209233221959
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "2565e7f1772902bfeed4f354a6664c579da5fc2c0866a68e13b24dfcc8f0ab94",
+      "evidence": "a8153796001da22cd67e0bcdad7edd29c47a0f788f837542a74d0250b3d78283",
+      "rule": "width.taper",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Abrupt width ratio exceeds configured transition limit",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "534af26e-bd57-4407-aeca-1e23996da5ab",
+        "e15538a4-8d47-4876-b587-1a72b40b608f"
+      ],
+      "nets": [
+        "ESP_VDD3P3"
+      ],
+      "at": {
+        "x": 111.35,
+        "y": 110.2846
+      },
+      "metrics": {
+        "ratio": 2.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "25d4ca8b29f56414c6f7f3a94089639c62a7d2b7eae2077d6ecb5fb79de87fed",
+      "evidence": "20f64544186aa303ea183943a7dc53bfb017044349780badb1102d29c4865ca9",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from R65.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "4da57ce2-d2af-489d-8dae-3c77e126a283",
+        "d624cabf-9cd0-4db5-ad3c-aa8da702b3c6"
+      ],
+      "nets": [
+        "/BUCK_FB"
+      ],
+      "at": {
+        "x": 112.44,
+        "y": 122.0
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "270ff1ffc75e10079b7f1a21ef2f69254c549761600962cc8ca03f0bff51485b",
+      "evidence": "b080759ca462204e6d2ffc4c33c55077b279da6f380fa9b4c6fdb6490ee9a99a",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.035 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "27bc35e4-c2f8-44d3-9cf2-9c4eba8e370b"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 106.375,
+        "y": 117.725
+      },
+      "metrics": {
+        "length_mm": 0.03535533905932537
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "27976d8b4b2d56dc5cdf2f6f3c736cc607a6c4a25b0b48ee9398a980e528ec73",
+      "evidence": "2ace756e76acadcb86088e7b6f22802262be36aeaf9c4e26cc83d777b86e8c4d",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "d30ccf93-b9bf-4741-b832-60de9c25d31e"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 108.25,
+        "y": 135.2
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "282415e27d0ff718b7b07b84093f12ec7fea9968922e1b5aa0204ddc43ae66c1",
+      "evidence": "023a0399877db3c594c9cfdefdd8bf2c1c6b6134477e9a188eff3d04a3029e8c",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.177 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "97a74ac0-44bd-45ef-883c-8d81532ab65a"
+      ],
+      "nets": [
+        "/LINK_SCK"
+      ],
+      "at": {
+        "x": 103.925,
+        "y": 113.875
+      },
+      "metrics": {
+        "length_mm": 0.1767766952966369
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "286b62e5fe031613ebd550fc95c4d632bd719dbcfb3e123aa68fa1fa51f8c605",
+      "evidence": "5547a40110cb8ca9e8bdcb3454ea0b590af43b20016da6e5599dccee60c156d2",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from U1.43",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "ceec8e6f-2a5b-4edc-a5f1-becfd73111bd",
+        "f5ae369d-2f1d-44ca-b5be-ad800d288f6c"
+      ],
+      "nets": [
+        "/ESP_GPIO39"
+      ],
+      "at": {
+        "x": 113.6,
+        "y": 118.1
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "2964d17b75b8c2312aca95c2de12d1de1cd83e19da30a75ab40b4193e48ca1dd",
+      "evidence": "0eca71025b11b547b16b1c770bbfcaf026a90a635ef72f03d167614926bcfaa6",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J2.21",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "71c395d5-5797-45b6-8842-db64179cb56d",
+        "9e2ee9ae-de90-48ad-a700-3935bd16d9fe"
+      ],
+      "nets": [
+        "/FPGA_IOT_48B"
+      ],
+      "at": {
+        "x": 106.2,
+        "y": 142.402
+      },
+      "metrics": {
+        "deviation_deg": 44.999999999999986
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "2c1c32faea3665afa551213ea98179b1c74d32b456009114a3feb3bcc2ebdaa0",
+      "evidence": "a7c0d3968315a9fce61ef63e759144a1aa6ab52632a54d3a64ecca32dd49dc43",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "ada2a891-404e-4524-b04a-4886e2bb7aeb"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 113.1692,
+        "y": 109.2
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "2c5d1709570c654a730251f82cffc2e6d0f8d22018451b37c5e62712fecc5a10",
+      "evidence": "d435d5a1a50482fac285f667be0dd4b02deaf14b39d4b2e43e11c5289ad81c1b",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "a147f9d7-a124-446e-876b-4abe36db76df"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 111.35,
+        "y": 131.75
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "2e4da727572279867f6b78ab017249c8f076829530afa4e87ed77be241d8e420",
+      "evidence": "551f32a0a3d72db6e3b70568588e04d45cd6b9bd5cb8cc693200de7309e6858b",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "40c42690-ffc9-4686-901e-85291f80ca50"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 104.1,
+        "y": 109.5
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "2ee8b48a9cb1563eaa9ffdbd92e78efb4e7a269c046ba3ca1c5912bd3792fa10",
+      "evidence": "3dbf8739efaedb4fd365854a26df7808d1d9ec724d9963c8f19f6058a2f19021",
+      "rule": "route.detour",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Chain takes a long path relative to unobstructed 45° lower bound; inspect obstacles and tuning",
+      "suggestion": "Search for shorter legal route then refill and run native DRC",
+      "subjects": [
+        "36905958-efe7-4e5a-a776-5eb16afdfa8f",
+        "4563a79a-ea59-4d6e-b525-8e5574ef7a65",
+        "8bba7955-9b3f-4342-b22e-d5914087b90e",
+        "e751dd5e-d95e-424d-93dd-763976cfb241",
+        "f174ed04-ac6d-4c82-830a-e6daa740e135"
+      ],
+      "nets": [
+        "/FPGA_IOB_20A"
+      ],
+      "at": {
+        "x": 111.399999,
+        "y": 139.395
+      },
+      "metrics": {
+        "length_mm": 7.055661171779837,
+        "lower_bound_mm": 4.488489091290299,
+        "ratio": 1.571945710076697
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "31114904561f03d0f3d059e6d7ec2bc982081a9377b8b332e72c3d83871713e0",
+      "evidence": "7d456fa939aa17738b60624fd7411c3066540c47e01da7065694fef9eb5bd44c",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.035 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "14c21b3c-ea3d-4452-b945-a8ebf629539f"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 114.575,
+        "y": 121.05
+      },
+      "metrics": {
+        "length_mm": 0.035355339059315316
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "3144ef5fa64a7a5eaff0f71cfd2dcd82894e2f68b6a84b9d1492388e6fe524f3",
+      "evidence": "d67435060051382a79d7ec80e5f84ffce146148395a5707ec5b01c7de7e49561",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "4f28d4c3-664c-40f5-9e69-826ff2f5d3db"
+      ],
+      "nets": [
+        "/FPGA_IOB_5B"
+      ],
+      "at": {
+        "x": 111.25,
+        "y": 144.4
+      },
+      "metrics": {
+        "length_mm": 0.07071067811866079
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "31dc9d7327abbd3970cb50caba19499231fa34b53ea35fb06cd90dd37d692106",
+      "evidence": "15d9407a8f6f0e8f1e2b4a276fe7ab33d01cbb5a0d6a3975e36c3e231d816b99",
+      "rule": "route.detour",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Chain takes a long path relative to unobstructed 45° lower bound; inspect obstacles and tuning",
+      "suggestion": "Search for shorter legal route then refill and run native DRC",
+      "subjects": [
+        "18a74e88-a26d-4c77-9446-2cca7b9ca5a1",
+        "36bd731e-6320-44ac-be54-982892dd6194",
+        "42688398-3253-4a66-96c8-f8b8a1470cbc",
+        "6cf2c206-d633-4729-81ca-8dfbc8dd6d8b",
+        "81e3b314-aeb4-42a2-bb5a-84d3c9509118",
+        "84bad286-4658-425d-b591-1c050f0d736e",
+        "a90cd7c5-83bd-4a2e-aa74-f025d6f854a1",
+        "ce0249c1-ef56-4021-a890-e467453d1570",
+        "d5d0f431-2ac3-4467-997e-ca2803e2d6dd"
+      ],
+      "nets": [
+        "/FPGA_IOB_23B"
+      ],
+      "at": {
+        "x": 110.199999,
+        "y": 139.395
+      },
+      "metrics": {
+        "length_mm": 17.48489798732232,
+        "lower_bound_mm": 5.495609251227438,
+        "ratio": 3.18161229956753
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "332bd7d94bd29e8eca0c76cc8e62c6b15db6f99a0fadda7af6c680bdd4dcc4b9",
+      "evidence": "e9cc079da044d63e46aa849cf91f40c2273b10afbf0630b3375d132350f1f76e",
+      "rule": "route.backtrack",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Chain reverses direction relative to its endpoint axis; inspect intentional tuning",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "00bc1d6e-c9aa-4802-85c5-ddacc28ed13a",
+        "2cadf58b-6919-4907-b189-25130bb6d221",
+        "32a44e7c-073b-4e1c-8742-88dd60581d72",
+        "4f48af01-fd30-4733-be31-457a2f20cdcc",
+        "5b154109-a362-4458-8e60-d269102d215b",
+        "8df4e110-f700-4b29-86d5-94a0d5d25caf",
+        "9b29c553-ceb5-42ae-b14e-5b5788a42188",
+        "cdde9770-4645-41a7-b0c8-a71763405bf6",
+        "e1225182-1d1b-4c0f-947f-fe5c15d05d26",
+        "fd9a2eee-2121-41cd-8ce4-1de0ca7c6772"
+      ],
+      "nets": [
+        "/FPGA_IOB_13B"
+      ],
+      "at": {
+        "x": 113.4798,
+        "y": 139.75
+      },
+      "metrics": {
+        "backtrack_mm": 1.6989203635969905
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "339da1e7fc404331a4c974a0c30bced2e92df965d3f396c05a6d73c670299242",
+      "evidence": "6fc40fc86b37ea1738cee81bfbee9ccde37127babe00bcbc699599b596abca94",
+      "rule": "route.bend_count",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Many bends in an unbranched chain; inspect routing intent",
+      "suggestion": "Inspect unnecessary zigzags against tuning constraints",
+      "subjects": [
+        "00bc1d6e-c9aa-4802-85c5-ddacc28ed13a",
+        "2cadf58b-6919-4907-b189-25130bb6d221",
+        "32a44e7c-073b-4e1c-8742-88dd60581d72",
+        "4f48af01-fd30-4733-be31-457a2f20cdcc",
+        "5b154109-a362-4458-8e60-d269102d215b",
+        "8df4e110-f700-4b29-86d5-94a0d5d25caf",
+        "9b29c553-ceb5-42ae-b14e-5b5788a42188",
+        "cdde9770-4645-41a7-b0c8-a71763405bf6",
+        "e1225182-1d1b-4c0f-947f-fe5c15d05d26",
+        "fd9a2eee-2121-41cd-8ce4-1de0ca7c6772"
+      ],
+      "nets": [
+        "/FPGA_IOB_13B"
+      ],
+      "at": {
+        "x": 113.4798,
+        "y": 139.75
+      },
+      "metrics": {
+        "bends": 9.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "34e840e9dc63e3a73d22f377ef8d344a64e2fba741505a8503afdcc0fe18e2bc",
+      "evidence": "155d267a4623173198559ab01aff1d88207dcc5e0b759af0b8d20aefc42f6349",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from R3.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "4a3ae02e-3a3f-404d-bdb5-9a9a50c29a72",
+        "fe066f9b-d9a5-4b2b-8703-9962f0864980"
+      ],
+      "nets": [
+        "/XTAL_P"
+      ],
+      "at": {
+        "x": 116.2,
+        "y": 113.2
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "35df32feccbe40bfef82789fc60740b4e3ea09d354ae39bac338a217aa2959c4",
+      "evidence": "939b1f71fd825a7672e7f518c37e93d797ffef09a9e74aa39de4ccd0290f49c6",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.095 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "24a13933-f57f-4ada-81e0-7f802fc0f331"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 106.4,
+        "y": 117.7
+      },
+      "metrics": {
+        "length_mm": 0.09479999999999222
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "37a44d2ddf5c4328d52d1815ed378fb49fbce6f0240c6307f4ff52b966f5f6c6",
+      "evidence": "42b6c6635dfa2f550f29a064ee2866ee2595681a5f7e12f4e307d4d9ba11eab9",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.177 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "78aa1010-4a83-43a5-b250-4c54eb81fa42"
+      ],
+      "nets": [
+        "/ESP_GPIO16"
+      ],
+      "at": {
+        "x": 104.8,
+        "y": 115.7
+      },
+      "metrics": {
+        "length_mm": 0.1767766952966369
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "38b5818df7ec18f6f816a3e301c29db27442d21f22f70022c77ca1d0b1fdb522",
+      "evidence": "b491c14d0848abbe3d76f570c86053c60f5d3c2f6f2b806e00e1418b3c3cc1d3",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "83720bc0-2426-479f-8bc1-e2796f336e09"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 119.0,
+        "y": 142.8
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "3b63b232922aaf7708176fe0f99246b50489c0190985766df6d76c5d55f202ba",
+      "evidence": "c2a49ecc43939cc294a499eb331da05d0e5acebc39a6b729065a19d0dc12adf6",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "2677e383-16f8-48b3-9940-f23e292c89a8"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 101.725,
+        "y": 137.55
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "3dd20629970130c8e14bfc56a8a18202a9224ade7a9cc4f053c483d9a52a1376",
+      "evidence": "5234b4f42f199bf195472e029df71f73d53fc502e18e29355076b6918fe96288",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "1017509e-d618-4e97-a98c-6c920e4a29d2"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 104.45,
+        "y": 118.8
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "3feda28006e298b9d058f511d8d2d8bb6033562490ab6ad54c64d5d4f141bd09",
+      "evidence": "e7ad615eea51dc9682c97e944079d32bb2d77a43bdcf511d4ea1c7c6ed56df13",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C42.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "346320d6-e391-49ad-975e-8c9652c25e04",
+        "bc323714-230d-4a05-a6cf-b8a64d412f0f"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.15,
+        "y": 113.3
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "40560150828a4f993aaaad651828f6bc91a6ea0a4ba607d1ff851b09960b4030",
+      "evidence": "0275e94a7d7324ecf704dee461774e1e268a3ff7b99bf56376aed6ba94972a3d",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C42.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "bc323714-230d-4a05-a6cf-b8a64d412f0f",
+        "cffaec0b-a7ac-471a-9014-b5eab8268f05"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.15,
+        "y": 113.3846
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999869
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "40cb62ccaf6de4edf51575143c16bdf457b60f31df860af01e4642f728e456c7",
+      "evidence": "2fe4a1af23f7dde8f3d6c5d935666494cd83e940e917aef8c6a5b3f287ebbac1",
+      "rule": "trace.mergeable",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Collinear same-width segments share an endpoint",
+      "suggestion": "Consider merging to simplify topology",
+      "subjects": [
+        "03d8809b-ccaf-43bd-9ccd-0a94671afef9",
+        "14c21b3c-ea3d-4452-b945-a8ebf629539f"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 114.6,
+        "y": 121.025
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "437ee9db4806f91fa7c5ead1a3484850ea177046142e813dd0adfd5e65c0b55e",
+      "evidence": "d9973186b3678fea6ebaf7709360d48c3bd6a9d74fbd0e7b5ead9324b2fe5eb9",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "bf38c222-9480-4704-86f3-7413ab4d20e5"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 114.3,
+        "y": 121.05
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "44b0854b0f37bd55955bfa6610bd3ddf128b499c2b2463633b930eadbdd79e3f",
+      "evidence": "678a21fcccc54b8e08cd0743aa6c62b11015695eb5dc80a2fedf8b2f8a06e725",
+      "rule": "trace.mergeable",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Collinear same-width segments share an endpoint",
+      "suggestion": "Consider merging to simplify topology",
+      "subjects": [
+        "a33c9c51-0db0-421d-980c-a7d0c9349732",
+        "b84ce979-b090-40e1-b1da-694d9f422bed"
+      ],
+      "nets": [
+        "/LINK_SCK"
+      ],
+      "at": {
+        "x": 111.75,
+        "y": 134.5
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "44c9bd9e86249f96b7bf34e08020291c37be623b44385175fe8cb09bf5230fb2",
+      "evidence": "f23b11868cbe236417772faf8bca0858625ca116542c3527fa57230b84bff286",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "b50beaa9-ca39-459d-ac21-a13f7dfa7964"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 104.4,
+        "y": 116.8
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "44efe21c0f730f3b0473df1e2cec7d8cdbbd758fac14e6ad0101bc0b3b4e1f0a",
+      "evidence": "ffce12f609cd052f7feee6c472548f00bdfd8219bca98b47dc3aeb91d9de7aa2",
+      "rule": "route.bend_count",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Many bends in an unbranched chain; inspect routing intent",
+      "suggestion": "Inspect unnecessary zigzags against tuning constraints",
+      "subjects": [
+        "0e8e2f28-015b-4f41-b109-54d5676ea168",
+        "10126768-8db4-4a78-8324-ce81391bd825",
+        "1a40e1d5-0fd6-4161-b802-4b8f8f81e807",
+        "aa399e49-22ef-4324-91c3-6f2dd0231ba4",
+        "c3edc662-ff2f-482c-8eda-6f658b42a02a",
+        "d03a4d0a-b2d1-4f39-8902-afd4a0e45dd9",
+        "d4f75270-3383-405b-ad66-d661bddc879d"
+      ],
+      "nets": [
+        "/LINK_CS_N"
+      ],
+      "at": {
+        "x": 111.25,
+        "y": 135.2
+      },
+      "metrics": {
+        "bends": 6.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "466978cf406129c8ca6c5e2b6211cf047ce0b3f8b888facf47d31c3d66357bed",
+      "evidence": "e2cf9c257a8dcc0186b9e3d4e4509181c8a3b20e33fc54791017bd5c3b040e42",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.150 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "c8060717-4d8d-4f29-8c20-635197624df7"
+      ],
+      "nets": [
+        "/FPGA_RGB1"
+      ],
+      "at": {
+        "x": 117.32,
+        "y": 144.33
+      },
+      "metrics": {
+        "length_mm": 0.15000000000000568
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "49360bee7cad86468e9c44478ee143d96b528862ee124b08394b970f101949a2",
+      "evidence": "e4f10f2190705bf1838d5371cbc7f1e31df8e380ddb2dab02fb268ae2d119c6d",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.025 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "7391d005-f148-4a64-8c4a-2c3a88d8e709"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 105.125,
+        "y": 124.325
+      },
+      "metrics": {
+        "length_mm": 0.025000000000005684
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "4a15cd0f4a2ba86e1c7b2979be74a4c8f0a3fbb74ceb68005a5d176c4de287ae",
+      "evidence": "ea35bdb77ad04628a0f3c243d3fdc592313e5fa4c8057bd90db62165330cde97",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.108 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "ef4cd48e-10c0-4c3a-b902-955e0c36bd9b"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.2,
+        "y": 110.3
+      },
+      "metrics": {
+        "length_mm": 0.1075000000000017
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "4a488d526bb7ec2b268312c8c11517ddd8383f7715603ccd97e45db031ade212",
+      "evidence": "80036fbc3d20a987187718ceb1d624076894811744745ab0870b20cbb690b6f5",
+      "rule": "pad.grazing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Trace barely touches pad envelope without a centerline endpoint landing",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "65197e42-2bd2-4138-93fd-14b083f721a6",
+        "dbc61985-5c6f-4aef-80ca-b058863f327f"
+      ],
+      "nets": [
+        "/ESP_GPIO16"
+      ],
+      "at": {
+        "x": 107.4,
+        "y": 117.07
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "4c3ad10eec8aadbab363cdc88cff4267b6e400d8e86da28701feba3eadef9dfe",
+      "evidence": "746a9c0fec8b2974246588deabf320db4ebb58019101beb5f8bb1d7930eff09c",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J2.40",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "9d6e43fc-9dca-4d96-9836-c704d2ec9746",
+        "cd2eb847-751a-4809-802c-407d8c1c91e3"
+      ],
+      "nets": [
+        "/FPGA_IOB_6A"
+      ],
+      "at": {
+        "x": 113.8,
+        "y": 141.817
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "4ea60baa9e5fdf8269061381265dd7669354695c9cc990c0c92f360cc786a466",
+      "evidence": "857b9da3f8a5c6cd5604b47c35e8d18a1600add9efe45ca3081328f263dc6772",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C61.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "397c5e0e-7aad-4bbd-9845-c96c1285d255",
+        "aa7edaf4-8f80-44dc-a6c7-9b27a8aebcf9"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.225,
+        "y": 129.825
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "4fda77ac9e32295d74326dd1d09bbc0fe45ec4327c7fb5365ba69f6acc16fb3f",
+      "evidence": "c685d50b9fa53e0bf28dc21a9ab52be08b40e62eb27e31584f0ff43d47aca64f",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.025 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "2c36b490-6477-48e3-a2dd-8cf3a5c3c274"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 113.0,
+        "y": 132.2
+      },
+      "metrics": {
+        "length_mm": 0.025000000000005684
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "50168e8b7679d12537ad92e31ca3904384842894f073e651426a9df00065a96d",
+      "evidence": "4ce636d7e385ed682a568fe2005ba79e367350338b297e1c5a170394cc52ee96",
+      "rule": "trace.acute_junction",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Acute same-net junction or backtracking",
+      "suggestion": "Inspect overlap, backtracking or acute junction",
+      "subjects": [
+        "489b5fe9-fbb9-4c35-b472-e4a6383c33e8",
+        "49d7d8b1-7feb-43ce-bd10-4ba6422dd107"
+      ],
+      "nets": [
+        "VIN_5V"
+      ],
+      "at": {
+        "x": 116.0,
+        "y": 118.7
+      },
+      "metrics": {
+        "interior_deg": 0.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "50f10d3751b81e01e5da88730716830555bda7fbcceca048ffbed6d9d834f67b",
+      "evidence": "bcaf00ddd26621aa41534c93a9ef827e682b24a31c8847c803fa220feb522880",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.035 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "fa6b1ceb-e7d3-494d-aef4-2567de2a12fd"
+      ],
+      "nets": [
+        "/ESP_GPIO0_BOOT"
+      ],
+      "at": {
+        "x": 106.8,
+        "y": 111.625
+      },
+      "metrics": {
+        "length_mm": 0.03535533905933541
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "511d9da0f20bf89a969165bcae91a28fbb3144d5a9739f7209ddeb78028e1a22",
+      "evidence": "fb38938eabf3c79e562dedbc3cb85a6561588fe1dc1e2ad9f52dd4433e63e9d2",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.177 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "7239f355-8a53-4c90-ac27-7d810c5fb1e4"
+      ],
+      "nets": [
+        "/FPGA_IOB_6A"
+      ],
+      "at": {
+        "x": 114.675,
+        "y": 141.625
+      },
+      "metrics": {
+        "length_mm": 0.1767766952966369
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "51c4a25a7d0110b638d8d1bdc228814ca277955922621e0c0dd744d02abd027c",
+      "evidence": "625395f4c3388cc376ab505934b662eb541b9e3033017dcb891a34299de438d5",
+      "rule": "route.backtrack",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Chain reverses direction relative to its endpoint axis; inspect intentional tuning",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "18a74e88-a26d-4c77-9446-2cca7b9ca5a1",
+        "36bd731e-6320-44ac-be54-982892dd6194",
+        "42688398-3253-4a66-96c8-f8b8a1470cbc",
+        "6cf2c206-d633-4729-81ca-8dfbc8dd6d8b",
+        "81e3b314-aeb4-42a2-bb5a-84d3c9509118",
+        "84bad286-4658-425d-b591-1c050f0d736e",
+        "a90cd7c5-83bd-4a2e-aa74-f025d6f854a1",
+        "ce0249c1-ef56-4021-a890-e467453d1570",
+        "d5d0f431-2ac3-4467-997e-ca2803e2d6dd"
+      ],
+      "nets": [
+        "/FPGA_IOB_23B"
+      ],
+      "at": {
+        "x": 110.199999,
+        "y": 139.395
+      },
+      "metrics": {
+        "backtrack_mm": 2.244426510263995
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "51fe5960d8568850eb13f29587eb407edba24541f22b94de31712cb0ab4d494f",
+      "evidence": "43850fe97ccd9f0eb77f64e2455e65a796c18478826f2411683bccf16084010f",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.085 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "b315edce-63d3-450a-be53-0de46eca3877"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.15,
+        "y": 113.3
+      },
+      "metrics": {
+        "length_mm": 0.08460000000000889
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "5447eb08aa0531f0d4813c91a13f820a01ac08040963908e425958e0eef497eb",
+      "evidence": "95fd4cb3bba12da3ce87b0cbd83c0e57d573e066fc95f1eec82c201ec3931630",
+      "rule": "trace.width_transition",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Trace width changes at a joint; confirm neck/clearance intent",
+      "suggestion": "Document required clearance neck, taper or class change",
+      "subjects": [
+        "0d09436d-683f-4ef0-bc08-37df4c894a31",
+        "55f06c0e-9f73-4faf-889b-9f5910a8ddf0"
+      ],
+      "nets": [
+        "/RF_IN"
+      ],
+      "at": {
+        "x": 112.2,
+        "y": 111.4
+      },
+      "metrics": {
+        "narrow_mm": 0.15,
+        "wide_mm": 0.26
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "556fbe53cf67c6b5d95faeb166f38c3e97aa37a172ee889bd95a50bd7a706ce2",
+      "evidence": "a8b14462263b50e57068880d49f445c8e0eeab3dcde43870aae0e39e7f5cf908",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.150 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "a3f2d5a3-6b77-4f50-9878-e2a93bb89414"
+      ],
+      "nets": [
+        "/ESP_GPIO41"
+      ],
+      "at": {
+        "x": 115.1,
+        "y": 116.75
+      },
+      "metrics": {
+        "length_mm": 0.15000000000000568
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "57dd7bedfb2bcba760e36a40e7306e84a0848ba83cb07dac9a4d5efdfefc6c1c",
+      "evidence": "d0371cdfa7ae1fc3939334c490f189a7fd95cc8469312638bd9f24bcb50a291f",
+      "rule": "trace.open_end",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Endpoint has no modeled same-net copper attachment; inspect for a stub or unfinished route",
+      "suggestion": "Inspect local copper and remove only if proven unnecessary",
+      "subjects": [
+        "5426390d-aa19-42de-aed2-f64cf2c02a77"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 107.0,
+        "y": 141.605
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "59b2285829c6a38e5619b45d40e8efda5188c702b98e3bbb0866d2b5832f9edc",
+      "evidence": "869211af0bcd784e9d5397638853b18e8397520b50ca4156f94accf2f58d1e21",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.175 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "68bccfeb-3548-40fd-93ce-c4efe6dc16a0"
+      ],
+      "nets": [
+        "/FPGA_IOT_48B"
+      ],
+      "at": {
+        "x": 105.2,
+        "y": 142.15
+      },
+      "metrics": {
+        "length_mm": 0.17499999999998295
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "5a697ea8641f91415add3100d96ac60ee17d97290c4b0b5216ada8b429aee4d9",
+      "evidence": "d71b155549b99594a4d528a65a7d1aed11f6684b82d2b251d6cd30de60fb43d2",
+      "rule": "route.bend_count",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Many bends in an unbranched chain; inspect routing intent",
+      "suggestion": "Inspect unnecessary zigzags against tuning constraints",
+      "subjects": [
+        "0625b113-c419-47b9-bb77-b95e368d496f",
+        "0dfb4756-9915-4186-b5b6-5bdad3e732af",
+        "1a8f77ab-ca16-415c-8d6c-54786533d28e",
+        "3e6c1b6f-9e97-4e68-b3c1-c079ce18b763",
+        "61b0525e-4c89-4896-b74d-e0b0fc91b280",
+        "74d66dff-6c4c-4fe0-bb83-d4c0a9f093ed",
+        "75d07c1b-8831-4916-ae87-baf5e2a23476",
+        "7c1e5444-84ca-4e35-be13-abd40b3cdae4",
+        "812a849b-ec85-4e7f-99d6-04864753c25d",
+        "913c2f3f-509c-423b-814f-2f2fcfccb69e",
+        "b2092454-16dc-4e18-babe-53fea800f68b",
+        "c5a4a9de-a80d-4e2e-ad8d-55f65c482ac1"
+      ],
+      "nets": [
+        "/LINK_MISO"
+      ],
+      "at": {
+        "x": 112.25,
+        "y": 135.2
+      },
+      "metrics": {
+        "bends": 11.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "5b26115dfe5b9dd8924055a4f4e1b10c9c9872ec3109f74b74b5a162e0f0526d",
+      "evidence": "8393c409a2ebc5a2d7fa1f2bf2d1d9c7a802ee24552938ab0d15454092a1fc7d",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C40.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "8209edc0-60e2-4037-8f3b-28ebd938beee",
+        "d4a1b309-8186-42f7-a44c-1fd0a24c98ce"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 104.85,
+        "y": 117.725
+      },
+      "metrics": {
+        "deviation_deg": 44.999999999999496
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "5c362d6d564ae40f9f20fe14b2ce294206dd8596200a83213b5442407cea7113",
+      "evidence": "f68e0f99607a6db3404a63f85b385ba9d01e02a5d461b5cd98d5fe92b685d406",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from U3.4",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "03d8809b-ccaf-43bd-9ccd-0a94671afef9",
+        "be2f42dc-51e0-4ba2-a8e2-2af4fbe443bc"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 115.025,
+        "y": 120.6
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999999
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "625976f6ae93791446e4cc92d29f415e67403ff832b913ccebf80702fa32a2fe",
+      "evidence": "8d0dc3b31a7c595cc909f5ef06ae677c6dc85f55b1a6754280d89f0071967fdd",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "d4da1ab8-203d-4502-af8d-83b58b535f57"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 102.0154,
+        "y": 138.75
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "62964b9b20b170981e251c52927a2044edfaa69ab9d8cc8a30181cc130fd3618",
+      "evidence": "bd5cd66e0e117de80a66fbe166116492124b7c5a3cb0011a319760be4b5f7a1f",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "79a4440b-62da-4123-b825-db95e98b55c8"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 106.0154,
+        "y": 133.65
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "642aed0246ba7e7e47aad44d44f321e91ceeb483ee7696d4f41f52a2b3514450",
+      "evidence": "1e472a379478ceabbe79f85f4ad6c25caa0eab5ef8ba3fbc3c400a62e98a3379",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "76250e45-9380-42dc-8f88-bf3583dfbe78"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 103.7,
+        "y": 133.3
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "644daf33b4023e69122f1e8e1611e2b4956070ab5dd7198bd3e651dd9d79386a",
+      "evidence": "d4005def5b0c460c9e5940fdabea39a09ed77d63275bd6bd4e8d844a7d6e6828",
+      "rule": "route.backtrack",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Chain reverses direction relative to its endpoint axis; inspect intentional tuning",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "182221b0-c099-4ae0-b0b9-771e8f454c6c",
+        "2a2b5a09-e80a-4c21-99fd-8c3476f15d48",
+        "8b34ea42-9d2e-41d8-96c0-5e668e590908",
+        "a079a970-4bdc-4ae1-98d9-682e18d28afc",
+        "ba0a9751-3229-4413-ad86-0f7eac5f630d",
+        "e3e0818f-84eb-4cee-90eb-1edf76a746d6",
+        "eca254c5-fbd6-416e-9091-bad99cf052b4"
+      ],
+      "nets": [
+        "/FPGA_IOT_37A"
+      ],
+      "at": {
+        "x": 107.75,
+        "y": 134.5
+      },
+      "metrics": {
+        "backtrack_mm": 2.5314285341293443
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "65248439ef911756944ed054987c1831b72717d573c6496810bfa2233d955846",
+      "evidence": "5b9debbafd2974255af1564fda5a14b9179087b27e36e53c922620f56f34cd2c",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "b03a54c4-42fe-4adc-9403-375628b13100"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 113.0,
+        "y": 132.199999
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "67b336c09a2ad46b08dc854edf325aa2e19b7d2970caab8053931f21249194a2",
+      "evidence": "c1cf600add57f13fead6ac5959d406922c7f140c26f502ae5b573b02e5e3ca59",
+      "rule": "copper.duplicate_overlap",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Collinear tracks overlap over a finite length",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "1831b7e8-f835-4def-8513-0bc41abc7f95",
+        "6aebd759-6640-4e19-83e0-c106c23e27e9"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.225,
+        "y": 129.8
+      },
+      "metrics": {
+        "overlap_mm": 0.024999999999977263
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "67c802171ededc6e41483b5a573dd89b2acc427f802207866ebf7b97649fddb6",
+      "evidence": "193a2ec036e751f870168ea8067781153d22d5fb0b1b9e7899002ebf1d2ec6ee",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.095 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "e22ec58d-1f39-4f7e-8803-529c453cf6f4"
+      ],
+      "nets": [
+        "/ESP_GPIO39"
+      ],
+      "at": {
+        "x": 113.5052,
+        "y": 118.1
+      },
+      "metrics": {
+        "length_mm": 0.09479999999999222
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "67d858f05f1b4db3cf65cf593b033565b4ec1a1277c6e0750f67d410989e4c91",
+      "evidence": "cfafb6efa0125aeed7b0fe46cf7029882531c35a978b613b367d6d1997951c66",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "52676a21-282f-45cc-85bf-44ef31d371de"
+      ],
+      "nets": [
+        "/FPGA_RGB2"
+      ],
+      "at": {
+        "x": 109.25,
+        "y": 144.4
+      },
+      "metrics": {
+        "length_mm": 0.07071067811866079
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6b56bd82913273900ff60532d8eab12710e66668eb3a7aac6ee0f27a5842dec7",
+      "evidence": "9c473263b4c43d6e7bab65af2bfb00449f08fb3e3e544c8c3d01c7f6e34843d2",
+      "rule": "route.bend_count",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Many bends in an unbranched chain; inspect routing intent",
+      "suggestion": "Inspect unnecessary zigzags against tuning constraints",
+      "subjects": [
+        "362d7332-6816-420f-ac33-1679908f4a4e",
+        "479ec801-21d7-4386-a36f-b6875ed0c4c8",
+        "513d689c-99bc-4043-88de-7e9acd92bf1c",
+        "5b85d1dc-e2fe-473e-90ec-02b1058c167a",
+        "6cbdb459-77de-4e09-904b-472da4a533d3",
+        "6d5be863-708f-4182-b80a-885992f623e4",
+        "6f2d6cbc-079f-4632-8ac3-136171d73c47",
+        "6f72e996-bed3-455d-81a4-1c270b1eb758",
+        "78b7ad1c-1a6b-4ef3-a855-dd5c6917e24f",
+        "7d42fc42-2c95-42e1-8f3f-139e19532327",
+        "97a74ac0-44bd-45ef-883c-8d81532ab65a",
+        "a16b50b6-b7fc-4d8b-937d-e0cde7faa5b5",
+        "a33c9c51-0db0-421d-980c-a7d0c9349732",
+        "b4dd3f8c-0a2f-417c-aed4-5ff514085d3f",
+        "b76a1432-b2a9-4285-9d96-ed6d905a337f",
+        "b84ce979-b090-40e1-b1da-694d9f422bed",
+        "b87611d6-af80-4f8a-a26c-8585cd2e8830",
+        "c8769abc-b55d-4dd6-acff-5aa6b15b006a",
+        "d0156512-25c0-49f1-98ad-d2604813d101",
+        "ed60644e-f897-45e7-8929-a326f89a8063",
+        "f15936e2-33d2-4983-adc4-bd7bcad66d3b",
+        "fbdf2186-6f20-4595-a341-e21bbecf4350"
+      ],
+      "nets": [
+        "/LINK_SCK"
+      ],
+      "at": {
+        "x": 106.4948,
+        "y": 113.7
+      },
+      "metrics": {
+        "bends": 20.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6b59ab99cb95c68adce1eb8cfb69eaef6492c31269d94bccce9966cd31c93859",
+      "evidence": "8ebfa987fdf0ed39d493e33a03d1bcc2ae3f33b2995a66fc7c5feb42b071e1f2",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J2.28",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "ca321b8c-dffe-4ef5-8fbd-ec5e25bc4720",
+        "dd1c328a-4058-40d9-af62-4727af785e1d"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 109.0,
+        "y": 141.817
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999789
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6c372cbc9496c6bce003196045fd68233c114c279b3e016b6e7498fb7615ce45",
+      "evidence": "5aa5d3cd87ab9ab620a47b9f91a708ae4929f29b12a192862f194bb6009c9985",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C48.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "528c87d5-2ba2-4e34-b52f-ee63e569ead8",
+        "ae1694b4-7dda-4b83-a5a1-33d6fecd7b57"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 107.7846,
+        "y": 133.65
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999925
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6c5148a759818f1082a2f4264b252f4a608c635dac161ad8a5cafff36f990665",
+      "evidence": "d4cafebb5f031e29906641fed9dd212d6412b2e37d141f01169d580408525172",
+      "rule": "trace.mergeable",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Collinear same-width segments share an endpoint",
+      "suggestion": "Consider merging to simplify topology",
+      "subjects": [
+        "742c1c7a-5ab0-4537-be18-a0ff1bdfbece",
+        "9b16cb82-8bea-491d-a49a-943f31efa7f7"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 105.2,
+        "y": 109.5
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6c952db9c10b31e8b29f17e3468c97fc40322548fffe397500cb127bcf4f58aa",
+      "evidence": "0ddf4af935d3b19703f4966f8a9d31b1d8b6c1d9ef8a8c5b937d36835da6ba45",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C61.2",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "c2401299-eae6-422d-9976-0097a74f6bf3",
+        "d9a9e5dd-f986-4de5-9478-3b043f2c2f86"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 116.775,
+        "y": 129.8
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6d1123c388a8db7f2ff6f8ace4723bae774dc425d0f602aa33cb04200fafd14f",
+      "evidence": "8e5e9882b81650ff8fee08e01a7ac19f048b4d6063dafb4fcf5beed690ff34c6",
+      "rule": "trace.width_transition",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Trace width changes at a joint; confirm neck/clearance intent",
+      "suggestion": "Document required clearance neck, taper or class change",
+      "subjects": [
+        "534af26e-bd57-4407-aeca-1e23996da5ab",
+        "e15538a4-8d47-4876-b587-1a72b40b608f"
+      ],
+      "nets": [
+        "ESP_VDD3P3"
+      ],
+      "at": {
+        "x": 111.35,
+        "y": 110.2846
+      },
+      "metrics": {
+        "narrow_mm": 0.15,
+        "wide_mm": 0.3
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6d37373679e86a5025896e2a3e6d66bd9549e35c5b3e430fff65d0c18447d83e",
+      "evidence": "bfca4700c688faeb48dea3cdbbc0f55b831ec185d64725b6bc2483cf7c366bf2",
+      "rule": "route.bend_count",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Many bends in an unbranched chain; inspect routing intent",
+      "suggestion": "Inspect unnecessary zigzags against tuning constraints",
+      "subjects": [
+        "18a74e88-a26d-4c77-9446-2cca7b9ca5a1",
+        "36bd731e-6320-44ac-be54-982892dd6194",
+        "42688398-3253-4a66-96c8-f8b8a1470cbc",
+        "6cf2c206-d633-4729-81ca-8dfbc8dd6d8b",
+        "81e3b314-aeb4-42a2-bb5a-84d3c9509118",
+        "84bad286-4658-425d-b591-1c050f0d736e",
+        "a90cd7c5-83bd-4a2e-aa74-f025d6f854a1",
+        "ce0249c1-ef56-4021-a890-e467453d1570",
+        "d5d0f431-2ac3-4467-997e-ca2803e2d6dd"
+      ],
+      "nets": [
+        "/FPGA_IOB_23B"
+      ],
+      "at": {
+        "x": 110.199999,
+        "y": 139.395
+      },
+      "metrics": {
+        "bends": 8.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6d99f635ee877df00f5391d6bb8380e31550e37574a06188b9298ce15650dd4d",
+      "evidence": "8c4a92717caccb411fadb1cd24dad56ae3cb08eed67b4c66e33858b5dfdda767",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "c942b1a9-7826-4e89-8f53-5c67027069c2"
+      ],
+      "nets": [
+        "/FPGA_RGB0"
+      ],
+      "at": {
+        "x": 108.15,
+        "y": 142.155
+      },
+      "metrics": {
+        "length_mm": 0.07071067811866079
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6e29233e4c2d8b856cc1d1349447d278c59d0d6c5d5defa882b3561192bd640a",
+      "evidence": "b902e0e2bbb8a41b053f8c9f579a5888e856f2267794d0b5036e06e944de084a",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "781eea72-85cf-49f9-9eff-d086fa164fb6"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 105.125,
+        "y": 124.325
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6f38a284d99d4ca2f1fa7c1111493ca52a66b9bf91f7c4183a69fa4c275936e1",
+      "evidence": "7f5ff0aa0a341db711ea5e7764ba5ff59c84246e25cf8983cd88ed9b1243c16c",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from R64.2",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "5768c65b-c3df-4ef6-9cf2-0a42aed5c708",
+        "df58f94d-dec0-4ff4-a4e2-6cd41fa79848"
+      ],
+      "nets": [
+        "/BUCK_FB"
+      ],
+      "at": {
+        "x": 112.44,
+        "y": 123.4
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999999
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6f4b4df93534fb1f694a8c7d37c693fa15f29bfb69228b136ad460715aa2e866",
+      "evidence": "70337f17dc188e1b65268ed22fa1a79bd299e7199399730f09e36f12d2c9b7bc",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "76f68f24-2602-4091-8090-c6303da36fe6"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 101.725,
+        "y": 142.65
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "6f73ab4c1172548cdfb315af410a34cef14c5d8658352e6cff66160e2bbb2c21",
+      "evidence": "133e67c806efcedcc67bb65e229a476ca131b2520e0a80999e1b758111839966",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C42.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "bc323714-230d-4a05-a6cf-b8a64d412f0f",
+        "e112ea2b-8c21-4743-afea-a82fb15ea93b"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.15,
+        "y": 113.375
+      },
+      "metrics": {
+        "deviation_deg": 44.9999999999993
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "71bce04a43c1d89325aced1e31ebc76d8ad099be1e76a6c0f7eb1fde9e38fcb7",
+      "evidence": "a107455637d02f31a4e16f6059666c6d9af012c29d87d9e44542db270804cfcc",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.035 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "133cb8b8-317a-4801-ae63-97080020158f"
+      ],
+      "nets": [
+        "/ESP_GPIO18"
+      ],
+      "at": {
+        "x": 106.4698,
+        "y": 116.475
+      },
+      "metrics": {
+        "length_mm": 0.03535533905932537
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "73bc53d0625006dd2933a824d47bc1482eb7bdf6ccacc7233b90af6d13af780c",
+      "evidence": "000840cefb6a2d5823c5131087ecf88d03a769284a4be1ac95d9b3d84d4c3b7f",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.125 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "b84ce979-b090-40e1-b1da-694d9f422bed"
+      ],
+      "nets": [
+        "/LINK_SCK"
+      ],
+      "at": {
+        "x": 111.75,
+        "y": 134.375
+      },
+      "metrics": {
+        "length_mm": 0.125
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "752ceaacc75b68fce14228991da9f2c15201e119f2bd86fde0a2352ec202274b",
+      "evidence": "d8b578f32d1e52a5c08569972505c71e74eb0da1a3290f81ece5e43c316b6736",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from R28.2",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "b44721f9-67bc-458f-a972-eb58e3de79e2",
+        "b7cc2503-5c8e-45c1-877a-25f9f7d462b3"
+      ],
+      "nets": [
+        "/FPGA_CRESET_N"
+      ],
+      "at": {
+        "x": 116.4925,
+        "y": 138.0
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "75c2ab1a0c8d779731875058f8b98f84ead41ecaaeac56f2353a242627ebb62b",
+      "evidence": "0a63470e768bda3b9b9cdeb1d4452e33a9aa8fd1d4d0ff31caf78add4079c6e5",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C67.2",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "6cdcdb39-34de-45a7-96d6-8759f5b636a8",
+        "e4dbdf6d-fbf1-400f-844a-048833527146"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 116.775,
+        "y": 132.075
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "764df9e516b4bfb3da34d0a3b2f8fb95ed73f5b2d4ad1a1f03213ce16f0c3824",
+      "evidence": "e707569ef911088a32ecb617c73d9b14aaddaae4936d9a84412ea1ff61bbd7dc",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "ba1c8762-3eaf-4c33-a9be-fbe5c635e880"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 118.2846,
+        "y": 140.25
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "76d7ced5921bb0182d7e6e7245f8dcf6bc11e9680f4415ae45831a04c4978b78",
+      "evidence": "7bf04f5f7be2bc6570331102afa61ba3a098c39561fe4849d70915a6822e2a47",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "adb89595-ae0c-4bb5-ac17-066531d2ae3f"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 118.2846,
+        "y": 142.25
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "791055b11bf9511d3052619307f519e48b39d284376594616a0e31e14bad4c9c",
+      "evidence": "f4bc56031188a95d28d64157504d10c7a9a10acc0894dea1de46ea0f19ab031a",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "20847629-8a29-4a7d-a072-6b43e51bc4e2"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 101.0,
+        "y": 109.1
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "79ab76638abc5ee3df85fedabe09b8af9857079dded40031d75c13be8145351f",
+      "evidence": "b537aad43a7465c0d08e5f88d5a7cb0b8055309c2ea8f54f26da6d18824eb10d",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.106 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "cdbc88e7-a706-4692-8085-f137a5b12261"
+      ],
+      "nets": [
+        "/XTAL_P"
+      ],
+      "at": {
+        "x": 113.5,
+        "y": 114.1
+      },
+      "metrics": {
+        "length_mm": 0.1060660171779761
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "7ba66faa1d40411ae38bc802dd36f03efa039fd3a26e3d89938de48730006e42",
+      "evidence": "5b280dd4deece17a4568f29274e91895d0496b16a637fa1e7eb3981c42e29752",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "c20a3545-3813-4f69-95df-2e09031d1e0f"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 114.9,
+        "y": 104.525
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "7ce2a10c885e52b6de19b06914630661ec7c3a434fab6e90b29a0f10c75bad7b",
+      "evidence": "b1ea0e29575a98d64e743833f7b40740a818c4b160a5a746a4c3f5ebe6aef77e",
+      "rule": "trace.mergeable",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Collinear same-width segments share an endpoint",
+      "suggestion": "Consider merging to simplify topology",
+      "subjects": [
+        "55f06c0e-9f73-4faf-889b-9f5910a8ddf0",
+        "9de7c811-e159-4173-9b45-624890572d99"
+      ],
+      "nets": [
+        "/RF_IN"
+      ],
+      "at": {
+        "x": 112.2,
+        "y": 110.9
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "7ee372277bffcd44485221ef67f5709374ae81fddd59eb29232e6cbd3e410601",
+      "evidence": "30e997744bdc96b2b498cdb5db7190a5e0ea29a1209ff1ac7b48fb1affe76f30",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.141 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "e88075b5-2bf5-475f-bf3a-2d7b4ca5fc26"
+      ],
+      "nets": [
+        "/ESP_GPIO46"
+      ],
+      "at": {
+        "x": 114.2,
+        "y": 113.3
+      },
+      "metrics": {
+        "length_mm": 0.14142135623730148
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "7f4f636a398beab810ef4416af122907b41f57f4348132698e15cd8cbf0b7cc6",
+      "evidence": "3c03d4b1f3f7c89fca2854f4ef7a7f4dd1bcf782277d931120c8d3d98052abb5",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.018 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "eccf6bfa-5174-473f-ab8f-1eacf1b1a7f7"
+      ],
+      "nets": [
+        "+1.2V_PLL"
+      ],
+      "at": {
+        "x": 104.075,
+        "y": 136.0125
+      },
+      "metrics": {
+        "length_mm": 0.017677669529657658
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "80feda40478bf215f89486fc188c1f78e51e26a6187ae142be1c041838b816d5",
+      "evidence": "4bba167a80828a1b3a8ac746b618ff3e563faa3d09b3646c5c1229bd74115038",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from U2.PAD",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "c5e7d4bb-ff6b-498d-ba33-a099231b6d2c",
+        "eb176819-3840-4a96-965d-d5090914b9b8"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 110.0,
+        "y": 139.5
+      },
+      "metrics": {
+        "deviation_deg": 44.999999999999886
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "810a1fb9d09bcb3abf3b49d091429bfdb33348c4c34d2be33af15a20e3150e9d",
+      "evidence": "7c4093d270a596751e5b62f27853aedfd9cc736270bf223fe249250c5c1680e2",
+      "rule": "route.detour",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Chain takes a long path relative to unobstructed 45° lower bound; inspect obstacles and tuning",
+      "suggestion": "Search for shorter legal route then refill and run native DRC",
+      "subjects": [
+        "182221b0-c099-4ae0-b0b9-771e8f454c6c",
+        "2a2b5a09-e80a-4c21-99fd-8c3476f15d48",
+        "8b34ea42-9d2e-41d8-96c0-5e668e590908",
+        "a079a970-4bdc-4ae1-98d9-682e18d28afc",
+        "ba0a9751-3229-4413-ad86-0f7eac5f630d",
+        "e3e0818f-84eb-4cee-90eb-1edf76a746d6",
+        "eca254c5-fbd6-416e-9091-bad99cf052b4"
+      ],
+      "nets": [
+        "/FPGA_IOT_37A"
+      ],
+      "at": {
+        "x": 107.75,
+        "y": 134.5
+      },
+      "metrics": {
+        "length_mm": 17.465228073212227,
+        "lower_bound_mm": 6.075508238549768,
+        "ratio": 2.8746941634270917
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "8138634d68ef7c5e1bdeb7f004e2266acc54de2890bdec215ef75cdf8dad8fb2",
+      "evidence": "876b3597598e78cb568fd33e7f8f87d7075eb6d2e4c87253879a6fda8726d748",
+      "rule": "copper.stale_stub",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Leaf copper can be removed without changing modeled pad equivalence classes; verify intended analog/RF function",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "50043671-9f20-4298-bfbd-4e2b3dce2869"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 105.175,
+        "y": 114.9
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "825617f1b31e805ea512b01660634de5f4137bce3c92ddc68107db178ed6b00a",
+      "evidence": "202018da01dbbfd0b967c22565aec9195c2c57e8205fbd2e58e5e8db13bbb10c",
+      "rule": "trace.mergeable",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Collinear same-width segments share an endpoint",
+      "suggestion": "Consider merging to simplify topology",
+      "subjects": [
+        "27d57d5c-2e41-4c8a-b577-0e0cf47cd068",
+        "c7c50120-6747-4ccd-90f8-505335a99089"
+      ],
+      "nets": [
+        "VIN_5V"
+      ],
+      "at": {
+        "x": 114.425,
+        "y": 114.375
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "828127b9490062d1a3a21497a000297775724471f9928b0cb86c7df0233d1272",
+      "evidence": "bb26807b77a5bcf1dcf656aa32b53733134cd4351fbd8afef073d92c4e3f94da",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "f10893af-bd9a-4974-8a21-1e1880f60078"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 105.8,
+        "y": 143.0
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "82aeded41daba374f411834431326299607144c6a7148726addbcd6a54bed063",
+      "evidence": "4d2171ab00e0c4c80dfbd892ea37b69f98b428dd3b0fbef9ad7b7fe86e557dfb",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "03711e89-c5dc-4797-9ac9-68b87416642c"
+      ],
+      "nets": [
+        "/FPGA_IOB_2A"
+      ],
+      "at": {
+        "x": 112.199999,
+        "y": 142.105
+      },
+      "metrics": {
+        "length_mm": 0.07071209233221959
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "832538c4b191baec1f19bcce1e63b784cb3550ad148b50b81a2b12e03b9bd5c6",
+      "evidence": "08dfd9fc553c4ff80cf75aeb8c3136590757a15765b713a3c8c44cb75460a973",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "1b908681-8bfb-4b64-90fe-59989134a5b1"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 114.3,
+        "y": 118.25
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "83b865da4f9498b0a505fb0c17a04f3aefbddcbe91f93575ad6e99405219e854",
+      "evidence": "07f7e043cd2de048bb3ef520a26a9d41b5adf73876e95c89a2b1a8104d2d8668",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "87b54b07-d25f-4a54-a8e7-0603bc6520eb"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 114.2,
+        "y": 132.824999
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "846b34356b601c5460775989053bc60032346e73ebd4e1f15dbbe0f3f7a0a47e",
+      "evidence": "5db3d67e218b16a65fd4b8610366c05723e39eb3620855152dce19ef1fcc8864",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "dfdfbd96-a3d9-497d-b635-ba9caeeda660"
+      ],
+      "nets": [
+        "/FPGA_IOT_45A_G1"
+      ],
+      "at": {
+        "x": 107.25,
+        "y": 144.4
+      },
+      "metrics": {
+        "length_mm": 0.07071067811866079
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "849b3df7d54838e8dfdb7d9460852ebcc87f5032f454e92e9def679f68aad8e0",
+      "evidence": "9e44f6125d465a51bbb1b238c2c871ea4d849eb2c3fb47327ad8b6efcea47389",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "2dcb0f89-c162-4ca3-af6c-a5dfb42705f5"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 101.775,
+        "y": 121.5
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "84d2d14aa87a7d38521ad220a15bc23032837c27d87eea4c98dfba8ab7cdead4",
+      "evidence": "2bd2b338b444b40f63aeeb002b19759cd3ef235bb15d62f2719dae9fc2719076",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from R28.2",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "01c3e328-b26d-48a6-b8a9-f929fb9ecea6",
+        "b7cc2503-5c8e-45c1-877a-25f9f7d462b3"
+      ],
+      "nets": [
+        "/FPGA_CRESET_N"
+      ],
+      "at": {
+        "x": 116.25,
+        "y": 138.0
+      },
+      "metrics": {
+        "deviation_deg": 44.999999999999986
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "8508da036a59ae0fcc60fcbee9bd68b3aa6c23989cedbda9456fb097a5346654",
+      "evidence": "3c5747d8d83a4130bbced970625ad66436fcc9216788acc2e513f6ec637897bb",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J1.11",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "5b6974c6-fa7f-4700-8699-af3049ef6fc5",
+        "f3f96695-ab90-46d8-b116-241980984215"
+      ],
+      "nets": [
+        "/ESP_EN"
+      ],
+      "at": {
+        "x": 109.8,
+        "y": 113.925
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "86456438eb07aac022427dcef6373fd01cc2ee19973521ae5cb3a0158aedd524",
+      "evidence": "dea3d9ac1b44a5eddaf39dd68ced7084ee7bd027c4b2c88c024afb8f5bad92a5",
+      "rule": "trace.acute_junction",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Acute same-net junction or backtracking",
+      "suggestion": "Inspect overlap, backtracking or acute junction",
+      "subjects": [
+        "14c21b3c-ea3d-4452-b945-a8ebf629539f",
+        "6df2c15d-6cd5-4b8f-b52e-5f5fffae9fd7"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 114.6,
+        "y": 121.025
+      },
+      "metrics": {
+        "interior_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "86e889fdfd493e959691dad6ea2cf489b567c12dc4f4f7a4f0ec1f13536ca95c",
+      "evidence": "e0f0035479e8853cc1fee22d647cbc1765208e09c4f44e6e5765f5b18d85f272",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from D1.P$1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "7afd854d-195d-4efa-b5de-a0a2672519e1",
+        "a06bb381-1ada-47be-bf82-9c9a8b9a84aa"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 118.13,
+        "y": 143.67
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999906
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "88ec356245e03bf7b5398f35ea929eb07950f93f40580c89951b14105d7a2e60",
+      "evidence": "8d60a995c75f577a06d3107e70a0ea8598ea813ea83295410c091f3ef0cefca4",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J2.22",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "76d54843-4180-4c2a-ac77-2affb352fe31",
+        "ecfa3d46-5f65-4459-a2b9-170b0e73a0f6"
+      ],
+      "nets": [
+        "/FPGA_IOT_46B_G0"
+      ],
+      "at": {
+        "x": 106.6,
+        "y": 141.817
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999789
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "8912a96c3dfd7bf2138a20eb828d0b9e4ba0991bcb1c5343836ba1c20e870387",
+      "evidence": "4a04ac9c3be165479d8807a777bb07ca4bc7de8d15990dbd615ca10d391c5e64",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "37f7aaa1-4743-4c57-9215-f9da51147db9"
+      ],
+      "nets": [
+        "/USB_D-"
+      ],
+      "at": {
+        "x": 105.3,
+        "y": 116.85
+      },
+      "metrics": {
+        "length_mm": 0.07071067811866079
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "8dc58a44a457ef199bb85f364ddb9753345cc07b41ba4bbeaac59f8c775a3b59",
+      "evidence": "428b6f4e4ee8409b605d6e22b7b3887ad1dce2ecba082b98fa74f161941d3092",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "e621f538-7f0e-40a2-b0de-95fd3748d4a6"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 108.65,
+        "y": 133.65
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "908e0852013cfaec3a292b175b67ac1f20546d3337c6575ad0a755faf38ea38c",
+      "evidence": "2e1277f52ee46e9685a570c07b93bddbec7ad365aac10e8d15fa43b2752b8135",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.050 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "8b1ec564-f00f-4e3c-a382-de42dd0b8c17"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 104.45,
+        "y": 118.75
+      },
+      "metrics": {
+        "length_mm": 0.04999999999999716
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "91454c2b07dec040a1dabade68226476e2a6cbdd1ecf7aa33a1d248935729c29",
+      "evidence": "b7de204cf1a161f24d604b36eae3ef222ccc847d804064ad2805a9a4ff5bfa63",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from D1.P$2",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "113401da-c968-4c60-9b8d-53ce812fd150",
+        "9fd5af97-7246-4e4b-b964-f2ab2e801d9d"
+      ],
+      "nets": [
+        "/FPGA_RGB0"
+      ],
+      "at": {
+        "x": 118.13,
+        "y": 144.33
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "929eef92e4120b1b0805b7eb69cb5ccf66859efd8dbdda8e7027e69075b9bc67",
+      "evidence": "71991540501034e9b5b40f80ba9755b5b81d380f40af8b166d0e09b5bd22c9fc",
+      "rule": "trace.open_end",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Endpoint has no modeled same-net copper attachment; inspect for a stub or unfinished route",
+      "suggestion": "Inspect local copper and remove only if proven unnecessary",
+      "subjects": [
+        "09b554a9-2ecf-43d5-80d9-0ea29f865ebd"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 110.65,
+        "y": 131.85
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "955c73cf5a2af27fa67c62cb275e0c140eb4af8e7acc8b54d47ecb2f184fdae1",
+      "evidence": "181b3cfcf30c27ace1e746ab3f64b16d6dca51d51c594b8baded97e4b2e1211c",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "41316188-184d-48aa-9881-44436411d52e"
+      ],
+      "nets": [
+        "/FPGA_IOB_29B"
+      ],
+      "at": {
+        "x": 109.75,
+        "y": 139.345
+      },
+      "metrics": {
+        "length_mm": 0.07071067811866079
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "965d0ba3f30212fbffa4000b1f59db54901a4baed797335adf29603799a3b80e",
+      "evidence": "08c1177b23a55f4e188fd9809c9147c902b30a19e646364c6414c52c9ed89560",
+      "rule": "trace.mergeable",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Collinear same-width segments share an endpoint",
+      "suggestion": "Consider merging to simplify topology",
+      "subjects": [
+        "49477ec4-f727-4e14-b67a-e09667dbb371",
+        "f22a30f2-93de-4593-9f2a-40fa3b9a400c"
+      ],
+      "nets": [
+        "+1.2V"
+      ],
+      "at": {
+        "x": 104.3846,
+        "y": 139.95
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "96a0c06a7675df8cd74f78db61735db83e52fb5282f3bfcc88b7d0482aeca436",
+      "evidence": "b3308d3e9676c0aa97bae55d3217fd6ca9e63553b7b83ac321fc40aec2db3e7d",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "5cb7f924-bb59-4170-949c-31008cb49ee5"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 113.8,
+        "y": 110.7
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "972f90cadc37024b46fdb370d8dbfb0e622019967bd54ffeb1b923e7e3831421",
+      "evidence": "72e6afc3cd7547e5f49b246e74bd64d1a15857bf79587da2f8a2b0d2b518a992",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "a4c6ef7d-c423-428c-ac9b-6c4ca68fe116"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 114.375,
+        "y": 117.325
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "99dc5558887442f54042f39a03bba839786ae0431b15e280153360baffa9ddf9",
+      "evidence": "f9cbfa5210c8d767ea482dbac5815b8cc9384d10885c27e38181a65da9d477d7",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.152 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "32b1ddfd-2bee-479e-8868-82d114d05f81"
+      ],
+      "nets": [
+        "/ESP_EN"
+      ],
+      "at": {
+        "x": 116.9,
+        "y": 111.0925
+      },
+      "metrics": {
+        "length_mm": 0.15202795795510007
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "9b345d6e2109a048616899e67b7618a5623d9e879ccf898901dc6501cc72bcb8",
+      "evidence": "c04ec63c6fbacd29749b49d030c4df17a6770539bd7a2696c881218086fd489f",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J1.33",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "6a485a03-1404-4c55-bedf-a566a69a0976",
+        "ad628fe3-0195-41a2-9064-e0a93bff13d1"
+      ],
+      "nets": [
+        "/ESP_GPIO46"
+      ],
+      "at": {
+        "x": 109.0,
+        "y": 117.625
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999997
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "9b59a1929f988af90169a505de652d2395b60add1f4aa1a64bcfa83cec504148",
+      "evidence": "e9d530cd7c3e4f84e356254b30ca79b4e96a8525538af85d0f09806ff4f703a9",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.141 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "86313e08-d532-40df-9ac0-d05f8d61571b"
+      ],
+      "nets": [
+        "/FPGA_IOB_5B"
+      ],
+      "at": {
+        "x": 111.3,
+        "y": 142.204999
+      },
+      "metrics": {
+        "length_mm": 0.14141994202374267
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "9ed026c5c242317a1d6a70935ab4f65e8a9104293558c1306677e5ace57dacf2",
+      "evidence": "f23b8b2857b0a51b1bca04c6065eca16e5bfc57e9adc0bd851bf7b10cb76b4c8",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.018 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "dbdbe236-ad8f-4733-8d0f-0e715d61f79b"
+      ],
+      "nets": [
+        "+1.2V"
+      ],
+      "at": {
+        "x": 102.5125,
+        "y": 136.0
+      },
+      "metrics": {
+        "length_mm": 0.017677669529657658
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "9f808d21edf915dc37e0a3b5e35a55915039547fd901633d43905795b6c7e911",
+      "evidence": "731a7b4743cff4ce0e805bcd277695bdae89084c68eef51cad47d5f025243cdd",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "810b7820-a57e-4351-b3c2-57fd4960c7ab"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 117.75,
+        "y": 131.1
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "9f8f91442d532b5b63ae20df7d2359f640f5640e012cd2df1f7efa118e99174e",
+      "evidence": "04bdbc5c05fd35a56bdcbce90be229d95c68ad13d472ce4bbd42f37628d7466e",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.141 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "f2c13978-32b6-46fd-9cf3-120688843e81"
+      ],
+      "nets": [
+        "/FPGA_RGB1"
+      ],
+      "at": {
+        "x": 116.85,
+        "y": 144.8
+      },
+      "metrics": {
+        "length_mm": 0.1414213562373316
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "a3cd7763c84d8b54baa0e65d8d671224f46e08ebeab97d2ffc87823aa97ffc54",
+      "evidence": "addafd465d95e4e846cff986c57d8796f961d1339273d0088e09777a17a6401c",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "59aac55d-2026-465b-a291-eb9311938e6c"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 112.1,
+        "y": 133.2
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "a6ae4067b71621323c4c511a2c0fd071d6811659def846bd9d8fe86bc0cbb27e",
+      "evidence": "c95de41085e3d8a1cca094b6c109a5cdbbcc8dad2f8dc789ff6b4ba43b7681dc",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J1.24",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "5d3d61ee-b3bc-4d01-9fe6-7d4053a24546",
+        "f519a3dc-92b5-408c-a9e2-f750f15fa3ce"
+      ],
+      "nets": [
+        "/ESP_GPIO41"
+      ],
+      "at": {
+        "x": 112.6,
+        "y": 116.503
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "a71d2cd7ad3c8b7cdc65722923f5fc64155affee5caf5a73d789809090d9b69e",
+      "evidence": "ed401ce19b3de7890a6d734dea02dd11988275ab27efedb99054a6e40a54ee2c",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.141 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "09b554a9-2ecf-43d5-80d9-0ea29f865ebd"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 110.65,
+        "y": 131.85
+      },
+      "metrics": {
+        "length_mm": 0.14142135623730148
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "a7a69f34dee768d87472649bdb22d239583ab3cd020c5b905826eae723213924",
+      "evidence": "a7a37b9e292ef867d7ff6e6778062f9e503973fa81b4cd51d0a0714de2b9abe9",
+      "rule": "trace.width_transition",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Trace width changes at a joint; confirm neck/clearance intent",
+      "suggestion": "Document required clearance neck, taper or class change",
+      "subjects": [
+        "489b5fe9-fbb9-4c35-b472-e4a6383c33e8",
+        "49d7d8b1-7feb-43ce-bd10-4ba6422dd107"
+      ],
+      "nets": [
+        "VIN_5V"
+      ],
+      "at": {
+        "x": 116.0,
+        "y": 118.7
+      },
+      "metrics": {
+        "narrow_mm": 0.3,
+        "wide_mm": 0.4
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "a7ceebeeb0b199a2801516c63606cc8d06badffd212bf76558ab9134b0727cbc",
+      "evidence": "9068cce4fd4669291df9edc23de6b220ead4cbf015b9a04f1b40b9a4184f6fd8",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "93e2c6b5-0dbe-496a-af3b-5d5e9de90d06"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 109.5,
+        "y": 104.525
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "a9317aec4d19f46a14884ee0bf132afaee79c0bed4c2f880f3647d6443ccfc1c",
+      "evidence": "ed91e8f1871a5445fe8efbfbf5557be2de1d2c1448dcc1992291d8921833d448",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "3d260709-03ba-45f0-93d3-6c2c5635708a"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 110.95,
+        "y": 107.8
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "a99c1092195b2dac965d2673c8560dde619a338c2bf7cced0653a047bb7eb4ad",
+      "evidence": "c90f0d2f903389f3371ea8953e6e0df6db218cd19562e9b5408818f8eb299ecf",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.177 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "c0ebb6ef-b6a0-451e-ae17-ae37e65dafa6"
+      ],
+      "nets": [
+        "/FPGA_IOT_46B_G0"
+      ],
+      "at": {
+        "x": 104.7,
+        "y": 141.75
+      },
+      "metrics": {
+        "length_mm": 0.1767766952966369
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "aa3545105df07303aa38e56c4e7af876dc15fb3bb5128d377605265be817a432",
+      "evidence": "fd47b399bf4c4a3081bd380bd42f5bdb93425f27234e9fdd1aa336cdc4aad46e",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.025 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "1831b7e8-f835-4def-8513-0bc41abc7f95"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.225,
+        "y": 129.8
+      },
+      "metrics": {
+        "length_mm": 0.024999999999977263
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "aab218d56143878ca5d32d271e807503508fa84bc71b647bc49c4f7aab3bbb9e",
+      "evidence": "ee613df6aa6860b72b0aca6732f0d936a6b43265ad6bac8e65a730c7daeaf063",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.150 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "a39986c3-905e-42d5-9ceb-56b8aa82fdc0"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.9,
+        "y": 112.4
+      },
+      "metrics": {
+        "length_mm": 0.14999999999999147
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "ab7d4e357170abaaaac484a2942c5f6b659dfa9fc23c71a74253e2f8aa888bf6",
+      "evidence": "2e1eb76d2af4dddbf47bcf1d3e6fc9a09559cea8c3d1cfed13644dc8d8973e59",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "6678b0fc-119e-41fd-92c9-e39e42f6521b"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 114.3,
+        "y": 135.2
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "ab92c34c2a88aff1f2ca8f8f9b783affb09951970c0d71d62034f07019c9b067",
+      "evidence": "555eab6fd2ec6abe9ec56eb7548b7562c023b8d95289bca34ee9946b89809f23",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "b5b3d2c2-597d-41a7-a69c-955812a8633f"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 104.45,
+        "y": 120.075
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "ad5c61c7907cc8654bcabd0d99ef9315673f519b6bb1f28f8aa8afde9a8343ae",
+      "evidence": "a99b5149ac09e47b2bd451ad086cb1849f47e4e48fe7039dc2494ebb1b61dbb3",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from R22.2",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "a383fc99-c973-410e-8886-94ee615dfeb8",
+        "caeea096-7bd1-4166-aafd-258d04bb6cbd"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.9925,
+        "y": 111.2
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999999
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "add9bc119257f8b34be3ce5a5469051c9e35421c84b97b0041a16a0fb5f1d0ca",
+      "evidence": "e51ef0f288ad849779d13329c860422adce53d456adfee2d768625158a553f53",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.106 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "6550ce27-6a23-4aa2-8015-2241d844dfb3"
+      ],
+      "nets": [
+        "/FPGA_IOT_36B"
+      ],
+      "at": {
+        "x": 105.0,
+        "y": 136.75
+      },
+      "metrics": {
+        "length_mm": 0.1060660171779761
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "ae79cde17f38bd3b0b854b4217d391381ab483e1144cc9519d257f501d353894",
+      "evidence": "08f677dbce429d9ee8c5399ebd6d3892f73b1893ad297b5ee9b5c3c510d289f5",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "847cac62-4958-4005-ab5b-be7912759af9"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 119.2,
+        "y": 123.0
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "ae7c75b358299d55b384d607be3359c9466f0eef0e793147e41b6a381f20ade7",
+      "evidence": "62d960a0a8ccccae4528a45dfa9d1cf3684e411a34581e83da9735889cc78512",
+      "rule": "trace.open_end",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Endpoint has no modeled same-net copper attachment; inspect for a stub or unfinished route",
+      "suggestion": "Inspect local copper and remove only if proven unnecessary",
+      "subjects": [
+        "c677a843-0379-4e33-8d0e-e889eafa7270"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 114.8,
+        "y": 113.68
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "aee737914f4fa44c1cf3092efeada173c81981d5d6ad0e8f3112ff89d553e4ef",
+      "evidence": "410deeaea43e32ae665d460a06b97c8c6bbe7fe860b10a0d32e410e14ee09ee2",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "f75f2aa1-88ec-423a-bb3d-b76a31ac9997"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.9,
+        "y": 112.4
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "aee92baad0eda7c849e3b39794d59828b2b6b299212c839704a1f73e39e695cf",
+      "evidence": "2b4aae0530be22cfa261cb195f73a80bb4dabeccd1a563e496f82764edeb93ff",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "57664f78-22a8-4326-b567-9c7b43cadb61"
+      ],
+      "nets": [
+        "/FPGA_IOT_51A"
+      ],
+      "at": {
+        "x": 109.75,
+        "y": 142.155
+      },
+      "metrics": {
+        "length_mm": 0.07071067811866079
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "afde6ed9259b616d9f9c5bcff98455b6e1a261a1c3cfa0401c4bf75165553eeb",
+      "evidence": "47c52cf55fd11a60b02966bae3e93750092cdc11fe4dfe9862ef5f17e96aac5a",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.141 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "c3b710da-469f-4511-a822-2c048ccf1ac3"
+      ],
+      "nets": [
+        "/FPGA_IOT_45A_G1"
+      ],
+      "at": {
+        "x": 107.3,
+        "y": 142.205
+      },
+      "metrics": {
+        "length_mm": 0.1414213562373316
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "b043f10f1ea8eae805e0dda6669df457095496643c0cf8a70e09b030f6b09156",
+      "evidence": "70940132c0f229ebec75aadaefcaa2083c0f854ae47736dc12ebc6a1b15b0561",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J1.21",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "76800759-e052-423e-8d1b-c64b55392a46",
+        "91ac71fc-7a92-4936-9ab8-bde961437fdf"
+      ],
+      "nets": [
+        "/ESP_GPIO40"
+      ],
+      "at": {
+        "x": 113.8,
+        "y": 117.508
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999997
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "b3fb54da70c7cf3819a1477919c52823a048aca097bd6c275d7a22abfc4ce6aa",
+      "evidence": "16544a7d0ec59595c676f465f856d48e1ee78c1013c592e3c1cd92b406a8a407",
+      "rule": "route.backtrack",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Chain reverses direction relative to its endpoint axis; inspect intentional tuning",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "319914c3-5f9a-47f9-84cd-a07971bd4484",
+        "8551d3cd-3a80-46e6-8bfe-4effb23d0103",
+        "b6385968-f322-4d84-9253-4011dbffeb95",
+        "bc645947-54ea-47a2-b205-771865c499d0",
+        "c2fece1d-27ad-4e34-8978-ef574ebd04c2",
+        "eb5af024-109a-4eff-a011-10aa4e91de76",
+        "f02f5ff1-054f-4bd5-91cb-34e04c138808"
+      ],
+      "nets": [
+        "/ESP_GPIO42"
+      ],
+      "at": {
+        "x": 114.3,
+        "y": 116.5
+      },
+      "metrics": {
+        "backtrack_mm": 1.1811216113453011
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "b9745078efcf36999e5f8d635a82f33e334aad0a8cddc5ff509e397d8e426245",
+      "evidence": "8109ded9030ac1943a96083a39571417ed0d11ec3f48b7224f9355a1f4684d83",
+      "rule": "copper.stale_stub",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Leaf copper can be removed without changing modeled pad equivalence classes; verify intended analog/RF function",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "8b1ec564-f00f-4e3c-a382-de42dd0b8c17"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 104.45,
+        "y": 118.75
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "bb3c72553930cd52b7bb860068b69b3202906fa0778b392b89e6fb0f8f8b9fff",
+      "evidence": "6e7ebed4a6a5250a83d1b9220bea4f7073d8f4a38b4ad21cd667e330a9f85734",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J2.19",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "410debed-2735-4a2f-a36c-6164e22da3a7",
+        "ffa6478c-d649-41e1-9c95-0b40d2c8ee6a"
+      ],
+      "nets": [
+        "/FPGA_IOT_42B"
+      ],
+      "at": {
+        "x": 106.6,
+        "y": 139.098
+      },
+      "metrics": {
+        "deviation_deg": 44.999999999997954
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "bc5908297ccf6cc876336eb74af4a8152d4dbe285eb89cbc62e25c2bd494b544",
+      "evidence": "8059e6840f0010c85a15510bc464b056c0febc6fe7c86444532e1194fb55eccc",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from R62.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "6a45c516-801d-41de-8df0-26af2040569f",
+        "fdd14a26-bc16-4865-af42-684e4be640a8"
+      ],
+      "nets": [
+        "/PG_3V3"
+      ],
+      "at": {
+        "x": 118.5,
+        "y": 124.31
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "be4214d175a0b1a3ca83b99d65a96a765811957d7322e11d427a9ba67768981e",
+      "evidence": "1cee99fc8d3c9aafcbbbbc09320bc37eedeb2ecf18a5536e77eae8f88cc0d8c7",
+      "rule": "trace.acute_junction",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Acute same-net junction or backtracking",
+      "suggestion": "Inspect overlap, backtracking or acute junction",
+      "subjects": [
+        "26b506ea-8654-4562-a161-bfc8de0deecb",
+        "af40fad4-2dde-4623-ab40-8dac7083b0e2"
+      ],
+      "nets": [
+        "+1.2V"
+      ],
+      "at": {
+        "x": 103.7846,
+        "y": 139.95
+      },
+      "metrics": {
+        "interior_deg": 44.99999999999942
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "becf3197f095037328131cd6a7f9331ae127aac4ebf4f29dd224c8cdb060d762",
+      "evidence": "81ace56574e12c9b469ecd9a3b45d197889328e16b69815f41008eb4d05c2dea",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.141 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "2acb8723-d022-426a-945a-8e80759fa26f"
+      ],
+      "nets": [
+        "/FPGA_RGB2"
+      ],
+      "at": {
+        "x": 109.3,
+        "y": 142.205
+      },
+      "metrics": {
+        "length_mm": 0.1414213562373316
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "c04979fdb6dd391e86ec475c42cea3faf94e3c99bd46d26a71d9b58757201057",
+      "evidence": "9ca95f740e12ad65308ac41a0c40e90519f19320610da2394832e7c1b02eb9e1",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from L4.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "703d4e09-ed2c-4b7d-82a8-70aeb383fd22",
+        "7398c01d-eb26-4ec1-bdd3-b7626fdafbfb"
+      ],
+      "nets": [
+        "/BUCK_SW"
+      ],
+      "at": {
+        "x": 117.015,
+        "y": 126.69
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999999
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "c0d119729625b355b19406b12ae5fcb4143e4ed6af4b0da98c707d0d19721bb6",
+      "evidence": "e804388a37d6bc8c4665b1d81ec978eefb71f28cdcfaac28ac130365ccca557a",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "f8e17a86-da10-4bbf-92e4-175efd49f132"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 104.875,
+        "y": 126.5
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "c21f493e6356ee3c2ff3fd260af748b4dd95568c7959388e9da5792b5999b229",
+      "evidence": "31f7dcaa7215858a9c75821335aaec3b1a20af2c1bd93028fd1fa73664e4f248",
+      "rule": "route.bend_count",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Many bends in an unbranched chain; inspect routing intent",
+      "suggestion": "Inspect unnecessary zigzags against tuning constraints",
+      "subjects": [
+        "182221b0-c099-4ae0-b0b9-771e8f454c6c",
+        "2a2b5a09-e80a-4c21-99fd-8c3476f15d48",
+        "8b34ea42-9d2e-41d8-96c0-5e668e590908",
+        "a079a970-4bdc-4ae1-98d9-682e18d28afc",
+        "ba0a9751-3229-4413-ad86-0f7eac5f630d",
+        "e3e0818f-84eb-4cee-90eb-1edf76a746d6",
+        "eca254c5-fbd6-416e-9091-bad99cf052b4"
+      ],
+      "nets": [
+        "/FPGA_IOT_37A"
+      ],
+      "at": {
+        "x": 107.75,
+        "y": 134.5
+      },
+      "metrics": {
+        "bends": 6.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "c249bad5cbae0d04450f279ec617ad35d683b6b0312ec90f2cadaa393cf241cd",
+      "evidence": "d5aebf0b10d2b29aae24882da32f0df07ce0b4a6a6b471f3734c350e08d434d7",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "1602c44a-fa22-4e66-949f-f11122c00ac0"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 116.5154,
+        "y": 143.1
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "c330f3a6c1a983e05877de33f9d983eb5fa60a757a7d6d3762f0aa84956244ab",
+      "evidence": "df3807e8f07672f05e11f47bee50dbbf8db9553e9ddfae2364708050f05c7f8a",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "169883a4-c415-4e57-96e6-f7a6f627aa7c"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 102.0154,
+        "y": 139.95
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "c358dd32fa69402eea637094c31403cca44807bcd24f1fb262582786b5bfd5dc",
+      "evidence": "85677a22d2034c654795e2c2e6f8d40cc150a9a21fe2545f2aecdab8b138300e",
+      "rule": "route.bend_count",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Many bends in an unbranched chain; inspect routing intent",
+      "suggestion": "Inspect unnecessary zigzags against tuning constraints",
+      "subjects": [
+        "045b8895-dcfd-46c5-a9c9-07efde3bef89",
+        "57604cd8-ceff-493b-a152-92d5ef5f9a85",
+        "5a2c423d-ad66-4901-aede-a93c2fef7992",
+        "ab6d0ee4-d5f2-44da-a6b0-dd25aa82033f",
+        "afdd6bf1-baf8-4d61-aca1-a81f83212d87",
+        "bbce6ec9-2bb3-4925-9774-60b3bbf46c5c",
+        "d0b67842-a61a-4c87-b570-7f021bf6cb3f",
+        "f319ee92-9409-489b-940e-1a6cb84af7b0"
+      ],
+      "nets": [
+        "/USB_D-"
+      ],
+      "at": {
+        "x": 111.0,
+        "y": 114.43
+      },
+      "metrics": {
+        "bends": 7.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "c395892eff1b567558d2889a9aee5ad2134bf8b88680295720648a00957bd712",
+      "evidence": "2d8355c24e7855500ff4b4336c09a13cd5e56b1bf22e08abff95eee59d9e7fcc",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "534af26e-bd57-4407-aeca-1e23996da5ab"
+      ],
+      "nets": [
+        "ESP_VDD3P3"
+      ],
+      "at": {
+        "x": 111.35,
+        "y": 110.2846
+      },
+      "metrics": {
+        "length_mm": 0.07071067811866079
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "c5c1e588589a2d7b05f80386a4eaea157088520e6e2aed8c3e3bdd580ccd8c48",
+      "evidence": "17d2d0b04476a2fc5dc78242e2f38640c3aee43379f1e263c15477589592db0a",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.050 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "6d0a689f-0351-4c92-a38b-2cf5725a62f6"
+      ],
+      "nets": [
+        "/LINK_IO2"
+      ],
+      "at": {
+        "x": 112.75,
+        "y": 134.449999
+      },
+      "metrics": {
+        "length_mm": 0.050001000000008844
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "c80d5deff0e151eefafbd4720b29d033566ea07608cf59eeb70f7e8a3947185c",
+      "evidence": "c83ba5946ade7d03497b53307ac9ccb1d08ced7dcc51e7a3b9281c3ef7bb1515",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.078 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "278ced58-9c5c-4a90-8e7f-1e088ef62bea"
+      ],
+      "nets": [
+        "VIN_5V"
+      ],
+      "at": {
+        "x": 113.4,
+        "y": 114.43
+      },
+      "metrics": {
+        "length_mm": 0.07778174593051983
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "cf3719c386f7d5685e3f11de84839f501b95878552d7f4b4afc49ce2ef3323cb",
+      "evidence": "dea985a674f1ed5a426b418a8f87d35523ae63d15d8333fc10078f9e40e50acb",
+      "rule": "trace.acute_junction",
+      "severity": "info",
+      "confidence": "measurement",
+      "message": "Acute same-net junction or backtracking",
+      "suggestion": "Inspect overlap, backtracking or acute junction",
+      "subjects": [
+        "044357da-fcbf-4029-bcec-d2b1e5946891",
+        "f22a30f2-93de-4593-9f2a-40fa3b9a400c"
+      ],
+      "nets": [
+        "+1.2V"
+      ],
+      "at": {
+        "x": 104.3846,
+        "y": 139.95
+      },
+      "metrics": {
+        "interior_deg": 0.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "cf3a6aeaf5e4653e68eb1a1345fac2b8df6fd9d419e8a5ec213e3c33b18724a9",
+      "evidence": "9ec7b9cf34e8e0190f4ec90c2f77ae9a9c04c88d053f1a59007dc0f6bc4c4fbb",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.025 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "bd8d7c4b-1369-4499-b18b-cdddf627d7bf"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 104.45,
+        "y": 120.075
+      },
+      "metrics": {
+        "length_mm": 0.024999999999991473
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "d04e820a0d61dc15948588a4f67e73ee891cdb9682c58c54357affb3b181deef",
+      "evidence": "753a59188e9aef1ec0b670ded4b1f847f8972c941f8ba0e351dd73e7463ac0f6",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.141 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "d95f0f15-2429-4e92-bad3-e59c14251fd5"
+      ],
+      "nets": [
+        "/ESP_GPIO40"
+      ],
+      "at": {
+        "x": 114.6,
+        "y": 117.7
+      },
+      "metrics": {
+        "length_mm": 0.14142135623731153
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "d2e8a220ebf5a2780416df6281bbaa2c913975419022088e6e664ac92c2256a8",
+      "evidence": "1fcc043f498d49babfe732b507af48e62c5ae475e0b12617fe3f142f4d544bc4",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "2060b32a-7194-4f3c-b02c-ffb67b94c7a3"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 115.2,
+        "y": 110.3
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "d2fd61da6a6d958a9f105a892c52b1dff3e1d2a5074c02a368fbfada540db61e",
+      "evidence": "5b7fdc1c5154dd22698f82aa185aca4eacb049a8f70f035e3f514b40064e9308",
+      "rule": "copper.stale_stub",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Leaf copper can be removed without changing modeled pad equivalence classes; verify intended analog/RF function",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "6d0a689f-0351-4c92-a38b-2cf5725a62f6"
+      ],
+      "nets": [
+        "/LINK_IO2"
+      ],
+      "at": {
+        "x": 112.75,
+        "y": 134.449999
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "d76dba2fe91e873943d0f3a7a58e0044ae850008d7a4945efe1a834df7e514a8",
+      "evidence": "975a609f55ef4b2625cc9aa93591b699a02f41c265bb0ad9bbec8e5ce123497d",
+      "rule": "route.backtrack",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Chain reverses direction relative to its endpoint axis; inspect intentional tuning",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "0625b113-c419-47b9-bb77-b95e368d496f",
+        "0dfb4756-9915-4186-b5b6-5bdad3e732af",
+        "1a8f77ab-ca16-415c-8d6c-54786533d28e",
+        "3e6c1b6f-9e97-4e68-b3c1-c079ce18b763",
+        "61b0525e-4c89-4896-b74d-e0b0fc91b280",
+        "74d66dff-6c4c-4fe0-bb83-d4c0a9f093ed",
+        "75d07c1b-8831-4916-ae87-baf5e2a23476",
+        "7c1e5444-84ca-4e35-be13-abd40b3cdae4",
+        "812a849b-ec85-4e7f-99d6-04864753c25d",
+        "913c2f3f-509c-423b-814f-2f2fcfccb69e",
+        "b2092454-16dc-4e18-babe-53fea800f68b",
+        "c5a4a9de-a80d-4e2e-ad8d-55f65c482ac1"
+      ],
+      "nets": [
+        "/LINK_MISO"
+      ],
+      "at": {
+        "x": 112.25,
+        "y": 135.2
+      },
+      "metrics": {
+        "backtrack_mm": 2.01762894190186
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "d91782735bd58e58fd8cfc3deba923656eeb7490dc3bf498bf342d6e77caac3e",
+      "evidence": "51e04f585c37331e1d0d2d1593dda0d00f025056beeb781dea805514a8d013a9",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.071 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "0c6c66de-b667-4919-b115-dd80620344ec"
+      ],
+      "nets": [
+        "/FPGA_IOB_0A"
+      ],
+      "at": {
+        "x": 111.75,
+        "y": 142.154999
+      },
+      "metrics": {
+        "length_mm": 0.07070926390510199
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "d9219996b8ae0025a9ae1a6eb597c91e0d9ed29095b5639620d9241c54dcf150",
+      "evidence": "638243c833acd0992fb475417db18b770b7ffd9d25fc4c1eb8704d2cde6749b7",
+      "rule": "copper.duplicate_overlap",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Collinear tracks overlap over a finite length",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "489b5fe9-fbb9-4c35-b472-e4a6383c33e8",
+        "49d7d8b1-7feb-43ce-bd10-4ba6422dd107"
+      ],
+      "nets": [
+        "VIN_5V"
+      ],
+      "at": {
+        "x": 116.0,
+        "y": 118.7
+      },
+      "metrics": {
+        "overlap_mm": 0.4596194077712599
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "dbc55fbbf8d50bbbc1b9c3b1b524be655845a48ff65334c1aee1dcb0f575b50e",
+      "evidence": "45abd05f22452552f3176f286489845a17fcb26e1e1ae75ae190dfc1c98fd612",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J1.9",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "2e3df17d-a7aa-45cd-87b7-9694c6fe9fee",
+        "e46fe075-ca75-4bbd-9d80-fca756045433"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 110.6,
+        "y": 114.27
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999744
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "de6ebfab545f99573f3fc848a10554f65fd5d7824347a37f92e42c421a53331b",
+      "evidence": "0e0ac4e5c2816722ad04af113a8034081b468f52625574cb87bf9a1970caefc6",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.195 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "dd70d807-e53e-40b0-bbbc-7d96c6044986"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 112.6,
+        "y": 111.8
+      },
+      "metrics": {
+        "length_mm": 0.19480000000000075
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "e01efd75683d510dc21bff8ae5d73831e30601425e5797491c8da2ba22cbca3c",
+      "evidence": "a6db1cd3d111a81f3222100d50eb44e447007f6fa81c2bbb7730968938e2c317",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.025 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "50043671-9f20-4298-bfbd-4e2b3dce2869"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 105.175,
+        "y": 114.9
+      },
+      "metrics": {
+        "length_mm": 0.024999999999991473
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "e1b275ad79369e05570047daa0a105296812dc77d7b4efaf89ca548dc4e35528",
+      "evidence": "f2cb2f77f803df7bdf2a4882a86181d350f77e9e846ebd60227ceb54bcba76eb",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "a645b89c-42ee-4780-b7f3-3541ef56f7c7"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 107.175,
+        "y": 119.925
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "e3aecc43bbe8b0de7fd803725dae3dfb6f1ee66dff3ddf9c3ac0aaddf0456eba",
+      "evidence": "c1420158bc3858db522b3d77c6a20f88bf0e485d457a56f56df0e75d4aeb56d0",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from U2.PAD",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "b2fc765a-eb08-44b0-a200-64cd8692239a",
+        "eb176819-3840-4a96-965d-d5090914b9b8"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 110.0,
+        "y": 139.5
+      },
+      "metrics": {
+        "deviation_deg": 44.999999999999915
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "e4b53908eab6cadfab2ea3ee6cce604cb53206863b2878e0817d9ad3465ffcc5",
+      "evidence": "32cd1fb072fdafc7aac461a6767b477d2edb4eba26aec71d549e0443f5a256b7",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from J1.37",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "65197e42-2bd2-4138-93fd-14b083f721a6",
+        "9a65351c-4363-4444-aa2a-de3dd3f1d1c7"
+      ],
+      "nets": [
+        "/ESP_GPIO16"
+      ],
+      "at": {
+        "x": 107.4,
+        "y": 117.07
+      },
+      "metrics": {
+        "deviation_deg": 44.9999999999973
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "e64b5505f36c8b874d91367c6b5e306aa1c2e19028dd6e66228039c077d978fe",
+      "evidence": "1ef62c85e604b048dce42b6ffe77ed76783e55d94a7152abb6489488c4eaa1aa",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C40.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "142aefc4-dab2-463e-8415-f79f86e9d868",
+        "d4a1b309-8186-42f7-a44c-1fd0a24c98ce"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 104.7346,
+        "y": 117.6
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999999
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "e7690db3e48611dc4df27ed2063cd02b7db19d038176fb5c34756613d897940a",
+      "evidence": "6f48e08c159987e924ca0f37d8bbff15f83629e5caffa57ba054317441f43eb4",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.141 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "81724190-6c06-4900-9641-bbd2977ca625"
+      ],
+      "nets": [
+        "/FPGA_RGB0"
+      ],
+      "at": {
+        "x": 108.15,
+        "y": 144.8
+      },
+      "metrics": {
+        "length_mm": 0.14142135623732158
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "e788021c81e1755c4544f83ee156bd38130938e9f64d45003d2907c62ce46cc9",
+      "evidence": "33c8d756bfd595fdd56493d15bba245ce66ac3823dc56e6519bf64c8f7e8a53d",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C35.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "bfd095b9-ab3d-4c26-8212-5474ef96797e",
+        "e15538a4-8d47-4876-b587-1a72b40b608f"
+      ],
+      "nets": [
+        "ESP_VDD3P3"
+      ],
+      "at": {
+        "x": 111.35,
+        "y": 110.2846
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "ecb3fc3d0335184f9479ab9b8b8bd8248fda01b30818cb8a53f3fdf20d8dadec",
+      "evidence": "3bb961b7fe7a283e7eafe934a17435f98e46f86f603e09bada87dd5b6cb23e2a",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "f056c56a-1de9-4c2f-b9cf-4e239675f3ef"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 118.8,
+        "y": 121.8
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "ef81a5591a68b5fdf492427a01f88930ba6cc6561e711ca847e697886efa7d49",
+      "evidence": "ebd5022a5ebb68e6e2e7757f00d7ca25cbe6ea357cbe5a5721b784deef07a399",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "ac013187-bb33-4494-b1bd-fdabb9a80076"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 113.0,
+        "y": 107.2
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "efefaceb901e8c1757f1f249d8d3d8b2e056e3d2ea726afc060aab3d4482b1f6",
+      "evidence": "176bf34d64063faba404d7602c7d0cab3a2d6f4cea9172741726316ee6e1693d",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "6aeee405-72fe-4d4d-9f7d-0096cd3202d2"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 102.0154,
+        "y": 141.25
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "f00256c1d64381aea03d5dedd58623b7cdc591d31d2de4ae9b55d3401ff71e04",
+      "evidence": "b25a31f07aa1fe8ab786c1cffd73c6b00be9c4998be4d11e4483384cf8368a67",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.141 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "d91fbf9a-64f3-490b-96ab-a36607e0169e"
+      ],
+      "nets": [
+        "/FPGA_IOT_48B"
+      ],
+      "at": {
+        "x": 105.2,
+        "y": 142.15
+      },
+      "metrics": {
+        "length_mm": 0.14142135623730148
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "f38851f45cc59a6948182a7ba5701ea404af22f5fd48e469a261995cc92143d2",
+      "evidence": "32086f505d1c5fe2443b572e19739d3829f81a8b081dddc57a13b2e5e33c4b30",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from Y1.IN/OUT",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "8e009731-0b36-45d4-97fe-8a16bb825783",
+        "deac90b7-77af-4cc2-9632-570f02b3c461"
+      ],
+      "nets": [
+        "/XTAL_P_CRYSTAL"
+      ],
+      "at": {
+        "x": 117.025,
+        "y": 114.575
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999946
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "f3cfd86f312e70e771dc2ac4713920bb2794e3b881ac2957b7a7fce06efe405c",
+      "evidence": "55c0a9472e6fe4b2cc88cafff68ba48e42a03cb40df99e006eb587e29a6006f4",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.177 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "9fc2bb6b-ac88-4414-aaff-052100f18853"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 101.725,
+        "y": 120.5
+      },
+      "metrics": {
+        "length_mm": 0.1767766952966369
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "f441ebff102c6264d3d739c5521108db9e690c1aff83fc29aae031617335b584",
+      "evidence": "132232add1ffb0366accb801c69cb2b8b922992813386acc6787b7c20afea22a",
+      "rule": "width.taper",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Abrupt width ratio exceeds configured transition limit",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "0d09436d-683f-4ef0-bc08-37df4c894a31",
+        "55f06c0e-9f73-4faf-889b-9f5910a8ddf0"
+      ],
+      "nets": [
+        "/RF_IN"
+      ],
+      "at": {
+        "x": 112.2,
+        "y": 111.4
+      },
+      "metrics": {
+        "ratio": 1.7333333333333334
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "f6b7ca5f61a1fa4e6462e6621c70833db87e1d3bafa386089666238ac5e41057",
+      "evidence": "78b0bf2176a692de6c0023db206b4dfeb7c353ad9ea379c73225c5cde731d7c8",
+      "rule": "copper.duplicate_overlap",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Collinear tracks overlap over a finite length",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "044357da-fcbf-4029-bcec-d2b1e5946891",
+        "f22a30f2-93de-4593-9f2a-40fa3b9a400c"
+      ],
+      "nets": [
+        "+1.2V"
+      ],
+      "at": {
+        "x": 104.3846,
+        "y": 136.6596
+      },
+      "metrics": {
+        "overlap_mm": 3.290399999999977
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "f7172a30cb8aab2131d1715e066e6fe0632d3de368d680aefcb222199640d6e4",
+      "evidence": "174aad4a92168692b057450e4cc05b6fb7ab8f1dd79a9b9f6cce73a9efcfe56c",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.175 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "79565ba9-ce2b-472a-96a7-5fe09baa5ec5"
+      ],
+      "nets": [
+        "/FPGA_IOB_9B"
+      ],
+      "at": {
+        "x": 115.4,
+        "y": 141.55
+      },
+      "metrics": {
+        "length_mm": 0.17499999999998295
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "f86e34be4ec5beb6a419a1048b12130bbf3878e76b7ab2879a3c275ff6a405ef",
+      "evidence": "b6ba6163e2a59a3128f7ab05417653e53bb54c72c61791292b46d59990d28b1f",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from C39.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "561dcdad-f0eb-4456-86ac-c3184896e0d3",
+        "650ce7c8-ce98-457b-bdd3-7d9f34eedbd1"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 116.1154,
+        "y": 117.8
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "f9f47d4e2fe1bbc49f494f093b0f4b7834e18dc64513369d8d5d940da928267f",
+      "evidence": "040d8f4d0f9fe0c04686891e2fb1ec043097edce31e4d67e01c672003d469cad",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from L4.2",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "46ea62fd-8fa4-488b-a142-4a19f8982126",
+        "842fe329-9c58-4b91-893d-81018f615ab1"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 114.5,
+        "y": 126.2
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999999
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "fa90ddc1583df9d4f924fb84f6ea52af578eb7eaa2689ef48f8904393f490817",
+      "evidence": "2fa5018931da4c687aa50877a0d96480fcd0e5eff362ba410e32fcb727ed7130",
+      "rule": "pad.grazing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Trace barely touches pad envelope without a centerline endpoint landing",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "1dd75111-8248-435e-a8d1-19237a1c433d",
+        "7e826400-6d6f-4bff-b442-27c14c07dc32"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 118.5,
+        "y": 123.28999999999999
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "faf4d42b3ff4b8f4008af56c19624695e56db0d580cc73289701ffff548201b1",
+      "evidence": "85f8b5a51ead4df48e312b23f784434fb807167ba2561f6b9296d53b009c1daa",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "ba3c5962-c871-4823-9e6d-94d7ab73ce10"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 114.35,
+        "y": 130.7
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "fb445c4d559427cc2e7c697aa458e140bfc98cefce58c46abade706e962459cf",
+      "evidence": "d007841e03cb0b2239e69c02aed1428f8b95948cd59787be587fa1669a0921cf",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "7c8541aa-a39d-4d56-9d61-d1da775cf3de"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 113.95,
+        "y": 124.2
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "fb4aa9bd9fbe08ac5b20995d27931190a321e3c7d8892b1716af1c1cb4ebc5ff",
+      "evidence": "de39f44a49d5d72c1614d48dea7cfc0a0ee84e4ed6a6c626dd2d6d62a1a0d38f",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from R64.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "42edb369-4eb9-4b87-9d13-9bad0aa003c7",
+        "c307ffad-9856-4b20-95f6-835d068ad3c5"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 113.46,
+        "y": 123.4
+      },
+      "metrics": {
+        "deviation_deg": 44.99999999999915
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "fb75929b76ad3c85cdc9ab581ab075b7571328b5964174ddab650324ece4aef1",
+      "evidence": "fe1343b22ccbb9d4bce595132c74ee1f32815386327ac2ff2eff4e946b40ebfd",
+      "rule": "via.role_missing",
+      "severity": "info",
+      "confidence": "not_evaluated",
+      "message": "Plane-connected via lacks a declared thermal/return/stitching role",
+      "suggestion": "Implement with labelled positive/negative examples before enabling",
+      "subjects": [
+        "9f4e322b-ff8a-41ea-886f-436cf4bf53f2"
+      ],
+      "nets": [
+        "+3.3V"
+      ],
+      "at": {
+        "x": 119.0,
+        "y": 139.0
+      },
+      "metrics": {},
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "fcb19e50b577afe4056564151549a973e451666ab0e51887ced35f7e23762f96",
+      "evidence": "f704b0e77a276c3dfd017a7390605bc254a3f363c3bc7b6ccf7700589dbc162f",
+      "rule": "trace.short_segment",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Short segment (0.025 mm); may be a neck or tuning feature",
+      "suggestion": "Inspect for tiny jog or merge opportunity",
+      "subjects": [
+        "96eac9c8-0b6d-4df8-80b5-538a014c544d"
+      ],
+      "nets": [
+        "GND"
+      ],
+      "at": {
+        "x": 104.45,
+        "y": 120.05
+      },
+      "metrics": {
+        "length_mm": 0.025000000000005684
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "fe33e966037a32a1e2045f7a2dc34433d8b51de540589a3f30529d516efa8125",
+      "evidence": "74b158e54f8819dad85f15b82e40e3d9a0c196980e93cae1141abf665c0cad59",
+      "rule": "route.detour",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Chain takes a long path relative to unobstructed 45° lower bound; inspect obstacles and tuning",
+      "suggestion": "Search for shorter legal route then refill and run native DRC",
+      "subjects": [
+        "8551d3cd-3a80-46e6-8bfe-4effb23d0103",
+        "b6385968-f322-4d84-9253-4011dbffeb95",
+        "bc645947-54ea-47a2-b205-771865c499d0",
+        "c2fece1d-27ad-4e34-8978-ef574ebd04c2",
+        "eb5af024-109a-4eff-a011-10aa4e91de76",
+        "f02f5ff1-054f-4bd5-91cb-34e04c138808"
+      ],
+      "nets": [
+        "/ESP_GPIO42"
+      ],
+      "at": {
+        "x": 114.3,
+        "y": 116.65
+      },
+      "metrics": {
+        "length_mm": 7.223071785686861,
+        "lower_bound_mm": 2.273969696196689,
+        "ratio": 3.176415146502505
+      },
+      "stable_identity": true,
+      "state": "open"
+    },
+    {
+      "key": "ff7c547d1139ab1680ccf8dc679fc6231b796b0bd5d5b6a07d0492bc6739587d",
+      "evidence": "44bfda7088884afbf2585d1175ef42590f9a923ed74cfbf93defcd8993ec45a0",
+      "rule": "pad.oblique_exit",
+      "severity": "info",
+      "confidence": "heuristic",
+      "message": "Oblique exit from R29.1",
+      "suggestion": "Inspect pad escape and any impedance launch requirement",
+      "subjects": [
+        "07aeb134-69e8-415d-a698-daab9feb24d1",
+        "7a87244a-ffcd-40d7-b562-422365d074f7"
+      ],
+      "nets": [
+        "/FPGA_CDONE"
+      ],
+      "at": {
+        "x": 116.4925,
+        "y": 139.0
+      },
+      "metrics": {
+        "deviation_deg": 45.0
+      },
+      "stable_identity": true,
+      "state": "open"
+    }
+  ],
+  "review_audit": [],
+  "coverage": [
+    {
+      "rule": "trace.zero_length",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.short_segment",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.off_angle",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.minimum_width",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.no_net",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.open_end",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.duplicate",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.mergeable",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.acute_junction",
+      "status": "evaluated"
+    },
+    {
+      "rule": "trace.width_transition",
+      "status": "evaluated"
+    },
+    {
+      "rule": "pad.oblique_exit",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.annulus",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.drill",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.no_net",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.low_attachment",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.pad_overlap",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.cluster",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.detour",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.bend_count",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.width_island",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.layer_excursion",
+      "status": "evaluated"
+    },
+    {
+      "rule": "contract.missing_net",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.net_width",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.net_layer",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.via_budget",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.pin_net",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.proximity",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.side",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "contract.alignment",
+      "status": "needs_contract"
+    },
+    {
+      "rule": "copper.island",
+      "status": "evaluated"
+    },
+    {
+      "rule": "copper.stale_stub",
+      "status": "evaluated"
+    },
+    {
+      "rule": "copper.duplicate_overlap",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.avoidable",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.role_missing",
+      "status": "evaluated"
+    },
+    {
+      "rule": "via.return_distance",
+      "status": "needs_input"
+    },
+    {
+      "rule": "route.legal_shortcut",
+      "status": "budget_exhausted"
+    },
+    {
+      "rule": "route.backtrack",
+      "status": "evaluated"
+    },
+    {
+      "rule": "pad.grazing",
+      "status": "evaluated"
+    },
+    {
+      "rule": "route.tuning_integrity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "placement.airwire_cost",
+      "status": "needs_input"
+    },
+    {
+      "rule": "placement.congestion",
+      "status": "needs_input"
+    },
+    {
+      "rule": "placement.rotation",
+      "status": "needs_input"
+    },
+    {
+      "rule": "placement.pitch",
+      "status": "needs_input"
+    },
+    {
+      "rule": "placement.orientation",
+      "status": "needs_input"
+    },
+    {
+      "rule": "channel.topology",
+      "status": "needs_input"
+    },
+    {
+      "rule": "channel.geometry",
+      "status": "needs_input"
+    },
+    {
+      "rule": "channel.polarity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "block.flow",
+      "status": "needs_input"
+    },
+    {
+      "rule": "power.corridor",
+      "status": "needs_input"
+    },
+    {
+      "rule": "noise.partition",
+      "status": "needs_input"
+    },
+    {
+      "rule": "decoupling.pin_distance",
+      "status": "needs_input"
+    },
+    {
+      "rule": "decoupling.loop_area",
+      "status": "needs_input"
+    },
+    {
+      "rule": "regulator.feedback",
+      "status": "needs_input"
+    },
+    {
+      "rule": "regulator.hot_loop",
+      "status": "needs_input"
+    },
+    {
+      "rule": "schematic.collisions",
+      "status": "needs_input"
+    },
+    {
+      "rule": "schematic.junction",
+      "status": "needs_input"
+    },
+    {
+      "rule": "schematic.stem",
+      "status": "needs_input"
+    },
+    {
+      "rule": "schematic.reading_order",
+      "status": "needs_input"
+    },
+    {
+      "rule": "netlist.parity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "connectivity.regression",
+      "status": "needs_input"
+    },
+    {
+      "rule": "power.width_capacity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "neck.clearance_reason",
+      "status": "evaluated"
+    },
+    {
+      "rule": "width.taper",
+      "status": "evaluated"
+    },
+    {
+      "rule": "feature.unrequested",
+      "status": "needs_input"
+    },
+    {
+      "rule": "pin.swap_candidate",
+      "status": "needs_input"
+    },
+    {
+      "rule": "pin.swap_legality",
+      "status": "needs_input"
+    },
+    {
+      "rule": "net.naming",
+      "status": "needs_input"
+    },
+    {
+      "rule": "interface.completeness",
+      "status": "needs_input"
+    },
+    {
+      "rule": "connector.mating",
+      "status": "needs_input"
+    },
+    {
+      "rule": "testpoint.coverage",
+      "status": "needs_input"
+    },
+    {
+      "rule": "testpoint.access",
+      "status": "needs_input"
+    },
+    {
+      "rule": "testpoint.ground",
+      "status": "needs_input"
+    },
+    {
+      "rule": "testpoint.label",
+      "status": "needs_input"
+    },
+    {
+      "rule": "pair.skew",
+      "status": "needs_input"
+    },
+    {
+      "rule": "pair.spacing",
+      "status": "needs_input"
+    },
+    {
+      "rule": "reference.discontinuity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "rf.launch",
+      "status": "needs_input"
+    },
+    {
+      "rule": "power.pin_roles",
+      "status": "needs_input"
+    },
+    {
+      "rule": "strap.truth_table",
+      "status": "needs_input"
+    },
+    {
+      "rule": "source.series_parallel",
+      "status": "needs_input"
+    },
+    {
+      "rule": "source.backfeed",
+      "status": "needs_input"
+    },
+    {
+      "rule": "source.polarity",
+      "status": "needs_input"
+    },
+    {
+      "rule": "capacitor.role",
+      "status": "needs_input"
+    },
+    {
+      "rule": "capacitor.rating",
+      "status": "needs_input"
+    },
+    {
+      "rule": "parts.package",
+      "status": "needs_input"
+    },
+    {
+      "rule": "mechanics.edge_clearance",
+      "status": "evaluated"
+    },
+    {
+      "rule": "mechanics.access",
+      "status": "needs_input"
+    },
+    {
+      "rule": "thermal.spokes",
+      "status": "needs_input"
+    },
+    {
+      "rule": "bom.completeness",
+      "status": "needs_input"
+    },
+    {
+      "rule": "cpl.orientation",
+      "status": "needs_input"
+    },
+    {
+      "rule": "silk.collisions",
+      "status": "evaluated"
+    },
+    {
+      "rule": "silk.content",
+      "status": "needs_input"
+    },
+    {
+      "rule": "export.freshness",
+      "status": "needs_input"
+    },
+    {
+      "rule": "release.manifest",
+      "status": "needs_input"
+    },
+    {
+      "rule": "checker.transform",
+      "status": "needs_input"
+    },
+    {
+      "rule": "checker.differential",
+      "status": "needs_input"
+    },
+    {
+      "rule": "checker.noise",
+      "status": "needs_input"
+    },
+    {
+      "rule": "review.reattach",
+      "status": "needs_input"
+    },
+    {
+      "rule": "annotation.stale",
+      "status": "needs_input"
+    },
+    {
+      "rule": "via.overshoot",
+      "status": "evaluated"
+    },
+    {
+      "rule": "placement.passive_alignment",
+      "status": "evaluated"
+    }
+  ]
+}

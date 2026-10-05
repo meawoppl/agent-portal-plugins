@@ -1,0 +1,34 @@
+{
+  "command": "optimize-traces",
+  "copper_oz": 1.0,
+  "drc_aware": false,
+  "dry_run": false,
+  "layers": 2,
+  "manufacturer": null,
+  "net_filter": null,
+  "optimizations": {
+    "chamfer_size_mm": 0.5,
+    "convert_45_corners": true,
+    "eliminate_zigzags": true,
+    "merge_collinear": true
+  },
+  "output": "<WORK>/ot_charlie.out.kicad_pcb",
+  "pcb": "<WORK>/ot_charlie.kicad_pcb",
+  "saved": true,
+  "stats": {
+    "corners_after": 89,
+    "corners_before": 153,
+    "drc_errors_after": 0,
+    "drc_errors_before": 0,
+    "length_after_mm": 326.6304890598337,
+    "length_before_mm": 327.21624620992804,
+    "length_reduction_pct": 0.17901224553458217,
+    "nets_optimized": 8,
+    "nets_rolled_back": 0,
+    "segment_reduction_pct": 45.17766497461929,
+    "segments_after": 108,
+    "segments_before": 197
+  },
+  "success": true,
+  "written_to": "<WORK>/ot_charlie.out.kicad_pcb"
+}

@@ -1,0 +1,357 @@
+{
+  "dry_run": false,
+  "max_displacement_mm": 0.5,
+  "total_violations": 46,
+  "total_repaired": 8,
+  "non_targeted_violations": 552,
+  "clearance": {
+    "violations": 46,
+    "repaired": 8,
+    "relocated_vias": 0,
+    "endpoint_nudges": 13,
+    "local_rerouted": 0,
+    "cluster_rerouted": 0,
+    "skipped": {
+      "no_location": 0,
+      "no_delta": 0,
+      "exceeds_max": 0,
+      "infeasible": 11,
+      "no_local_route": 0
+    },
+    "nudges": [
+      {
+        "object_type": "segment",
+        "x": 119.351,
+        "y": 61.7076,
+        "net_name": "DQ6",
+        "displacement_mm": 0.0978,
+        "reverted": false
+      },
+      {
+        "object_type": "segment",
+        "x": 118.5,
+        "y": 60.4354,
+        "net_name": "+1V2",
+        "displacement_mm": 0.0944,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 118.5,
+        "y": 60.5056,
+        "net_name": "+1V2",
+        "displacement_mm": 0.095,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 119.4488,
+        "y": 62.149,
+        "net_name": "DQ6",
+        "displacement_mm": 0.0978,
+        "reverted": false
+      },
+      {
+        "object_type": "segment",
+        "x": 121.042,
+        "y": 117.2,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 121.042,
+        "y": 117.232,
+        "net_name": "A2",
+        "displacement_mm": 0.0321,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 118.642,
+        "y": 117.2,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 121.042,
+        "y": 117.2641,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 121.012,
+        "y": 117.2753,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 121.012,
+        "y": 117.3073,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 121.012,
+        "y": 117.3393,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 121.842,
+        "y": 116.9654,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 117.042,
+        "y": 117.2,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 121.012,
+        "y": 117.3713,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 117.074,
+        "y": 116.9654,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 117.074,
+        "y": 116.9654,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 118.642,
+        "y": 117.232,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 122.642,
+        "y": 117.2,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 118.642,
+        "y": 117.264,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 117.074,
+        "y": 117.136,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 117.106,
+        "y": 117.136,
+        "net_name": "A2",
+        "displacement_mm": 0.0321,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 121.012,
+        "y": 117.4033,
+        "net_name": "A2",
+        "displacement_mm": 0.0321,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 122.642,
+        "y": 117.232,
+        "net_name": "A2",
+        "displacement_mm": 0.0321,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 117.1381,
+        "y": 116.9654,
+        "net_name": "A2",
+        "displacement_mm": 0.032,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 149.9,
+        "y": 115.6,
+        "net_name": "GND",
+        "displacement_mm": 0.0686,
+        "reverted": false
+      },
+      {
+        "object_type": "segment",
+        "x": 139.1,
+        "y": 60.0,
+        "net_name": "GND",
+        "displacement_mm": 0.0686,
+        "reverted": false
+      },
+      {
+        "object_type": "segment",
+        "x": 108.5,
+        "y": 60.6,
+        "net_name": "+1V8",
+        "displacement_mm": 0.0686,
+        "reverted": false
+      },
+      {
+        "object_type": "segment",
+        "x": 108.5,
+        "y": 69.4,
+        "net_name": "+1V2",
+        "displacement_mm": 0.0686,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 148.5,
+        "y": 124.4,
+        "net_name": "+1V8",
+        "displacement_mm": 0.0686,
+        "reverted": false
+      },
+      {
+        "object_type": "segment",
+        "x": 138.5,
+        "y": 69.4,
+        "net_name": "+1V2",
+        "displacement_mm": 0.0686,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 157.9,
+        "y": 115.0,
+        "net_name": "+1V2",
+        "displacement_mm": 0.0686,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 118.54151015534958,
+        "y": 59.93939591810043,
+        "net_name": "+1V2",
+        "displacement_mm": 0.0686,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 117.9,
+        "y": 70.0,
+        "net_name": "GND",
+        "displacement_mm": 0.0686,
+        "reverted": false
+      },
+      {
+        "object_type": "segment",
+        "x": 147.9,
+        "y": 60.0,
+        "net_name": "+1V2",
+        "displacement_mm": 0.0686,
+        "reverted": true
+      },
+      {
+        "object_type": "segment",
+        "x": 126.04,
+        "y": 91.54,
+        "net_name": "GND",
+        "displacement_mm": 0.0485,
+        "reverted": false
+      }
+    ]
+  },
+  "drill_clearance": {
+    "violations": 0,
+    "repaired": 0,
+    "deduplicated": 0,
+    "slid": 0,
+    "skipped": {
+      "no_location": 0,
+      "no_delta": 0,
+      "exceeds_max": 0,
+      "infeasible": 0
+    },
+    "actions": []
+  },
+  "connectivity_check": {
+    "passes": [
+      {
+        "pass": 1,
+        "connected_nets_before": 29,
+        "connected_nets_after": 29,
+        "rolled_back": false,
+        "partial_rollback": true,
+        "reverted_uuids": [
+          "937073af-cb6b-47ec-9772-eee517b2666e",
+          "937073af-cb6b-47ec-9772-eee517b2666e",
+          "08e3dc6d-640a-4240-9b69-b9bc576e5154",
+          "08e3dc6d-640a-4240-9b69-b9bc576e5154",
+          "05bb0e90-6713-4ffb-8a9a-49a016743bf0",
+          "08e3dc6d-640a-4240-9b69-b9bc576e5154",
+          "08e3dc6d-640a-4240-9b69-b9bc576e5154",
+          "08e3dc6d-640a-4240-9b69-b9bc576e5154",
+          "08e3dc6d-640a-4240-9b69-b9bc576e5154",
+          "0d3e2284-9cd5-4f13-a94f-16e21d03e689",
+          "093f3efc-5c75-416e-a07e-57f63eaa2f01",
+          "08e3dc6d-640a-4240-9b69-b9bc576e5154",
+          "093f3efc-5c75-416e-a07e-57f63eaa2f01",
+          "093f3efc-5c75-416e-a07e-57f63eaa2f01",
+          "05bb0e90-6713-4ffb-8a9a-49a016743bf0",
+          "1aff4bcf-65fb-4d22-a12b-6b9c1f535398",
+          "05bb0e90-6713-4ffb-8a9a-49a016743bf0",
+          "093f3efc-5c75-416e-a07e-57f63eaa2f01",
+          "093f3efc-5c75-416e-a07e-57f63eaa2f01",
+          "08e3dc6d-640a-4240-9b69-b9bc576e5154",
+          "1aff4bcf-65fb-4d22-a12b-6b9c1f535398",
+          "093f3efc-5c75-416e-a07e-57f63eaa2f01",
+          "3be32209-4113-4584-99fc-a17c174e2398",
+          "7bf5c826-1191-4d75-a49e-e7a144705e28",
+          "cc935155-58dc-4d0f-9f63-d542779fc8a9",
+          "937073af-cb6b-47ec-9772-eee517b2666e",
+          "43d329f4-322b-4fcf-b727-2e22f6d13926"
+        ]
+      }
+    ]
+  }
+}

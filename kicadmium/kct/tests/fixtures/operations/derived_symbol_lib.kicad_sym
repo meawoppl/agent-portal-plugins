@@ -1,0 +1,21 @@
+(kicad_symbol_lib
+  (version 20231120)
+  (generator "test")
+  (symbol "AP2204K-1.5"
+    (property "Reference" "U" (at 0 0 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "AP2204K-1.5" (at 0 2.54 0) (effects (font (size 1.27 1.27))))
+    (symbol "AP2204K-1.5_0_1"
+      (rectangle (start -5.08 5.08) (end 5.08 -5.08) (stroke (width 0)) (fill (type background)))
+    )
+    (symbol "AP2204K-1.5_1_1"
+      (pin power_in line (at -7.62 2.54 0) (length 2.54) (name "VIN") (number "1"))
+      (pin power_in line (at 0 -7.62 90) (length 2.54) (name "GND") (number "2"))
+      (pin power_out line (at 7.62 2.54 180) (length 2.54) (name "VOUT") (number "3"))
+    )
+  )
+  (symbol "AP2112K-3.3"
+    (extends "AP2204K-1.5")
+    (property "Reference" "U" (at 0 0 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "AP2112K-3.3" (at 0 2.54 0) (effects (font (size 1.27 1.27))))
+  )
+)

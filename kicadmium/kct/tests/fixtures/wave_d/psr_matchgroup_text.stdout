@@ -1,0 +1,9 @@
+Moved 5 reference designator(s):
+  U1: (20.000, 19.000) -> (20.000, 18.650)
+  U2: (50.000, 19.000) -> (50.000, 18.650)
+  U3: (35.000, 52.000) -> (35.000, 50.750)
+  U4: (85.000, 51.000) -> (85.000, 49.965)
+  U5: (60.000, 75.000) -> (60.000, 73.650)
+
+Saved to: <WORK>/psr_matchgroup_text.out.kicad_pcb
+Review artifact: <WORK>/psr_matchgroup_text.svg

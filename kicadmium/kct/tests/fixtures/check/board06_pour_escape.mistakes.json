@@ -1,0 +1,103 @@
+{
+ "summary": {
+  "errors": 1,
+  "warnings": 0,
+  "info": 0
+ },
+ "mistakes": [
+  {
+   "category": "differential_pair",
+   "severity": "error",
+   "title": "Differential pair length mismatch",
+   "components": [
+    "USB2_D+",
+    "USB2_D-"
+   ],
+   "location": null,
+   "explanation": "USB2_D+ is 2.4mm, USB2_D- is 5.5mm (3.2mm difference). Usb 2.0 High-Speed requires < 2.0mm length difference to maintain signal timing. Mismatched lengths cause timing skew that degrades signal quality.",
+   "fix_suggestion": "Add serpentine to USB2_D+ to match USB2_D- length, or shorten the USB2_D- routing path. Target: 5.5mm for both traces.",
+   "learn_more_url": "docs/mistakes/differential-pair-matching.md"
+  }
+ ],
+ "coverage": [
+  {
+   "check_name": "BypassCapDistanceCheck",
+   "category": "bypass_capacitor",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalTraceLengthCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalNoiseProximityCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "DifferentialPairSkewCheck",
+   "category": "differential_pair",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PowerTraceWidthCheck",
+   "category": "power_trace",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ThermalPadConnectionCheck",
+   "category": "thermal_management",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ViaInPadCheck",
+   "category": "via_placement",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "AcidTrapCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "TombstoningRiskCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "MissingDecouplingCapCheck",
+   "category": "decoupling",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PullUpResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "LedSeriesResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "BomFieldHealthCheck",
+   "category": "bom_health",
+   "status": "incomplete",
+   "reason": "no BOM-eligible component on this board defines an MPN/LCSC-style property (checked ['jlc', 'jlcpcb', 'lcsc', 'lcsc part', 'lcsc_pn', 'manufacturer_pn', 'mfr_pn', 'mpn', 'pn']); this board may not track manufacturer part numbers in footprint properties, so BOM part-number coverage cannot be assessed"
+  }
+ ],
+ "coverage_complete": false
+}

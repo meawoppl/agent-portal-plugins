@@ -1,0 +1,2581 @@
+{
+ "summary": {
+  "errors": 0,
+  "warnings": 152,
+  "info": 4
+ },
+ "mistakes": [
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "F1"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 15.7mm from F1 pin 2 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 15.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of F1 pin 2, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "D1"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 11.7mm from D1 pin 1 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of D1 pin 1, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "C1"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 6.1mm from C1 pin 1 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 6.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of C1 pin 1, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "U1"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 24.2mm from U1 pin 1 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 24.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of U1 pin 1, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "C3"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 29.7mm from C3 pin 1 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 29.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of C3 pin 1, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "U3"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 41.7mm from U3 pin 29 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 41.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of U3 pin 29, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "U3"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 39.8mm from U3 pin 52 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 39.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of U3 pin 52, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "U3"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 39.8mm from U3 pin 53 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 39.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of U3 pin 53, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "U3"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 39.8mm from U3 pin 54 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 39.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of U3 pin 54, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "Q1"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 58.3mm from Q1 pin 2 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 58.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of Q1 pin 2, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "Q3"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 54.3mm from Q3 pin 2 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 54.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of Q3 pin 2, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "Q5"
+   ],
+   "location": [
+    30.0,
+    14.0
+   ],
+   "explanation": "C2 is 54.9mm from Q5 pin 2 (+24V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 54.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of Q5 pin 2, with a short, wide trace to both +24V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U1"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 31.5mm from U1 pin 4 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 31.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U1 pin 4, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "L1"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 13.2mm from L1 pin 2 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of L1 pin 2, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "C4"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 9.0mm from C4 pin 1 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 9.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of C4 pin 1, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U2"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 10.7mm from U2 pin 3 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 10.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U2 pin 3, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U3"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 18.2mm from U3 pin 3 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 18.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U3 pin 3, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U3"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 21.0mm from U3 pin 13 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U3 pin 13, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U3"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 21.3mm from U3 pin 14 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U3 pin 14, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U3"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 21.6mm from U3 pin 15 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U3 pin 15, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "U3"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 26.0mm from U3 pin 27 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 26.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of U3 pin 27, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "C15"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 31.9mm from C15 pin 1 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 31.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of C15 pin 1, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C5",
+    "C16"
+   ],
+   "location": [
+    38.0,
+    30.0
+   ],
+   "explanation": "C5 is 35.5mm from C16 pin 1 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 35.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C5 to within 3.0mm of C16 pin 1, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U2"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 12.2mm from U2 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U2 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U2"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 8.5mm from U2 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 8.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U2 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "C7"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 20.2mm from C7 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 20.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of C7 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "C8"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 14.2mm from C8 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of C8 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "C9"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 8.4mm from C9 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 8.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of C9 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 26.4mm from U3 pin 4 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 26.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 4, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 26.8mm from U3 pin 5 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 26.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 5, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 27.2mm from U3 pin 6 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 27.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 6, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 28.0mm from U3 pin 8 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 28.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 8, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 28.4mm from U3 pin 9 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 28.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 9, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 28.8mm from U3 pin 10 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 28.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 10, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 29.2mm from U3 pin 11 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 29.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 11, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 31.3mm from U3 pin 16 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 31.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 16, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 34.3mm from U3 pin 23 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 34.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 23, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 34.8mm from U3 pin 24 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 34.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 24, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 32.9mm from U3 pin 49 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 32.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 49, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 30.9mm from U3 pin 55 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 30.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U3 pin 55, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U10"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 18.4mm from U10 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 18.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U10 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U10"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 17.6mm from U10 pin 15 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 17.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U10 pin 15, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "U10"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 15.1mm from U10 pin 17 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 15.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of U10 pin 17, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "J3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 34.0mm from J3 pin 4 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 34.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of J3 pin 4, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "J4"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 20.8mm from J4 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 20.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of J4 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "D3"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 23.1mm from D3 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 23.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of D3 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "D4"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 25.6mm from D4 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 25.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of D4 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "R30"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 27.1mm from R30 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 27.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of R30 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "R31"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 27.3mm from R31 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 27.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of R31 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C6",
+    "R32"
+   ],
+   "location": [
+    50.0,
+    30.0
+   ],
+   "explanation": "C6 is 28.8mm from R32 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 28.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C6 to within 3.0mm of R32 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U2"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 14.4mm from U2 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U2 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U2"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 19.3mm from U2 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 19.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U2 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "C6"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 18.2mm from C6 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 18.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of C6 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "C9"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 11.0mm from C9 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of C9 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 13.9mm from U3 pin 4 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 4, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 13.9mm from U3 pin 5 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 5, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 14.0mm from U3 pin 6 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 6, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 14.3mm from U3 pin 8 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 8, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 14.4mm from U3 pin 9 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 9, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 14.5mm from U3 pin 10 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 10, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 14.7mm from U3 pin 11 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 11, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 15.8mm from U3 pin 16 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 15.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 16, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 17.8mm from U3 pin 23 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 17.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 23, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 18.1mm from U3 pin 24 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 18.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 24, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 21.6mm from U3 pin 49 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 49, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 21.3mm from U3 pin 55 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U3 pin 55, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U10"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 13.7mm from U10 pin 15 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U10 pin 15, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "U10"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 14.1mm from U10 pin 17 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of U10 pin 17, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "J3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 44.1mm from J3 pin 4 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 44.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of J3 pin 4, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "J4"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 37.9mm from J4 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 37.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of J4 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "D3"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 35.8mm from D3 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 35.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of D3 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "D4"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 40.3mm from D4 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 40.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of D4 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "R30"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 29.8mm from R30 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 29.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of R30 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "R31"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 33.6mm from R31 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 33.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of R31 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C7",
+    "R32"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 38.0mm from R32 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 38.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C7 to within 3.0mm of R32 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U2"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 11.2mm from U2 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U2 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U2"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 14.6mm from U2 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U2 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "C6"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 12.3mm from C6 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of C6 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "C7"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 7.0mm from C7 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 7.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of C7 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 15.8mm from U3 pin 4 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 15.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 4, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 16.0mm from U3 pin 5 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 16.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 5, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 16.3mm from U3 pin 6 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 16.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 6, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 16.9mm from U3 pin 8 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 16.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 8, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 17.2mm from U3 pin 9 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 17.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 9, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 17.5mm from U3 pin 10 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 17.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 10, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 17.8mm from U3 pin 11 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 17.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 11, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 19.4mm from U3 pin 16 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 19.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 16, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 22.1mm from U3 pin 23 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 22.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 23, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 22.5mm from U3 pin 24 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 22.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 24, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 23.4mm from U3 pin 49 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 23.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 49, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 22.3mm from U3 pin 55 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 22.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U3 pin 55, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U10"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 5.9mm from U10 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 5.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U10 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U10"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 11.4mm from U10 pin 15 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U10 pin 15, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "U10"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 10.7mm from U10 pin 17 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 10.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of U10 pin 17, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "J3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 39.6mm from J3 pin 4 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 39.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of J3 pin 4, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "J4"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 32.7mm from J4 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 32.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of J4 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "D3"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 31.7mm from D3 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 31.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of D3 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "D4"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 35.8mm from D4 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 35.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of D4 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "R30"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 26.9mm from R30 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 26.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of R30 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "R31"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 29.8mm from R31 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 29.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of R31 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C8",
+    "R32"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 33.6mm from R32 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 33.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C8 to within 3.0mm of R32 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U2"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 10.7mm from U2 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 10.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U2 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U2"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 11.3mm from U2 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U2 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "C6"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 6.5mm from C6 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 6.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of C6 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "C7"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 13.0mm from C7 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of C7 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "C8"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 7.0mm from C8 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 7.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of C8 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 19.4mm from U3 pin 4 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 19.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 4, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 19.8mm from U3 pin 5 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 19.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 5, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 20.2mm from U3 pin 6 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 20.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 6, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 20.9mm from U3 pin 8 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 20.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 8, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 21.3mm from U3 pin 9 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 9, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 21.7mm from U3 pin 10 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 21.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 10, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 22.1mm from U3 pin 11 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 22.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 11, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 24.1mm from U3 pin 16 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 24.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 16, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 27.0mm from U3 pin 23 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 27.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 23, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 27.4mm from U3 pin 24 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 27.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 24, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 26.5mm from U3 pin 49 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 26.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 49, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 24.8mm from U3 pin 55 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 24.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U3 pin 55, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U10"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 11.0mm from U10 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U10 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U10"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 11.9mm from U10 pin 15 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U10 pin 15, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "U10"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 10.0mm from U10 pin 17 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 10.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of U10 pin 17, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "J3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 35.6mm from J3 pin 4 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 35.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of J3 pin 4, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "J4"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 27.7mm from J4 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 27.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of J4 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "D3"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 28.2mm from D3 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 28.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of D3 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "D4"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 31.7mm from D4 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 31.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of D4 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "R30"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 25.0mm from R30 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 25.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of R30 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "R31"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 26.9mm from R31 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 26.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of R31 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C9",
+    "R32"
+   ],
+   "location": [
+    43.0,
+    32.5
+   ],
+   "explanation": "C9 is 29.8mm from R32 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 29.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C9 to within 3.0mm of R32 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "U1"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 28.5mm from U1 pin 4 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 28.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of U1 pin 4, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "L1"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 29.4mm from L1 pin 2 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 29.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of L1 pin 2, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "C4"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 24.0mm from C4 pin 1 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 24.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of C4 pin 1, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "U2"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 39.7mm from U2 pin 3 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 39.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of U2 pin 3, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "C5"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 30.2mm from C5 pin 1 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 30.2mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of C5 pin 1, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "U3"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 17.8mm from U3 pin 3 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 17.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of U3 pin 3, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "U3"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 12.8mm from U3 pin 13 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of U3 pin 13, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "U3"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 12.3mm from U3 pin 14 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 12.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of U3 pin 14, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "U3"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 11.8mm from U3 pin 15 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 11.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of U3 pin 15, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "U3"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 5.8mm from U3 pin 27 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 5.8mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of U3 pin 27, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C15",
+    "C16"
+   ],
+   "location": [
+    12.0,
+    47.0
+   ],
+   "explanation": "C15 is 6.1mm from C16 pin 1 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 6.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C15 to within 3.0mm of C16 pin 1, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "U1"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 34.5mm from U1 pin 4 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 34.5mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of U1 pin 4, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "L1"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 34.7mm from L1 pin 2 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 34.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of L1 pin 2, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "C4"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 28.6mm from C4 pin 1 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 28.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of C4 pin 1, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "U2"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 44.1mm from U2 pin 3 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 44.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of U2 pin 3, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "C5"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 34.0mm from C5 pin 1 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 34.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of C5 pin 1, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "U3"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 19.0mm from U3 pin 3 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 19.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of U3 pin 3, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "U3"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 14.4mm from U3 pin 13 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.4mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of U3 pin 13, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "U3"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 14.0mm from U3 pin 14 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 14.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of U3 pin 14, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "U3"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 13.6mm from U3 pin 15 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.6mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of U3 pin 15, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "U3"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 8.9mm from U3 pin 27 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 8.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of U3 pin 27, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C16",
+    "C15"
+   ],
+   "location": [
+    12.0,
+    53.0
+   ],
+   "explanation": "C16 is 6.1mm from C15 pin 1 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 6.1mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C16 to within 3.0mm of C15 pin 1, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "connectivity",
+   "severity": "warning",
+   "title": "Missing pull-up resistor",
+   "components": [
+    "J4",
+    "U10"
+   ],
+   "location": null,
+   "explanation": "Net 'NRST' looks like an I2C bus line or reset line, but no resistor connects it to a supply rail. I2C is open-drain and needs an external pull-up to function; an unpulled reset line can float into an indeterminate state.",
+   "fix_suggestion": "Add a pull-up resistor (typically 2.2k-10k for I2C) from NRST to the bus/logic supply rail.",
+   "learn_more_url": "docs/mistakes/pull-up-resistors.md"
+  },
+  {
+   "category": "connectivity",
+   "severity": "warning",
+   "title": "LED missing series resistor",
+   "components": [
+    "D3"
+   ],
+   "location": [
+    56.0,
+    8.0
+   ],
+   "explanation": "D3 has no confirmed series resistor in its net topology. Driving an LED without a series current-limiting resistor risks over-current damage or a shortened lifespan, since the LED's own forward resistance is not a reliable current limit.",
+   "fix_suggestion": "Add a series resistor in-line with D3, sized for the LED's rated forward current at the supply voltage in use (unless current limiting is already provided by a dedicated driver IC).",
+   "learn_more_url": "docs/mistakes/led-series-resistor.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "info",
+   "title": "Bypass capacitor placement could be improved",
+   "components": [
+    "C7",
+    "C8"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 5.0mm from C8 pin 1. Ideally, bypass capacitors should be within 3.0mm for optimal decoupling.",
+   "fix_suggestion": "Consider moving C7 closer to C8 pin 1 if space permits.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "info",
+   "title": "Bypass capacitor placement could be improved",
+   "components": [
+    "C7",
+    "U10"
+   ],
+   "location": [
+    31.0,
+    32.5
+   ],
+   "explanation": "C7 is 4.6mm from U10 pin 1. Ideally, bypass capacitors should be within 3.0mm for optimal decoupling.",
+   "fix_suggestion": "Consider moving C7 closer to U10 pin 1 if space permits.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "info",
+   "title": "Bypass capacitor placement could be improved",
+   "components": [
+    "C8",
+    "C9"
+   ],
+   "location": [
+    37.0,
+    32.5
+   ],
+   "explanation": "C8 is 5.0mm from C9 pin 1. Ideally, bypass capacitors should be within 3.0mm for optimal decoupling.",
+   "fix_suggestion": "Consider moving C8 closer to C9 pin 1 if space permits.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "thermal_management",
+   "severity": "info",
+   "title": "Thermal pad may need more vias",
+   "components": [
+    "U3"
+   ],
+   "location": [
+    24.0,
+    50.0
+   ],
+   "explanation": "U3 thermal pad has only 0 via(s) nearby. For effective heat transfer to the ground plane, 4-9 vias are typically recommended under the thermal pad.",
+   "fix_suggestion": "Add more thermal vias under U3's thermal pad. Use 0.3mm drill vias in a grid pattern. Consider via-in-pad with filling if assembly process allows.",
+   "learn_more_url": "docs/mistakes/thermal-pad-connection.md"
+  }
+ ],
+ "coverage": [
+  {
+   "check_name": "BypassCapDistanceCheck",
+   "category": "bypass_capacitor",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalTraceLengthCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalNoiseProximityCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "DifferentialPairSkewCheck",
+   "category": "differential_pair",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PowerTraceWidthCheck",
+   "category": "power_trace",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ThermalPadConnectionCheck",
+   "category": "thermal_management",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ViaInPadCheck",
+   "category": "via_placement",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "AcidTrapCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "TombstoningRiskCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "MissingDecouplingCapCheck",
+   "category": "decoupling",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PullUpResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "LedSeriesResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "BomFieldHealthCheck",
+   "category": "bom_health",
+   "status": "incomplete",
+   "reason": "no BOM-eligible component on this board defines an MPN/LCSC-style property (checked ['jlc', 'jlcpcb', 'lcsc', 'lcsc part', 'lcsc_pn', 'manufacturer_pn', 'mfr_pn', 'mpn', 'pn']); this board may not track manufacturer part numbers in footprint properties, so BOM part-number coverage cannot be assessed"
+  }
+ ],
+ "coverage_complete": false
+}

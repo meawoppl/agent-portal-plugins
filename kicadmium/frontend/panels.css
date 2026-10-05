@@ -1,0 +1,115 @@
+/* Styles for the panels owned by build_strip.rs, library.rs, gerbers.rs,
+   bom.rs and misc.rs; ported from the kicad-pcb plugin workbench. */
+.bom-table,.library-link-table{border-collapse:collapse;width:100%;font-size:13px}
+.bom-table th,.bom-table td,.library-link-table th,.library-link-table td{padding:8px;text-align:left;border-bottom:1px solid #565f89;white-space:pre-wrap;vertical-align:top}
+.bom-table th,.library-link-table th{position:sticky;top:0;background:#24283b}
+.bom-table-wrap{overflow:auto;max-height:65vh}
+.gerber-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}
+.gerber-viewer{height:70vh;min-height:420px;border:1px solid #3b4261;border-radius:8px;overflow:hidden;background:#11131d}
+.side-panel{border:1px solid #3b4261;border-radius:8px;background:#16161e;padding:10px;overflow:auto;max-height:70vh}
+.side-panel h3{font-size:13px;margin:0 0 8px;color:#e6e9f5}
+.side-panel ul{margin:0 0 14px;padding-left:18px}
+.warning{color:#e0af68}
+details.raw{margin-top:12px}
+details.raw summary{cursor:pointer;color:#7dcfff}
+@media (max-width: 860px){.gerber-layout{grid-template-columns:1fr}.side-panel{max-height:none}}
+.build-strip{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;background:#1a1b26;border-bottom:1px solid #3b4261;font-size:12px}
+.build-strip .bs-stage{position:relative}
+.build-strip .bs-stage summary{list-style:none;cursor:pointer;border:1px solid #3b4261;border-radius:999px;padding:3px 8px;background:#24283b;white-space:nowrap}
+.build-strip .bs-stage summary::-webkit-details-marker{display:none}
+.build-strip .bs-stage[open] summary{outline:1px solid #7aa2f7}
+.build-strip .bs-pop{position:absolute;z-index:5;top:26px;left:0;min-width:240px;max-width:420px;background:#1f2335;border:1px solid #3b4261;border-radius:6px;padding:8px;box-shadow:0 4px 16px #0008}
+.build-strip .bs-pop ul{margin:4px 0 0;padding-left:16px}
+.build-strip .ok summary{border-color:#9ece6a;color:#9ece6a}
+.build-strip .failed summary{border-color:#f7768e;color:#f7768e}
+.build-strip .running summary{border-color:#7aa2f7;color:#7aa2f7}
+.build-strip .queued summary,.build-strip .stale summary,.build-strip .cancelled summary{border-color:#565f89;color:#9aa5ce}
+.build-strip .stale summary{border-style:dashed}
+.build-strip .bs-badge{border-radius:4px;padding:3px 7px;font-weight:600}
+.build-strip .bs-badge.stale{background:#e0af6822;color:#e0af68;border:1px solid #e0af68}
+.build-strip .bs-badge.fresh{background:#9ece6a18;color:#9ece6a;border:1px solid #9ece6a55}
+.build-strip .bs-badge.none{color:#9aa5ce;border:1px solid #3b4261}
+.build-strip button{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:3px 9px;border-radius:6px;cursor:pointer;font-size:12px}
+.build-strip button:disabled{opacity:.5;cursor:default}
+.build-strip .bs-spacer{flex:1}
+.build-strip .bs-msg{color:#9aa5ce}
+.lib-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+.lib-toolbar input{flex:1 1 260px;min-width:180px;border:1px solid #3b4261;border-radius:6px;background:#1a1b26;color:#c0caf5;padding:8px 10px}
+.lib-toolbar select{padding:7px 10px}
+.lib-stats{color:#9aa5ce;font-size:12px}
+.lib-section-title{margin:18px 0 8px;font-size:14px;color:#e6e9f5;display:flex;gap:8px;align-items:baseline}
+.lib-section-title .muted{font-weight:normal;font-size:12px}
+.lib-collapsible{margin-top:18px}
+.lib-collapsible summary.lib-section-title{cursor:pointer;user-select:none}
+.lib-collapsible summary.lib-section-title::marker{color:#7dcfff}
+.lib-collapsible .lib-grid{margin-top:8px}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+.lib-card{border:1px solid #3b4261;border-radius:8px;background:#1a1b26;overflow:hidden;display:flex;flex-direction:column}
+.lib-card.hidden{display:none}
+.lib-trip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#292e42;border-bottom:1px solid #3b4261}
+.lib-cell{position:relative;aspect-ratio:4/3;background:#1a1b26;border:0;padding:6px;margin:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#565f89;font:inherit;font-size:11px}
+.lib-cell:hover{background:#1f2335}
+.lib-cell:disabled{cursor:default}
+.lib-cell img{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;display:block}
+.lib-cell .ph{padding:4px;text-align:center;line-height:1.3}
+.lib-cell[data-state=queued] .ph,.lib-cell[data-state=rendering] .ph{animation:libpulse 1.4s ease-in-out infinite}
+.lib-cell[data-state=failed] .ph{color:#f7768e}
+.lib-cell .lab{position:absolute;left:6px;bottom:4px;font-size:10px;color:#565f89;letter-spacing:.04em;text-transform:uppercase}
+@keyframes libpulse{50%{opacity:.35}}
+.lib-body{padding:10px 12px;display:grid;gap:4px;font-size:12px}
+.lib-title{font-size:13px;color:#e6e9f5;font-weight:600;overflow-wrap:anywhere}
+.lib-sub{color:#7dcfff;font-family:ui-monospace,monospace;overflow-wrap:anywhere}
+.lib-meta{color:#9aa5ce;overflow-wrap:anywhere}
+.lib-meta strong{color:#c0caf5;font-weight:600}
+.lib-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lib-links{display:flex;flex-wrap:wrap;gap:8px}
+.lib-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.lib-badge{border:1px solid #3b4261;border-radius:999px;padding:1px 7px;font-size:11px;background:#24283b}
+.lib-badge.error{border-color:#f7768e;color:#f7768e}
+.lib-badge.warning{border-color:#e0af68;color:#e0af68}
+.lib-badge.info{border-color:#565f89;color:#9aa5ce}
+.lib-warn{color:#e0af68;margin:4px 0}
+.lib-modal{position:fixed;inset:0;background:#0b0c12d9;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
+.lib-dialog{width:min(1100px,100%);height:min(820px,100%);background:#1a1b26;border:1px solid #3b4261;border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+.lib-dialog header{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #3b4261;background:#1f2335}
+.lib-dialog header h3{margin:0;font-size:14px;color:#e6e9f5;overflow-wrap:anywhere}
+.lib-dialog .lib-tabs{display:flex;gap:4px}
+.lib-dialog .lib-tabs button,.lib-dialog .lib-close{border:1px solid #3b4261;color:#c0caf5;background:#24283b;padding:5px 10px;border-radius:6px;cursor:pointer}
+.lib-dialog .lib-tabs button.active{background:#7aa2f7;color:#10131d;border-color:#7aa2f7}
+.lib-dialog .lib-tabs button:disabled{opacity:.4;cursor:default}
+.lib-stage{flex:1;position:relative;background:#11131d}
+.lib-stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0}
+.lib-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:24px;box-sizing:border-box}
+.lib-stage .lib-stage-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa5ce}
+.lib-dialog footer{padding:6px 12px;border-top:1px solid #3b4261;color:#9aa5ce;font-size:12px;display:flex;gap:12px;flex-wrap:wrap}
+/* PCB tab (pcb_view.rs) over the shared vector scene canvas. */
+.viewer-options{display:flex;gap:16px;flex-wrap:wrap}
+.viewer-card.rust-pcb{display:flex;flex-direction:column;gap:4px}
+.viewer-card.rust-model{display:flex;flex-direction:column}
+.modelv{position:relative;flex:1;min-height:500px;border-radius:6px;overflow:hidden;background:#11131d}
+.modelv-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.modelv-status{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;color:#9aa5ce;pointer-events:none;text-align:center}
+.pcbv{position:relative;flex:1;min-height:480px;border-radius:6px;overflow:hidden;background:#1e1e1e}
+.pcbv .vector-scene{position:absolute!important;inset:0;height:auto!important;min-height:0!important}
+.pcbv .vector-scene-canvas{width:100%;height:100%;min-height:0;border-radius:0;cursor:crosshair}
+.pcbv .vector-scene-fit{display:none}
+.pcbv-toolbar{position:absolute;top:10px;right:10px;display:flex;gap:2px;padding:4px;border:1px solid #3b4261;border-radius:6px;background:#1a1b26e6;font-family:ui-monospace,monospace}
+.pcbv-toolbar button{border:0;border-radius:4px;background:transparent;color:#c0caf5;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px}
+.pcbv-toolbar button:hover{background:#24283b}
+.pcbv-toolbar button.on{background:#7aa2f7;color:#10131d}
+.pcbv-layers{position:absolute;top:54px;right:10px;bottom:10px;width:200px;overflow:auto;padding:8px;border:1px solid #3b4261;border-radius:6px;background:#1a1b26f0;font-size:12px}
+.pcbv-presets{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.pcbv-texts{padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid #3b4261}
+.pcbv-presets button{border:1px solid #3b4261;border-radius:4px;background:#24283b;color:#c0caf5;padding:3px 7px;cursor:pointer;font-size:11px}
+.pcbv-layer{display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer;white-space:nowrap}
+.pcbv-swatch{width:12px;height:12px;border-radius:2px;flex:none;border:1px solid #0006}
+.pcbv-props{position:absolute;left:10px;bottom:10px;max-width:min(460px,calc(100% - 20px));max-height:45%;overflow:auto;padding:8px 10px;border:1px solid #3b4261;border-radius:6px;background:#1a1b26f0;font-size:12px;font-family:ui-monospace,monospace}
+.pcbv-props-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.pcbv-props-head strong{color:#9ece6a;font-size:13px}
+.pcbv-props-head button{margin-left:auto;border:0;background:transparent;color:#c0caf5;font-size:16px;cursor:pointer}
+.pcbv-net{color:#7dcfff}
+.pcbv-props dl{display:grid;grid-template-columns:max-content 1fr;gap:3px 12px;margin:0}
+.pcbv-props dt{color:#9aa5ce}
+.pcbv-props dd{margin:0;overflow-wrap:anywhere}
+.pcbv-status{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#9aa5ce}
+@media (max-width:760px){.pcbv-layers{top:auto;height:45%;width:auto;left:10px}}

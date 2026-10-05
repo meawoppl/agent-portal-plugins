@@ -1,0 +1,1537 @@
+{
+ "compare:derived_symbol_lib.kicad_sym:derived_symbol_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "AP2204K-1.5",
+  "source_pin_count": 3,
+  "target": "AP2204K-1.5",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:derived_symbol_lib.kicad_sym:different_pin_count_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "AP2204K-1.5",
+  "source_pin_count": 3,
+  "target": "AltReg:REG4PIN",
+  "target_pin_count": 4,
+  "unmatched_target": [
+   {
+    "name": "EN",
+    "number": "4",
+    "type": "Input"
+   }
+  ]
+ },
+ "compare:derived_symbol_lib.kicad_sym:replacement_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "AP2204K-1.5",
+  "source_pin_count": 3,
+  "target": "XC6206P332MR",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:derived_symbol_lib.kicad_sym:same_pin_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "AP2204K-1.5",
+  "source_pin_count": 3,
+  "target": "Regulator_Linear:SameReg",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:derived_symbol_lib.kicad_sym:shifted_pin_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "AP2204K-1.5",
+  "source_pin_count": 3,
+  "target": "Regulator_Linear:SmallReg",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:different_pin_count_lib.kicad_sym:derived_symbol_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   },
+   {
+    "confidence": 0.0,
+    "reason": "No match found",
+    "source_name": "EN",
+    "source_number": "4",
+    "target_name": null,
+    "target_number": null
+   }
+  ],
+  "match_percentage": 75.0,
+  "matched_count": 3,
+  "source": "AltReg:REG4PIN",
+  "source_pin_count": 4,
+  "target": "AP2204K-1.5",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:different_pin_count_lib.kicad_sym:different_pin_count_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "EN",
+    "source_number": "4",
+    "target_name": "EN",
+    "target_number": "4"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 4,
+  "source": "AltReg:REG4PIN",
+  "source_pin_count": 4,
+  "target": "AltReg:REG4PIN",
+  "target_pin_count": 4,
+  "unmatched_target": []
+ },
+ "compare:different_pin_count_lib.kicad_sym:replacement_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   },
+   {
+    "confidence": 0.0,
+    "reason": "No match found",
+    "source_name": "EN",
+    "source_number": "4",
+    "target_name": null,
+    "target_number": null
+   }
+  ],
+  "match_percentage": 75.0,
+  "matched_count": 3,
+  "source": "AltReg:REG4PIN",
+  "source_pin_count": 4,
+  "target": "XC6206P332MR",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:different_pin_count_lib.kicad_sym:same_pin_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   },
+   {
+    "confidence": 0.0,
+    "reason": "No match found",
+    "source_name": "EN",
+    "source_number": "4",
+    "target_name": null,
+    "target_number": null
+   }
+  ],
+  "match_percentage": 75.0,
+  "matched_count": 3,
+  "source": "AltReg:REG4PIN",
+  "source_pin_count": 4,
+  "target": "Regulator_Linear:SameReg",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:different_pin_count_lib.kicad_sym:shifted_pin_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   },
+   {
+    "confidence": 0.0,
+    "reason": "No match found",
+    "source_name": "EN",
+    "source_number": "4",
+    "target_name": null,
+    "target_number": null
+   }
+  ],
+  "match_percentage": 75.0,
+  "matched_count": 3,
+  "source": "AltReg:REG4PIN",
+  "source_pin_count": 4,
+  "target": "Regulator_Linear:SmallReg",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:replacement_lib.kicad_sym:derived_symbol_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "XC6206P332MR",
+  "source_pin_count": 3,
+  "target": "AP2204K-1.5",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:replacement_lib.kicad_sym:different_pin_count_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "XC6206P332MR",
+  "source_pin_count": 3,
+  "target": "AltReg:REG4PIN",
+  "target_pin_count": 4,
+  "unmatched_target": [
+   {
+    "name": "EN",
+    "number": "4",
+    "type": "Input"
+   }
+  ]
+ },
+ "compare:replacement_lib.kicad_sym:replacement_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "XC6206P332MR",
+  "source_pin_count": 3,
+  "target": "XC6206P332MR",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:replacement_lib.kicad_sym:same_pin_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "XC6206P332MR",
+  "source_pin_count": 3,
+  "target": "Regulator_Linear:SameReg",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:replacement_lib.kicad_sym:shifted_pin_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "XC6206P332MR",
+  "source_pin_count": 3,
+  "target": "Regulator_Linear:SmallReg",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:same_pin_lib.kicad_sym:derived_symbol_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "Regulator_Linear:SameReg",
+  "source_pin_count": 3,
+  "target": "AP2204K-1.5",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:same_pin_lib.kicad_sym:different_pin_count_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "Regulator_Linear:SameReg",
+  "source_pin_count": 3,
+  "target": "AltReg:REG4PIN",
+  "target_pin_count": 4,
+  "unmatched_target": [
+   {
+    "name": "EN",
+    "number": "4",
+    "type": "Input"
+   }
+  ]
+ },
+ "compare:same_pin_lib.kicad_sym:replacement_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "Regulator_Linear:SameReg",
+  "source_pin_count": 3,
+  "target": "XC6206P332MR",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:same_pin_lib.kicad_sym:same_pin_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "Regulator_Linear:SameReg",
+  "source_pin_count": 3,
+  "target": "Regulator_Linear:SameReg",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:same_pin_lib.kicad_sym:shifted_pin_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "Regulator_Linear:SameReg",
+  "source_pin_count": 3,
+  "target": "Regulator_Linear:SmallReg",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:shifted_pin_lib.kicad_sym:derived_symbol_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "Regulator_Linear:SmallReg",
+  "source_pin_count": 3,
+  "target": "AP2204K-1.5",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:shifted_pin_lib.kicad_sym:different_pin_count_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "Regulator_Linear:SmallReg",
+  "source_pin_count": 3,
+  "target": "AltReg:REG4PIN",
+  "target_pin_count": 4,
+  "unmatched_target": [
+   {
+    "name": "EN",
+    "number": "4",
+    "type": "Input"
+   }
+  ]
+ },
+ "compare:shifted_pin_lib.kicad_sym:replacement_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "Regulator_Linear:SmallReg",
+  "source_pin_count": 3,
+  "target": "XC6206P332MR",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:shifted_pin_lib.kicad_sym:same_pin_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "Regulator_Linear:SmallReg",
+  "source_pin_count": 3,
+  "target": "Regulator_Linear:SameReg",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "compare:shifted_pin_lib.kicad_sym:shifted_pin_lib.kicad_sym": {
+  "mappings": [
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VIN",
+    "source_number": "1",
+    "target_name": "VIN",
+    "target_number": "1"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "GND",
+    "source_number": "2",
+    "target_name": "GND",
+    "target_number": "2"
+   },
+   {
+    "confidence": 1.0,
+    "reason": "Exact name match",
+    "source_name": "VOUT",
+    "source_number": "3",
+    "target_name": "VOUT",
+    "target_number": "3"
+   }
+  ],
+  "match_percentage": 100.0,
+  "matched_count": 3,
+  "source": "Regulator_Linear:SmallReg",
+  "source_pin_count": 3,
+  "target": "Regulator_Linear:SmallReg",
+  "target_pin_count": 3,
+  "unmatched_target": []
+ },
+ "find:projects/test_project.kicad_sch:GND": {
+  "name": "GND",
+  "wires": 1
+ },
+ "find:projects/test_project.kicad_sch:VIN": {
+  "name": "VIN",
+  "wires": 1
+ },
+ "find:simple_rc.kicad_sch:GND": {
+  "name": "GND",
+  "wires": 0
+ },
+ "find:simple_rc.kicad_sch:VIN": {
+  "name": "VIN",
+  "wires": 0
+ },
+ "replace:regulator_schematic.kicad_sch:None:AltReg:REG4PIN": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 AltReg:REG4PIN",
+   "Value: AP2204K-3.3 \u2192 NEWVAL"
+  ],
+  "lib_symbol_updated": false,
+  "new_lib_id": "AltReg:REG4PIN",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"Regulator_Linear:AP2204K-3.3\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2204K-3.3\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-3.3_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54) (name \"VIN\") (number \"1\")\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54) (name \"GND\") (number \"2\")\n\t\t\t\t)\n\t\t\t\t(pin power_out line (at 5.08 2.54 180) (length 2.54) (name \"VOUT\") (number \"3\")\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(symbol\n\t\t(lib_id \"AltReg:REG4PIN\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic.kicad_sch:None:Lib:AP2112K-3.3": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 Lib:AP2112K-3.3",
+   "Value: AP2204K-3.3 \u2192 NEWVAL"
+  ],
+  "lib_symbol_updated": false,
+  "new_lib_id": "Lib:AP2112K-3.3",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"Regulator_Linear:AP2204K-3.3\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2204K-3.3\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-3.3_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54) (name \"VIN\") (number \"1\")\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54) (name \"GND\") (number \"2\")\n\t\t\t\t)\n\t\t\t\t(pin power_out line (at 5.08 2.54 180) (length 2.54) (name \"VOUT\") (number \"3\")\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(symbol\n\t\t(lib_id \"Lib:AP2112K-3.3\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic.kicad_sch:None:Lib:WIDE": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 Lib:WIDE",
+   "Value: AP2204K-3.3 \u2192 NEWVAL"
+  ],
+  "lib_symbol_updated": false,
+  "new_lib_id": "Lib:WIDE",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"Regulator_Linear:AP2204K-3.3\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2204K-3.3\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-3.3_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54) (name \"VIN\") (number \"1\")\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54) (name \"GND\") (number \"2\")\n\t\t\t\t)\n\t\t\t\t(pin power_out line (at 5.08 2.54 180) (length 2.54) (name \"VOUT\") (number \"3\")\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(symbol\n\t\t(lib_id \"Lib:WIDE\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic.kicad_sch:None:NewLib:XC6206P332MR": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 NewLib:XC6206P332MR",
+   "Value: AP2204K-3.3 \u2192 NEWVAL"
+  ],
+  "lib_symbol_updated": false,
+  "new_lib_id": "NewLib:XC6206P332MR",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"Regulator_Linear:AP2204K-3.3\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2204K-3.3\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-3.3_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54) (name \"VIN\") (number \"1\")\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54) (name \"GND\") (number \"2\")\n\t\t\t\t)\n\t\t\t\t(pin power_out line (at 5.08 2.54 180) (length 2.54) (name \"VOUT\") (number \"3\")\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(symbol\n\t\t(lib_id \"NewLib:XC6206P332MR\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic.kicad_sch:derived_symbol_lib.kicad_sym:AltReg:REG4PIN": {
+  "error": "ValueError",
+  "message": "Symbol 'AltReg:REG4PIN' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/derived_symbol_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:derived_symbol_lib.kicad_sym:Lib:AP2112K-3.3": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 Lib:AP2112K-3.3",
+   "Value: AP2204K-3.3 \u2192 NEWVAL",
+   "lib_symbols: embedded base symbol 'AP2204K-1.5'",
+   "lib_symbols: replaced embedded definition for Regulator_Linear:AP2204K-3.3"
+  ],
+  "lib_symbol_updated": true,
+  "new_lib_id": "Lib:AP2112K-3.3",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"AP2204K-1.5\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2204K-1.5\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-1.5_0_1\"\n\t\t\t\t(rectangle (start -5.08 5.08) (end 5.08 -5.08)\n\t\t\t\t\t(stroke\n\t\t\t\t\t\t(width 0)\n\t\t\t\t\t\t(type default)\n\t\t\t\t\t)\n\t\t\t\t\t(fill (type background)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-1.5_1_1\"\n\t\t\t\t(pin power_in line (at -7.62 2.54 0) (length 2.54)\n\t\t\t\t\t(name \"VIN\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"1\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -7.62 90) (length 2.54)\n\t\t\t\t\t(name \"GND\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"2\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin power_out line (at 7.62 2.54 180) (length 2.54)\n\t\t\t\t\t(name \"VOUT\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"3\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(symbol \"Lib:AP2112K-3.3\"\n\t\t\t(extends \"AP2204K-1.5\")\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2112K-3.3\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(symbol\n\t\t(lib_id \"Lib:AP2112K-3.3\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic.kicad_sch:derived_symbol_lib.kicad_sym:Lib:WIDE": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:WIDE' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/derived_symbol_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:derived_symbol_lib.kicad_sym:NewLib:XC6206P332MR": {
+  "error": "ValueError",
+  "message": "Symbol 'NewLib:XC6206P332MR' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/derived_symbol_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:different_pin_count_lib.kicad_sym:AltReg:REG4PIN": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 AltReg:REG4PIN",
+   "Value: AP2204K-3.3 \u2192 NEWVAL",
+   "lib_symbols: replaced embedded definition for Regulator_Linear:AP2204K-3.3",
+   "Added instance pin 4 (new in replacement symbol)"
+  ],
+  "lib_symbol_updated": true,
+  "new_lib_id": "AltReg:REG4PIN",
+  "new_pin_count": 4,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [
+   {
+    "new_type": "output",
+    "old_type": "power_out",
+    "pin_name": "VOUT",
+    "pin_number": "3"
+   }
+  ],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"AltReg:REG4PIN\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"REG4PIN\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"REG4PIN_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54)\n\t\t\t\t\t(name \"VIN\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"1\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54)\n\t\t\t\t\t(name \"GND\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"2\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin output line (at 5.08 2.54 180) (length 2.54)\n\t\t\t\t\t(name \"VOUT\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"3\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin input line (at -5.08 -2.54 0) (length 2.54)\n\t\t\t\t\t(name \"EN\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"4\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(symbol\n\t\t(lib_id \"AltReg:REG4PIN\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(pin 4 (uuid \"c637d295-9406-47c4-8f9f-8c7a015b63ab\")\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic.kicad_sch:different_pin_count_lib.kicad_sym:Lib:AP2112K-3.3": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:AP2112K-3.3' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/different_pin_count_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:different_pin_count_lib.kicad_sym:Lib:WIDE": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:WIDE' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/different_pin_count_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:different_pin_count_lib.kicad_sym:NewLib:XC6206P332MR": {
+  "error": "ValueError",
+  "message": "Symbol 'NewLib:XC6206P332MR' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/different_pin_count_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:replacement_lib.kicad_sym:AltReg:REG4PIN": {
+  "error": "ValueError",
+  "message": "Symbol 'AltReg:REG4PIN' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/replacement_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:replacement_lib.kicad_sym:Lib:AP2112K-3.3": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:AP2112K-3.3' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/replacement_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:replacement_lib.kicad_sym:Lib:WIDE": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:WIDE' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/replacement_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:replacement_lib.kicad_sym:NewLib:XC6206P332MR": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 NewLib:XC6206P332MR",
+   "Value: AP2204K-3.3 \u2192 NEWVAL",
+   "lib_symbols: replaced embedded definition for Regulator_Linear:AP2204K-3.3"
+  ],
+  "lib_symbol_updated": true,
+  "new_lib_id": "NewLib:XC6206P332MR",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [
+   {
+    "new_type": "output",
+    "old_type": "power_out",
+    "pin_name": "VOUT",
+    "pin_number": "3"
+   }
+  ],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"NewLib:XC6206P332MR\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"XC6206P332MR\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"XC6206P332MR_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54)\n\t\t\t\t\t(name \"VIN\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"1\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54)\n\t\t\t\t\t(name \"GND\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"2\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin output line (at 5.08 2.54 180) (length 2.54)\n\t\t\t\t\t(name \"VOUT\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"3\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(symbol\n\t\t(lib_id \"NewLib:XC6206P332MR\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic.kicad_sch:same_pin_lib.kicad_sym:AltReg:REG4PIN": {
+  "error": "ValueError",
+  "message": "Symbol 'AltReg:REG4PIN' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/same_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:same_pin_lib.kicad_sym:Lib:AP2112K-3.3": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:AP2112K-3.3' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/same_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:same_pin_lib.kicad_sym:Lib:WIDE": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:WIDE' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/same_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:same_pin_lib.kicad_sym:NewLib:XC6206P332MR": {
+  "error": "ValueError",
+  "message": "Symbol 'NewLib:XC6206P332MR' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/same_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:shifted_pin_lib.kicad_sym:AltReg:REG4PIN": {
+  "error": "ValueError",
+  "message": "Symbol 'AltReg:REG4PIN' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/shifted_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:shifted_pin_lib.kicad_sym:Lib:AP2112K-3.3": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:AP2112K-3.3' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/shifted_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:shifted_pin_lib.kicad_sym:Lib:WIDE": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:WIDE' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/shifted_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic.kicad_sch:shifted_pin_lib.kicad_sym:NewLib:XC6206P332MR": {
+  "error": "ValueError",
+  "message": "Symbol 'NewLib:XC6206P332MR' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/shifted_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:None:AltReg:REG4PIN": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 AltReg:REG4PIN",
+   "Value: AP2204K-3.3 \u2192 NEWVAL"
+  ],
+  "lib_symbol_updated": false,
+  "new_lib_id": "AltReg:REG4PIN",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"Regulator_Linear:AP2204K-3.3\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2204K-3.3\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-3.3_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54) (name \"VIN\") (number \"1\")\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54) (name \"GND\") (number \"2\")\n\t\t\t\t)\n\t\t\t\t(pin power_out line (at 5.08 2.54 180) (length 2.54) (name \"VOUT\") (number \"3\")\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(wire\n\t\t(pts (xy 100 97.46) (xy 114.92 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000020\")\n\t)\n\t(wire\n\t\t(pts (xy 120 105.08) (xy 120 115))\n\t\t(uuid \"00000000-0000-0000-0000-000000000021\")\n\t)\n\t(wire\n\t\t(pts (xy 125.08 97.46) (xy 140 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000022\")\n\t)\n\t(symbol\n\t\t(lib_id \"AltReg:REG4PIN\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:None:Lib:AP2112K-3.3": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 Lib:AP2112K-3.3",
+   "Value: AP2204K-3.3 \u2192 NEWVAL"
+  ],
+  "lib_symbol_updated": false,
+  "new_lib_id": "Lib:AP2112K-3.3",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"Regulator_Linear:AP2204K-3.3\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2204K-3.3\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-3.3_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54) (name \"VIN\") (number \"1\")\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54) (name \"GND\") (number \"2\")\n\t\t\t\t)\n\t\t\t\t(pin power_out line (at 5.08 2.54 180) (length 2.54) (name \"VOUT\") (number \"3\")\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(wire\n\t\t(pts (xy 100 97.46) (xy 114.92 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000020\")\n\t)\n\t(wire\n\t\t(pts (xy 120 105.08) (xy 120 115))\n\t\t(uuid \"00000000-0000-0000-0000-000000000021\")\n\t)\n\t(wire\n\t\t(pts (xy 125.08 97.46) (xy 140 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000022\")\n\t)\n\t(symbol\n\t\t(lib_id \"Lib:AP2112K-3.3\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:None:Lib:WIDE": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 Lib:WIDE",
+   "Value: AP2204K-3.3 \u2192 NEWVAL"
+  ],
+  "lib_symbol_updated": false,
+  "new_lib_id": "Lib:WIDE",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"Regulator_Linear:AP2204K-3.3\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2204K-3.3\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-3.3_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54) (name \"VIN\") (number \"1\")\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54) (name \"GND\") (number \"2\")\n\t\t\t\t)\n\t\t\t\t(pin power_out line (at 5.08 2.54 180) (length 2.54) (name \"VOUT\") (number \"3\")\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(wire\n\t\t(pts (xy 100 97.46) (xy 114.92 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000020\")\n\t)\n\t(wire\n\t\t(pts (xy 120 105.08) (xy 120 115))\n\t\t(uuid \"00000000-0000-0000-0000-000000000021\")\n\t)\n\t(wire\n\t\t(pts (xy 125.08 97.46) (xy 140 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000022\")\n\t)\n\t(symbol\n\t\t(lib_id \"Lib:WIDE\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:None:NewLib:XC6206P332MR": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 NewLib:XC6206P332MR",
+   "Value: AP2204K-3.3 \u2192 NEWVAL"
+  ],
+  "lib_symbol_updated": false,
+  "new_lib_id": "NewLib:XC6206P332MR",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"Regulator_Linear:AP2204K-3.3\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2204K-3.3\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-3.3_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54) (name \"VIN\") (number \"1\")\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54) (name \"GND\") (number \"2\")\n\t\t\t\t)\n\t\t\t\t(pin power_out line (at 5.08 2.54 180) (length 2.54) (name \"VOUT\") (number \"3\")\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(wire\n\t\t(pts (xy 100 97.46) (xy 114.92 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000020\")\n\t)\n\t(wire\n\t\t(pts (xy 120 105.08) (xy 120 115))\n\t\t(uuid \"00000000-0000-0000-0000-000000000021\")\n\t)\n\t(wire\n\t\t(pts (xy 125.08 97.46) (xy 140 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000022\")\n\t)\n\t(symbol\n\t\t(lib_id \"NewLib:XC6206P332MR\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:derived_symbol_lib.kicad_sym:AltReg:REG4PIN": {
+  "error": "ValueError",
+  "message": "Symbol 'AltReg:REG4PIN' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/derived_symbol_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:derived_symbol_lib.kicad_sym:Lib:AP2112K-3.3": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 Lib:AP2112K-3.3",
+   "Value: AP2204K-3.3 \u2192 NEWVAL",
+   "lib_symbols: embedded base symbol 'AP2204K-1.5'",
+   "lib_symbols: replaced embedded definition for Regulator_Linear:AP2204K-3.3",
+   "Adjusted 3 wire endpoint(s) to match new pin positions"
+  ],
+  "lib_symbol_updated": true,
+  "new_lib_id": "Lib:AP2112K-3.3",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"AP2204K-1.5\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2204K-1.5\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-1.5_0_1\"\n\t\t\t\t(rectangle (start -5.08 5.08) (end 5.08 -5.08)\n\t\t\t\t\t(stroke\n\t\t\t\t\t\t(width 0)\n\t\t\t\t\t\t(type default)\n\t\t\t\t\t)\n\t\t\t\t\t(fill (type background)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"AP2204K-1.5_1_1\"\n\t\t\t\t(pin power_in line (at -7.62 2.54 0) (length 2.54)\n\t\t\t\t\t(name \"VIN\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"1\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -7.62 90) (length 2.54)\n\t\t\t\t\t(name \"GND\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"2\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin power_out line (at 7.62 2.54 180) (length 2.54)\n\t\t\t\t\t(name \"VOUT\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"3\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(symbol \"Lib:AP2112K-3.3\"\n\t\t\t(extends \"AP2204K-1.5\")\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"AP2112K-3.3\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(wire\n\t\t(pts (xy 100 97.46) (xy 112.38 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000020\")\n\t)\n\t(wire\n\t\t(pts (xy 120 107.62) (xy 120 115))\n\t\t(uuid \"00000000-0000-0000-0000-000000000021\")\n\t)\n\t(wire\n\t\t(pts (xy 127.62 97.46) (xy 140 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000022\")\n\t)\n\t(symbol\n\t\t(lib_id \"Lib:AP2112K-3.3\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 3
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:derived_symbol_lib.kicad_sym:Lib:WIDE": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:WIDE' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/derived_symbol_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:derived_symbol_lib.kicad_sym:NewLib:XC6206P332MR": {
+  "error": "ValueError",
+  "message": "Symbol 'NewLib:XC6206P332MR' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/derived_symbol_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:different_pin_count_lib.kicad_sym:AltReg:REG4PIN": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 AltReg:REG4PIN",
+   "Value: AP2204K-3.3 \u2192 NEWVAL",
+   "lib_symbols: replaced embedded definition for Regulator_Linear:AP2204K-3.3",
+   "Added instance pin 4 (new in replacement symbol)"
+  ],
+  "lib_symbol_updated": true,
+  "new_lib_id": "AltReg:REG4PIN",
+  "new_pin_count": 4,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [
+   {
+    "new_type": "output",
+    "old_type": "power_out",
+    "pin_name": "VOUT",
+    "pin_number": "3"
+   }
+  ],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"AltReg:REG4PIN\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"REG4PIN\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"REG4PIN_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54)\n\t\t\t\t\t(name \"VIN\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"1\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54)\n\t\t\t\t\t(name \"GND\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"2\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin output line (at 5.08 2.54 180) (length 2.54)\n\t\t\t\t\t(name \"VOUT\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"3\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin input line (at -5.08 -2.54 0) (length 2.54)\n\t\t\t\t\t(name \"EN\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"4\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(wire\n\t\t(pts (xy 100 97.46) (xy 114.92 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000020\")\n\t)\n\t(wire\n\t\t(pts (xy 120 105.08) (xy 120 115))\n\t\t(uuid \"00000000-0000-0000-0000-000000000021\")\n\t)\n\t(wire\n\t\t(pts (xy 125.08 97.46) (xy 140 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000022\")\n\t)\n\t(symbol\n\t\t(lib_id \"AltReg:REG4PIN\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(pin 4 (uuid \"e3ca8576-2764-41ee-88bd-e0b12bddf011\")\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:different_pin_count_lib.kicad_sym:Lib:AP2112K-3.3": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:AP2112K-3.3' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/different_pin_count_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:different_pin_count_lib.kicad_sym:Lib:WIDE": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:WIDE' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/different_pin_count_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:different_pin_count_lib.kicad_sym:NewLib:XC6206P332MR": {
+  "error": "ValueError",
+  "message": "Symbol 'NewLib:XC6206P332MR' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/different_pin_count_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:replacement_lib.kicad_sym:AltReg:REG4PIN": {
+  "error": "ValueError",
+  "message": "Symbol 'AltReg:REG4PIN' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/replacement_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:replacement_lib.kicad_sym:Lib:AP2112K-3.3": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:AP2112K-3.3' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/replacement_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:replacement_lib.kicad_sym:Lib:WIDE": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:WIDE' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/replacement_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:replacement_lib.kicad_sym:NewLib:XC6206P332MR": {
+  "changes_made": [
+   "lib_id: Regulator_Linear:AP2204K-3.3 \u2192 NewLib:XC6206P332MR",
+   "Value: AP2204K-3.3 \u2192 NEWVAL",
+   "lib_symbols: replaced embedded definition for Regulator_Linear:AP2204K-3.3"
+  ],
+  "lib_symbol_updated": true,
+  "new_lib_id": "NewLib:XC6206P332MR",
+  "new_pin_count": 3,
+  "old_lib_id": "Regulator_Linear:AP2204K-3.3",
+  "old_pin_count": 3,
+  "pin_type_changes": [
+   {
+    "new_type": "output",
+    "old_type": "power_out",
+    "pin_name": "VOUT",
+    "pin_number": "3"
+   }
+  ],
+  "preserved_properties": [
+   "Reference",
+   "Footprint"
+  ],
+  "reference": "U1",
+  "text": "(kicad_sch\n\t(version 20231120)\n\t(generator \"test\")\n\t(generator_version \"8.0\")\n\t(uuid \"00000000-0000-0000-0000-000000000001\")\n\t(paper \"A4\")\n\t(lib_symbols\n\t\t(symbol \"NewLib:XC6206P332MR\"\n\t\t\t(property \"Reference\" \"U\"\n\t\t\t\t(at 0 0 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(property \"Value\" \"XC6206P332MR\"\n\t\t\t\t(at 0 2.54 0)\n\t\t\t\t(effects\n\t\t\t\t\t(font\n\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t\t(symbol \"XC6206P332MR_1_1\"\n\t\t\t\t(pin power_in line (at -5.08 2.54 0) (length 2.54)\n\t\t\t\t\t(name \"VIN\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"1\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin power_in line (at 0 -5.08 90) (length 2.54)\n\t\t\t\t\t(name \"GND\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"2\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t(pin output line (at 5.08 2.54 180) (length 2.54)\n\t\t\t\t\t(name \"VOUT\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t\t(number \"3\"\n\t\t\t\t\t\t(effects\n\t\t\t\t\t\t\t(font\n\t\t\t\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n\t(wire\n\t\t(pts (xy 100 97.46) (xy 114.92 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000020\")\n\t)\n\t(wire\n\t\t(pts (xy 120 105.08) (xy 120 115))\n\t\t(uuid \"00000000-0000-0000-0000-000000000021\")\n\t)\n\t(wire\n\t\t(pts (xy 125.08 97.46) (xy 140 97.46))\n\t\t(uuid \"00000000-0000-0000-0000-000000000022\")\n\t)\n\t(symbol\n\t\t(lib_id \"NewLib:XC6206P332MR\")\n\t\t(at 120 100 0)\n\t\t(uuid \"00000000-0000-0000-0000-000000000010\")\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 120 90 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"NEWVAL\"\n\t\t\t(at 120 110 0)\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Footprint\" \"Package_TO_SOT_SMD:SOT-23-5\"\n\t\t\t(at 120 100 0)\n\t\t\t(effects\n\t\t\t\t(hide yes)\n\t\t\t)\n\t\t)\n\t\t(pin \"1\" (uuid \"00000000-0000-0000-0000-000000000011\")\n\t\t)\n\t\t(pin \"2\" (uuid \"00000000-0000-0000-0000-000000000012\")\n\t\t)\n\t\t(pin \"3\" (uuid \"00000000-0000-0000-0000-000000000013\")\n\t\t)\n\t\t(instances\n\t\t\t(project \"test\"\n\t\t\t\t(path \"/00000000-0000-0000-0000-000000000001\" (reference \"U1\") (unit 1)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)",
+  "wires_adjusted": 0
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:same_pin_lib.kicad_sym:AltReg:REG4PIN": {
+  "error": "ValueError",
+  "message": "Symbol 'AltReg:REG4PIN' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/same_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:same_pin_lib.kicad_sym:Lib:AP2112K-3.3": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:AP2112K-3.3' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/same_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:same_pin_lib.kicad_sym:Lib:WIDE": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:WIDE' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/same_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:same_pin_lib.kicad_sym:NewLib:XC6206P332MR": {
+  "error": "ValueError",
+  "message": "Symbol 'NewLib:XC6206P332MR' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/same_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:shifted_pin_lib.kicad_sym:AltReg:REG4PIN": {
+  "error": "ValueError",
+  "message": "Symbol 'AltReg:REG4PIN' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/shifted_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:shifted_pin_lib.kicad_sym:Lib:AP2112K-3.3": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:AP2112K-3.3' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/shifted_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:shifted_pin_lib.kicad_sym:Lib:WIDE": {
+  "error": "ValueError",
+  "message": "Symbol 'Lib:WIDE' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/shifted_pin_lib.kicad_sym'"
+ },
+ "replace:regulator_schematic_with_wires.kicad_sch:shifted_pin_lib.kicad_sym:NewLib:XC6206P332MR": {
+  "error": "ValueError",
+  "message": "Symbol 'NewLib:XC6206P332MR' not found in library '/home/meawoppl/repos/kicadmium/.claude/worktrees/agent-ab68057dc2afcfd12/kct/tests/fixtures/operations/shifted_pin_lib.kicad_sym'"
+ },
+ "trace:projects/hierarchical_main.kicad_sch": [
+  {
+   "connections": [],
+   "has_label": false,
+   "name": "Net_FB9D",
+   "pins": 0,
+   "wires": 1
+  },
+  {
+   "connections": [],
+   "has_label": false,
+   "name": "Net_1247",
+   "pins": 0,
+   "wires": 1
+  },
+  {
+   "connections": [
+    [
+     "junction",
+     "",
+     100.0,
+     45.0
+    ]
+   ],
+   "has_label": false,
+   "name": "Net_C9E7",
+   "pins": 0,
+   "wires": 1
+  },
+  {
+   "connections": [
+    [
+     "junction",
+     "",
+     100.0,
+     55.0
+    ]
+   ],
+   "has_label": false,
+   "name": "Net_4CB4",
+   "pins": 0,
+   "wires": 1
+  },
+  {
+   "connections": [],
+   "has_label": false,
+   "name": "Net_9C86",
+   "pins": 0,
+   "wires": 1
+  }
+ ],
+ "trace:projects/test_project.kicad_sch": [
+  {
+   "connections": [
+    [
+     "label",
+     "VIN",
+     100.0,
+     40.0
+    ]
+   ],
+   "has_label": true,
+   "name": "VIN",
+   "pins": 0,
+   "wires": 1
+  },
+  {
+   "connections": [
+    [
+     "label",
+     "GND",
+     100.0,
+     60.0
+    ]
+   ],
+   "has_label": true,
+   "name": "GND",
+   "pins": 0,
+   "wires": 1
+  }
+ ],
+ "trace:simple_rc.kicad_sch": [
+  {
+   "connections": [
+    [
+     "junction",
+     "",
+     100.0,
+     40.0
+    ]
+   ],
+   "has_label": false,
+   "name": "Net_8D31",
+   "pins": 0,
+   "wires": 3
+  },
+  {
+   "connections": [
+    [
+     "junction",
+     "",
+     100.0,
+     60.0
+    ]
+   ],
+   "has_label": false,
+   "name": "Net_AEEB",
+   "pins": 0,
+   "wires": 3
+  },
+  {
+   "connections": [
+    [
+     "label",
+     "VIN",
+     110.0,
+     40.0
+    ]
+   ],
+   "has_label": true,
+   "name": "VIN",
+   "pins": 0,
+   "wires": 0
+  },
+  {
+   "connections": [
+    [
+     "label",
+     "GND",
+     110.0,
+     60.0
+    ]
+   ],
+   "has_label": true,
+   "name": "GND",
+   "pins": 0,
+   "wires": 0
+  }
+ ]
+}

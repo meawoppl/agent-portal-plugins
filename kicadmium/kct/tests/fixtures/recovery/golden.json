@@ -1,0 +1,5638 @@
+{
+ "apply:mirror_front": {
+  "safe": true,
+  "success": true,
+  "moved": [
+   "U1"
+  ],
+  "message": "Mirrored U1 (layer F.Cu -> B.Cu, left/right flip)",
+  "text": "(kicad_pcb\n\t(version 20260206)\n\t(generator \"pcbnew\")\n\t(generator_version \"10.0\")\n\t(general\n\t\t(thickness 1.6)\n\t\t(legacy_teardrops no)\n\t)\n\t(paper \"A4\")\n\t(layers\n\t\t(0 \"F.Cu\" signal)\n\t\t(2 \"B.Cu\" signal)\n\t\t(9 \"F.Adhes\" user \"F.Adhesive\")\n\t\t(11 \"B.Adhes\" user \"B.Adhesive\")\n\t\t(13 \"F.Paste\" user)\n\t\t(15 \"B.Paste\" user)\n\t\t(5 \"F.SilkS\" user \"F.Silkscreen\")\n\t\t(7 \"B.SilkS\" user \"B.Silkscreen\")\n\t\t(1 \"F.Mask\" user)\n\t\t(3 \"B.Mask\" user)\n\t\t(17 \"Dwgs.User\" user \"User.Drawings\")\n\t\t(19 \"Cmts.User\" user \"User.Comments\")\n\t\t(21 \"Eco1.User\" user \"User.Eco1\")\n\t\t(23 \"Eco2.User\" user \"User.Eco2\")\n\t\t(25 \"Edge.Cuts\" user)\n\t\t(27 \"Margin\" user)\n\t\t(31 \"F.CrtYd\" user \"F.Courtyard\")\n\t\t(29 \"B.CrtYd\" user \"B.Courtyard\")\n\t\t(35 \"F.Fab\" user)\n\t\t(33 \"B.Fab\" user)\n\t\t(39 \"User.1\" user)\n\t\t(41 \"User.2\" user)\n\t\t(43 \"User.3\" user)\n\t\t(45 \"User.4\" user)\n\t)\n\t(setup\n\t\t(pad_to_mask_clearance 0)\n\t\t(allow_soldermask_bridges_in_footprints no)\n\t\t(tenting (front yes) (back yes)\n\t\t)\n\t\t(covering (front no) (back no)\n\t\t)\n\t\t(plugging (front no) (back no)\n\t\t)\n\t\t(capping no)\n\t\t(filling no)\n\t\t(pcbplotparams\n\t\t\t(layerselection 0x00000000_00000000_55555555_5755f5ff)\n\t\t\t(plot_on_all_layers_selection 0x00000000_00000000_00000000_00000000)\n\t\t\t(disableapertmacros no)\n\t\t\t(usegerberextensions no)\n\t\t\t(usegerberattributes yes)\n\t\t\t(usegerberadvancedattributes yes)\n\t\t\t(creategerberjobfile yes)\n\t\t\t(dashed_line_dash_ratio 12)\n\t\t\t(dashed_line_gap_ratio 3)\n\t\t\t(svgprecision 4)\n\t\t\t(plotframeref no)\n\t\t\t(mode 1)\n\t\t\t(useauxorigin no)\n\t\t\t(pdf_front_fp_property_popups yes)\n\t\t\t(pdf_back_fp_property_popups yes)\n\t\t\t(pdf_metadata yes)\n\t\t\t(pdf_single_document no)\n\t\t\t(dxfpolygonmode yes)\n\t\t\t(dxfimperialunits yes)\n\t\t\t(dxfusepcbnewfont yes)\n\t\t\t(psnegative no)\n\t\t\t(psa4output no)\n\t\t\t(plot_black_and_white yes)\n\t\t\t(sketchpadsonfab no)\n\t\t\t(plotpadnumbers no)\n\t\t\t(hidednponfab no)\n\t\t\t(sketchdnponfab yes)\n\t\t\t(crossoutdnponfab yes)\n\t\t\t(subtractmaskfromsilk no)\n\t\t\t(outputformat 1)\n\t\t\t(mirror no)\n\t\t\t(drillshape 1)\n\t\t\t(scaleselection 1)\n\t\t\t(outputdirectory \"\")\n\t\t)\n\t)\n\t(footprint \"\"\n\t\t(layer \"B.Cu\")\n\t\t(uuid \"e67d0893-09a5-4d60-a955-02b8a4847e18\")\n\t\t(at 100 100 150)\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 0 0 150)\n\t\t\t(layer \"B.SilkS\")\n\t\t\t(uuid \"1d481b9d-e8cf-47e7-a934-98e97dac575b\")\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t\t(justify mirror)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"MIRROR_GOLDEN\"\n\t\t\t(at 0 0 150)\n\t\t\t(layer \"B.Fab\")\n\t\t\t(uuid \"409b9246-7e14-466a-94bc-2c5f8beb9f26\")\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t\t(justify mirror)\n\t\t\t)\n\t\t)\n\t\t(property \"Datasheet\" \"\"\n\t\t\t(at 0 0 150)\n\t\t\t(layer \"B.Fab\")\n\t\t\t(hide yes)\n\t\t\t(uuid \"d0089647-6fd3-468f-a30e-c5e8b8e3ef30\")\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t\t(justify mirror)\n\t\t\t)\n\t\t)\n\t\t(property \"Description\" \"\"\n\t\t\t(at 0 0 150)\n\t\t\t(layer \"B.Fab\")\n\t\t\t(hide yes)\n\t\t\t(uuid \"a90790ed-cfc1-4466-ae6f-87360e1dee6a\")\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t\t(justify mirror)\n\t\t\t)\n\t\t)\n\t\t(duplicate_pad_numbers_are_jumpers no)\n\t\t(fp_line\n\t\t\t(start -2.6 1.6)\n\t\t\t(end -2 1.6)\n\t\t\t(stroke\n\t\t\t\t(width 0.12)\n\t\t\t\t(type default)\n\t\t\t)\n\t\t\t(layer \"B.SilkS\")\n\t\t\t(uuid \"449e1909-4688-4919-a94d-0fcdefa51716\")\n\t\t)\n\t\t(pad \"1\" smd roundrect\n\t\t\t(at -1.6 1 150)\n\t\t\t(size 1.2 0.6)\n\t\t\t(layers \"B.Cu\" \"B.Mask\" \"B.Paste\")\n\t\t\t(roundrect_rratio 0.25)\n\t\t\t(thermal_bridge_angle 45)\n\t\t\t(uuid \"9610e48f-2cb3-4f23-a18b-2c2f8dfc6d48\")\n\t\t)\n\t\t(pad \"2\" smd roundrect\n\t\t\t(at -1.6 -0.999999 105)\n\t\t\t(size 1.2 0.6)\n\t\t\t(layers \"B.Cu\" \"B.Mask\" \"B.Paste\")\n\t\t\t(roundrect_rratio 0.25)\n\t\t\t(thermal_bridge_angle 45)\n\t\t\t(uuid \"2a4136b6-7e3b-480a-af60-2cceabd8c3d0\")\n\t\t)\n\t\t(pad \"3\" smd rect\n\t\t\t(at 0.4 0 130)\n\t\t\t(size 1 0.5)\n\t\t\t(layers \"B.Cu\" \"B.Mask\" \"B.Paste\")\n\t\t\t(thermal_bridge_angle 45)\n\t\t\t(uuid \"98599d95-6b82-40e9-82ad-652675a400fd\")\n\t\t)\n\t\t(pad \"4\" thru_hole circle\n\t\t\t(at 2 0.8 150)\n\t\t\t(size 1.1 1.1)\n\t\t\t(drill 0.6)\n\t\t\t(layers \"*.Cu\" \"*.Mask\")\n\t\t\t(remove_unused_layers no)\n\t\t\t(uuid \"94607851-a98f-4e18-9df0-8d06fb4afa8b\")\n\t\t)\n\t\t(embedded_fonts no)\n\t)\n\t(gr_rect\n\t\t(start 90 90)\n\t\t(end 110 110)\n\t\t(stroke\n\t\t\t(width 0.1)\n\t\t\t(type default)\n\t\t)\n\t\t(fill no)\n\t\t(layer \"Edge.Cuts\")\n\t\t(uuid \"152e74ae-3391-4d38-a205-c02c7b674de8\")\n\t)\n\t(embedded_fonts no)\n)"
+ },
+ "apply:rotate_front": {
+  "safe": true,
+  "success": true,
+  "moved": [
+   "U1"
+  ],
+  "message": "Rotated U1 by 90.0 deg (30.0 -> 120.0)",
+  "text": "(kicad_pcb\n\t(version 20260206)\n\t(generator \"pcbnew\")\n\t(generator_version \"10.0\")\n\t(general\n\t\t(thickness 1.6)\n\t\t(legacy_teardrops no)\n\t)\n\t(paper \"A4\")\n\t(layers\n\t\t(0 \"F.Cu\" signal)\n\t\t(2 \"B.Cu\" signal)\n\t\t(9 \"F.Adhes\" user \"F.Adhesive\")\n\t\t(11 \"B.Adhes\" user \"B.Adhesive\")\n\t\t(13 \"F.Paste\" user)\n\t\t(15 \"B.Paste\" user)\n\t\t(5 \"F.SilkS\" user \"F.Silkscreen\")\n\t\t(7 \"B.SilkS\" user \"B.Silkscreen\")\n\t\t(1 \"F.Mask\" user)\n\t\t(3 \"B.Mask\" user)\n\t\t(17 \"Dwgs.User\" user \"User.Drawings\")\n\t\t(19 \"Cmts.User\" user \"User.Comments\")\n\t\t(21 \"Eco1.User\" user \"User.Eco1\")\n\t\t(23 \"Eco2.User\" user \"User.Eco2\")\n\t\t(25 \"Edge.Cuts\" user)\n\t\t(27 \"Margin\" user)\n\t\t(31 \"F.CrtYd\" user \"F.Courtyard\")\n\t\t(29 \"B.CrtYd\" user \"B.Courtyard\")\n\t\t(35 \"F.Fab\" user)\n\t\t(33 \"B.Fab\" user)\n\t\t(39 \"User.1\" user)\n\t\t(41 \"User.2\" user)\n\t\t(43 \"User.3\" user)\n\t\t(45 \"User.4\" user)\n\t)\n\t(setup\n\t\t(pad_to_mask_clearance 0)\n\t\t(allow_soldermask_bridges_in_footprints no)\n\t\t(tenting (front yes) (back yes)\n\t\t)\n\t\t(covering (front no) (back no)\n\t\t)\n\t\t(plugging (front no) (back no)\n\t\t)\n\t\t(capping no)\n\t\t(filling no)\n\t\t(pcbplotparams\n\t\t\t(layerselection 0x00000000_00000000_55555555_5755f5ff)\n\t\t\t(plot_on_all_layers_selection 0x00000000_00000000_00000000_00000000)\n\t\t\t(disableapertmacros no)\n\t\t\t(usegerberextensions no)\n\t\t\t(usegerberattributes yes)\n\t\t\t(usegerberadvancedattributes yes)\n\t\t\t(creategerberjobfile yes)\n\t\t\t(dashed_line_dash_ratio 12)\n\t\t\t(dashed_line_gap_ratio 3)\n\t\t\t(svgprecision 4)\n\t\t\t(plotframeref no)\n\t\t\t(mode 1)\n\t\t\t(useauxorigin no)\n\t\t\t(pdf_front_fp_property_popups yes)\n\t\t\t(pdf_back_fp_property_popups yes)\n\t\t\t(pdf_metadata yes)\n\t\t\t(pdf_single_document no)\n\t\t\t(dxfpolygonmode yes)\n\t\t\t(dxfimperialunits yes)\n\t\t\t(dxfusepcbnewfont yes)\n\t\t\t(psnegative no)\n\t\t\t(psa4output no)\n\t\t\t(plot_black_and_white yes)\n\t\t\t(sketchpadsonfab no)\n\t\t\t(plotpadnumbers no)\n\t\t\t(hidednponfab no)\n\t\t\t(sketchdnponfab yes)\n\t\t\t(crossoutdnponfab yes)\n\t\t\t(subtractmaskfromsilk no)\n\t\t\t(outputformat 1)\n\t\t\t(mirror no)\n\t\t\t(drillshape 1)\n\t\t\t(scaleselection 1)\n\t\t\t(outputdirectory \"\")\n\t\t)\n\t)\n\t(footprint \"\"\n\t\t(layer \"F.Cu\")\n\t\t(uuid \"e67d0893-09a5-4d60-a955-02b8a4847e18\")\n\t\t(at 100 100 120)\n\t\t(property \"Reference\" \"U1\"\n\t\t\t(at 0 0 30)\n\t\t\t(layer \"F.SilkS\")\n\t\t\t(uuid \"1d481b9d-e8cf-47e7-a934-98e97dac575b\")\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Value\" \"MIRROR_GOLDEN\"\n\t\t\t(at 0 0 30)\n\t\t\t(layer \"F.Fab\")\n\t\t\t(uuid \"409b9246-7e14-466a-94bc-2c5f8beb9f26\")\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Datasheet\" \"\"\n\t\t\t(at 0 0 30)\n\t\t\t(layer \"F.Fab\")\n\t\t\t(hide yes)\n\t\t\t(uuid \"d0089647-6fd3-468f-a30e-c5e8b8e3ef30\")\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(property \"Description\" \"\"\n\t\t\t(at 0 0 30)\n\t\t\t(layer \"F.Fab\")\n\t\t\t(hide yes)\n\t\t\t(uuid \"a90790ed-cfc1-4466-ae6f-87360e1dee6a\")\n\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t\t(duplicate_pad_numbers_are_jumpers no)\n\t\t(fp_line\n\t\t\t(start -2.6 -1.6)\n\t\t\t(end -2 -1.6)\n\t\t\t(stroke\n\t\t\t\t(width 0.12)\n\t\t\t\t(type default)\n\t\t\t)\n\t\t\t(layer \"F.SilkS\")\n\t\t\t(uuid \"449e1909-4688-4919-a94d-0fcdefa51716\")\n\t\t)\n\t\t(pad \"1\" smd roundrect\n\t\t\t(at -1.600001 -1 120)\n\t\t\t(size 1.2 0.6)\n\t\t\t(layers \"F.Cu\" \"F.Mask\" \"F.Paste\")\n\t\t\t(roundrect_rratio 0.25)\n\t\t\t(thermal_bridge_angle 45)\n\t\t\t(uuid \"9610e48f-2cb3-4f23-a18b-2c2f8dfc6d48\")\n\t\t)\n\t\t(pad \"2\" smd roundrect\n\t\t\t(at -1.6 0.999999 165)\n\t\t\t(size 1.2 0.6)\n\t\t\t(layers \"F.Cu\" \"F.Mask\" \"F.Paste\")\n\t\t\t(roundrect_rratio 0.25)\n\t\t\t(thermal_bridge_angle 45)\n\t\t\t(uuid \"2a4136b6-7e3b-480a-af60-2cceabd8c3d0\")\n\t\t)\n\t\t(pad \"3\" smd rect\n\t\t\t(at 0.4 0 140)\n\t\t\t(size 1 0.5)\n\t\t\t(layers \"F.Cu\" \"F.Mask\" \"F.Paste\")\n\t\t\t(thermal_bridge_angle 45)\n\t\t\t(uuid \"98599d95-6b82-40e9-82ad-652675a400fd\")\n\t\t)\n\t\t(pad \"4\" thru_hole circle\n\t\t\t(at 2 -0.8 120)\n\t\t\t(size 1.1 1.1)\n\t\t\t(drill 0.6)\n\t\t\t(layers \"*.Cu\" \"*.Mask\")\n\t\t\t(remove_unused_layers no)\n\t\t\t(uuid \"94607851-a98f-4e18-9df0-8d06fb4afa8b\")\n\t\t)\n\t\t(embedded_fonts no)\n\t)\n\t(gr_rect\n\t\t(start 90 90)\n\t\t(end 110 110)\n\t\t(stroke\n\t\t\t(width 0.1)\n\t\t\t(type default)\n\t\t)\n\t\t(fill no)\n\t\t(layer \"Edge.Cuts\")\n\t\t(uuid \"152e74ae-3391-4d38-a205-c02c7b674de8\")\n\t)\n\t(embedded_fonts no)\n)"
+ },
+ "apply:move_charlie": {
+  "safe": true,
+  "success": true,
+  "moved": [
+   "R3"
+  ],
+  "message": "Moved R3 from (32.00, 38.00) to (34.50, 36.75)",
+  "sha256": "821d1c4055a8d51af34630e5a01d11cc20b23b9a2c5895a47e3b430c365aac75"
+ },
+ "apply:move_far": {
+  "safe": false,
+  "success": true,
+  "moved": [
+   "R3"
+  ],
+  "message": "Moved R3 from (32.00, 38.00) to (57.00, 38.00)",
+  "sha256": "a11cfda87d87854128f617e5d26322f878c3de8f1161083a4b8e94e5962fa279"
+ },
+ "apply:move_multi": {
+  "safe": false,
+  "success": true,
+  "moved": [
+   "R3",
+   "D1"
+  ],
+  "message": "Moved 2 components: R3: (32.00, 38.00) -> (33.00, 38.00); NOPE: not found; D1: (17.00, 10.00) -> (17.00, 11.50)",
+  "sha256": "2663309d742d0b8ee556914db0a6b52f503b1b004256d23024ab409bb137ef0d"
+ },
+ "apply:reorder_charlie": {
+  "safe": true,
+  "success": true,
+  "moved": [],
+  "message": "Re-bound 1 pad(s) on D1 (1->NEW_NET)",
+  "sha256": "3be81af7822197056f4f1391543ff1da18c3c77bf582992a1e84913e3557b92a"
+ },
+ "apply:reorder_missing": {
+  "safe": true,
+  "success": false,
+  "moved": [],
+  "message": "Pad(s) 999 not found on D1",
+  "sha256": "ee5fd287fae0c6f2ffb9a95ba7458ed19c0f5bcc3e7fefe8c2e69dff4d05f185"
+ },
+ "apply:rotate_charlie": {
+  "safe": true,
+  "success": true,
+  "moved": [
+   "D1"
+  ],
+  "message": "Rotated D1 by 180.0 deg (0.0 -> 180.0)",
+  "sha256": "4acd54c72c095e9c0e09d1389032674452e4a1f31750e96e5dc3f16a17794f95"
+ },
+ "apply:reroute_unsupported": {
+  "safe": false,
+  "success": false,
+  "moved": [],
+  "message": "Strategy type reroute_net cannot be applied to placement",
+  "sha256": "ee5fd287fae0c6f2ffb9a95ba7458ed19c0f5bcc3e7fefe8c2e69dff4d05f185"
+ },
+ "generate": {
+  "congestion:None": {
+   "analysis": {
+    "root_cause": "congestion",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 17.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "add_via",
+     "difficulty": "medium",
+     "confidence": 0.8,
+     "actions": [
+      {
+       "type": "add_via",
+       "target": "ROW2",
+       "params": {
+        "x": 29.0,
+        "y": 38.25,
+        "layer": "F.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Uses via budget (adds 1 via)",
+       "severity": "info",
+       "mitigatable": false
+      },
+      {
+       "description": "Route continues on F.Cu",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "add_via",
+     "difficulty": "medium",
+     "confidence": 0.8,
+     "actions": [
+      {
+       "type": "add_via",
+       "target": "ROW2",
+       "params": {
+        "x": 35.0,
+        "y": 38.25,
+        "layer": "F.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Uses via budget (adds 1 via)",
+       "severity": "info",
+       "mitigatable": false
+      },
+      {
+       "description": "Route continues on F.Cu",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    },
+    {
+     "type": "move_multiple",
+     "difficulty": "hard",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 34.0,
+        "y": 38.0
+       }
+      },
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 16.055557174969163,
+        "y": 8.237040059942435
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Moving 2 components will require rerouting",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Board area usage may increase",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [
+      "R3",
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "LINE_C",
+      "NODE_C",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.8
+    }
+   ],
+   "patterns": []
+  },
+  "congestion:3.0": {
+   "analysis": {
+    "root_cause": "congestion",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 18.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 15.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 35.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 29.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 41.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 20.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "add_via",
+     "difficulty": "medium",
+     "confidence": 0.8,
+     "actions": [
+      {
+       "type": "add_via",
+       "target": "ROW2",
+       "params": {
+        "x": 29.0,
+        "y": 38.25,
+        "layer": "F.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Uses via budget (adds 1 via)",
+       "severity": "info",
+       "mitigatable": false
+      },
+      {
+       "description": "Route continues on F.Cu",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "add_via",
+     "difficulty": "medium",
+     "confidence": 0.8,
+     "actions": [
+      {
+       "type": "add_via",
+       "target": "ROW2",
+       "params": {
+        "x": 35.0,
+        "y": 38.25,
+        "layer": "F.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Uses via budget (adds 1 via)",
+       "severity": "info",
+       "mitigatable": false
+      },
+      {
+       "description": "Route continues on F.Cu",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    },
+    {
+     "type": "move_multiple",
+     "difficulty": "hard",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 34.0,
+        "y": 38.0
+       }
+      },
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 16.055557174969163,
+        "y": 8.237040059942435
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Moving 2 components will require rerouting",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Board area usage may increase",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [
+      "R3",
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "LINE_C",
+      "NODE_C",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.8
+    }
+   ],
+   "patterns": []
+  },
+  "blocked_path:None": {
+   "analysis": {
+    "root_cause": "blocked_path",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 17.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "add_via",
+     "difficulty": "medium",
+     "confidence": 0.8,
+     "actions": [
+      {
+       "type": "add_via",
+       "target": "ROW2",
+       "params": {
+        "x": 29.0,
+        "y": 38.25,
+        "layer": "F.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Uses via budget (adds 1 via)",
+       "severity": "info",
+       "mitigatable": false
+      },
+      {
+       "description": "Route continues on F.Cu",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "add_via",
+     "difficulty": "medium",
+     "confidence": 0.8,
+     "actions": [
+      {
+       "type": "add_via",
+       "target": "ROW2",
+       "params": {
+        "x": 35.0,
+        "y": 38.25,
+        "layer": "F.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Uses via budget (adds 1 via)",
+       "severity": "info",
+       "mitigatable": false
+      },
+      {
+       "description": "Route continues on F.Cu",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    }
+   ],
+   "patterns": []
+  },
+  "blocked_path:3.0": {
+   "analysis": {
+    "root_cause": "blocked_path",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 18.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 15.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 35.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 29.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 41.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 20.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "add_via",
+     "difficulty": "medium",
+     "confidence": 0.8,
+     "actions": [
+      {
+       "type": "add_via",
+       "target": "ROW2",
+       "params": {
+        "x": 29.0,
+        "y": 38.25,
+        "layer": "F.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Uses via budget (adds 1 via)",
+       "severity": "info",
+       "mitigatable": false
+      },
+      {
+       "description": "Route continues on F.Cu",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "add_via",
+     "difficulty": "medium",
+     "confidence": 0.8,
+     "actions": [
+      {
+       "type": "add_via",
+       "target": "ROW2",
+       "params": {
+        "x": 35.0,
+        "y": 38.25,
+        "layer": "F.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Uses via budget (adds 1 via)",
+       "severity": "info",
+       "mitigatable": false
+      },
+      {
+       "description": "Route continues on F.Cu",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    }
+   ],
+   "patterns": []
+  },
+  "clearance:None": {
+   "analysis": {
+    "root_cause": "clearance",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 17.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    }
+   ],
+   "patterns": []
+  },
+  "clearance:3.0": {
+   "analysis": {
+    "root_cause": "clearance",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 18.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 15.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 35.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 29.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 41.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 20.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    }
+   ],
+   "patterns": []
+  },
+  "layer_conflict:None": {
+   "analysis": {
+    "root_cause": "layer_conflict",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 17.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "change_layer",
+     "difficulty": "easy",
+     "confidence": 0.75,
+     "actions": [
+      {
+       "type": "change_layer",
+       "target": "ROW2",
+       "params": {
+        "layer": "F.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Route will use F.Cu instead",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "change_layer",
+     "difficulty": "easy",
+     "confidence": 0.75,
+     "actions": [
+      {
+       "type": "change_layer",
+       "target": "ROW2",
+       "params": {
+        "layer": "B.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Route will use B.Cu instead",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    }
+   ],
+   "patterns": []
+  },
+  "layer_conflict:3.0": {
+   "analysis": {
+    "root_cause": "layer_conflict",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 18.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 15.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 35.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 29.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 41.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 20.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "change_layer",
+     "difficulty": "easy",
+     "confidence": 0.75,
+     "actions": [
+      {
+       "type": "change_layer",
+       "target": "ROW2",
+       "params": {
+        "layer": "F.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Route will use F.Cu instead",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "change_layer",
+     "difficulty": "easy",
+     "confidence": 0.75,
+     "actions": [
+      {
+       "type": "change_layer",
+       "target": "ROW2",
+       "params": {
+        "layer": "B.Cu"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Route will use B.Cu instead",
+       "severity": "info",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.7
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    }
+   ],
+   "patterns": []
+  },
+  "pin_access:None": {
+   "analysis": {
+    "root_cause": "pin_access",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 17.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    }
+   ],
+   "patterns": []
+  },
+  "pin_access:3.0": {
+   "analysis": {
+    "root_cause": "pin_access",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 18.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 15.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 35.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 29.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 41.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 20.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    }
+   ],
+   "patterns": []
+  },
+  "length_constraint:None": {
+   "analysis": {
+    "root_cause": "length_constraint",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 17.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    },
+    {
+     "type": "manual_intervention",
+     "difficulty": "expert",
+     "confidence": 0.5,
+     "actions": [
+      {
+       "type": "manual",
+       "target": "ROW2",
+       "params": {
+        "location": {
+         "x": 32.5,
+         "y": 38.25
+        },
+        "description": "Cannot meet length constraints; review requirements"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Requires human expertise to resolve",
+       "severity": "warning",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [
+      "R3",
+      "D1"
+     ],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.5
+    }
+   ],
+   "patterns": []
+  },
+  "length_constraint:3.0": {
+   "analysis": {
+    "root_cause": "length_constraint",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 18.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 15.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 35.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 29.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 41.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 20.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    },
+    {
+     "type": "manual_intervention",
+     "difficulty": "expert",
+     "confidence": 0.5,
+     "actions": [
+      {
+       "type": "manual",
+       "target": "ROW2",
+       "params": {
+        "location": {
+         "x": 32.5,
+         "y": 38.25
+        },
+        "description": "Cannot meet length constraints; review requirements"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Requires human expertise to resolve",
+       "severity": "warning",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [
+      "R3",
+      "D1"
+     ],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.5
+    }
+   ],
+   "patterns": []
+  },
+  "differential_pair:None": {
+   "analysis": {
+    "root_cause": "differential_pair",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 17.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    },
+    {
+     "type": "manual_intervention",
+     "difficulty": "expert",
+     "confidence": 0.5,
+     "actions": [
+      {
+       "type": "manual",
+       "target": "ROW2",
+       "params": {
+        "location": {
+         "x": 32.5,
+         "y": 38.25
+        },
+        "description": "Cannot maintain differential pair spacing; review layout"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Requires human expertise to resolve",
+       "severity": "warning",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [
+      "R3",
+      "D1"
+     ],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.5
+    }
+   ],
+   "patterns": [
+    {
+     "pattern": "differential_pair_obstacle",
+     "suggestion": "Route both traces on same side of obstacle",
+     "example": "Keep USB_DP and USB_DM together around C5",
+     "confidence": 1.0
+    }
+   ]
+  },
+  "differential_pair:3.0": {
+   "analysis": {
+    "root_cause": "differential_pair",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 18.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 15.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 35.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 29.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 41.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 20.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    },
+    {
+     "type": "manual_intervention",
+     "difficulty": "expert",
+     "confidence": 0.5,
+     "actions": [
+      {
+       "type": "manual",
+       "target": "ROW2",
+       "params": {
+        "location": {
+         "x": 32.5,
+         "y": 38.25
+        },
+        "description": "Cannot maintain differential pair spacing; review layout"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Requires human expertise to resolve",
+       "severity": "warning",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [
+      "R3",
+      "D1"
+     ],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.5
+    }
+   ],
+   "patterns": [
+    {
+     "pattern": "differential_pair_obstacle",
+     "suggestion": "Route both traces on same side of obstacle",
+     "example": "Keep USB_DP and USB_DM together around C5",
+     "confidence": 1.0
+    }
+   ]
+  },
+  "keepout:None": {
+   "analysis": {
+    "root_cause": "keepout",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 38.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 43.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 23.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 17.0,
+        "y": 16.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    },
+    {
+     "type": "manual_intervention",
+     "difficulty": "expert",
+     "confidence": 0.5,
+     "actions": [
+      {
+       "type": "manual",
+       "target": "ROW2",
+       "params": {
+        "location": {
+         "x": 32.5,
+         "y": 38.25
+        },
+        "description": "Routing crosses keepout zone; review keepout boundaries"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Requires human expertise to resolve",
+       "severity": "warning",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [
+      "R3",
+      "D1"
+     ],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.5
+    }
+   ],
+   "patterns": []
+  },
+  "keepout:3.0": {
+   "analysis": {
+    "root_cause": "keepout",
+    "confidence": 0.8,
+    "failure_location": {
+     "x": 32.5,
+     "y": 38.25
+    },
+    "failure_area": {
+     "min_x": 30.0,
+     "min_y": 36.0,
+     "max_x": 34.0,
+     "max_y": 40.0
+    },
+    "blocking_elements": [
+     {
+      "type": "component",
+      "ref": "R3",
+      "net": null,
+      "bounds": {
+       "min_x": 31.0,
+       "min_y": 37.5,
+       "max_x": 33.0,
+       "max_y": 38.5
+      },
+      "movable": true
+     },
+     {
+      "type": "component",
+      "ref": "D1",
+      "net": null,
+      "bounds": {
+       "min_x": 16.0,
+       "min_y": 9.0,
+       "max_x": 18.0,
+       "max_y": 11.0
+      },
+      "movable": true
+     },
+     {
+      "type": "trace",
+      "ref": null,
+      "net": "ROW1",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 35.0,
+       "max_y": 38.2
+      },
+      "movable": false
+     },
+     {
+      "type": "via",
+      "ref": null,
+      "net": "COL2",
+      "bounds": {
+       "min_x": 32.0,
+       "min_y": 38.0,
+       "max_x": 32.6,
+       "max_y": 38.6
+      },
+      "movable": false
+     }
+    ],
+    "attempted_paths": 0,
+    "best_attempt": {
+     "start": {
+      "x": 0,
+      "y": 0
+     },
+     "end": {
+      "x": 1,
+      "y": 1
+     },
+     "reached": 0.5,
+     "failure_point": {
+      "x": 0.5,
+      "y": 0.5
+     },
+     "failure_reason": "blocked"
+    },
+    "congestion_score": 0.9,
+    "clearance_margin": 0.0,
+    "net": "ROW2"
+   },
+   "strategies": [
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 18.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.85,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 15.5,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 35.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 29.0,
+        "y": 38.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "R3",
+       "params": {
+        "x": 32.0,
+        "y": 41.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "R3"
+     ],
+     "affected_nets": [
+      "LINE_C",
+      "NODE_C"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "move_component",
+     "difficulty": "trivial",
+     "confidence": 0.7,
+     "actions": [
+      {
+       "type": "move",
+       "target": "D1",
+       "params": {
+        "x": 20.0,
+        "y": 10.0
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "May require rerouting connected traces",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [
+      "D1"
+     ],
+     "affected_nets": [
+      "NODE_B",
+      "NODE_A"
+     ],
+     "estimated_improvement": 0.9
+    },
+    {
+     "type": "reroute_net",
+     "difficulty": "medium",
+     "confidence": 0.6,
+     "actions": [
+      {
+       "type": "reroute",
+       "target": "ROW1",
+       "params": {
+        "avoid_area": {
+         "min_x": 30.0,
+         "min_y": 36.0,
+         "max_x": 34.0,
+         "max_y": 40.0
+        }
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Rerouting ROW1 may affect signal timing",
+       "severity": "warning",
+       "mitigatable": true
+      },
+      {
+       "description": "Trace length may change",
+       "severity": "info",
+       "mitigatable": true
+      }
+     ],
+     "affected_components": [],
+     "affected_nets": [
+      "ROW1"
+     ],
+     "estimated_improvement": 0.65
+    },
+    {
+     "type": "manual_intervention",
+     "difficulty": "expert",
+     "confidence": 0.5,
+     "actions": [
+      {
+       "type": "manual",
+       "target": "ROW2",
+       "params": {
+        "location": {
+         "x": 32.5,
+         "y": 38.25
+        },
+        "description": "Routing crosses keepout zone; review keepout boundaries"
+       }
+      }
+     ],
+     "side_effects": [
+      {
+       "description": "Requires human expertise to resolve",
+       "severity": "warning",
+       "mitigatable": false
+      }
+     ],
+     "affected_components": [
+      "R3",
+      "D1"
+     ],
+     "affected_nets": [
+      "ROW2"
+     ],
+     "estimated_improvement": 0.5
+    }
+   ],
+   "patterns": []
+  }
+ },
+ "bounds": {
+  "min_x": 0.0,
+  "min_y": 0.0,
+  "max_x": 50.0,
+  "max_y": 55.0
+ }
+}

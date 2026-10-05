@@ -1,0 +1,652 @@
+{
+  "intent": {
+    "placement": [
+      {
+        "reference": "U1",
+        "partners": [
+          "EXTA"
+        ],
+        "step_mm": 1,
+        "min_saving_mm": 0.2,
+        "rotations_deg": [
+          180
+        ],
+        "max_connections": 0,
+        "radius_mm": 10
+      },
+      {
+        "reference": "U1",
+        "partners": [
+          "EXTA",
+          "EXTB"
+        ],
+        "step_mm": 1,
+        "min_saving_mm": 0.2,
+        "rotations_deg": [
+          180
+        ],
+        "max_connections": 20,
+        "radius_mm": 1
+      }
+    ],
+    "peers": [
+      {
+        "name": "aligned",
+        "references": [
+          "U1",
+          "U2"
+        ],
+        "axis": "row",
+        "pitch_mm": 5,
+        "tolerance_mm": 0.1,
+        "angle_deg": 0,
+        "angle_tolerance_deg": 1
+      }
+    ],
+    "channels": [
+      {
+        "name": "copies",
+        "pairs": [
+          [
+            "U1",
+            "U2"
+          ]
+        ],
+        "net_map": {},
+        "translate": {
+          "x": 5,
+          "y": 0
+        },
+        "rotation_deg": 0,
+        "tolerance_mm": 0.1,
+        "polarized": [
+          "U1"
+        ]
+      }
+    ],
+    "flows": [
+      {
+        "name": "processing",
+        "references": [
+          "U2",
+          "U1"
+        ],
+        "axis": "x",
+        "minimum_gap_mm": 1
+      }
+    ],
+    "corridors": [
+      {
+        "name": "power",
+        "nets": [
+          "N",
+          "A"
+        ],
+        "max_separation_mm": 2,
+        "compatible": true
+      }
+    ],
+    "sensitive": [
+      {
+        "id": "analog",
+        "layer": "F.Cu",
+        "polygon": [
+          {
+            "x": 18,
+            "y": -2
+          },
+          {
+            "x": 28,
+            "y": -2
+          },
+          {
+            "x": 28,
+            "y": 2
+          },
+          {
+            "x": 18,
+            "y": 2
+          }
+        ],
+        "nets": [
+          "GND"
+        ]
+      }
+    ],
+    "loops": [
+      {
+        "id": "decoupling",
+        "kind": "decoupling",
+        "capacitor": "C1",
+        "power_pin": {
+          "reference": "U1",
+          "pad": "1",
+          "net": "A"
+        },
+        "ground_net": "GND",
+        "max_pin_mm": 1,
+        "max_loop_area_mm2": 1,
+        "path": [
+          "l1",
+          "l2",
+          "l3"
+        ],
+        "max_path_mm": 1,
+        "allowed_nets": [
+          "A"
+        ]
+      },
+      {
+        "id": "feedback",
+        "kind": "feedback",
+        "capacitor": "C1",
+        "power_pin": {
+          "reference": "U1",
+          "pad": "1",
+          "net": "A"
+        },
+        "ground_net": "GND",
+        "max_pin_mm": 1,
+        "max_loop_area_mm2": 1,
+        "path": [
+          "l1",
+          "l2",
+          "l3"
+        ],
+        "max_path_mm": 1,
+        "allowed_nets": [
+          "A"
+        ]
+      },
+      {
+        "id": "hot_loop",
+        "kind": "hot_loop",
+        "capacitor": "C1",
+        "power_pin": {
+          "reference": "U1",
+          "pad": "1",
+          "net": "A"
+        },
+        "ground_net": "GND",
+        "max_pin_mm": 1,
+        "max_loop_area_mm2": 1,
+        "path": [
+          "l1",
+          "l2",
+          "l3"
+        ],
+        "max_path_mm": 1,
+        "allowed_nets": [
+          "A"
+        ]
+      }
+    ],
+    "schematic": {
+      "source_sha256": "schematic-revision",
+      "items": [
+        {
+          "id": "i1",
+          "sheet": "root",
+          "kind": "label",
+          "bounds": {
+            "min": {
+              "x": -1,
+              "y": -1
+            },
+            "max": {
+              "x": 2,
+              "y": 2
+            }
+          }
+        },
+        {
+          "id": "i2",
+          "sheet": "root",
+          "kind": "pin",
+          "bounds": {
+            "min": {
+              "x": 0,
+              "y": 0
+            },
+            "max": {
+              "x": 3,
+              "y": 3
+            }
+          }
+        }
+      ],
+      "wires": [
+        {
+          "id": "q1",
+          "sheet": "root",
+          "a": {
+            "x": 0,
+            "y": 0
+          },
+          "b": {
+            "x": 10,
+            "y": 0
+          },
+          "net": "N"
+        },
+        {
+          "id": "q2",
+          "sheet": "root",
+          "a": {
+            "x": 5,
+            "y": -5
+          },
+          "b": {
+            "x": 5,
+            "y": 5
+          },
+          "net": "N"
+        }
+      ],
+      "junctions": [],
+      "max_stem_mm": 1,
+      "reading_order": [
+        "i2",
+        "i1"
+      ]
+    },
+    "netlist": [
+      {
+        "reference": "J1",
+        "pad": "1",
+        "net": "GND"
+      }
+    ],
+    "baseline": {
+      "objects": [
+        {
+          "id": "old-trace",
+          "kind": "track",
+          "net": "N",
+          "at": {
+            "x": 0,
+            "y": 0
+          },
+          "finding_key": "old"
+        }
+      ],
+      "connectivity": [
+        [
+          "U1.1",
+          "C1.1"
+        ]
+      ],
+      "lengths": {
+        "N": 1
+      },
+      "max_length_change_mm": 0.1
+    },
+    "currents": [
+      {
+        "net": "N",
+        "amperes": 10,
+        "copper_um": 35,
+        "temperature_rise_c": 10,
+        "internal": false
+      }
+    ],
+    "features": {
+      "allowed_references": [
+        "U1"
+      ],
+      "required_references": [
+        "MISSING"
+      ]
+    },
+    "swaps": [
+      {
+        "name": "crossed",
+        "minimum_saving_mm": 1,
+        "pins": [
+          {
+            "pin": {
+              "reference": "U1",
+              "pad": "1",
+              "net": "A"
+            },
+            "bank": "bank0",
+            "voltage": 3.3,
+            "capabilities": [
+              "GPIO"
+            ],
+            "required": [
+              "GPIO"
+            ],
+            "mate_fixed": false
+          },
+          {
+            "pin": {
+              "reference": "U1",
+              "pad": "2",
+              "net": "B"
+            },
+            "bank": "bank0",
+            "voltage": 3.3,
+            "capabilities": [
+              "GPIO"
+            ],
+            "required": [
+              "GPIO"
+            ],
+            "mate_fixed": false
+          }
+        ]
+      },
+      {
+        "name": "illegal",
+        "minimum_saving_mm": 1,
+        "pins": [
+          {
+            "pin": {
+              "reference": "U2",
+              "pad": "1",
+              "net": "B"
+            },
+            "bank": "bank0",
+            "voltage": 3.3,
+            "capabilities": [
+              "GPIO"
+            ],
+            "required": [
+              "ADC"
+            ],
+            "mate_fixed": false
+          }
+        ]
+      }
+    ],
+    "naming": [
+      {
+        "nets": [
+          "N"
+        ],
+        "pattern": "^PWR_"
+      }
+    ],
+    "interfaces": [
+      {
+        "name": "usb",
+        "pins": [
+          {
+            "reference": "J1",
+            "pad": "1",
+            "net": "VBUS"
+          }
+        ],
+        "required_references": [
+          "ESD"
+        ]
+      }
+    ],
+    "mating": [
+      {
+        "name": "plug",
+        "expected": [
+          {
+            "reference": "J1",
+            "pad": "1",
+            "net": "GND"
+          }
+        ]
+      }
+    ],
+    "probes": [
+      {
+        "net": "A",
+        "reference": "TP1",
+        "radius_mm": 1,
+        "ground_net": "GND",
+        "max_ground_mm": 1,
+        "expected_label": "SENSE"
+      },
+      {
+        "net": "MISSING",
+        "reference": "TP2",
+        "radius_mm": 1,
+        "ground_net": "GND",
+        "max_ground_mm": 1,
+        "expected_label": "TP2"
+      }
+    ],
+    "bodies": [
+      {
+        "id": "BLOCKER",
+        "side": "F",
+        "bounds": {
+          "min": {
+            "x": 24,
+            "y": 29
+          },
+          "max": {
+            "x": 26,
+            "y": 31
+          }
+        },
+        "z_min_mm": 0,
+        "z_max_mm": 3
+      }
+    ],
+    "pairs": [
+      {
+        "name": "usb",
+        "positive": "D+",
+        "negative": "D-",
+        "max_skew_mm": 0.1,
+        "gap_mm": 0.2,
+        "gap_tolerance_mm": 0.1,
+        "max_length_mm": 5
+      }
+    ],
+    "references": [
+      {
+        "net": "N",
+        "layer": "F.Cu",
+        "plane_net": "GND",
+        "plane_layer": "F.Cu",
+        "margin_mm": 0.2
+      }
+    ],
+    "launches": [
+      {
+        "reference": "U1",
+        "signal_pad": "1",
+        "ground_net": "GND",
+        "radius_mm": 1,
+        "minimum_vias": 2,
+        "min_width_mm": 0.5,
+        "max_width_mm": 1
+      }
+    ],
+    "pin_roles": [
+      {
+        "pin": {
+          "reference": "J1",
+          "pad": "1",
+          "net": "GND"
+        },
+        "role": "ground",
+        "source": "datasheet"
+      }
+    ],
+    "straps": [
+      {
+        "pin": {
+          "reference": "U1",
+          "pad": "1",
+          "net": "A"
+        },
+        "pull_reference": "R1",
+        "target_net": "VCC",
+        "low_ohm": 1000,
+        "high_ohm": 2000,
+        "source": "datasheet"
+      }
+    ],
+    "modes": [
+      {
+        "name": "parallel-12V-not-24V",
+        "sources": [
+          {
+            "name": "b1",
+            "positive": "V24",
+            "negative": "GND",
+            "volts": 12,
+            "isolation_group": "common"
+          },
+          {
+            "name": "b2",
+            "positive": "V24",
+            "negative": "GND",
+            "volts": 12,
+            "isolation_group": "common"
+          }
+        ],
+        "links": [],
+        "output_positive": "V24",
+        "output_negative": "GND",
+        "target_volts": 24,
+        "tolerance_volts": 0.1,
+        "allow_parallel": false,
+        "connector_pins": [
+          {
+            "reference": "J1",
+            "pad": "1",
+            "net": "GND"
+          }
+        ]
+      }
+    ],
+    "capacitors": [
+      {
+        "reference": "C1",
+        "role": "",
+        "net": "WRONG",
+        "max_volts": 24,
+        "rating_volts": 16,
+        "derating_fraction": 0.8,
+        "effective_uf": 0.03,
+        "required_uf": 0.1,
+        "source": ""
+      }
+    ],
+    "packages": [
+      {
+        "reference": "U1",
+        "footprint": "Wrong",
+        "pads": [
+          "1",
+          "2",
+          "3"
+        ],
+        "manufacturer": "Vendor",
+        "mpn": "123",
+        "source": "datasheet"
+      }
+    ],
+    "access": [
+      {
+        "reference": "J1",
+        "side": "F",
+        "envelope": {
+          "min": {
+            "x": 20,
+            "y": 28
+          },
+          "max": {
+            "x": 28,
+            "y": 32
+          }
+        }
+      }
+    ],
+    "thermals": [
+      {
+        "reference": "THERM",
+        "pad": "1",
+        "allowed_connection": "thermal",
+        "min_spokes": 4,
+        "max_gap_mm": 0.3,
+        "min_spoke_mm": 0.3
+      }
+    ],
+    "assembly": {
+      "fields": [
+        "MPN"
+      ],
+      "excluded": [],
+      "placements": [],
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "angle_offsets": {},
+      "tolerance_mm": 0.01,
+      "tolerance_deg": 1
+    },
+    "labels": [
+      {
+        "reference": "U1",
+        "text": "IMPORTANT",
+        "layer": "F.SilkS",
+        "max_distance_mm": 2
+      }
+    ],
+    "artifacts": [
+      {
+        "name": "gerbers",
+        "expected_sha256": "a",
+        "actual_sha256": "b",
+        "built_from_sha256": "old"
+      }
+    ],
+    "release": {
+      "required_artifacts": [
+        "gerbers"
+      ],
+      "required_checks": [
+        "DRC"
+      ],
+      "checks": []
+    },
+    "native": {
+      "source_sha256": "eea35bed16e0fe2d59581e86f9d842a95ff7918aa04c41ef2c0773bc81cf8ca9",
+      "pads": {
+        "ghost": {
+          "x": 100,
+          "y": 100
+        }
+      },
+      "connectivity": [
+        [
+          "U1.1",
+          "C1.1"
+        ]
+      ],
+      "tolerance_mm": 0.001
+    },
+    "observations": [
+      {
+        "rule": "route.detour",
+        "key": "labeled1",
+        "actual": false,
+        "predicted": true,
+        "max_false_positive_rate": 0.1,
+        "max_false_negative_rate": 0.1
+      }
+    ],
+    "annotations": [
+      {
+        "id": "comment1",
+        "source_sha256": "old",
+        "subjects": [
+          "gone"
+        ]
+      }
+    ]
+  }
+}

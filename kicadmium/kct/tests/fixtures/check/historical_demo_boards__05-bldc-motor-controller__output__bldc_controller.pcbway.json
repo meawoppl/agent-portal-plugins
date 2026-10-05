@@ -1,0 +1,1904 @@
+{
+ "file": "<FIXTURES>/historical_demo_boards/05-bldc-motor-controller/output/bldc_controller.kicad_pcb",
+ "manufacturer": "pcbway",
+ "layers": 2,
+ "summary": {
+  "errors": 44,
+  "warnings": 36,
+  "infos": 12,
+  "waived": 0,
+  "rules_checked": 45,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "diffpair_clearance_intra": 3,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net '+24V' is partially routed: 12 of 13 pads stranded (connected island has 1 pads)",
+   "location": [
+    137.5,
+    45.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C1.1"
+   ],
+   "nets": [
+    "+24V"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net '+3V3' is partially routed: 27 of 28 pads stranded (connected island has 1 pads)",
+   "location": [
+    157.5,
+    67.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C6.1"
+   ],
+   "nets": [
+    "+3V3"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net '+5V' is partially routed: 11 of 12 pads stranded (connected island has 1 pads)",
+   "location": [
+    119.5,
+    84.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C15.1"
+   ],
+   "nets": [
+    "+5V"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'BST_A' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    111.5,
+    96.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C14.1"
+   ],
+   "nets": [
+    "BST_A"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'BST_B' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    111.5,
+    90.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C13.1"
+   ],
+   "nets": [
+    "BST_B"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'BST_C' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    111.5,
+    84.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C12.1"
+   ],
+   "nets": [
+    "BST_C"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GATE_AH' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    149.5,
+    99.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R22.2"
+   ],
+   "nets": [
+    "GATE_AH"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GATE_AL' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    145.96,
+    113.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q6.1"
+   ],
+   "nets": [
+    "GATE_AL"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GATE_BH' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    133.5,
+    99.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R21.2"
+   ],
+   "nets": [
+    "GATE_BH"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GATE_BL' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    129.96,
+    113.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q4.1"
+   ],
+   "nets": [
+    "GATE_BL"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GATE_CH' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    117.5,
+    99.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R20.2"
+   ],
+   "nets": [
+    "GATE_CH"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GATE_CL' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    113.96,
+    113.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q2.1"
+   ],
+   "nets": [
+    "GATE_CL"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GATE_DRV_AH' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    147.5,
+    99.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R22.1"
+   ],
+   "nets": [
+    "GATE_DRV_AH"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GATE_DRV_BH' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    131.5,
+    99.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R21.1"
+   ],
+   "nets": [
+    "GATE_DRV_BH"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GATE_DRV_CH' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    115.5,
+    99.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R20.1"
+   ],
+   "nets": [
+    "GATE_DRV_CH"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'GND' is partially routed: 35 of 36 pads stranded (connected island has 1 pads)",
+   "location": [
+    139.5,
+    45.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C1.2"
+   ],
+   "nets": [
+    "GND"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'HALL_A' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    156.5,
+    98.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C30.1"
+   ],
+   "nets": [
+    "HALL_A"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'HALL_B' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    162.5,
+    98.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C31.1"
+   ],
+   "nets": [
+    "HALL_B"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'HALL_C' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    168.5,
+    98.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C32.1"
+   ],
+   "nets": [
+    "HALL_C"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'ISENSE_A+' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    151.04,
+    113.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q6.3"
+   ],
+   "nets": [
+    "ISENSE_A+"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'ISENSE_A-' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    151.6,
+    121.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R12.2"
+   ],
+   "nets": [
+    "ISENSE_A-"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'ISENSE_B+' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    135.04,
+    113.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q4.3"
+   ],
+   "nets": [
+    "ISENSE_B+"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'ISENSE_B-' is partially routed: 3 of 4 pads stranded (connected island has 1 pads)",
+   "location": [
+    135.6,
+    121.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R11.2"
+   ],
+   "nets": [
+    "ISENSE_B-"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'ISENSE_C+' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    113.4,
+    121.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R10.1"
+   ],
+   "nets": [
+    "ISENSE_C+"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'ISENSE_C-' is partially routed: 2 of 3 pads stranded (connected island has 1 pads)",
+   "location": [
+    119.6,
+    121.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R10.2"
+   ],
+   "nets": [
+    "ISENSE_C-"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'NRST' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    173.5,
+    63.31
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J4.5"
+   ],
+   "nets": [
+    "NRST"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'OSC_IN' is partially routed: 2 of 3 pads stranded (connected island has 1 pads)",
+   "location": [
+    167.5,
+    74.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C10.1"
+   ],
+   "nets": [
+    "OSC_IN"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'OSC_OUT' is partially routed: 2 of 3 pads stranded (connected island has 1 pads)",
+   "location": [
+    167.5,
+    80.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C11.1"
+   ],
+   "nets": [
+    "OSC_OUT"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'PHASE_A' is partially routed: 4 of 5 pads stranded (connected island has 1 pads)",
+   "location": [
+    113.5,
+    96.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C14.2"
+   ],
+   "nets": [
+    "PHASE_A"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'PHASE_B' is partially routed: 4 of 5 pads stranded (connected island has 1 pads)",
+   "location": [
+    113.5,
+    90.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C13.2"
+   ],
+   "nets": [
+    "PHASE_B"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'PHASE_C' is partially routed: 4 of 5 pads stranded (connected island has 1 pads)",
+   "location": [
+    113.5,
+    84.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C12.2"
+   ],
+   "nets": [
+    "PHASE_C"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'PWM_AH' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    149.675,
+    79.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10.18"
+   ],
+   "nets": [
+    "PWM_AH"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'PWM_AL' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    145.1,
+    72.825
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10.29"
+   ],
+   "nets": [
+    "PWM_AL"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'PWM_BH' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    149.675,
+    78.2
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10.19"
+   ],
+   "nets": [
+    "PWM_BH"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'PWM_BL' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    144.3,
+    72.825
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10.30"
+   ],
+   "nets": [
+    "PWM_BL"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'PWM_CH' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    149.675,
+    77.4
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10.20"
+   ],
+   "nets": [
+    "PWM_CH"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'PWM_CL' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    143.5,
+    72.825
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10.31"
+   ],
+   "nets": [
+    "PWM_CL"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'PWR_LED' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    163.45,
+    45.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "D3.1"
+   ],
+   "nets": [
+    "PWR_LED"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'STATUS_LED' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    169.45,
+    45.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "D4.1"
+   ],
+   "nets": [
+    "STATUS_LED"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'SWCLK' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    173.5,
+    58.23
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J4.3"
+   ],
+   "nets": [
+    "SWCLK"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'SWDIO' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    173.5,
+    55.69
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J4.2"
+   ],
+   "nets": [
+    "SWDIO"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'SWO' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    173.5,
+    60.77
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "J4.4"
+   ],
+   "nets": [
+    "SWO"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'SW_OUT' is partially routed: 4 of 5 pads stranded (connected island has 1 pads)",
+   "location": [
+    125.5,
+    67.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "D2.1"
+   ],
+   "nets": [
+    "SW_OUT"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connectivity",
+   "type": "connectivity",
+   "severity": "error",
+   "message": "Net 'VIN' is partially routed: 1 of 2 pads stranded (connected island has 1 pads)",
+   "location": [
+    121.0,
+    45.5
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "F1.1"
+   ],
+   "nets": [
+    "VIN"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J1 (Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical): 4.15mm from nearest board edge",
+   "location": [
+    113.5,
+    45.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 4.150000000000001,
+   "required_value": null,
+   "items": [
+    "J1"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J2 (Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical): 14.15mm from nearest board edge",
+   "location": [
+    173.5,
+    113.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 14.150000000000004,
+   "required_value": null,
+   "items": [
+    "J2"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J3 (Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical): 14.15mm from nearest board edge",
+   "location": [
+    173.5,
+    95.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 14.150000000000004,
+   "required_value": null,
+   "items": [
+    "J3"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "connector_edge_distance",
+   "type": "unknown",
+   "severity": "info",
+   "message": "J4 (Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical): 14.15mm from nearest board edge",
+   "location": [
+    173.5,
+    59.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": 14.150000000000004,
+   "required_value": null,
+   "items": [
+    "J4"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "D1 (Diode_SMD:D_SMA) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    128.5,
+    45.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "D1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U1 (Package_TO_SOT_SMD:TO-263-5_TabPin3) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    117.1,
+    62.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "D2 (Diode_SMD:D_SMA) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    125.5,
+    67.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "D2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U2 (Package_TO_SOT_SMD:SOT-223-3_TabPin2) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    149.35,
+    61.8
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U3 (Package_SO:HTSSOP-56-1EP_6.1x14mm_P0.5mm_EP3.61x6.35mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    139.25,
+    83.75
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U10 (Package_QFP:LQFP-32_7x7mm_P0.8mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    141.325,
+    74.2
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U10"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Q1 (Package_TO_SOT_THT:TO-220-3_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    113.96,
+    105.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "Q1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Q2 (Package_TO_SOT_THT:TO-220-3_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    113.96,
+    113.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "Q2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Q3 (Package_TO_SOT_THT:TO-220-3_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    129.96,
+    105.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "Q3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Q4 (Package_TO_SOT_THT:TO-220-3_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    129.96,
+    113.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "Q4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Q5 (Package_TO_SOT_THT:TO-220-3_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    145.96,
+    105.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "Q5"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Q6 (Package_TO_SOT_THT:TO-220-3_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    145.96,
+    113.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "Q6"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J2 (Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    173.5,
+    110.96
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J3 (Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    173.5,
+    90.42
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "J4 (Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    173.5,
+    53.15
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "J4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "D3 (LED_SMD:LED_0805_2012Metric) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    163.45,
+    45.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "D3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "D4 (LED_SMD:LED_0805_2012Metric) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    169.45,
+    45.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "D4"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen C7 (reference) overlaps exposed copper of C4 pad 2",
+   "location": [
+    139.5,
+    68.5
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C7 (reference)",
+    "C4 pad 2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen C8 (reference) overlaps exposed copper of C5 pad 1",
+   "location": [
+    145.5,
+    68.5
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C8 (reference)",
+    "C5 pad 1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen Q1 (reference) overlaps exposed copper of R20 pad 1",
+   "location": [
+    116.5,
+    100.5
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q1 (reference)",
+    "R20 pad 1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen Q1 (reference) overlaps exposed copper of R20 pad 2",
+   "location": [
+    116.5,
+    100.5
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q1 (reference)",
+    "R20 pad 2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen Q3 (reference) overlaps exposed copper of R21 pad 1",
+   "location": [
+    132.5,
+    100.5
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q3 (reference)",
+    "R21 pad 1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen Q3 (reference) overlaps exposed copper of R21 pad 2",
+   "location": [
+    132.5,
+    100.5
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q3 (reference)",
+    "R21 pad 2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen Q5 (reference) overlaps exposed copper of R22 pad 1",
+   "location": [
+    148.5,
+    100.5
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q5 (reference)",
+    "R22 pad 1"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen Q5 (reference) overlaps exposed copper of R22 pad 2",
+   "location": [
+    148.5,
+    100.5
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "Q5 (reference)",
+    "R22 pad 2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U10 (reference) overlaps exposed copper of U10 pad 27",
+   "location": [
+    145.5,
+    72.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10 (reference)",
+    "U10 pad 27"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U10 (reference) overlaps exposed copper of U10 pad 28",
+   "location": [
+    145.5,
+    72.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10 (reference)",
+    "U10 pad 28"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U10 (reference) overlaps exposed copper of U10 pad 29",
+   "location": [
+    145.5,
+    72.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10 (reference)",
+    "U10 pad 29"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_over_copper",
+   "type": "silk_over_copper",
+   "severity": "warning",
+   "message": "Silkscreen U10 (reference) overlaps exposed copper of U10 pad 30",
+   "location": [
+    145.5,
+    72.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10 (reference)",
+    "U10 pad 30"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_edge_clearance",
+   "type": "silk_edge_clearance",
+   "severity": "warning",
+   "message": "Silkscreen MH1 (reference) to board edge 0.000mm < minimum 0.20mm",
+   "location": [
+    111.5,
+    37.5
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.0,
+   "required_value": 0.2,
+   "items": [
+    "MH1 (reference)",
+    "Edge.Cuts"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_edge_clearance",
+   "type": "silk_edge_clearance",
+   "severity": "warning",
+   "message": "Silkscreen MH2 (reference) to board edge 0.000mm < minimum 0.20mm",
+   "location": [
+    185.5,
+    37.5
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.0,
+   "required_value": 0.2,
+   "items": [
+    "MH2 (reference)",
+    "Edge.Cuts"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "info",
+   "message": "Net 'unconnected-(U10-PA3-Pad8)' has only 1 pad on U10-8 -- KiCad-emitted explicit no-connect (symbol pin marked NC); no action required",
+   "location": [
+    141.325,
+    79.8
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10-8"
+   ],
+   "nets": [
+    "unconnected-(U10-PA3-Pad8)"
+   ],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "info",
+   "message": "Net 'unconnected-(U10-PA4-Pad9)' has only 1 pad on U10-9 -- KiCad-emitted explicit no-connect (symbol pin marked NC); no action required",
+   "location": [
+    142.7,
+    81.175
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10-9"
+   ],
+   "nets": [
+    "unconnected-(U10-PA4-Pad9)"
+   ],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "info",
+   "message": "Net 'unconnected-(U10-PA5-Pad10)' has only 1 pad on U10-10 -- KiCad-emitted explicit no-connect (symbol pin marked NC); no action required",
+   "location": [
+    143.5,
+    81.175
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10-10"
+   ],
+   "nets": [
+    "unconnected-(U10-PA5-Pad10)"
+   ],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "info",
+   "message": "Net 'unconnected-(U10-PA11-Pad21)' has only 1 pad on U10-21 -- KiCad-emitted explicit no-connect (symbol pin marked NC); no action required",
+   "location": [
+    149.675,
+    76.6
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10-21"
+   ],
+   "nets": [
+    "unconnected-(U10-PA11-Pad21)"
+   ],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "info",
+   "message": "Net 'unconnected-(U10-PA12-Pad22)' has only 1 pad on U10-22 -- KiCad-emitted explicit no-connect (symbol pin marked NC); no action required",
+   "location": [
+    149.675,
+    75.8
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10-22"
+   ],
+   "nets": [
+    "unconnected-(U10-PA12-Pad22)"
+   ],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "info",
+   "message": "Net 'unconnected-(U10-PA15-Pad25)' has only 1 pad on U10-25 -- KiCad-emitted explicit no-connect (symbol pin marked NC); no action required",
+   "location": [
+    148.3,
+    72.825
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10-25"
+   ],
+   "nets": [
+    "unconnected-(U10-PA15-Pad25)"
+   ],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "info",
+   "message": "Net 'unconnected-(U10-PB4-Pad27)' has only 1 pad on U10-27 -- KiCad-emitted explicit no-connect (symbol pin marked NC); no action required",
+   "location": [
+    146.7,
+    72.825
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10-27"
+   ],
+   "nets": [
+    "unconnected-(U10-PB4-Pad27)"
+   ],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "info",
+   "message": "Net 'unconnected-(U10-PB5-Pad28)' has only 1 pad on U10-28 -- KiCad-emitted explicit no-connect (symbol pin marked NC); no action required",
+   "location": [
+    145.9,
+    72.825
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U10-28"
+   ],
+   "nets": [
+    "unconnected-(U10-PB5-Pad28)"
+   ],
+   "status": "info",
+   "waived": false
+  },
+  {
+   "rule_id": "zone_unfilled",
+   "type": "zone_unfilled",
+   "severity": "warning",
+   "message": "Zone for net 'GND' on B.Cu has fill enabled but no filled polygons [(0.30, 0.30) to (79.70, 99.70) mm]",
+   "location": [
+    148.5,
+    87.5
+   ],
+   "layer": "B.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:GND"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "zone_unfilled",
+   "type": "zone_unfilled",
+   "severity": "warning",
+   "message": "Zone for net '+24V' on F.Cu has fill enabled but no filled polygons [(4.70, 7.70) to (40.30, 68.30) mm]",
+   "location": [
+    131.0,
+    75.5
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:+24V"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "zone_unfilled",
+   "type": "zone_unfilled",
+   "severity": "warning",
+   "message": "Zone for net '+5V' on F.Cu has fill enabled but no filled polygons [(8.30, 18.40) to (41.15, 53.30) mm]",
+   "location": [
+    133.225,
+    73.35
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:+5V"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "zone_unfilled",
+   "type": "zone_unfilled",
+   "severity": "warning",
+   "message": "Zone for net '+3V3' on F.Cu has fill enabled but no filled polygons [(18.95, 7.70) to (65.30, 60.84) mm]",
+   "location": [
+    150.625,
+    71.77
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:+3V3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "zone_unfilled",
+   "type": "zone_unfilled",
+   "severity": "warning",
+   "message": "Zone for net 'VIN' on F.Cu has fill enabled but no filled polygons [(3.50, 5.23) to (14.00, 9.50) mm]",
+   "location": [
+    117.25,
+    44.865
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "net:VIN"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": [],
+ "fabrication_process": {
+  "process_id": "pcbway-via-in-pad",
+  "name": "PCBWay Via-in-Pad (epoxy-filled & capped)",
+  "min_layer_count": 2,
+  "min_via_drill_mm": 0.15,
+  "max_via_drill_mm": 0.5,
+  "min_annular_ring_mm": 0.15,
+  "requires_filled_and_capped": true,
+  "min_component_hole_distance_mm": 0.5,
+  "source": "https://www.pcbway.com/capabilities.html",
+  "ordering_instructions": "Order the PCBWay Via-in-Pad (epoxy-filled & capped) process (pcbway-via-in-pad): a >= 2-layer stackup with epoxy-filled and copper-capped (plated-over) vias, via drills between 0.15 and 0.5 mm, annular ring >= 0.15 mm, and in-pad vias kept >= 0.5 mm from any other component's drilled hole. Do not substitute ordinary open or merely tented vias. Source: https://www.pcbway.com/capabilities.html"
+ }
+}

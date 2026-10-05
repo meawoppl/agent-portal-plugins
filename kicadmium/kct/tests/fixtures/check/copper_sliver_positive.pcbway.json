@@ -1,0 +1,73 @@
+{
+ "file": "<FIXTURES>/copper_sliver_positive.kicad_pcb",
+ "manufacturer": "pcbway",
+ "layers": 2,
+ "summary": {
+  "errors": 1,
+  "warnings": 1,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 45,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "copper_sliver",
+   "type": "copper_sliver",
+   "severity": "warning",
+   "message": "Copper sliver on F.Cu: acute tip exceeds native chord tolerance 0.080mm (tip angle 1.1\u00b0, opposite width 0.200mm)",
+   "location": [
+    10.0,
+    25.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.2,
+   "required_value": 0.08,
+   "items": [],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "footprint_outside_board",
+   "type": "footprint_outside_board",
+   "severity": "error",
+   "message": "Footprint  at (-5.00, -5.00) is outside the board outline by 7.07mm",
+   "location": [
+    0.0,
+    0.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 7.0710678118654755,
+   "required_value": 0.0,
+   "items": [
+    ""
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": [],
+ "fabrication_process": {
+  "process_id": "pcbway-via-in-pad",
+  "name": "PCBWay Via-in-Pad (epoxy-filled & capped)",
+  "min_layer_count": 2,
+  "min_via_drill_mm": 0.15,
+  "max_via_drill_mm": 0.5,
+  "min_annular_ring_mm": 0.15,
+  "requires_filled_and_capped": true,
+  "min_component_hole_distance_mm": 0.5,
+  "source": "https://www.pcbway.com/capabilities.html",
+  "ordering_instructions": "Order the PCBWay Via-in-Pad (epoxy-filled & capped) process (pcbway-via-in-pad): a >= 2-layer stackup with epoxy-filled and copper-capped (plated-over) vias, via drills between 0.15 and 0.5 mm, annular ring >= 0.15 mm, and in-pad vias kept >= 0.5 mm from any other component's drilled hole. Do not substitute ordinary open or merely tented vias. Source: https://www.pcbway.com/capabilities.html"
+ }
+}

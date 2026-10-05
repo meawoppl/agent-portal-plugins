@@ -1,0 +1,433 @@
+{
+ "summary": {
+  "errors": 10,
+  "warnings": 11,
+  "info": 2
+ },
+ "mistakes": [
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U1"
+   ],
+   "location": [
+    20.0,
+    25.0
+   ],
+   "explanation": "U1 has a power pin on net '+1V2', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V2 to the nearest ground return, placed within a few mm of U1's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U1"
+   ],
+   "location": [
+    20.0,
+    25.0
+   ],
+   "explanation": "U1 has a power pin on net '+1V8', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V8 to the nearest ground return, placed within a few mm of U1's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U5"
+   ],
+   "location": [
+    60.0,
+    80.0
+   ],
+   "explanation": "U5 has a power pin on net '+1V2', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V2 to the nearest ground return, placed within a few mm of U5's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U5"
+   ],
+   "location": [
+    60.0,
+    80.0
+   ],
+   "explanation": "U5 has a power pin on net '+1V8', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V8 to the nearest ground return, placed within a few mm of U5's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U3"
+   ],
+   "location": [
+    35.0,
+    55.0
+   ],
+   "explanation": "U3 has a power pin on net '+1V2', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V2 to the nearest ground return, placed within a few mm of U3's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U3"
+   ],
+   "location": [
+    35.0,
+    55.0
+   ],
+   "explanation": "U3 has a power pin on net '+1V8', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V8 to the nearest ground return, placed within a few mm of U3's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U4"
+   ],
+   "location": [
+    85.0,
+    55.0
+   ],
+   "explanation": "U4 has a power pin on net '+1V2', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V2 to the nearest ground return, placed within a few mm of U4's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U4"
+   ],
+   "location": [
+    85.0,
+    55.0
+   ],
+   "explanation": "U4 has a power pin on net '+1V8', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V8 to the nearest ground return, placed within a few mm of U4's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U2"
+   ],
+   "location": [
+    50.0,
+    25.0
+   ],
+   "explanation": "U2 has a power pin on net '+1V2', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V2 to the nearest ground return, placed within a few mm of U2's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U2"
+   ],
+   "location": [
+    50.0,
+    25.0
+   ],
+   "explanation": "U2 has a power pin on net '+1V8', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V8 to the nearest ground return, placed within a few mm of U2's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "differential_pair",
+   "severity": "warning",
+   "title": "Differential pair length mismatch",
+   "components": [
+    "MIPI_CLK_P",
+    "MIPI_CLK_N"
+   ],
+   "location": null,
+   "explanation": "MIPI_CLK_P is 29.1mm, MIPI_CLK_N is 21.3mm (7.8mm difference). Differential requires < 5.0mm length difference to maintain signal timing. Mismatched lengths cause timing skew that degrades signal quality.",
+   "fix_suggestion": "Add serpentine to MIPI_CLK_N to match MIPI_CLK_P length, or shorten the MIPI_CLK_P routing path. Target: 29.1mm for both traces.",
+   "learn_more_url": "docs/mistakes/differential-pair-matching.md"
+  },
+  {
+   "category": "differential_pair",
+   "severity": "warning",
+   "title": "Differential pair length mismatch",
+   "components": [
+    "MIPI_DAT1_P",
+    "MIPI_DAT1_N"
+   ],
+   "location": null,
+   "explanation": "MIPI_DAT1_P is 29.0mm, MIPI_DAT1_N is 15.4mm (13.5mm difference). Differential requires < 5.0mm length difference to maintain signal timing. Mismatched lengths cause timing skew that degrades signal quality.",
+   "fix_suggestion": "Add serpentine to MIPI_DAT1_N to match MIPI_DAT1_P length, or shorten the MIPI_DAT1_P routing path. Target: 29.0mm for both traces.",
+   "learn_more_url": "docs/mistakes/differential-pair-matching.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "+1V2"
+   ],
+   "location": [
+    87.53999999999999,
+    56.269999999999996
+   ],
+   "explanation": "Power trace on +1V2 is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on +1V2 to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "+1V8"
+   ],
+   "location": [
+    55.0,
+    20.6
+   ],
+   "explanation": "Power trace on +1V8 is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on +1V8 to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "GND"
+   ],
+   "location": [
+    52.80000000000001,
+    30.0
+   ],
+   "explanation": "Power trace on GND is only 0.15mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on GND to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U4",
+    "pad B1"
+   ],
+   "location": [
+    81.369,
+    52.629000000000005
+   ],
+   "explanation": "Via found in SMD pad B1 of U4. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U4",
+    "pad B3"
+   ],
+   "location": [
+    83.52799999999999,
+    52.248000000000005
+   ],
+   "explanation": "Via found in SMD pad B3 of U4. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U4",
+    "pad B5"
+   ],
+   "location": [
+    86.195,
+    52.629000000000005
+   ],
+   "explanation": "Via found in SMD pad B5 of U4. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "U4",
+    "pad B6"
+   ],
+   "location": [
+    87.59200000000001,
+    52.629000000000005
+   ],
+   "explanation": "Via found in SMD pad B6 of U4. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "J2",
+    "pad 1"
+   ],
+   "location": [
+    56.477000000000004,
+    55.423
+   ],
+   "explanation": "Via found in SMD pad 1 of J2. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "A2",
+    "F.Cu"
+   ],
+   "location": [
+    20.281999999999996,
+    77.14
+   ],
+   "explanation": "Trace on A2 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "differential_pair",
+   "severity": "info",
+   "title": "Differential pair length matching could be improved",
+   "components": [
+    "DQS_P",
+    "DQS_N"
+   ],
+   "location": null,
+   "explanation": "DQS_P/DQS_N have 4.6mm length difference. While within spec (5.0mm max), better matching improves signal integrity margin.",
+   "fix_suggestion": "Consider adding serpentine to improve length matching. Current: 20.4mm / 25.0mm.",
+   "learn_more_url": "docs/mistakes/differential-pair-matching.md"
+  },
+  {
+   "category": "differential_pair",
+   "severity": "info",
+   "title": "Differential pair length matching could be improved",
+   "components": [
+    "TMDS_D2_P",
+    "TMDS_D2_N"
+   ],
+   "location": null,
+   "explanation": "TMDS_D2_P/TMDS_D2_N have 3.8mm length difference. While within spec (5.0mm max), better matching improves signal integrity margin.",
+   "fix_suggestion": "Consider adding serpentine to improve length matching. Current: 29.4mm / 25.6mm.",
+   "learn_more_url": "docs/mistakes/differential-pair-matching.md"
+  }
+ ],
+ "coverage": [
+  {
+   "check_name": "BypassCapDistanceCheck",
+   "category": "bypass_capacitor",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalTraceLengthCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalNoiseProximityCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "DifferentialPairSkewCheck",
+   "category": "differential_pair",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PowerTraceWidthCheck",
+   "category": "power_trace",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ThermalPadConnectionCheck",
+   "category": "thermal_management",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ViaInPadCheck",
+   "category": "via_placement",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "AcidTrapCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "TombstoningRiskCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "MissingDecouplingCapCheck",
+   "category": "decoupling",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PullUpResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "LedSeriesResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "BomFieldHealthCheck",
+   "category": "bom_health",
+   "status": "incomplete",
+   "reason": "no BOM-eligible component on this board defines an MPN/LCSC-style property (checked ['jlc', 'jlcpcb', 'lcsc', 'lcsc part', 'lcsc_pn', 'manufacturer_pn', 'mfr_pn', 'mpn', 'pn']); this board may not track manufacturer part numbers in footprint properties, so BOM part-number coverage cannot be assessed"
+  }
+ ],
+ "coverage_complete": false
+}

@@ -1,0 +1,6277 @@
+{
+ "board05_sync_drift/bldc_controller_drifted.kicad_pcb": {
+  "groups": [
+   [
+    "C1.1"
+   ],
+   [
+    "C1.2"
+   ],
+   [
+    "C10.1",
+    "U10.2",
+    "Y1.1"
+   ],
+   [
+    "C10.2"
+   ],
+   [
+    "C11.1",
+    "Y1.2"
+   ],
+   [
+    "C11.2"
+   ],
+   [
+    "C12.1"
+   ],
+   [
+    "C12.2"
+   ],
+   [
+    "C13.1"
+   ],
+   [
+    "C13.2"
+   ],
+   [
+    "C14.1"
+   ],
+   [
+    "C14.2"
+   ],
+   [
+    "C15.1"
+   ],
+   [
+    "C15.2"
+   ],
+   [
+    "C16.1"
+   ],
+   [
+    "C16.2"
+   ],
+   [
+    "C2.1"
+   ],
+   [
+    "C2.2"
+   ],
+   [
+    "C3.1"
+   ],
+   [
+    "C3.2"
+   ],
+   [
+    "C30.1",
+    "R30.2"
+   ],
+   [
+    "C30.2"
+   ],
+   [
+    "C31.1",
+    "R31.2"
+   ],
+   [
+    "C31.2"
+   ],
+   [
+    "C32.1"
+   ],
+   [
+    "C32.2"
+   ],
+   [
+    "C4.1"
+   ],
+   [
+    "C4.2"
+   ],
+   [
+    "C5.1"
+   ],
+   [
+    "C5.2"
+   ],
+   [
+    "C6.1"
+   ],
+   [
+    "C6.2"
+   ],
+   [
+    "C7.1"
+   ],
+   [
+    "C7.2"
+   ],
+   [
+    "C8.1"
+   ],
+   [
+    "C8.2"
+   ],
+   [
+    "C9.1"
+   ],
+   [
+    "C9.2"
+   ],
+   [
+    "D1.1"
+   ],
+   [
+    "D1.2"
+   ],
+   [
+    "D2.1",
+    "L1.1",
+    "U3.50",
+    "U3.51"
+   ],
+   [
+    "D2.2"
+   ],
+   [
+    "D3.1"
+   ],
+   [
+    "D3.2"
+   ],
+   [
+    "D4.1",
+    "R4.2"
+   ],
+   [
+    "D4.2"
+   ],
+   [
+    "F1.1"
+   ],
+   [
+    "F1.2"
+   ],
+   [
+    "J1.1"
+   ],
+   [
+    "J1.2"
+   ],
+   [
+    "J2.1"
+   ],
+   [
+    "J2.2"
+   ],
+   [
+    "J2.3"
+   ],
+   [
+    "J3.1"
+   ],
+   [
+    "J3.2"
+   ],
+   [
+    "J3.3",
+    "R32.2",
+    "U10.13"
+   ],
+   [
+    "J3.4"
+   ],
+   [
+    "J3.5"
+   ],
+   [
+    "J4.1"
+   ],
+   [
+    "J4.2",
+    "U10.23"
+   ],
+   [
+    "J4.3",
+    "U10.24"
+   ],
+   [
+    "J4.4",
+    "U10.26"
+   ],
+   [
+    "J4.5"
+   ],
+   [
+    "J4.6"
+   ],
+   [
+    "L1.2"
+   ],
+   [
+    "Q1.1",
+    "R20.2"
+   ],
+   [
+    "Q1.2"
+   ],
+   [
+    "Q1.3"
+   ],
+   [
+    "Q2.1"
+   ],
+   [
+    "Q2.2"
+   ],
+   [
+    "Q2.3",
+    "R10.1"
+   ],
+   [
+    "Q3.1",
+    "R21.2"
+   ],
+   [
+    "Q3.2"
+   ],
+   [
+    "Q3.3"
+   ],
+   [
+    "Q4.1"
+   ],
+   [
+    "Q4.2"
+   ],
+   [
+    "Q4.3",
+    "R11.1",
+    "U3.26"
+   ],
+   [
+    "Q5.1",
+    "R22.2"
+   ],
+   [
+    "Q5.2"
+   ],
+   [
+    "Q5.3"
+   ],
+   [
+    "Q6.1"
+   ],
+   [
+    "Q6.2"
+   ],
+   [
+    "Q6.3",
+    "R12.1"
+   ],
+   [
+    "R10.2"
+   ],
+   [
+    "R11.2",
+    "U3.31"
+   ],
+   [
+    "R12.2",
+    "U10.7"
+   ],
+   [
+    "R20.1",
+    "U3.47"
+   ],
+   [
+    "R21.1",
+    "U3.42"
+   ],
+   [
+    "R22.1",
+    "U3.37"
+   ],
+   [
+    "R3.1"
+   ],
+   [
+    "R3.2"
+   ],
+   [
+    "R30.1"
+   ],
+   [
+    "R31.1"
+   ],
+   [
+    "R32.1"
+   ],
+   [
+    "R4.1"
+   ],
+   [
+    "U1.1"
+   ],
+   [
+    "U1.2"
+   ],
+   [
+    "U1.3"
+   ],
+   [
+    "U1.4"
+   ],
+   [
+    "U1.5"
+   ],
+   [
+    "U10.1"
+   ],
+   [
+    "U10.10"
+   ],
+   [
+    "U10.11"
+   ],
+   [
+    "U10.12"
+   ],
+   [
+    "U10.14"
+   ],
+   [
+    "U10.15"
+   ],
+   [
+    "U10.16"
+   ],
+   [
+    "U10.17"
+   ],
+   [
+    "U10.18"
+   ],
+   [
+    "U10.19"
+   ],
+   [
+    "U10.20"
+   ],
+   [
+    "U10.21"
+   ],
+   [
+    "U10.22"
+   ],
+   [
+    "U10.25"
+   ],
+   [
+    "U10.27"
+   ],
+   [
+    "U10.28"
+   ],
+   [
+    "U10.29",
+    "U3.18"
+   ],
+   [
+    "U10.3"
+   ],
+   [
+    "U10.30"
+   ],
+   [
+    "U10.31"
+   ],
+   [
+    "U10.32"
+   ],
+   [
+    "U10.4"
+   ],
+   [
+    "U10.5"
+   ],
+   [
+    "U10.6"
+   ],
+   [
+    "U10.8"
+   ],
+   [
+    "U10.9"
+   ],
+   [
+    "U2.1"
+   ],
+   [
+    "U2.3"
+   ],
+   [
+    "U3.1"
+   ],
+   [
+    "U3.10"
+   ],
+   [
+    "U3.11"
+   ],
+   [
+    "U3.12"
+   ],
+   [
+    "U3.13"
+   ],
+   [
+    "U3.14"
+   ],
+   [
+    "U3.15"
+   ],
+   [
+    "U3.16"
+   ],
+   [
+    "U3.17"
+   ],
+   [
+    "U3.19"
+   ],
+   [
+    "U3.2"
+   ],
+   [
+    "U3.20"
+   ],
+   [
+    "U3.21"
+   ],
+   [
+    "U3.22"
+   ],
+   [
+    "U3.23"
+   ],
+   [
+    "U3.24"
+   ],
+   [
+    "U3.25"
+   ],
+   [
+    "U3.27"
+   ],
+   [
+    "U3.28"
+   ],
+   [
+    "U3.29"
+   ],
+   [
+    "U3.3"
+   ],
+   [
+    "U3.30"
+   ],
+   [
+    "U3.32"
+   ],
+   [
+    "U3.33"
+   ],
+   [
+    "U3.34"
+   ],
+   [
+    "U3.35"
+   ],
+   [
+    "U3.36"
+   ],
+   [
+    "U3.38"
+   ],
+   [
+    "U3.39"
+   ],
+   [
+    "U3.4"
+   ],
+   [
+    "U3.40"
+   ],
+   [
+    "U3.41"
+   ],
+   [
+    "U3.43"
+   ],
+   [
+    "U3.44"
+   ],
+   [
+    "U3.45"
+   ],
+   [
+    "U3.46"
+   ],
+   [
+    "U3.48"
+   ],
+   [
+    "U3.49"
+   ],
+   [
+    "U3.5"
+   ],
+   [
+    "U3.52"
+   ],
+   [
+    "U3.53"
+   ],
+   [
+    "U3.54"
+   ],
+   [
+    "U3.55"
+   ],
+   [
+    "U3.56"
+   ],
+   [
+    "U3.57"
+   ],
+   [
+    "U3.6"
+   ],
+   [
+    "U3.7"
+   ],
+   [
+    "U3.8"
+   ],
+   [
+    "U3.9"
+   ],
+   [
+    "__pad:38:1"
+   ],
+   [
+    "__pad:38:2"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 27 errors, 0 warnings\n  Nets: 13/40 fully connected\n  Partial connections: 27\n  Total unconnected pads: 139",
+  "validate": {
+   "connected_nets": 13,
+   "error_count": 27,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "C1.1"
+     ],
+     "islands": [
+      [
+       "C1.1"
+      ],
+      [
+       "C12.1"
+      ],
+      [
+       "C13.1"
+      ],
+      [
+       "C14.1"
+      ],
+      [
+       "C2.1"
+      ],
+      [
+       "C3.1"
+      ],
+      [
+       "D1.2"
+      ],
+      [
+       "F1.1"
+      ],
+      [
+       "F1.2"
+      ],
+      [
+       "J1.1"
+      ],
+      [
+       "Q1.2"
+      ],
+      [
+       "Q3.2"
+      ],
+      [
+       "Q5.2"
+      ],
+      [
+       "U1.1"
+      ],
+      [
+       "U3.29"
+      ],
+      [
+       "U3.38"
+      ],
+      [
+       "U3.43"
+      ],
+      [
+       "U3.48"
+      ],
+      [
+       "U3.52"
+      ],
+      [
+       "U3.53"
+      ],
+      [
+       "U3.54"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'VMOTOR' has 21 disconnected islands",
+     "net_name": "VMOTOR",
+     "severity": "error",
+     "suggestion": "Connect 21 islands to complete routing",
+     "unconnected_pads": [
+      "C12.1",
+      "C13.1",
+      "C14.1",
+      "C2.1",
+      "C3.1",
+      "D1.2",
+      "F1.1",
+      "F1.2",
+      "J1.1",
+      "Q1.2",
+      "Q3.2",
+      "Q5.2",
+      "U1.1",
+      "U3.29",
+      "U3.38",
+      "U3.43",
+      "U3.48",
+      "U3.52",
+      "U3.53",
+      "U3.54"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C15.1"
+     ],
+     "islands": [
+      [
+       "C15.1"
+      ],
+      [
+       "C16.1"
+      ],
+      [
+       "C4.1"
+      ],
+      [
+       "C5.1"
+      ],
+      [
+       "L1.2"
+      ],
+      [
+       "U1.2"
+      ],
+      [
+       "U2.1"
+      ],
+      [
+       "U3.13"
+      ],
+      [
+       "U3.14"
+      ],
+      [
+       "U3.15"
+      ],
+      [
+       "U3.27"
+      ],
+      [
+       "U3.3"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '+5V' has 12 disconnected islands",
+     "net_name": "+5V",
+     "severity": "error",
+     "suggestion": "Connect 12 islands to complete routing",
+     "unconnected_pads": [
+      "C16.1",
+      "C4.1",
+      "C5.1",
+      "L1.2",
+      "U1.2",
+      "U2.1",
+      "U3.13",
+      "U3.14",
+      "U3.15",
+      "U3.27",
+      "U3.3"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C6.1"
+     ],
+     "islands": [
+      [
+       "C6.1"
+      ],
+      [
+       "C7.1"
+      ],
+      [
+       "C8.1"
+      ],
+      [
+       "C9.1"
+      ],
+      [
+       "J3.4"
+      ],
+      [
+       "J4.1"
+      ],
+      [
+       "R3.1"
+      ],
+      [
+       "R30.1"
+      ],
+      [
+       "R31.1"
+      ],
+      [
+       "R32.1"
+      ],
+      [
+       "R4.1"
+      ],
+      [
+       "U10.1"
+      ],
+      [
+       "U10.15"
+      ],
+      [
+       "U10.17"
+      ],
+      [
+       "U2.3"
+      ],
+      [
+       "U3.10"
+      ],
+      [
+       "U3.11"
+      ],
+      [
+       "U3.16"
+      ],
+      [
+       "U3.23"
+      ],
+      [
+       "U3.24"
+      ],
+      [
+       "U3.4"
+      ],
+      [
+       "U3.49"
+      ],
+      [
+       "U3.5"
+      ],
+      [
+       "U3.55"
+      ],
+      [
+       "U3.6"
+      ],
+      [
+       "U3.8"
+      ],
+      [
+       "U3.9"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '+3.3V' has 27 disconnected islands",
+     "net_name": "+3.3V",
+     "severity": "error",
+     "suggestion": "Connect 27 islands to complete routing",
+     "unconnected_pads": [
+      "C7.1",
+      "C8.1",
+      "C9.1",
+      "J3.4",
+      "J4.1",
+      "R3.1",
+      "R30.1",
+      "R31.1",
+      "R32.1",
+      "R4.1",
+      "U10.1",
+      "U10.15",
+      "U10.17",
+      "U2.3",
+      "U3.10",
+      "U3.11",
+      "U3.16",
+      "U3.23",
+      "U3.24",
+      "U3.4",
+      "U3.49",
+      "U3.5",
+      "U3.55",
+      "U3.6",
+      "U3.8",
+      "U3.9"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C1.2"
+     ],
+     "islands": [
+      [
+       "C1.2"
+      ],
+      [
+       "C10.2"
+      ],
+      [
+       "C11.2"
+      ],
+      [
+       "C15.2"
+      ],
+      [
+       "C16.2"
+      ],
+      [
+       "C2.2"
+      ],
+      [
+       "C3.2"
+      ],
+      [
+       "C30.2"
+      ],
+      [
+       "C31.2"
+      ],
+      [
+       "C32.2"
+      ],
+      [
+       "C4.2"
+      ],
+      [
+       "C5.2"
+      ],
+      [
+       "C6.2"
+      ],
+      [
+       "C7.2"
+      ],
+      [
+       "C8.2"
+      ],
+      [
+       "C9.2"
+      ],
+      [
+       "D1.1"
+      ],
+      [
+       "D2.2"
+      ],
+      [
+       "D3.2"
+      ],
+      [
+       "D4.2"
+      ],
+      [
+       "J1.2"
+      ],
+      [
+       "J3.5"
+      ],
+      [
+       "J4.6"
+      ],
+      [
+       "U1.4"
+      ],
+      [
+       "U1.5"
+      ],
+      [
+       "U10.10"
+      ],
+      [
+       "U10.14"
+      ],
+      [
+       "U10.16"
+      ],
+      [
+       "U10.21"
+      ],
+      [
+       "U10.22"
+      ],
+      [
+       "U10.25"
+      ],
+      [
+       "U10.27"
+      ],
+      [
+       "U10.28"
+      ],
+      [
+       "U10.32"
+      ],
+      [
+       "U10.8"
+      ],
+      [
+       "U10.9"
+      ],
+      [
+       "U3.1"
+      ],
+      [
+       "U3.12"
+      ],
+      [
+       "U3.2"
+      ],
+      [
+       "U3.28"
+      ],
+      [
+       "U3.56"
+      ],
+      [
+       "U3.57"
+      ],
+      [
+       "U3.7"
+      ],
+      [
+       "U2.2"
+      ],
+      [
+       "U2.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GND' has 45 disconnected islands",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect 45 islands to complete routing",
+     "unconnected_pads": [
+      "C10.2",
+      "C11.2",
+      "C15.2",
+      "C16.2",
+      "C2.2",
+      "C3.2",
+      "C30.2",
+      "C31.2",
+      "C32.2",
+      "C4.2",
+      "C5.2",
+      "C6.2",
+      "C7.2",
+      "C8.2",
+      "C9.2",
+      "D1.1",
+      "D2.2",
+      "D3.2",
+      "D4.2",
+      "J1.2",
+      "J3.5",
+      "J4.6",
+      "U1.4",
+      "U1.5",
+      "U10.10",
+      "U10.14",
+      "U10.16",
+      "U10.21",
+      "U10.22",
+      "U10.25",
+      "U10.27",
+      "U10.28",
+      "U10.32",
+      "U10.8",
+      "U10.9",
+      "U3.1",
+      "U3.12",
+      "U3.2",
+      "U3.28",
+      "U3.56",
+      "U3.57",
+      "U3.7",
+      "U2.2",
+      "U2.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C12.2"
+     ],
+     "islands": [
+      [
+       "C12.2"
+      ],
+      [
+       "J2.1"
+      ],
+      [
+       "Q1.3"
+      ],
+      [
+       "Q2.2"
+      ],
+      [
+       "U3.46"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PHASE_A' has 5 disconnected islands",
+     "net_name": "PHASE_A",
+     "severity": "error",
+     "suggestion": "Connect 5 islands to complete routing",
+     "unconnected_pads": [
+      "J2.1",
+      "Q1.3",
+      "Q2.2",
+      "U3.46"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C13.2"
+     ],
+     "islands": [
+      [
+       "C13.2"
+      ],
+      [
+       "J2.2"
+      ],
+      [
+       "Q3.3"
+      ],
+      [
+       "Q4.2"
+      ],
+      [
+       "U3.41"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PHASE_B' has 5 disconnected islands",
+     "net_name": "PHASE_B",
+     "severity": "error",
+     "suggestion": "Connect 5 islands to complete routing",
+     "unconnected_pads": [
+      "J2.2",
+      "Q3.3",
+      "Q4.2",
+      "U3.41"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C14.2"
+     ],
+     "islands": [
+      [
+       "C14.2"
+      ],
+      [
+       "J2.3"
+      ],
+      [
+       "Q5.3"
+      ],
+      [
+       "Q6.2"
+      ],
+      [
+       "U3.36"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PHASE_C' has 5 disconnected islands",
+     "net_name": "PHASE_C",
+     "severity": "error",
+     "suggestion": "Connect 5 islands to complete routing",
+     "unconnected_pads": [
+      "J2.3",
+      "Q5.3",
+      "Q6.2",
+      "U3.36"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q2.1"
+     ],
+     "islands": [
+      [
+       "Q2.1"
+      ],
+      [
+       "U3.45"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_AL' has 2 disconnected islands",
+     "net_name": "GATE_AL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Q2.1 and U3.45)",
+     "unconnected_pads": [
+      "U3.45"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q4.1"
+     ],
+     "islands": [
+      [
+       "Q4.1"
+      ],
+      [
+       "U3.40"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_BL' has 2 disconnected islands",
+     "net_name": "GATE_BL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Q4.1 and U3.40)",
+     "unconnected_pads": [
+      "U3.40"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q6.1"
+     ],
+     "islands": [
+      [
+       "Q6.1"
+      ],
+      [
+       "U3.35"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_CL' has 2 disconnected islands",
+     "net_name": "GATE_CL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Q6.1 and U3.35)",
+     "unconnected_pads": [
+      "U3.35"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q2.3",
+      "R10.1"
+     ],
+     "islands": [
+      [
+       "Q2.3",
+       "R10.1"
+      ],
+      [
+       "U3.25"
+      ],
+      [
+       "U3.32"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_A+' has 3 disconnected islands",
+     "net_name": "ISENSE_A+",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "U3.25",
+      "U3.32"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R10.2"
+     ],
+     "islands": [
+      [
+       "R10.2"
+      ],
+      [
+       "U10.5"
+      ],
+      [
+       "U3.33"
+      ],
+      [
+       "U3.44"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_A-' has 4 disconnected islands",
+     "net_name": "ISENSE_A-",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "U10.5",
+      "U3.33",
+      "U3.44"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q4.3",
+      "R11.1",
+      "U3.26"
+     ],
+     "islands": [
+      [
+       "Q4.3",
+       "R11.1",
+       "U3.26"
+      ],
+      [
+       "U3.30"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_B+' has 2 disconnected islands",
+     "net_name": "ISENSE_B+",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U3.26 and U3.30)",
+     "unconnected_pads": [
+      "U3.30"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R11.2",
+      "U3.31"
+     ],
+     "islands": [
+      [
+       "R11.2",
+       "U3.31"
+      ],
+      [
+       "U10.6"
+      ],
+      [
+       "U3.39"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_B-' has 3 disconnected islands",
+     "net_name": "ISENSE_B-",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "U10.6",
+      "U3.39"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R12.2",
+      "U10.7"
+     ],
+     "islands": [
+      [
+       "R12.2",
+       "U10.7"
+      ],
+      [
+       "U3.34"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_C-' has 2 disconnected islands",
+     "net_name": "ISENSE_C-",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.7 and U3.34)",
+     "unconnected_pads": [
+      "U3.34"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C30.1",
+      "R30.2"
+     ],
+     "islands": [
+      [
+       "C30.1",
+       "R30.2"
+      ],
+      [
+       "J3.1"
+      ],
+      [
+       "U10.11"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'HALL_A' has 3 disconnected islands",
+     "net_name": "HALL_A",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "J3.1",
+      "U10.11"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C31.1",
+      "R31.2"
+     ],
+     "islands": [
+      [
+       "C31.1",
+       "R31.2"
+      ],
+      [
+       "J3.2"
+      ],
+      [
+       "U10.12"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'HALL_B' has 3 disconnected islands",
+     "net_name": "HALL_B",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "J3.2",
+      "U10.12"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J3.3",
+      "R32.2",
+      "U10.13"
+     ],
+     "islands": [
+      [
+       "J3.3",
+       "R32.2",
+       "U10.13"
+      ],
+      [
+       "C32.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'HALL_C' has 2 disconnected islands",
+     "net_name": "HALL_C",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.13 and C32.1)",
+     "unconnected_pads": [
+      "C32.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J4.5"
+     ],
+     "islands": [
+      [
+       "J4.5"
+      ],
+      [
+       "U10.4"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NRST' has 2 disconnected islands",
+     "net_name": "NRST",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between J4.5 and U10.4)",
+     "unconnected_pads": [
+      "U10.4"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C11.1",
+      "Y1.2"
+     ],
+     "islands": [
+      [
+       "C11.1",
+       "Y1.2"
+      ],
+      [
+       "U10.3"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'OSC_OUT' has 2 disconnected islands",
+     "net_name": "OSC_OUT",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Y1.2 and U10.3)",
+     "unconnected_pads": [
+      "U10.3"
+     ]
+    },
+    {
+     "connected_pads": [
+      "D3.1"
+     ],
+     "islands": [
+      [
+       "D3.1"
+      ],
+      [
+       "R3.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWR_LED' has 2 disconnected islands",
+     "net_name": "PWR_LED",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between D3.1 and R3.2)",
+     "unconnected_pads": [
+      "R3.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "D2.1",
+      "L1.1",
+      "U3.50",
+      "U3.51"
+     ],
+     "islands": [
+      [
+       "D2.1",
+       "L1.1",
+       "U3.50",
+       "U3.51"
+      ],
+      [
+       "U1.3"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'SW_OUT' has 2 disconnected islands",
+     "net_name": "SW_OUT",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U3.51 and U1.3)",
+     "unconnected_pads": [
+      "U1.3"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.18"
+     ],
+     "islands": [
+      [
+       "U10.18"
+      ],
+      [
+       "U3.17"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_AH' has 2 disconnected islands",
+     "net_name": "PWM_AH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.18 and U3.17)",
+     "unconnected_pads": [
+      "U3.17"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.19"
+     ],
+     "islands": [
+      [
+       "U10.19"
+      ],
+      [
+       "U3.19"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_BH' has 2 disconnected islands",
+     "net_name": "PWM_BH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.19 and U3.19)",
+     "unconnected_pads": [
+      "U3.19"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.30"
+     ],
+     "islands": [
+      [
+       "U10.30"
+      ],
+      [
+       "U3.20"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_BL' has 2 disconnected islands",
+     "net_name": "PWM_BL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.30 and U3.20)",
+     "unconnected_pads": [
+      "U3.20"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.20"
+     ],
+     "islands": [
+      [
+       "U10.20"
+      ],
+      [
+       "U3.21"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_CH' has 2 disconnected islands",
+     "net_name": "PWM_CH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.20 and U3.21)",
+     "unconnected_pads": [
+      "U3.21"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.31"
+     ],
+     "islands": [
+      [
+       "U10.31"
+      ],
+      [
+       "U3.22"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_CL' has 2 disconnected islands",
+     "net_name": "PWM_CL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.31 and U3.22)",
+     "unconnected_pads": [
+      "U3.22"
+     ]
+    }
+   ],
+   "total_nets": 40,
+   "unconnected_pads": 139,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "board06_pour_escape.kicad_pcb": {
+  "groups": [
+   [
+    "ANCHOR.1",
+    "J1.B6"
+   ],
+   [
+    "J1.A1"
+   ],
+   [
+    "J1.A10"
+   ],
+   [
+    "J1.A11"
+   ],
+   [
+    "J1.A12"
+   ],
+   [
+    "J1.A2"
+   ],
+   [
+    "J1.A3"
+   ],
+   [
+    "J1.A4"
+   ],
+   [
+    "J1.A5"
+   ],
+   [
+    "J1.A6"
+   ],
+   [
+    "J1.A7",
+    "J1.B7"
+   ],
+   [
+    "J1.A8"
+   ],
+   [
+    "J1.A9"
+   ],
+   [
+    "J1.B1"
+   ],
+   [
+    "J1.B10"
+   ],
+   [
+    "J1.B11"
+   ],
+   [
+    "J1.B12"
+   ],
+   [
+    "J1.B2"
+   ],
+   [
+    "J1.B3"
+   ],
+   [
+    "J1.B4"
+   ],
+   [
+    "J1.B5"
+   ],
+   [
+    "J1.B8"
+   ],
+   [
+    "J1.B9"
+   ],
+   [
+    "J1.S1"
+   ],
+   [
+    "J1.S2"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 5 errors, 0 warnings\n  Nets: 11/26 fully connected\n  Partial connections: 3\n  Orphaned zone islands: 2\n  Total unconnected pads: 9",
+  "validate": {
+   "connected_nets": 11,
+   "error_count": 5,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "pad:ANCHOR.1"
+      ],
+      [
+       "pad:J1.A8"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Pad ANCHOR.1 and Pad J1.A8",
+     "net_name": "+3V3",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    },
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "pad:ANCHOR.1"
+      ],
+      [
+       "pad:J1.B8"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Pad ANCHOR.1 and Pad J1.B8",
+     "net_name": "+3V3",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    },
+    {
+     "connected_pads": [
+      "J1.A4"
+     ],
+     "islands": [
+      [
+       "J1.A4"
+      ],
+      [
+       "J1.A9"
+      ],
+      [
+       "J1.B4"
+      ],
+      [
+       "J1.B9"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'VBUS_USB' has 4 disconnected islands",
+     "net_name": "VBUS_USB",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "J1.A9",
+      "J1.B4",
+      "J1.B9"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J1.A1"
+     ],
+     "islands": [
+      [
+       "J1.A1"
+      ],
+      [
+       "J1.A12"
+      ],
+      [
+       "J1.B1"
+      ],
+      [
+       "J1.B12"
+      ],
+      [
+       "J1.S1"
+      ],
+      [
+       "J1.S2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GND' has 6 disconnected islands",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect 6 islands to complete routing",
+     "unconnected_pads": [
+      "J1.A12",
+      "J1.B1",
+      "J1.B12",
+      "J1.S1",
+      "J1.S2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J1.A6"
+     ],
+     "islands": [
+      [
+       "J1.A6"
+      ],
+      [
+       "J1.B6"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'USB2_D+' has 2 disconnected islands",
+     "net_name": "USB2_D+",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between J1.A6 and J1.B6)",
+     "unconnected_pads": [
+      "J1.B6"
+     ]
+    }
+   ],
+   "total_nets": 26,
+   "unconnected_pads": 9,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "conformance/issue5398-seg-via-0p18-order-seed5398.kicad_pcb": {
+  "groups": [],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 2/2 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 2,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "conformance/issue5410-dqs-n-halo-vs-legal-via-seed5410.kicad_pcb": {
+  "groups": [],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 2/2 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 2,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "conformance/roundrect-corner-gap-seed5229.kicad_pcb": {
+  "groups": [
+   [
+    "P1.1"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 1/2 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 1,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "conformance/search-vs-commit-seg-via-max-seed5425.kicad_pcb": {
+  "groups": [],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 2/2 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 2,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "copper_arc_routed.kicad_pcb": {
+  "groups": [
+   [
+    "J1.1"
+   ],
+   [
+    "J2.1"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 1 errors, 0 warnings\n  Nets: 0/1 fully connected\n  Partial connections: 1\n  Total unconnected pads: 1",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 1,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "J1.1"
+     ],
+     "islands": [
+      [
+       "J1.1"
+      ],
+      [
+       "J2.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'SIG' has 2 disconnected islands",
+     "net_name": "SIG",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between J1.1 and J2.1)",
+     "unconnected_pads": [
+      "J2.1"
+     ]
+    }
+   ],
+   "total_nets": 1,
+   "unconnected_pads": 1,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "copper_sliver_positive.kicad_pcb": {
+  "groups": [],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 0/0 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 0,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "drc/orphan_island.kicad_pcb": {
+  "groups": [],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 1 errors, 0 warnings\n  Nets: 0/1 fully connected\n  Orphaned zone islands: 1\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 1,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "zone[0].fill[0]@F.Cu"
+      ],
+      [
+       "zone[0].fill[1]@F.Cu"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Zone island zone[0].fill[0]@F.Cu and Zone island zone[0].fill[1]@F.Cu",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    }
+   ],
+   "total_nets": 1,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "drc/orphan_island_pad.kicad_pcb": {
+  "groups": [],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 1 errors, 0 warnings\n  Nets: 0/1 fully connected\n  Orphaned zone islands: 1\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 1,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "pad:.1"
+      ],
+      [
+       "zone[0].fill[1]@F.Cu"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Pad .1 and Zone island zone[0].fill[1]@F.Cu",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    }
+   ],
+   "total_nets": 1,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "drc/orphan_island_transitive.kicad_pcb": {
+  "groups": [],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 1 errors, 0 warnings\n  Nets: 0/1 fully connected\n  Orphaned zone islands: 1\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 1,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "pad:.1"
+      ],
+      [
+       "zone[0].fill[1]@F.Cu"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Pad .1 and Zone island zone[0].fill[1]@F.Cu",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    }
+   ],
+   "total_nets": 1,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "hierarchical_lvs/board_lvs.kicad_pcb": {
+  "groups": [
+   [
+    "R1.1",
+    "R2.1"
+   ],
+   [
+    "R1.2",
+    "R2.2"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 2/2 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 2,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "historical_demo_boards/01-voltage-divider/output/voltage_divider.kicad_pcb": {
+  "groups": [
+   [
+    "J1.1"
+   ],
+   [
+    "J1.2"
+   ],
+   [
+    "J2.1"
+   ],
+   [
+    "J2.2"
+   ],
+   [
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ],
+   [
+    "R2.1"
+   ],
+   [
+    "R2.2"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 3 errors, 0 warnings\n  Nets: 0/3 fully connected\n  Partial connections: 3\n  Total unconnected pads: 5",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 3,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "J1.1"
+     ],
+     "islands": [
+      [
+       "J1.1"
+      ],
+      [
+       "R1.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'VIN' has 2 disconnected islands",
+     "net_name": "VIN",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between J1.1 and R1.1)",
+     "unconnected_pads": [
+      "R1.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J2.1"
+     ],
+     "islands": [
+      [
+       "J2.1"
+      ],
+      [
+       "R1.2"
+      ],
+      [
+       "R2.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'VOUT' has 3 disconnected islands",
+     "net_name": "VOUT",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "R1.2",
+      "R2.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J1.2"
+     ],
+     "islands": [
+      [
+       "J1.2"
+      ],
+      [
+       "J2.2"
+      ],
+      [
+       "R2.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GND' has 3 disconnected islands",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "J2.2",
+      "R2.2"
+     ]
+    }
+   ],
+   "total_nets": 3,
+   "unconnected_pads": 5,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "historical_demo_boards/02-charlieplex-led/output/charlieplex_3x3.kicad_pcb": {
+  "groups": [
+   [
+    "D1.1"
+   ],
+   [
+    "D1.2"
+   ],
+   [
+    "D2.1"
+   ],
+   [
+    "D2.2"
+   ],
+   [
+    "D3.1"
+   ],
+   [
+    "D3.2"
+   ],
+   [
+    "D4.1"
+   ],
+   [
+    "D4.2"
+   ],
+   [
+    "D5.1"
+   ],
+   [
+    "D5.2"
+   ],
+   [
+    "D6.1"
+   ],
+   [
+    "D6.2"
+   ],
+   [
+    "D7.1"
+   ],
+   [
+    "D7.2"
+   ],
+   [
+    "D8.1"
+   ],
+   [
+    "D8.2"
+   ],
+   [
+    "D9.1"
+   ],
+   [
+    "D9.2"
+   ],
+   [
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ],
+   [
+    "R2.1"
+   ],
+   [
+    "R2.2"
+   ],
+   [
+    "R3.1"
+   ],
+   [
+    "R3.2"
+   ],
+   [
+    "R4.1"
+   ],
+   [
+    "R4.2"
+   ],
+   [
+    "U1.1"
+   ],
+   [
+    "U1.2"
+   ],
+   [
+    "U1.3"
+   ],
+   [
+    "U1.4"
+   ],
+   [
+    "U1.5"
+   ],
+   [
+    "U1.6"
+   ],
+   [
+    "U1.7"
+   ],
+   [
+    "U1.8"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 9 errors, 0 warnings\n  Nets: 1/10 fully connected\n  Partial connections: 9\n  Total unconnected pads: 24",
+  "validate": {
+   "connected_nets": 1,
+   "error_count": 9,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "R1.1"
+     ],
+     "islands": [
+      [
+       "R1.1"
+      ],
+      [
+       "U1.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'LINE_A' has 2 disconnected islands",
+     "net_name": "LINE_A",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R1.1 and U1.1)",
+     "unconnected_pads": [
+      "U1.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R2.1"
+     ],
+     "islands": [
+      [
+       "R2.1"
+      ],
+      [
+       "U1.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'LINE_B' has 2 disconnected islands",
+     "net_name": "LINE_B",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R2.1 and U1.2)",
+     "unconnected_pads": [
+      "U1.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R3.1"
+     ],
+     "islands": [
+      [
+       "R3.1"
+      ],
+      [
+       "U1.3"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'LINE_C' has 2 disconnected islands",
+     "net_name": "LINE_C",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R3.1 and U1.3)",
+     "unconnected_pads": [
+      "U1.3"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R4.1"
+     ],
+     "islands": [
+      [
+       "R4.1"
+      ],
+      [
+       "U1.4"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'LINE_D' has 2 disconnected islands",
+     "net_name": "LINE_D",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R4.1 and U1.4)",
+     "unconnected_pads": [
+      "U1.4"
+     ]
+    },
+    {
+     "connected_pads": [
+      "D1.2"
+     ],
+     "islands": [
+      [
+       "D1.2"
+      ],
+      [
+       "D2.1"
+      ],
+      [
+       "D3.2"
+      ],
+      [
+       "D4.1"
+      ],
+      [
+       "D5.2"
+      ],
+      [
+       "D6.1"
+      ],
+      [
+       "R1.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NODE_A' has 7 disconnected islands",
+     "net_name": "NODE_A",
+     "severity": "error",
+     "suggestion": "Connect 7 islands to complete routing",
+     "unconnected_pads": [
+      "D2.1",
+      "D3.2",
+      "D4.1",
+      "D5.2",
+      "D6.1",
+      "R1.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "D1.1"
+     ],
+     "islands": [
+      [
+       "D1.1"
+      ],
+      [
+       "D2.2"
+      ],
+      [
+       "D7.2"
+      ],
+      [
+       "D8.1"
+      ],
+      [
+       "D9.2"
+      ],
+      [
+       "R2.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NODE_B' has 6 disconnected islands",
+     "net_name": "NODE_B",
+     "severity": "error",
+     "suggestion": "Connect 6 islands to complete routing",
+     "unconnected_pads": [
+      "D2.2",
+      "D7.2",
+      "D8.1",
+      "D9.2",
+      "R2.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "D3.1"
+     ],
+     "islands": [
+      [
+       "D3.1"
+      ],
+      [
+       "D4.2"
+      ],
+      [
+       "D7.1"
+      ],
+      [
+       "D8.2"
+      ],
+      [
+       "R3.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NODE_C' has 5 disconnected islands",
+     "net_name": "NODE_C",
+     "severity": "error",
+     "suggestion": "Connect 5 islands to complete routing",
+     "unconnected_pads": [
+      "D4.2",
+      "D7.1",
+      "D8.2",
+      "R3.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "D5.1"
+     ],
+     "islands": [
+      [
+       "D5.1"
+      ],
+      [
+       "D6.2"
+      ],
+      [
+       "D9.1"
+      ],
+      [
+       "R4.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NODE_D' has 4 disconnected islands",
+     "net_name": "NODE_D",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "D6.2",
+      "D9.1",
+      "R4.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U1.5"
+     ],
+     "islands": [
+      [
+       "U1.5"
+      ],
+      [
+       "U1.6"
+      ],
+      [
+       "U1.8"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GND' has 3 disconnected islands",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "U1.6",
+      "U1.8"
+     ]
+    }
+   ],
+   "total_nets": 10,
+   "unconnected_pads": 24,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "historical_demo_boards/02-charlieplex-led/output/charlieplex_3x3_routed.kicad_pcb": {
+  "groups": [
+   [
+    "D1.1",
+    "D2.2",
+    "D7.2",
+    "D8.1",
+    "D9.2",
+    "R2.2"
+   ],
+   [
+    "D1.2",
+    "D2.1",
+    "D3.2",
+    "D4.1",
+    "D5.2",
+    "D6.1",
+    "R1.2"
+   ],
+   [
+    "D3.1",
+    "D4.2",
+    "D7.1",
+    "D8.2",
+    "R3.2"
+   ],
+   [
+    "D5.1",
+    "D6.2",
+    "D9.1",
+    "R4.2"
+   ],
+   [
+    "R1.1",
+    "U1.1"
+   ],
+   [
+    "R2.1",
+    "U1.2"
+   ],
+   [
+    "R3.1",
+    "U1.3"
+   ],
+   [
+    "R4.1",
+    "U1.4"
+   ],
+   [
+    "U1.5",
+    "U1.6",
+    "U1.8"
+   ],
+   [
+    "U1.7"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 10/10 fully connected\n  Zone-connected nets: 2 (verified by geometry)\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 10,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 10,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 2
+  }
+ },
+ "historical_demo_boards/05-bldc-motor-controller/output/bldc_controller.kicad_pcb": {
+  "groups": [
+   [
+    "C1.1"
+   ],
+   [
+    "C1.2"
+   ],
+   [
+    "C10.1"
+   ],
+   [
+    "C10.2"
+   ],
+   [
+    "C11.1"
+   ],
+   [
+    "C11.2"
+   ],
+   [
+    "C12.1"
+   ],
+   [
+    "C12.2"
+   ],
+   [
+    "C13.1"
+   ],
+   [
+    "C13.2"
+   ],
+   [
+    "C14.1"
+   ],
+   [
+    "C14.2"
+   ],
+   [
+    "C15.1"
+   ],
+   [
+    "C15.2"
+   ],
+   [
+    "C16.1"
+   ],
+   [
+    "C16.2"
+   ],
+   [
+    "C2.1"
+   ],
+   [
+    "C2.2"
+   ],
+   [
+    "C3.1"
+   ],
+   [
+    "C3.2"
+   ],
+   [
+    "C30.1"
+   ],
+   [
+    "C30.2"
+   ],
+   [
+    "C31.1"
+   ],
+   [
+    "C31.2"
+   ],
+   [
+    "C32.1"
+   ],
+   [
+    "C32.2"
+   ],
+   [
+    "C4.1"
+   ],
+   [
+    "C4.2"
+   ],
+   [
+    "C5.1"
+   ],
+   [
+    "C5.2"
+   ],
+   [
+    "C6.1"
+   ],
+   [
+    "C6.2"
+   ],
+   [
+    "C7.1"
+   ],
+   [
+    "C7.2"
+   ],
+   [
+    "C8.1"
+   ],
+   [
+    "C8.2"
+   ],
+   [
+    "C9.1"
+   ],
+   [
+    "C9.2"
+   ],
+   [
+    "D1.1"
+   ],
+   [
+    "D1.2"
+   ],
+   [
+    "D2.1"
+   ],
+   [
+    "D2.2"
+   ],
+   [
+    "D3.1"
+   ],
+   [
+    "D3.2"
+   ],
+   [
+    "D4.1"
+   ],
+   [
+    "D4.2"
+   ],
+   [
+    "F1.1"
+   ],
+   [
+    "F1.2"
+   ],
+   [
+    "J1.1"
+   ],
+   [
+    "J1.2"
+   ],
+   [
+    "J2.1"
+   ],
+   [
+    "J2.2"
+   ],
+   [
+    "J2.3"
+   ],
+   [
+    "J3.1"
+   ],
+   [
+    "J3.2"
+   ],
+   [
+    "J3.3"
+   ],
+   [
+    "J3.4"
+   ],
+   [
+    "J3.5"
+   ],
+   [
+    "J4.1"
+   ],
+   [
+    "J4.2"
+   ],
+   [
+    "J4.3"
+   ],
+   [
+    "J4.4"
+   ],
+   [
+    "J4.5"
+   ],
+   [
+    "J4.6"
+   ],
+   [
+    "L1.1"
+   ],
+   [
+    "L1.2"
+   ],
+   [
+    "Q1.1"
+   ],
+   [
+    "Q1.2"
+   ],
+   [
+    "Q1.3"
+   ],
+   [
+    "Q2.1"
+   ],
+   [
+    "Q2.2"
+   ],
+   [
+    "Q2.3"
+   ],
+   [
+    "Q3.1"
+   ],
+   [
+    "Q3.2"
+   ],
+   [
+    "Q3.3"
+   ],
+   [
+    "Q4.1"
+   ],
+   [
+    "Q4.2"
+   ],
+   [
+    "Q4.3"
+   ],
+   [
+    "Q5.1"
+   ],
+   [
+    "Q5.2"
+   ],
+   [
+    "Q5.3"
+   ],
+   [
+    "Q6.1"
+   ],
+   [
+    "Q6.2"
+   ],
+   [
+    "Q6.3"
+   ],
+   [
+    "R10.1"
+   ],
+   [
+    "R10.2"
+   ],
+   [
+    "R11.1"
+   ],
+   [
+    "R11.2"
+   ],
+   [
+    "R12.1"
+   ],
+   [
+    "R12.2"
+   ],
+   [
+    "R20.1"
+   ],
+   [
+    "R20.2"
+   ],
+   [
+    "R21.1"
+   ],
+   [
+    "R21.2"
+   ],
+   [
+    "R22.1"
+   ],
+   [
+    "R22.2"
+   ],
+   [
+    "R3.1"
+   ],
+   [
+    "R3.2"
+   ],
+   [
+    "R30.1"
+   ],
+   [
+    "R30.2"
+   ],
+   [
+    "R31.1"
+   ],
+   [
+    "R31.2"
+   ],
+   [
+    "R32.1"
+   ],
+   [
+    "R32.2"
+   ],
+   [
+    "R4.1"
+   ],
+   [
+    "R4.2"
+   ],
+   [
+    "U1.1"
+   ],
+   [
+    "U1.2"
+   ],
+   [
+    "U1.3"
+   ],
+   [
+    "U1.4"
+   ],
+   [
+    "U1.5"
+   ],
+   [
+    "U10.1"
+   ],
+   [
+    "U10.10"
+   ],
+   [
+    "U10.11"
+   ],
+   [
+    "U10.12"
+   ],
+   [
+    "U10.13"
+   ],
+   [
+    "U10.14"
+   ],
+   [
+    "U10.15"
+   ],
+   [
+    "U10.16"
+   ],
+   [
+    "U10.17"
+   ],
+   [
+    "U10.18"
+   ],
+   [
+    "U10.19"
+   ],
+   [
+    "U10.2"
+   ],
+   [
+    "U10.20"
+   ],
+   [
+    "U10.21"
+   ],
+   [
+    "U10.22"
+   ],
+   [
+    "U10.23"
+   ],
+   [
+    "U10.24"
+   ],
+   [
+    "U10.25"
+   ],
+   [
+    "U10.26"
+   ],
+   [
+    "U10.27"
+   ],
+   [
+    "U10.28"
+   ],
+   [
+    "U10.29"
+   ],
+   [
+    "U10.3"
+   ],
+   [
+    "U10.30"
+   ],
+   [
+    "U10.31"
+   ],
+   [
+    "U10.32"
+   ],
+   [
+    "U10.4"
+   ],
+   [
+    "U10.5"
+   ],
+   [
+    "U10.6"
+   ],
+   [
+    "U10.7"
+   ],
+   [
+    "U10.8"
+   ],
+   [
+    "U10.9"
+   ],
+   [
+    "U2.1"
+   ],
+   [
+    "U2.3"
+   ],
+   [
+    "U3.1"
+   ],
+   [
+    "U3.10"
+   ],
+   [
+    "U3.11"
+   ],
+   [
+    "U3.12"
+   ],
+   [
+    "U3.13"
+   ],
+   [
+    "U3.14"
+   ],
+   [
+    "U3.15"
+   ],
+   [
+    "U3.16"
+   ],
+   [
+    "U3.17"
+   ],
+   [
+    "U3.18"
+   ],
+   [
+    "U3.19"
+   ],
+   [
+    "U3.2"
+   ],
+   [
+    "U3.20"
+   ],
+   [
+    "U3.21"
+   ],
+   [
+    "U3.22"
+   ],
+   [
+    "U3.23"
+   ],
+   [
+    "U3.24"
+   ],
+   [
+    "U3.25"
+   ],
+   [
+    "U3.26"
+   ],
+   [
+    "U3.27"
+   ],
+   [
+    "U3.28"
+   ],
+   [
+    "U3.29"
+   ],
+   [
+    "U3.3"
+   ],
+   [
+    "U3.30"
+   ],
+   [
+    "U3.31"
+   ],
+   [
+    "U3.32"
+   ],
+   [
+    "U3.33"
+   ],
+   [
+    "U3.34"
+   ],
+   [
+    "U3.35"
+   ],
+   [
+    "U3.36"
+   ],
+   [
+    "U3.37"
+   ],
+   [
+    "U3.38"
+   ],
+   [
+    "U3.39"
+   ],
+   [
+    "U3.4"
+   ],
+   [
+    "U3.40"
+   ],
+   [
+    "U3.41"
+   ],
+   [
+    "U3.42"
+   ],
+   [
+    "U3.43"
+   ],
+   [
+    "U3.44"
+   ],
+   [
+    "U3.45"
+   ],
+   [
+    "U3.46"
+   ],
+   [
+    "U3.47"
+   ],
+   [
+    "U3.48"
+   ],
+   [
+    "U3.49"
+   ],
+   [
+    "U3.5"
+   ],
+   [
+    "U3.50"
+   ],
+   [
+    "U3.51"
+   ],
+   [
+    "U3.52"
+   ],
+   [
+    "U3.53"
+   ],
+   [
+    "U3.54"
+   ],
+   [
+    "U3.55"
+   ],
+   [
+    "U3.56"
+   ],
+   [
+    "U3.57"
+   ],
+   [
+    "U3.6"
+   ],
+   [
+    "U3.7"
+   ],
+   [
+    "U3.8"
+   ],
+   [
+    "U3.9"
+   ],
+   [
+    "Y1.1"
+   ],
+   [
+    "Y1.2"
+   ],
+   [
+    "__pad:14:1"
+   ],
+   [
+    "__pad:14:3"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 44 errors, 0 warnings\n  Nets: 8/52 fully connected\n  Partial connections: 44\n  Total unconnected pads: 154",
+  "validate": {
+   "connected_nets": 8,
+   "error_count": 44,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "C1.1"
+     ],
+     "islands": [
+      [
+       "C1.1"
+      ],
+      [
+       "C2.1"
+      ],
+      [
+       "C3.1"
+      ],
+      [
+       "D1.1"
+      ],
+      [
+       "F1.2"
+      ],
+      [
+       "Q1.2"
+      ],
+      [
+       "Q3.2"
+      ],
+      [
+       "Q5.2"
+      ],
+      [
+       "U1.1"
+      ],
+      [
+       "U3.29"
+      ],
+      [
+       "U3.52"
+      ],
+      [
+       "U3.53"
+      ],
+      [
+       "U3.54"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '+24V' has 13 disconnected islands",
+     "net_name": "+24V",
+     "severity": "error",
+     "suggestion": "Connect 13 islands to complete routing",
+     "unconnected_pads": [
+      "C2.1",
+      "C3.1",
+      "D1.1",
+      "F1.2",
+      "Q1.2",
+      "Q3.2",
+      "Q5.2",
+      "U1.1",
+      "U3.29",
+      "U3.52",
+      "U3.53",
+      "U3.54"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C15.1"
+     ],
+     "islands": [
+      [
+       "C15.1"
+      ],
+      [
+       "C16.1"
+      ],
+      [
+       "C4.1"
+      ],
+      [
+       "C5.1"
+      ],
+      [
+       "L1.2"
+      ],
+      [
+       "U1.4"
+      ],
+      [
+       "U2.3"
+      ],
+      [
+       "U3.13"
+      ],
+      [
+       "U3.14"
+      ],
+      [
+       "U3.15"
+      ],
+      [
+       "U3.27"
+      ],
+      [
+       "U3.3"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '+5V' has 12 disconnected islands",
+     "net_name": "+5V",
+     "severity": "error",
+     "suggestion": "Connect 12 islands to complete routing",
+     "unconnected_pads": [
+      "C16.1",
+      "C4.1",
+      "C5.1",
+      "L1.2",
+      "U1.4",
+      "U2.3",
+      "U3.13",
+      "U3.14",
+      "U3.15",
+      "U3.27",
+      "U3.3"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C6.1"
+     ],
+     "islands": [
+      [
+       "C6.1"
+      ],
+      [
+       "C7.1"
+      ],
+      [
+       "C8.1"
+      ],
+      [
+       "C9.1"
+      ],
+      [
+       "D3.2"
+      ],
+      [
+       "D4.2"
+      ],
+      [
+       "J3.4"
+      ],
+      [
+       "J4.1"
+      ],
+      [
+       "R30.1"
+      ],
+      [
+       "R31.1"
+      ],
+      [
+       "R32.1"
+      ],
+      [
+       "U10.1"
+      ],
+      [
+       "U10.15"
+      ],
+      [
+       "U10.17"
+      ],
+      [
+       "U3.10"
+      ],
+      [
+       "U3.11"
+      ],
+      [
+       "U3.16"
+      ],
+      [
+       "U3.23"
+      ],
+      [
+       "U3.24"
+      ],
+      [
+       "U3.4"
+      ],
+      [
+       "U3.49"
+      ],
+      [
+       "U3.5"
+      ],
+      [
+       "U3.55"
+      ],
+      [
+       "U3.6"
+      ],
+      [
+       "U3.8"
+      ],
+      [
+       "U3.9"
+      ],
+      [
+       "U2.2"
+      ],
+      [
+       "U2.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '+3V3' has 28 disconnected islands",
+     "net_name": "+3V3",
+     "severity": "error",
+     "suggestion": "Connect 28 islands to complete routing",
+     "unconnected_pads": [
+      "C7.1",
+      "C8.1",
+      "C9.1",
+      "D3.2",
+      "D4.2",
+      "J3.4",
+      "J4.1",
+      "R30.1",
+      "R31.1",
+      "R32.1",
+      "U10.1",
+      "U10.15",
+      "U10.17",
+      "U3.10",
+      "U3.11",
+      "U3.16",
+      "U3.23",
+      "U3.24",
+      "U3.4",
+      "U3.49",
+      "U3.5",
+      "U3.55",
+      "U3.6",
+      "U3.8",
+      "U3.9",
+      "U2.2",
+      "U2.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C1.2"
+     ],
+     "islands": [
+      [
+       "C1.2"
+      ],
+      [
+       "C10.2"
+      ],
+      [
+       "C11.2"
+      ],
+      [
+       "C15.2"
+      ],
+      [
+       "C16.2"
+      ],
+      [
+       "C2.2"
+      ],
+      [
+       "C3.2"
+      ],
+      [
+       "C30.2"
+      ],
+      [
+       "C31.2"
+      ],
+      [
+       "C32.2"
+      ],
+      [
+       "C4.2"
+      ],
+      [
+       "C5.2"
+      ],
+      [
+       "C6.2"
+      ],
+      [
+       "C7.2"
+      ],
+      [
+       "C8.2"
+      ],
+      [
+       "C9.2"
+      ],
+      [
+       "D1.2"
+      ],
+      [
+       "D2.2"
+      ],
+      [
+       "J1.2"
+      ],
+      [
+       "J3.5"
+      ],
+      [
+       "J4.6"
+      ],
+      [
+       "R3.2"
+      ],
+      [
+       "R4.2"
+      ],
+      [
+       "U1.3"
+      ],
+      [
+       "U1.5"
+      ],
+      [
+       "U10.14"
+      ],
+      [
+       "U10.16"
+      ],
+      [
+       "U10.32"
+      ],
+      [
+       "U2.1"
+      ],
+      [
+       "U3.1"
+      ],
+      [
+       "U3.12"
+      ],
+      [
+       "U3.2"
+      ],
+      [
+       "U3.28"
+      ],
+      [
+       "U3.56"
+      ],
+      [
+       "U3.57"
+      ],
+      [
+       "U3.7"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GND' has 36 disconnected islands",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect 36 islands to complete routing",
+     "unconnected_pads": [
+      "C10.2",
+      "C11.2",
+      "C15.2",
+      "C16.2",
+      "C2.2",
+      "C3.2",
+      "C30.2",
+      "C31.2",
+      "C32.2",
+      "C4.2",
+      "C5.2",
+      "C6.2",
+      "C7.2",
+      "C8.2",
+      "C9.2",
+      "D1.2",
+      "D2.2",
+      "J1.2",
+      "J3.5",
+      "J4.6",
+      "R3.2",
+      "R4.2",
+      "U1.3",
+      "U1.5",
+      "U10.14",
+      "U10.16",
+      "U10.32",
+      "U2.1",
+      "U3.1",
+      "U3.12",
+      "U3.2",
+      "U3.28",
+      "U3.56",
+      "U3.57",
+      "U3.7"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C14.2"
+     ],
+     "islands": [
+      [
+       "C14.2"
+      ],
+      [
+       "J2.3"
+      ],
+      [
+       "Q5.3"
+      ],
+      [
+       "Q6.2"
+      ],
+      [
+       "U3.46"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PHASE_A' has 5 disconnected islands",
+     "net_name": "PHASE_A",
+     "severity": "error",
+     "suggestion": "Connect 5 islands to complete routing",
+     "unconnected_pads": [
+      "J2.3",
+      "Q5.3",
+      "Q6.2",
+      "U3.46"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C13.2"
+     ],
+     "islands": [
+      [
+       "C13.2"
+      ],
+      [
+       "J2.2"
+      ],
+      [
+       "Q3.3"
+      ],
+      [
+       "Q4.2"
+      ],
+      [
+       "U3.41"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PHASE_B' has 5 disconnected islands",
+     "net_name": "PHASE_B",
+     "severity": "error",
+     "suggestion": "Connect 5 islands to complete routing",
+     "unconnected_pads": [
+      "J2.2",
+      "Q3.3",
+      "Q4.2",
+      "U3.41"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C12.2"
+     ],
+     "islands": [
+      [
+       "C12.2"
+      ],
+      [
+       "J2.1"
+      ],
+      [
+       "Q1.3"
+      ],
+      [
+       "Q2.2"
+      ],
+      [
+       "U3.36"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PHASE_C' has 5 disconnected islands",
+     "net_name": "PHASE_C",
+     "severity": "error",
+     "suggestion": "Connect 5 islands to complete routing",
+     "unconnected_pads": [
+      "J2.1",
+      "Q1.3",
+      "Q2.2",
+      "U3.36"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q5.1"
+     ],
+     "islands": [
+      [
+       "Q5.1"
+      ],
+      [
+       "R22.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_AH' has 2 disconnected islands",
+     "net_name": "GATE_AH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Q5.1 and R22.2)",
+     "unconnected_pads": [
+      "R22.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q6.1"
+     ],
+     "islands": [
+      [
+       "Q6.1"
+      ],
+      [
+       "U3.45"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_AL' has 2 disconnected islands",
+     "net_name": "GATE_AL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Q6.1 and U3.45)",
+     "unconnected_pads": [
+      "U3.45"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q3.1"
+     ],
+     "islands": [
+      [
+       "Q3.1"
+      ],
+      [
+       "R21.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_BH' has 2 disconnected islands",
+     "net_name": "GATE_BH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Q3.1 and R21.2)",
+     "unconnected_pads": [
+      "R21.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q4.1"
+     ],
+     "islands": [
+      [
+       "Q4.1"
+      ],
+      [
+       "U3.40"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_BL' has 2 disconnected islands",
+     "net_name": "GATE_BL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Q4.1 and U3.40)",
+     "unconnected_pads": [
+      "U3.40"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q1.1"
+     ],
+     "islands": [
+      [
+       "Q1.1"
+      ],
+      [
+       "R20.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_CH' has 2 disconnected islands",
+     "net_name": "GATE_CH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Q1.1 and R20.2)",
+     "unconnected_pads": [
+      "R20.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q2.1"
+     ],
+     "islands": [
+      [
+       "Q2.1"
+      ],
+      [
+       "U3.35"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_CL' has 2 disconnected islands",
+     "net_name": "GATE_CL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Q2.1 and U3.35)",
+     "unconnected_pads": [
+      "U3.35"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q6.3"
+     ],
+     "islands": [
+      [
+       "Q6.3"
+      ],
+      [
+       "R12.1"
+      ],
+      [
+       "U3.25"
+      ],
+      [
+       "U3.32"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_A+' has 4 disconnected islands",
+     "net_name": "ISENSE_A+",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "R12.1",
+      "U3.25",
+      "U3.32"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R12.2"
+     ],
+     "islands": [
+      [
+       "R12.2"
+      ],
+      [
+       "U10.5"
+      ],
+      [
+       "U3.33"
+      ],
+      [
+       "U3.44"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_A-' has 4 disconnected islands",
+     "net_name": "ISENSE_A-",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "U10.5",
+      "U3.33",
+      "U3.44"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q4.3"
+     ],
+     "islands": [
+      [
+       "Q4.3"
+      ],
+      [
+       "R11.1"
+      ],
+      [
+       "U3.26"
+      ],
+      [
+       "U3.30"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_B+' has 4 disconnected islands",
+     "net_name": "ISENSE_B+",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "R11.1",
+      "U3.26",
+      "U3.30"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R11.2"
+     ],
+     "islands": [
+      [
+       "R11.2"
+      ],
+      [
+       "U10.6"
+      ],
+      [
+       "U3.31"
+      ],
+      [
+       "U3.39"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_B-' has 4 disconnected islands",
+     "net_name": "ISENSE_B-",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "U10.6",
+      "U3.31",
+      "U3.39"
+     ]
+    },
+    {
+     "connected_pads": [
+      "Q2.3"
+     ],
+     "islands": [
+      [
+       "Q2.3"
+      ],
+      [
+       "R10.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_C+' has 2 disconnected islands",
+     "net_name": "ISENSE_C+",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between Q2.3 and R10.1)",
+     "unconnected_pads": [
+      "R10.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R10.2"
+     ],
+     "islands": [
+      [
+       "R10.2"
+      ],
+      [
+       "U10.7"
+      ],
+      [
+       "U3.34"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'ISENSE_C-' has 3 disconnected islands",
+     "net_name": "ISENSE_C-",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "U10.7",
+      "U3.34"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C30.1"
+     ],
+     "islands": [
+      [
+       "C30.1"
+      ],
+      [
+       "J3.1"
+      ],
+      [
+       "R30.2"
+      ],
+      [
+       "U10.11"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'HALL_A' has 4 disconnected islands",
+     "net_name": "HALL_A",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "J3.1",
+      "R30.2",
+      "U10.11"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C31.1"
+     ],
+     "islands": [
+      [
+       "C31.1"
+      ],
+      [
+       "J3.2"
+      ],
+      [
+       "R31.2"
+      ],
+      [
+       "U10.12"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'HALL_B' has 4 disconnected islands",
+     "net_name": "HALL_B",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "J3.2",
+      "R31.2",
+      "U10.12"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C32.1"
+     ],
+     "islands": [
+      [
+       "C32.1"
+      ],
+      [
+       "J3.3"
+      ],
+      [
+       "R32.2"
+      ],
+      [
+       "U10.13"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'HALL_C' has 4 disconnected islands",
+     "net_name": "HALL_C",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "J3.3",
+      "R32.2",
+      "U10.13"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J4.2"
+     ],
+     "islands": [
+      [
+       "J4.2"
+      ],
+      [
+       "U10.23"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'SWDIO' has 2 disconnected islands",
+     "net_name": "SWDIO",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between J4.2 and U10.23)",
+     "unconnected_pads": [
+      "U10.23"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J4.3"
+     ],
+     "islands": [
+      [
+       "J4.3"
+      ],
+      [
+       "U10.24"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'SWCLK' has 2 disconnected islands",
+     "net_name": "SWCLK",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between J4.3 and U10.24)",
+     "unconnected_pads": [
+      "U10.24"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J4.4"
+     ],
+     "islands": [
+      [
+       "J4.4"
+      ],
+      [
+       "U10.26"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'SWO' has 2 disconnected islands",
+     "net_name": "SWO",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between J4.4 and U10.26)",
+     "unconnected_pads": [
+      "U10.26"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J4.5"
+     ],
+     "islands": [
+      [
+       "J4.5"
+      ],
+      [
+       "U10.4"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NRST' has 2 disconnected islands",
+     "net_name": "NRST",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between J4.5 and U10.4)",
+     "unconnected_pads": [
+      "U10.4"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C10.1"
+     ],
+     "islands": [
+      [
+       "C10.1"
+      ],
+      [
+       "U10.2"
+      ],
+      [
+       "Y1.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'OSC_IN' has 3 disconnected islands",
+     "net_name": "OSC_IN",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "U10.2",
+      "Y1.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C11.1"
+     ],
+     "islands": [
+      [
+       "C11.1"
+      ],
+      [
+       "U10.3"
+      ],
+      [
+       "Y1.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'OSC_OUT' has 3 disconnected islands",
+     "net_name": "OSC_OUT",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "U10.3",
+      "Y1.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "D3.1"
+     ],
+     "islands": [
+      [
+       "D3.1"
+      ],
+      [
+       "R3.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWR_LED' has 2 disconnected islands",
+     "net_name": "PWR_LED",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between D3.1 and R3.1)",
+     "unconnected_pads": [
+      "R3.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "D4.1"
+     ],
+     "islands": [
+      [
+       "D4.1"
+      ],
+      [
+       "R4.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'STATUS_LED' has 2 disconnected islands",
+     "net_name": "STATUS_LED",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between D4.1 and R4.1)",
+     "unconnected_pads": [
+      "R4.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "D2.1"
+     ],
+     "islands": [
+      [
+       "D2.1"
+      ],
+      [
+       "L1.1"
+      ],
+      [
+       "U1.2"
+      ],
+      [
+       "U3.50"
+      ],
+      [
+       "U3.51"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'SW_OUT' has 5 disconnected islands",
+     "net_name": "SW_OUT",
+     "severity": "error",
+     "suggestion": "Connect 5 islands to complete routing",
+     "unconnected_pads": [
+      "L1.1",
+      "U1.2",
+      "U3.50",
+      "U3.51"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R22.1"
+     ],
+     "islands": [
+      [
+       "R22.1"
+      ],
+      [
+       "U3.47"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_DRV_AH' has 2 disconnected islands",
+     "net_name": "GATE_DRV_AH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R22.1 and U3.47)",
+     "unconnected_pads": [
+      "U3.47"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R21.1"
+     ],
+     "islands": [
+      [
+       "R21.1"
+      ],
+      [
+       "U3.42"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_DRV_BH' has 2 disconnected islands",
+     "net_name": "GATE_DRV_BH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R21.1 and U3.42)",
+     "unconnected_pads": [
+      "U3.42"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R20.1"
+     ],
+     "islands": [
+      [
+       "R20.1"
+      ],
+      [
+       "U3.37"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GATE_DRV_CH' has 2 disconnected islands",
+     "net_name": "GATE_DRV_CH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R20.1 and U3.37)",
+     "unconnected_pads": [
+      "U3.37"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.18"
+     ],
+     "islands": [
+      [
+       "U10.18"
+      ],
+      [
+       "U3.17"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_AH' has 2 disconnected islands",
+     "net_name": "PWM_AH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.18 and U3.17)",
+     "unconnected_pads": [
+      "U3.17"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.29"
+     ],
+     "islands": [
+      [
+       "U10.29"
+      ],
+      [
+       "U3.18"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_AL' has 2 disconnected islands",
+     "net_name": "PWM_AL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.29 and U3.18)",
+     "unconnected_pads": [
+      "U3.18"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.19"
+     ],
+     "islands": [
+      [
+       "U10.19"
+      ],
+      [
+       "U3.19"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_BH' has 2 disconnected islands",
+     "net_name": "PWM_BH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.19 and U3.19)",
+     "unconnected_pads": [
+      "U3.19"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.30"
+     ],
+     "islands": [
+      [
+       "U10.30"
+      ],
+      [
+       "U3.20"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_BL' has 2 disconnected islands",
+     "net_name": "PWM_BL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.30 and U3.20)",
+     "unconnected_pads": [
+      "U3.20"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.20"
+     ],
+     "islands": [
+      [
+       "U10.20"
+      ],
+      [
+       "U3.21"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_CH' has 2 disconnected islands",
+     "net_name": "PWM_CH",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.20 and U3.21)",
+     "unconnected_pads": [
+      "U3.21"
+     ]
+    },
+    {
+     "connected_pads": [
+      "U10.31"
+     ],
+     "islands": [
+      [
+       "U10.31"
+      ],
+      [
+       "U3.22"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'PWM_CL' has 2 disconnected islands",
+     "net_name": "PWM_CL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between U10.31 and U3.22)",
+     "unconnected_pads": [
+      "U3.22"
+     ]
+    },
+    {
+     "connected_pads": [
+      "F1.1"
+     ],
+     "islands": [
+      [
+       "F1.1"
+      ],
+      [
+       "J1.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'VIN' has 2 disconnected islands",
+     "net_name": "VIN",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between F1.1 and J1.1)",
+     "unconnected_pads": [
+      "J1.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C14.1"
+     ],
+     "islands": [
+      [
+       "C14.1"
+      ],
+      [
+       "U3.48"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'BST_A' has 2 disconnected islands",
+     "net_name": "BST_A",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between C14.1 and U3.48)",
+     "unconnected_pads": [
+      "U3.48"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C13.1"
+     ],
+     "islands": [
+      [
+       "C13.1"
+      ],
+      [
+       "U3.43"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'BST_B' has 2 disconnected islands",
+     "net_name": "BST_B",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between C13.1 and U3.43)",
+     "unconnected_pads": [
+      "U3.43"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C12.1"
+     ],
+     "islands": [
+      [
+       "C12.1"
+      ],
+      [
+       "U3.38"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'BST_C' has 2 disconnected islands",
+     "net_name": "BST_C",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between C12.1 and U3.38)",
+     "unconnected_pads": [
+      "U3.38"
+     ]
+    }
+   ],
+   "total_nets": 52,
+   "unconnected_pads": 154,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "kelvin_native/rotated-shunt.kicad_pcb": {
+  "groups": [
+   [
+    "R1.1"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 0/0 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 0,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "mirror_flip/mirror_back_lr.kicad_pcb": {
+  "groups": [
+   [
+    "U1.1"
+   ],
+   [
+    "U1.2"
+   ],
+   [
+    "U1.3"
+   ],
+   [
+    "U1.4"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 0/0 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 0,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "mirror_flip/mirror_front.kicad_pcb": {
+  "groups": [
+   [
+    "U1.1"
+   ],
+   [
+    "U1.2"
+   ],
+   [
+    "U1.3"
+   ],
+   [
+    "U1.4"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 0/0 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 0,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "physics/composite_six_layer.kicad_pcb": {
+  "groups": [],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 0/0 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 0,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "pin1_marker.kicad_pcb": {
+  "groups": [
+   [
+    "D1.1"
+   ],
+   [
+    "D1.2"
+   ],
+   [
+    "D2.1"
+   ],
+   [
+    "D2.2"
+   ],
+   [
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ],
+   [
+    "U1.1"
+   ],
+   [
+    "U1.2"
+   ],
+   [
+    "U1.3"
+   ],
+   [
+    "U1.4"
+   ],
+   [
+    "U1.5"
+   ],
+   [
+    "U1.6"
+   ],
+   [
+    "U1.7"
+   ],
+   [
+    "U1.8"
+   ],
+   [
+    "U1.9"
+   ],
+   [
+    "U2.1"
+   ],
+   [
+    "U2.2"
+   ],
+   [
+    "U2.3"
+   ],
+   [
+    "U2.4"
+   ],
+   [
+    "U2.5"
+   ],
+   [
+    "U2.6"
+   ],
+   [
+    "U2.7"
+   ],
+   [
+    "U2.8"
+   ],
+   [
+    "U2.9"
+   ],
+   [
+    "U3.1"
+   ],
+   [
+    "U3.2"
+   ],
+   [
+    "U3.3"
+   ],
+   [
+    "U3.4"
+   ],
+   [
+    "U3.5"
+   ],
+   [
+    "U3.6"
+   ],
+   [
+    "U3.7"
+   ],
+   [
+    "U3.8"
+   ],
+   [
+    "U3.9"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 0/0 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 0,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "projects/multilayer_zones.kicad_pcb": {
+  "groups": [
+   [
+    "C1.1"
+   ],
+   [
+    "C1.2",
+    "U1.1"
+   ],
+   [
+    "C2.1"
+   ],
+   [
+    "C2.2"
+   ],
+   [
+    "J1.1",
+    "J1.2",
+    "J1.3",
+    "J1.4"
+   ],
+   [
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ],
+   [
+    "R2.1"
+   ],
+   [
+    "R2.2"
+   ],
+   [
+    "U1.12"
+   ],
+   [
+    "U1.2"
+   ],
+   [
+    "U1.24"
+   ],
+   [
+    "U1.3"
+   ],
+   [
+    "U1.36"
+   ],
+   [
+    "U1.4"
+   ],
+   [
+    "U1.48"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 7 errors, 0 warnings\n  Nets: 2/7 fully connected\n  Partial connections: 4\n  Orphaned zone islands: 3\n  Total unconnected pads: 9",
+  "validate": {
+   "connected_nets": 2,
+   "error_count": 7,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "pad:U1.1"
+      ],
+      [
+       "pad:C2.2"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Pad U1.1 and Pad C2.2",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    },
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "pad:U1.1"
+      ],
+      [
+       "pad:J1.2"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Pad U1.1 and Pad J1.2",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    },
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "pad:U1.1"
+      ],
+      [
+       "pad:U1.48"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Pad U1.1 and Pad U1.48",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    },
+    {
+     "connected_pads": [
+      "C1.1"
+     ],
+     "islands": [
+      [
+       "C1.1"
+      ],
+      [
+       "J1.1"
+      ],
+      [
+       "R1.2"
+      ],
+      [
+       "R2.2"
+      ],
+      [
+       "U1.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '+3V3' has 5 disconnected islands",
+     "net_name": "+3V3",
+     "severity": "error",
+     "suggestion": "Connect 5 islands to complete routing",
+     "unconnected_pads": [
+      "J1.1",
+      "R1.2",
+      "R2.2",
+      "U1.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C2.1"
+     ],
+     "islands": [
+      [
+       "C2.1"
+      ],
+      [
+       "U1.36"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '+5V' has 2 disconnected islands",
+     "net_name": "+5V",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between C2.1 and U1.36)",
+     "unconnected_pads": [
+      "U1.36"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J1.3"
+     ],
+     "islands": [
+      [
+       "J1.3"
+      ],
+      [
+       "R1.1"
+      ],
+      [
+       "U1.3"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'SDA' has 3 disconnected islands",
+     "net_name": "SDA",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "R1.1",
+      "U1.3"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J1.4"
+     ],
+     "islands": [
+      [
+       "J1.4"
+      ],
+      [
+       "R2.1"
+      ],
+      [
+       "U1.4"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'SCL' has 3 disconnected islands",
+     "net_name": "SCL",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "R2.1",
+      "U1.4"
+     ]
+    }
+   ],
+   "total_nets": 7,
+   "unconnected_pads": 9,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "projects/test_project.kicad_pcb": {
+  "groups": [
+   [
+    "C1.1",
+    "R1.2"
+   ],
+   [
+    "C1.2"
+   ],
+   [
+    "D1.1"
+   ],
+   [
+    "D1.2"
+   ],
+   [
+    "R1.1"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 2 errors, 0 warnings\n  Nets: 1/3 fully connected\n  Partial connections: 2\n  Total unconnected pads: 2",
+  "validate": {
+   "connected_nets": 1,
+   "error_count": 2,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "C1.2"
+     ],
+     "islands": [
+      [
+       "C1.2"
+      ],
+      [
+       "D1.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GND' has 2 disconnected islands",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between C1.2 and D1.2)",
+     "unconnected_pads": [
+      "D1.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "C1.1",
+      "R1.2"
+     ],
+     "islands": [
+      [
+       "C1.1",
+       "R1.2"
+      ],
+      [
+       "D1.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NET1' has 2 disconnected islands",
+     "net_name": "NET1",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R1.2 and D1.1)",
+     "unconnected_pads": [
+      "D1.1"
+     ]
+    }
+   ],
+   "total_nets": 3,
+   "unconnected_pads": 2,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "purge_test_project/test_purge.kicad_pcb": {
+  "groups": [],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 0/0 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 0,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "routing-diagnostic.kicad_pcb": {
+  "groups": [
+   [
+    "J1.1"
+   ],
+   [
+    "J1.2"
+   ],
+   [
+    "J1.3"
+   ],
+   [
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ],
+   [
+    "R2.1"
+   ],
+   [
+    "R2.2"
+   ],
+   [
+    "U1.1"
+   ],
+   [
+    "U1.2"
+   ],
+   [
+    "U1.3"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 4 errors, 0 warnings\n  Nets: 0/4 fully connected\n  Partial connections: 4\n  Total unconnected pads: 6",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 4,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "J1.1"
+     ],
+     "islands": [
+      [
+       "J1.1"
+      ],
+      [
+       "R1.1"
+      ],
+      [
+       "U1.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NET1' has 3 disconnected islands",
+     "net_name": "NET1",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "R1.1",
+      "U1.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R1.2"
+     ],
+     "islands": [
+      [
+       "R1.2"
+      ],
+      [
+       "R2.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NET2' has 2 disconnected islands",
+     "net_name": "NET2",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R1.2 and R2.1)",
+     "unconnected_pads": [
+      "R2.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J1.2"
+     ],
+     "islands": [
+      [
+       "J1.2"
+      ],
+      [
+       "R2.2"
+      ],
+      [
+       "U1.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NET3' has 3 disconnected islands",
+     "net_name": "NET3",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "R2.2",
+      "U1.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J1.3"
+     ],
+     "islands": [
+      [
+       "J1.3"
+      ],
+      [
+       "U1.3"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NET4' has 2 disconnected islands",
+     "net_name": "NET4",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between J1.3 and U1.3)",
+     "unconnected_pads": [
+      "U1.3"
+     ]
+    }
+   ],
+   "total_nets": 4,
+   "unconnected_pads": 6,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "schema_pcb/minimal.kicad_pcb": {
+  "groups": [
+   [
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 2/2 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 2,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "schema_pcb/routing_test.kicad_pcb": {
+  "groups": [
+   [
+    "J1.1"
+   ],
+   [
+    "J1.2"
+   ],
+   [
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ],
+   [
+    "U1.1"
+   ],
+   [
+    "U1.2"
+   ],
+   [
+    "U1.3"
+   ],
+   [
+    "U1.4"
+   ],
+   [
+    "U1.5"
+   ],
+   [
+    "U1.6"
+   ],
+   [
+    "U1.7"
+   ],
+   [
+    "U1.8"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 3 errors, 0 warnings\n  Nets: 0/3 fully connected\n  Partial connections: 3\n  Total unconnected pads: 8",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 3,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "R1.1"
+     ],
+     "islands": [
+      [
+       "R1.1"
+      ],
+      [
+       "U1.1"
+      ],
+      [
+       "U1.7"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'NET1' has 3 disconnected islands",
+     "net_name": "NET1",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "U1.1",
+      "U1.7"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J1.2"
+     ],
+     "islands": [
+      [
+       "J1.2"
+      ],
+      [
+       "R1.2"
+      ],
+      [
+       "U1.2"
+      ],
+      [
+       "U1.3"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GND' has 4 disconnected islands",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "R1.2",
+      "U1.2",
+      "U1.3"
+     ]
+    },
+    {
+     "connected_pads": [
+      "J1.1"
+     ],
+     "islands": [
+      [
+       "J1.1"
+      ],
+      [
+       "U1.4"
+      ],
+      [
+       "U1.5"
+      ],
+      [
+       "U1.8"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '+3.3V' has 4 disconnected islands",
+     "net_name": "+3.3V",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "U1.4",
+      "U1.5",
+      "U1.8"
+     ]
+    }
+   ],
+   "total_nets": 3,
+   "unconnected_pads": 8,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "schema_pcb/zone_test.kicad_pcb": {
+  "groups": [
+   [
+    "R1.1",
+    "R1.2"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 2/2 fully connected\n  Zone-connected nets: 1 (verified by geometry)\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 2,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 1
+  }
+ },
+ "sheet_qualified_lvs/board_sq.kicad_pcb": {
+  "groups": [
+   [
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ],
+   [
+    "R10.1"
+   ],
+   [
+    "R10.2"
+   ],
+   [
+    "R11.1"
+   ],
+   [
+    "R11.2"
+   ],
+   [
+    "R12.1"
+   ],
+   [
+    "R12.2"
+   ],
+   [
+    "R2.1"
+   ],
+   [
+    "R2.2"
+   ],
+   [
+    "R3.1"
+   ],
+   [
+    "R3.2"
+   ],
+   [
+    "R4.1"
+   ],
+   [
+    "R4.2"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 6 errors, 0 warnings\n  Nets: 0/6 fully connected\n  Partial connections: 6\n  Total unconnected pads: 8",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 6,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "R3.2"
+     ],
+     "islands": [
+      [
+       "R3.2"
+      ],
+      [
+       "R4.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '/AUX/DBG_LED' has 2 disconnected islands",
+     "net_name": "/AUX/DBG_LED",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R3.2 and R4.2)",
+     "unconnected_pads": [
+      "R4.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R1.1"
+     ],
+     "islands": [
+      [
+       "R1.1"
+      ],
+      [
+       "R10.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '/BUS' has 2 disconnected islands",
+     "net_name": "/BUS",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R1.1 and R10.1)",
+     "unconnected_pads": [
+      "R10.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R1.2"
+     ],
+     "islands": [
+      [
+       "R1.2"
+      ],
+      [
+       "R2.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '/MCU/DBG_LED' has 2 disconnected islands",
+     "net_name": "/MCU/DBG_LED",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R1.2 and R2.2)",
+     "unconnected_pads": [
+      "R2.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R11.1"
+     ],
+     "islands": [
+      [
+       "R11.1"
+      ],
+      [
+       "R12.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '/SENSE' has 2 disconnected islands",
+     "net_name": "/SENSE",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R11.1 and R12.1)",
+     "unconnected_pads": [
+      "R12.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R11.2"
+     ],
+     "islands": [
+      [
+       "R11.2"
+      ],
+      [
+       "R2.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GLOBAL_NET' has 2 disconnected islands",
+     "net_name": "GLOBAL_NET",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R11.2 and R2.1)",
+     "unconnected_pads": [
+      "R2.1"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R10.2"
+     ],
+     "islands": [
+      [
+       "R10.2"
+      ],
+      [
+       "R12.2"
+      ],
+      [
+       "R3.1"
+      ],
+      [
+       "R4.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GND' has 4 disconnected islands",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "R12.2",
+      "R3.1",
+      "R4.1"
+     ]
+    }
+   ],
+   "total_nets": 6,
+   "unconnected_pads": 8,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "sheet_qualified_lvs/collision_board.kicad_pcb": {
+  "groups": [
+   [
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ],
+   [
+    "R3.1"
+   ],
+   [
+    "R3.2"
+   ],
+   [
+    "R4.1"
+   ],
+   [
+    "R4.2"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 1 errors, 0 warnings\n  Nets: 3/4 fully connected\n  Partial connections: 1\n  Total unconnected pads: 2",
+  "validate": {
+   "connected_nets": 3,
+   "error_count": 1,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "R1.2"
+     ],
+     "islands": [
+      [
+       "R1.2"
+      ],
+      [
+       "R3.2"
+      ],
+      [
+       "R4.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GND' has 3 disconnected islands",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect 3 islands to complete routing",
+     "unconnected_pads": [
+      "R3.2",
+      "R4.2"
+     ]
+    }
+   ],
+   "total_nets": 4,
+   "unconnected_pads": 2,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "sheet_qualified_lvs/repeat_board.kicad_pcb": {
+  "groups": [
+   [
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ],
+   [
+    "R11.1"
+   ],
+   [
+    "R11.2"
+   ],
+   [
+    "R12.1"
+   ],
+   [
+    "R12.2"
+   ],
+   [
+    "R2.1"
+   ],
+   [
+    "R2.2"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 3 errors, 0 warnings\n  Nets: 0/3 fully connected\n  Partial connections: 3\n  Total unconnected pads: 5",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 3,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "R1.2"
+     ],
+     "islands": [
+      [
+       "R1.2"
+      ],
+      [
+       "R2.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '/MCU_A/DBG_LED' has 2 disconnected islands",
+     "net_name": "/MCU_A/DBG_LED",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R1.2 and R2.2)",
+     "unconnected_pads": [
+      "R2.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R11.2"
+     ],
+     "islands": [
+      [
+       "R11.2"
+      ],
+      [
+       "R12.2"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net '/MCU_B/DBG_LED' has 2 disconnected islands",
+     "net_name": "/MCU_B/DBG_LED",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R11.2 and R12.2)",
+     "unconnected_pads": [
+      "R12.2"
+     ]
+    },
+    {
+     "connected_pads": [
+      "R1.1"
+     ],
+     "islands": [
+      [
+       "R1.1"
+      ],
+      [
+       "R11.1"
+      ],
+      [
+       "R12.1"
+      ],
+      [
+       "R2.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'GND' has 4 disconnected islands",
+     "net_name": "GND",
+     "severity": "error",
+     "suggestion": "Connect 4 islands to complete routing",
+     "unconnected_pads": [
+      "R11.1",
+      "R12.1",
+      "R2.1"
+     ]
+    }
+   ],
+   "total_nets": 3,
+   "unconnected_pads": 5,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "stale_nets.kicad_pcb": {
+  "groups": [
+   [
+    "C11.1"
+   ],
+   [
+    "C11.2",
+    "R1.1"
+   ],
+   [
+    "R1.2"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 4/5 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 4,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 5,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "stitch-5388/continuous.kicad_pcb": {
+  "groups": [
+   [
+    "C1.1"
+   ],
+   [
+    "C2.1",
+    "C3.1"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 1 errors, 0 warnings\n  Nets: 0/1 fully connected\n  Orphaned zone islands: 1\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 1,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "pad:C1.1"
+      ],
+      [
+       "pad:C2.1"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Pad C1.1 and Pad C2.1",
+     "net_name": "GNDA",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    }
+   ],
+   "total_nets": 1,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "stitch-5388/split.kicad_pcb": {
+  "groups": [
+   [
+    "C1.1"
+   ],
+   [
+    "C2.1"
+   ],
+   [
+    "C3.1"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 2 errors, 0 warnings\n  Nets: 0/1 fully connected\n  Orphaned zone islands: 2\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 0,
+   "error_count": 2,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "pad:C1.1"
+      ],
+      [
+       "pad:C2.1"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Pad C1.1 and Pad C2.1",
+     "net_name": "GNDA",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    },
+    {
+     "connected_pads": [],
+     "islands": [
+      [
+       "pad:C1.1"
+      ],
+      [
+       "pad:C3.1"
+      ]
+     ],
+     "issue_type": "zone_island",
+     "message": "Missing connection between Pad C1.1 and Pad C3.1",
+     "net_name": "GNDA",
+     "severity": "error",
+     "suggestion": "Connect the same-net copper components",
+     "unconnected_pads": []
+    }
+   ],
+   "total_nets": 1,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "test_kicad10_save_board.kicad_pcb": {
+  "groups": [
+   [
+    "D1.1",
+    "J1.2"
+   ],
+   [
+    "D1.2",
+    "R1.2"
+   ],
+   [
+    "J1.1",
+    "R1.1"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 3/3 fully connected\n  Zone-connected nets: 2 (verified by geometry)\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 3,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 3,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 2
+  }
+ },
+ "test_kicad10_save_board_new_tokens.kicad_pcb": {
+  "groups": [
+   [
+    "U1.1"
+   ],
+   [
+    "U1.2"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 2/2 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 2,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "test_zone_fill.kicad_pcb": {
+  "groups": [
+   [
+    "R1.1",
+    "R1.2",
+    "R2.1",
+    "R2.2"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 2/2 fully connected\n  Zone-connected nets: 1 (verified by geometry)\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 2,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 1
+  }
+ },
+ "u3_wide_copper_contact.kicad_pcb": {
+  "groups": [
+   [
+    "J1.1",
+    "U3.4"
+   ],
+   [
+    "U3.5"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 1 errors, 0 warnings\n  Nets: 1/2 fully connected\n  Partial connections: 1\n  Total unconnected pads: 1",
+  "validate": {
+   "connected_nets": 1,
+   "error_count": 1,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "J1.1"
+     ],
+     "islands": [
+      [
+       "J1.1"
+      ],
+      [
+       "U3.4"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'AC_NEUTRAL' has 2 disconnected islands",
+     "net_name": "AC_NEUTRAL",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between J1.1 and U3.4)",
+     "unconnected_pads": [
+      "U3.4"
+     ]
+    }
+   ],
+   "total_nets": 2,
+   "unconnected_pads": 1,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "unnamed_net_lvs/unnamed_net.kicad_pcb": {
+  "groups": [
+   [
+    "R1.1",
+    "R2.1",
+    "R3.1"
+   ],
+   [
+    "R1.2",
+    "R2.2",
+    "R3.2"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 2/2 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 2,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "unnamed_net_lvs/unnamed_net_open.kicad_pcb": {
+  "groups": [
+   [
+    "R1.1",
+    "R2.1"
+   ],
+   [
+    "R1.2",
+    "R2.2",
+    "R3.2"
+   ],
+   [
+    "R3.1"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 1 errors, 0 warnings\n  Nets: 1/2 fully connected\n  Partial connections: 1\n  Total unconnected pads: 1",
+  "validate": {
+   "connected_nets": 1,
+   "error_count": 1,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "R1.1",
+      "R2.1"
+     ],
+     "islands": [
+      [
+       "R1.1",
+       "R2.1"
+      ],
+      [
+       "R3.1"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'Net-(R3-Pad1)' has 2 disconnected islands",
+     "net_name": "Net-(R3-Pad1)",
+     "severity": "error",
+     "suggestion": "Connect islands (missing trace between R2.1 and R3.1)",
+     "unconnected_pads": [
+      "R3.1"
+     ]
+    }
+   ],
+   "total_nets": 2,
+   "unconnected_pads": 1,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "via_relocation/blocked_slide.kicad_pcb": {
+  "groups": [
+   [
+    "U1.1"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 1/1 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 1,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 1,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "via_relocation/hole_floor.kicad_pcb": {
+  "groups": [
+   [
+    "X0.1",
+    "X1.1"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 1/2 fully connected\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 1,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 2,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ },
+ "via_relocation/isolated_inner_plane.kicad_pcb": {
+  "groups": [
+   [
+    "J1.1",
+    "U1.1"
+   ]
+  ],
+  "summary": "Net Connectivity FULLY ROUTED: 0 errors, 0 warnings\n  Nets: 1/1 fully connected\n  Zone-connected nets: 1 (verified by geometry)\n  Total unconnected pads: 0",
+  "validate": {
+   "connected_nets": 1,
+   "error_count": 0,
+   "is_fully_routed": true,
+   "issues": [],
+   "total_nets": 1,
+   "unconnected_pads": 0,
+   "warning_count": 0,
+   "zone_connected_nets": 1
+  }
+ },
+ "via_under_body.kicad_pcb": {
+  "groups": [
+   [
+    "U1.1"
+   ],
+   [
+    "U1.2"
+   ],
+   [
+    "U1.3"
+   ],
+   [
+    "U1.4"
+   ],
+   [
+    "U1.5"
+   ],
+   [
+    "U1.6"
+   ],
+   [
+    "U1.7"
+   ],
+   [
+    "U1.8"
+   ],
+   [
+    "U1.9"
+   ],
+   [
+    "U2.1"
+   ],
+   [
+    "U2.8"
+   ]
+  ],
+  "summary": "Net Connectivity CONNECTIVITY ISSUES: 1 errors, 0 warnings\n  Nets: 1/2 fully connected\n  Partial connections: 1\n  Total unconnected pads: 9",
+  "validate": {
+   "connected_nets": 1,
+   "error_count": 1,
+   "is_fully_routed": false,
+   "issues": [
+    {
+     "connected_pads": [
+      "U1.1"
+     ],
+     "islands": [
+      [
+       "U1.1"
+      ],
+      [
+       "U1.2"
+      ],
+      [
+       "U1.3"
+      ],
+      [
+       "U1.4"
+      ],
+      [
+       "U1.5"
+      ],
+      [
+       "U1.6"
+      ],
+      [
+       "U1.7"
+      ],
+      [
+       "U1.8"
+      ],
+      [
+       "U2.1"
+      ],
+      [
+       "U2.8"
+      ]
+     ],
+     "issue_type": "partial",
+     "message": "Net 'SIG' has 10 disconnected islands",
+     "net_name": "SIG",
+     "severity": "error",
+     "suggestion": "Connect 10 islands to complete routing",
+     "unconnected_pads": [
+      "U1.2",
+      "U1.3",
+      "U1.4",
+      "U1.5",
+      "U1.6",
+      "U1.7",
+      "U1.8",
+      "U2.1",
+      "U2.8"
+     ]
+    }
+   ],
+   "total_nets": 2,
+   "unconnected_pads": 9,
+   "warning_count": 0,
+   "zone_connected_nets": 0
+  }
+ }
+}

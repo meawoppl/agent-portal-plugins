@@ -1,0 +1,472 @@
+[
+ {
+  "board": "board05_sync_drift/bldc_controller_drifted.kicad_pcb",
+  "key": "board05_sync_drift__bldc_controller_drifted",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 1
+  }
+ },
+ {
+  "board": "board06_pour_escape.kicad_pcb",
+  "key": "board06_pour_escape",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 1
+  }
+ },
+ {
+  "board": "board07_native_refill_5507/matchgroup_test_routed.kicad_pcb",
+  "key": "board07_native_refill_5507__matchgroup_test_routed",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 1
+  }
+ },
+ {
+  "board": "conformance/issue5398-seg-via-0p18-order-seed5398.kicad_pcb",
+  "key": "conformance__issue5398-seg-via-0p18-order-seed5398",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "conformance/issue5410-dqs-n-halo-vs-legal-via-seed5410.kicad_pcb",
+  "key": "conformance__issue5410-dqs-n-halo-vs-legal-via-seed5410",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "conformance/roundrect-corner-gap-seed5229.kicad_pcb",
+  "key": "conformance__roundrect-corner-gap-seed5229",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "conformance/search-vs-commit-seg-via-max-seed5425.kicad_pcb",
+  "key": "conformance__search-vs-commit-seg-via-max-seed5425",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "copper_arc_routed.kicad_pcb",
+  "key": "copper_arc_routed",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "copper_sliver_positive.kicad_pcb",
+  "key": "copper_sliver_positive",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "drc/orphan_island.kicad_pcb",
+  "key": "drc__orphan_island",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "drc/orphan_island_pad.kicad_pcb",
+  "key": "drc__orphan_island_pad",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "drc/orphan_island_transitive.kicad_pcb",
+  "key": "drc__orphan_island_transitive",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "hierarchical_lvs/board_lvs.kicad_pcb",
+  "key": "hierarchical_lvs__board_lvs",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "historical_demo_boards/01-voltage-divider/output/voltage_divider.kicad_pcb",
+  "key": "historical_demo_boards__01-voltage-divider__output__voltage_divider",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "historical_demo_boards/02-charlieplex-led/output/charlieplex_3x3.kicad_pcb",
+  "key": "historical_demo_boards__02-charlieplex-led__output__charlieplex_3x3",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 1
+  }
+ },
+ {
+  "board": "historical_demo_boards/02-charlieplex-led/output/charlieplex_3x3_routed.kicad_pcb",
+  "key": "historical_demo_boards__02-charlieplex-led__output__charlieplex_3x3_routed",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 0,
+   "mistakes": 1
+  }
+ },
+ {
+  "board": "historical_demo_boards/05-bldc-motor-controller/output/bldc_controller.kicad_pcb",
+  "key": "historical_demo_boards__05-bldc-motor-controller__output__bldc_controller",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 1
+  }
+ },
+ {
+  "board": "historical_demo_boards/07-matchgroup-test/output/matchgroup_test_routed.kicad_pcb",
+  "key": "historical_demo_boards__07-matchgroup-test__output__matchgroup_test_routed",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 1
+  }
+ },
+ {
+  "board": "issue-5362-witness/usb_joystick_routed.kicad_pcb",
+  "key": "issue-5362-witness__usb_joystick_routed",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 1
+  }
+ },
+ {
+  "board": "kelvin_native/rotated-shunt.kicad_pcb",
+  "key": "kelvin_native__rotated-shunt",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "mirror_flip/mirror_back_lr.kicad_pcb",
+  "key": "mirror_flip__mirror_back_lr",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "mirror_flip/mirror_front.kicad_pcb",
+  "key": "mirror_flip__mirror_front",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "physics/composite_six_layer.kicad_pcb",
+  "key": "physics__composite_six_layer",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "pin1_marker.kicad_pcb",
+  "key": "pin1_marker",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 0,
+   "mistakes": 1
+  }
+ },
+ {
+  "board": "projects/multilayer_zones.kicad_pcb",
+  "key": "projects__multilayer_zones",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "projects/test_project.kicad_pcb",
+  "key": "projects__test_project",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "purge_test_project/test_purge.kicad_pcb",
+  "key": "purge_test_project__test_purge",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "routing-diagnostic.kicad_pcb",
+  "key": "routing-diagnostic",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "schema_pcb/minimal.kicad_pcb",
+  "key": "schema_pcb__minimal",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "schema_pcb/routing_test.kicad_pcb",
+  "key": "schema_pcb__routing_test",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 1
+  }
+ },
+ {
+  "board": "schema_pcb/zone_test.kicad_pcb",
+  "key": "schema_pcb__zone_test",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "sheet_qualified_lvs/board_sq.kicad_pcb",
+  "key": "sheet_qualified_lvs__board_sq",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "sheet_qualified_lvs/collision_board.kicad_pcb",
+  "key": "sheet_qualified_lvs__collision_board",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "sheet_qualified_lvs/repeat_board.kicad_pcb",
+  "key": "sheet_qualified_lvs__repeat_board",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "stale_nets.kicad_pcb",
+  "key": "stale_nets",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "stitch-5388/continuous.kicad_pcb",
+  "key": "stitch-5388__continuous",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "stitch-5388/split.kicad_pcb",
+  "key": "stitch-5388__split",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "test_kicad10_save_board.kicad_pcb",
+  "key": "test_kicad10_save_board",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "test_kicad10_save_board_new_tokens.kicad_pcb",
+  "key": "test_kicad10_save_board_new_tokens",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "test_zone_fill.kicad_pcb",
+  "key": "test_zone_fill",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "u3_wide_copper_contact.kicad_pcb",
+  "key": "u3_wide_copper_contact",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "unnamed_net_lvs/unnamed_net.kicad_pcb",
+  "key": "unnamed_net_lvs__unnamed_net",
+  "codes": {
+   "default": 0,
+   "jlcpcb": 0,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "unnamed_net_lvs/unnamed_net_open.kicad_pcb",
+  "key": "unnamed_net_lvs__unnamed_net_open",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "via_relocation/blocked_slide.kicad_pcb",
+  "key": "via_relocation__blocked_slide",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "via_relocation/hole_floor.kicad_pcb",
+  "key": "via_relocation__hole_floor",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "via_relocation/isolated_inner_plane.kicad_pcb",
+  "key": "via_relocation__isolated_inner_plane",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 0,
+   "mistakes": 0
+  }
+ },
+ {
+  "board": "via_under_body.kicad_pcb",
+  "key": "via_under_body",
+  "codes": {
+   "default": 2,
+   "jlcpcb": 2,
+   "pcbway": 2,
+   "mistakes": 0
+  }
+ }
+]

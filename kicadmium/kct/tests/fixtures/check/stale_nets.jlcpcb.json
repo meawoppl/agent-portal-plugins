@@ -1,0 +1,180 @@
+{
+ "file": "<FIXTURES>/stale_nets.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 6,
+  "warnings": 1,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 47,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "clearance_pad_segment",
+   "type": "clearance_pad_segment",
+   "severity": "error",
+   "message": "SHORT: 'Net-(C11-2)' and 'Net-(C11-Pad2)' copper overlaps by 0.625mm (segment to pad)",
+   "location": [
+    11.0,
+    10.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": -0.625,
+   "required_value": 0.127,
+   "items": [
+    "Trace-seg-1-uu",
+    "C11-2"
+   ],
+   "nets": [
+    "Net-(C11-2)",
+    "Net-(C11-Pad2)"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "clearance_pad_segment",
+   "type": "clearance_pad_segment",
+   "severity": "error",
+   "message": "SHORT: 'Net-(C11-2)' and 'Net-(R1-1)' copper overlaps by 0.625mm (segment to pad)",
+   "location": [
+    19.0,
+    10.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": -0.625,
+   "required_value": 0.127,
+   "items": [
+    "Trace-seg-1-uu",
+    "R1-1"
+   ],
+   "nets": [
+    "Net-(C11-2)",
+    "Net-(R1-1)"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "clearance_pad_segment",
+   "type": "clearance_pad_segment",
+   "severity": "error",
+   "message": "SHORT: 'Net-(C11-2)' and 'Net-(R1-1)' copper overlaps by 0.775mm (segment to pad)",
+   "location": [
+    19.0,
+    10.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": -0.775,
+   "required_value": 0.127,
+   "items": [
+    "Trace-seg-2-uu",
+    "R1-1"
+   ],
+   "nets": [
+    "Net-(C11-2)",
+    "Net-(R1-1)"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "clearance_pad_via",
+   "type": "clearance_pad_via",
+   "severity": "error",
+   "message": "Pad to via clearance 0.050mm < minimum 0.127mm",
+   "location": [
+    19.0,
+    10.675
+   ],
+   "layer": "F.Cu",
+   "actual_value": 0.05,
+   "required_value": 0.127,
+   "items": [
+    "R1-1",
+    "Via-via-1-uu"
+   ],
+   "nets": [
+    "Net-(R1-1)",
+    "Net-(C11-2)"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "via_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling via: Via [Net-(C11-2)] on F.Cu - B.Cu bonds copper on 1 layer(s)",
+   "location": [
+    19.0,
+    11.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 1.0,
+   "required_value": 2.0,
+   "items": [
+    "net:Net-(C11-2)"
+   ],
+   "nets": [
+    "Net-(C11-2)"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'Net-(C11-Pad2)' has only 1 pad on C11-2 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    11.0,
+    10.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "C11-2"
+   ],
+   "nets": [
+    "Net-(C11-Pad2)"
+   ],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'Net-(R1-1)' has only 1 pad on R1-1 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    19.0,
+    10.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "R1-1"
+   ],
+   "nets": [
+    "Net-(R1-1)"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

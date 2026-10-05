@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>kct lint · %%TITLE%%</title>
+<style>
+%%STYLE%%</style></head><body>
+%%DEFS%%
+<header>
+%%HEADER%%
+<p class="muted">Geometry preview · top view, millimeters · heuristic findings require review</p>
+<div class="legend"><span class="front">● Front copper</span><span class="back">● Back copper</span><span class="inner">● Inner copper</span><span class="multi">● Multilayer pads / vias</span><span class="selected">● Highlighted subjects</span></div>
+<div class="controls">
+<label>Search notes, nets, UUIDs<input id="search" type="search" placeholder="net, reference, rule, key…"></label>
+<label>Rule<select id="rule"><option value="">All rules</option></select></label>
+<label>Severity<select id="severity"><option value="">All severities</option><option value="warning">Warnings</option><option value="error">Errors</option><option value="info">Notes</option></select></label>
+<label>Layer view<select id="layer"><option value="">All layers</option></select></label>
+<label class="check"><input id="ignored" type="checkbox">Include ignored</label>
+<label class="check"><input id="zones" type="checkbox">Filled zones</label>
+<label class="check"><input id="labels" type="checkbox" checked>Reference labels</label>
+<button id="print">Print current page</button>
+</div>
+<nav><button id="prev">← Previous</button><span id="status" aria-live="polite"></span><button id="next">Next →</button><label>Cards per page<select id="size"><option>24</option><option selected>48</option><option>96</option></select></label></nav>
+<details><summary>Coverage and rendering limitations</summary><div id="limitations"></div><div id="coverage"></div></details>
+</header>
+<main id="grid" class="grid"></main>
+<noscript><p>This offline contact sheet requires JavaScript to paginate and display its embedded vector crops. No network access is required.</p></noscript>
+<dialog id="detail"><nav><button id="close">Close</button><button id="zoom-in">Zoom +</button><button id="zoom-out">Zoom −</button><button id="reset">Reset</button><button id="download">Download crop SVG</button></nav><div id="detail-body"></div><p class="muted">Drag to pan. Zoom controls preserve the current center.</p></dialog>
+<script type="application/json" id="data">%%DATA%%</script>
+<script type="application/json" id="objects">%%OBJECTS%%</script>
+<script>
+'use strict';
+const data=JSON.parse(document.getElementById('data').textContent),objects=JSON.parse(document.getElementById('objects').textContent);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const make=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e};
+let page=0,visible=[],active=null,view=null;
+const count=new Map();
+for(const c of data.findings)count.set(c.finding.rule,(count.get(c.finding.rule)||0)+1);
+for(const [rule,n] of [...count].sort()){const o=make('option',rule+' ('+n+')');o.value=rule;$('rule').append(o)}
+for(const layer of data.layers){const o=make('option',layer);o.value=layer;$('layer').append(o)}
+for(const t of data.limitations)$('limitations').append(make('p',t));
+for(const c of data.coverage)$('coverage').append(make('p',c.rule+': '+c.status));
+function color(layers){return layers.length>1?'#7dcfff':layers.includes('F.Cu')?'#f7768e':layers.includes('B.Cu')?'#7aa2f7':'#bb9af7'}
+function shape(i,highlight=false){
+ const [kind,layers]=objects[i],layer=$('layer').value;
+ if(kind==='zone'&&!highlight&&!$('zones').checked)return '';
+ if(layer&&layers.length&&layers.some(x=>x.endsWith('.Cu'))&&!layers.includes(layer))return '';
+ return '<use href="#obj-'+i+'" class="'+kind+(highlight?' highlight':kind==='zone'||kind==='edge'?'':' dim')+'" style="color:'+(highlight?'#e0af68':kind==='edge'?'#c0caf5':kind==='hole'?'#565f89':color(layers))+'"/>';
+}
+function svg(c,crop=c.crop){
+ const [x,y,w,h]=crop, font=w/40;
+ let s='<svg class="drawing" xmlns="http://www.w3.org/2000/svg" viewBox="'+crop.join(' ')+'" role="img" aria-label="'+esc(c.finding.rule+'; highlighted finding objects')+'">';
+ s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="#1a1b26"/>';
+ for(let i=0;i<objects.length;i++){
+  const [kind,_,b]=objects[i];
+  if(kind!=='text-box'&&b.min.x<=x+w&&b.max.x>=x&&b.min.y<=y+h&&b.max.y>=y)s+=shape(i);
+ }
+ for(const i of c.highlighted)s+=shape(i,true);
+ if($('labels').checked)for(const [p,name] of c.labels)s+='<text x="'+p.x+'" y="'+(p.y-font*.6)+'" text-anchor="middle" font-size="'+font+'" style="stroke-width:'+(font*.15)+'">'+esc(name)+'</text>';
+ const scale=Number((w/5).toPrecision(2)),sy=y+h-font*2;
+ s+='<path d="M'+(x+font*2)+','+sy+'h'+scale+'" stroke="#c0caf5" stroke-width="'+font*.22+'"/><text x="'+(x+font*2)+'" y="'+(sy-font*.7)+'" font-size="'+font+'" style="stroke-width:'+(font*.15)+'">'+scale+' mm</text></svg>';
+ return s;
+}
+function notes(c){
+ const f=c.finding, body=make('div');body.className='body';
+ body.append(make('p',f.message));
+ const suggestion=make('p',f.suggestion);suggestion.className='note';body.append(suggestion);
+ body.append(make('p',[f.nets.length?'Nets: '+f.nets.join(', '):'',c.layers.length?'Layers: '+c.layers.join(', '):'',f.state+' · '+f.confidence].filter(Boolean).join(' · ')));
+ const details=make('details');details.append(make('summary','Review key, subjects and measurements'));
+ const pre=make('pre');pre.style.whiteSpace='pre-wrap';
+ pre.textContent=JSON.stringify({key:f.key,evidence:f.evidence,subjects:f.subjects,at_mm:f.at,metrics:f.metrics,review:f.review||null},null,2);
+ pre.className='small';details.append(pre);body.append(details);
+ return body;
+}
+function render(){
+ visible=data.findings.filter(c=>{
+  const f=c.finding,q=$('search').value.toLowerCase();
+  return ($('ignored').checked||f.state!=='ignored')&&(!$('rule').value||f.rule===$('rule').value)&&
+   (!$('severity').value||f.severity===$('severity').value)&&
+   (!q||JSON.stringify([f,c.labels]).toLowerCase().includes(q));
+ });
+ const size=Number($('size').value),pages=Math.max(1,Math.ceil(visible.length/size));page=Math.max(0,Math.min(page,pages-1));
+ $('status').textContent=visible.length+' findings · page '+(page+1)+' / '+pages;
+ $('prev').disabled=page===0;$('next').disabled=page+1===pages;
+ $('grid').replaceChildren();
+ if(!visible.length){const e=make('p','No matching findings. Check coverage before interpreting this as a pass.');e.id='empty';$('grid').append(e)}
+ for(const c of visible.slice(page*size,(page+1)*size)){
+  const f=c.finding,article=make('article');article.dataset.key=f.key;
+  const head=make('div');head.className='card-head';
+  const badge=make('span',f.severity);badge.className='badge '+f.severity;
+  head.append(badge,make('strong',f.rule));article.append(head);
+  const fig=make('figure');fig.innerHTML=svg(c);fig.tabIndex=0;fig.setAttribute('role','button');fig.setAttribute('aria-label','Enlarge '+f.rule);
+  fig.onclick=()=>open(c);fig.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open(c)}};
+  const cap=make('figcaption',c.spatial?'Click to enlarge · yellow = subjects · '+f.key.slice(0,12):'Board overview only · no spatial subject available');
+  fig.append(cap);article.append(fig,notes(c));$('grid').append(article);
+ }
+}
+function open(c){
+ active=c;view=c.crop.slice();$('detail-body').replaceChildren(make('h2',c.finding.rule));
+ const host=make('div');host.id='large';$('detail-body').append(host,notes(c));redraw();
+ if(!$('detail').open)$('detail').showModal();
+}
+function redraw(){
+ const host=$('large');host.innerHTML=svg(active,view);const el=host.querySelector('svg');el.style.touchAction='none';
+ let start=null;
+ el.onpointerdown=e=>{el.setPointerCapture(e.pointerId);start=[e.clientX,e.clientY,view.slice()]};
+ el.onpointermove=e=>{
+  if(!start)return;const r=el.getBoundingClientRect(),scale=Math.min(r.width/view[2],r.height/view[3]);
+  view=[start[2][0]-(e.clientX-start[0])/scale,start[2][1]-(e.clientY-start[1])/scale,view[2],view[3]];
+  el.setAttribute('viewBox',view.join(' '));
+ };
+ el.onpointerup=el.onpointercancel=()=>{if(start){start=null;redraw()}};
+}
+function zoom(factor){
+ if(!active)return;
+ const w=view[2]*factor,h=view[3]*factor;
+ if(w<.05||w>active.crop[2]*20)return;
+ view=[view[0]+(view[2]-w)/2,view[1]+(view[3]-h)/2,w,h];redraw();
+}
+$('zoom-in').onclick=()=>zoom(.7);$('zoom-out').onclick=()=>zoom(1/.7);
+$('reset').onclick=()=>{view=active.crop.slice();redraw()};$('close').onclick=()=>$('detail').close();
+$('download').onclick=()=>{
+ const el=$('large').querySelector('svg').cloneNode(true);
+ // Embed referenced geometry and computed styles for a standalone SVG.
+ const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+ for(const id of new Set([...el.querySelectorAll('use')].map(n=>n.getAttribute('href').slice(1))))defs.append($(id).cloneNode(true));
+ el.prepend(defs);
+ const style=document.createElementNS('http://www.w3.org/2000/svg','style');
+ style.textContent='svg .zone{opacity:.12}svg .dim{opacity:.42}svg text{fill:#c0caf5;font-family:monospace;paint-order:stroke;stroke:#1a1b26;stroke-width:.13}';
+ el.prepend(style);el.setAttribute('width','1200');el.setAttribute('height','900');
+ const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(el)],{type:'image/svg+xml'}));
+ const a=make('a');a.href=url;a.download=active.finding.rule+'-'+active.finding.key.slice(0,12)+'.svg';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+for(const id of ['rule','severity','ignored','size'])$(id).onchange=()=>{page=0;render()};
+for(const id of ['layer','labels','zones'])$(id).onchange=()=>{render();if(active&&$('detail').open)redraw()};
+$('search').oninput=()=>{page=0;render()};
+$('prev').onclick=()=>{page--;render();window.scrollTo(0,0)};$('next').onclick=()=>{page++;render();window.scrollTo(0,0)};
+$('print').onclick=()=>window.print();
+render();
+</script></body></html>

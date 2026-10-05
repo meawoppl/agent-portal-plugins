@@ -1,0 +1,637 @@
+{
+ "summary": {
+  "errors": 10,
+  "warnings": 25,
+  "info": 0
+ },
+ "mistakes": [
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U1"
+   ],
+   "location": [
+    20.0,
+    25.0
+   ],
+   "explanation": "U1 has a power pin on net '+1V2', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V2 to the nearest ground return, placed within a few mm of U1's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U1"
+   ],
+   "location": [
+    20.0,
+    25.0
+   ],
+   "explanation": "U1 has a power pin on net '+1V8', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V8 to the nearest ground return, placed within a few mm of U1's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U5"
+   ],
+   "location": [
+    60.0,
+    80.0
+   ],
+   "explanation": "U5 has a power pin on net '+1V2', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V2 to the nearest ground return, placed within a few mm of U5's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U5"
+   ],
+   "location": [
+    60.0,
+    80.0
+   ],
+   "explanation": "U5 has a power pin on net '+1V8', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V8 to the nearest ground return, placed within a few mm of U5's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U3"
+   ],
+   "location": [
+    35.0,
+    55.0
+   ],
+   "explanation": "U3 has a power pin on net '+1V2', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V2 to the nearest ground return, placed within a few mm of U3's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U3"
+   ],
+   "location": [
+    35.0,
+    55.0
+   ],
+   "explanation": "U3 has a power pin on net '+1V8', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V8 to the nearest ground return, placed within a few mm of U3's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U4"
+   ],
+   "location": [
+    85.0,
+    55.0
+   ],
+   "explanation": "U4 has a power pin on net '+1V2', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V2 to the nearest ground return, placed within a few mm of U4's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U4"
+   ],
+   "location": [
+    85.0,
+    55.0
+   ],
+   "explanation": "U4 has a power pin on net '+1V8', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V8 to the nearest ground return, placed within a few mm of U4's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U2"
+   ],
+   "location": [
+    50.0,
+    25.0
+   ],
+   "explanation": "U2 has a power pin on net '+1V2', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V2 to the nearest ground return, placed within a few mm of U2's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U2"
+   ],
+   "location": [
+    50.0,
+    25.0
+   ],
+   "explanation": "U2 has a power pin on net '+1V8', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from +1V8 to the nearest ground return, placed within a few mm of U2's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "+1V2"
+   ],
+   "location": [
+    15.0,
+    29.400000000000006
+   ],
+   "explanation": "Power trace on +1V2 is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on +1V2 to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "+1V8"
+   ],
+   "location": [
+    15.0,
+    20.6
+   ],
+   "explanation": "Power trace on +1V8 is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on +1V8 to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "GND"
+   ],
+   "location": [
+    62.80000000000001,
+    75.0
+   ],
+   "explanation": "Power trace on GND is only 0.20mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on GND to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ2",
+    "F.Cu"
+   ],
+   "location": [
+    36.895700000000005,
+    20.0133
+   ],
+   "explanation": "Trace on DQ2 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ2",
+    "F.Cu"
+   ],
+   "location": [
+    35.960199999999986,
+    19.6434
+   ],
+   "explanation": "Trace on DQ2 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ2",
+    "F.Cu"
+   ],
+   "location": [
+    36.612899999999996,
+    20.296100000000003
+   ],
+   "explanation": "Trace on DQ2 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ2",
+    "F.Cu"
+   ],
+   "location": [
+    36.242999999999995,
+    19.360500000000002
+   ],
+   "explanation": "Trace on DQ2 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ2",
+    "F.Cu"
+   ],
+   "location": [
+    36.047200000000004,
+    20.861800000000002
+   ],
+   "explanation": "Trace on DQ2 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ2",
+    "F.Cu"
+   ],
+   "location": [
+    35.394499999999994,
+    20.2091
+   ],
+   "explanation": "Trace on DQ2 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ2",
+    "F.Cu"
+   ],
+   "location": [
+    35.6773,
+    19.9262
+   ],
+   "explanation": "Trace on DQ2 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ3",
+    "B.Cu"
+   ],
+   "location": [
+    40.913700000000006,
+    26.282300000000006
+   ],
+   "explanation": "Trace on DQ3 (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ3",
+    "B.Cu"
+   ],
+   "location": [
+    42.61070000000001,
+    24.585300000000004
+   ],
+   "explanation": "Trace on DQ3 (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ3",
+    "B.Cu"
+   ],
+   "location": [
+    40.7843,
+    25.021600000000007
+   ],
+   "explanation": "Trace on DQ3 (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ3",
+    "B.Cu"
+   ],
+   "location": [
+    41.91569999999999,
+    23.890300000000003
+   ],
+   "explanation": "Trace on DQ3 (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ3",
+    "B.Cu"
+   ],
+   "location": [
+    41.76220000000001,
+    25.433800000000005
+   ],
+   "explanation": "Trace on DQ3 (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ4",
+    "F.Cu"
+   ],
+   "location": [
+    43.650000000000006,
+    22.403
+   ],
+   "explanation": "Trace on DQ4 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ5",
+    "B.Cu"
+   ],
+   "location": [
+    36.4846,
+    23.2068
+   ],
+   "explanation": "Trace on DQ5 (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ5",
+    "B.Cu"
+   ],
+   "location": [
+    35.9607,
+    23.7307
+   ],
+   "explanation": "Trace on DQ5 (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ5",
+    "B.Cu"
+   ],
+   "location": [
+    36.526399999999995,
+    24.296400000000006
+   ],
+   "explanation": "Trace on DQ5 (B.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "DQ7",
+    "F.Cu"
+   ],
+   "location": [
+    41.236999999999995,
+    31.927999999999997
+   ],
+   "explanation": "Trace on DQ7 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "MIPI_CLK_P",
+    "F.Cu"
+   ],
+   "location": [
+    31.965999999999994,
+    53.010000000000005
+   ],
+   "explanation": "Trace on MIPI_CLK_P (F.Cu) has a 0\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "A0",
+    "F.Cu"
+   ],
+   "location": [
+    54.953,
+    75.616
+   ],
+   "explanation": "Trace on A0 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "A2",
+    "F.Cu"
+   ],
+   "location": [
+    20.281999999999996,
+    77.14
+   ],
+   "explanation": "Trace on A2 (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "A4",
+    "F.Cu"
+   ],
+   "location": [
+    55.206999999999994,
+    78.791
+   ],
+   "explanation": "Trace on A4 (F.Cu) has a 43\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "A7",
+    "F.Cu"
+   ],
+   "location": [
+    54.44499999999999,
+    81.204
+   ],
+   "explanation": "Trace on A7 (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  }
+ ],
+ "coverage": [
+  {
+   "check_name": "BypassCapDistanceCheck",
+   "category": "bypass_capacitor",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalTraceLengthCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalNoiseProximityCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "DifferentialPairSkewCheck",
+   "category": "differential_pair",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PowerTraceWidthCheck",
+   "category": "power_trace",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ThermalPadConnectionCheck",
+   "category": "thermal_management",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ViaInPadCheck",
+   "category": "via_placement",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "AcidTrapCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "TombstoningRiskCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "MissingDecouplingCapCheck",
+   "category": "decoupling",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PullUpResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "LedSeriesResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "BomFieldHealthCheck",
+   "category": "bom_health",
+   "status": "incomplete",
+   "reason": "no BOM-eligible component on this board defines an MPN/LCSC-style property (checked ['jlc', 'jlcpcb', 'lcsc', 'lcsc part', 'lcsc_pn', 'manufacturer_pn', 'mfr_pn', 'mpn', 'pn']); this board may not track manufacturer part numbers in footprint properties, so BOM part-number coverage cannot be assessed"
+  }
+ ],
+ "coverage_complete": false
+}

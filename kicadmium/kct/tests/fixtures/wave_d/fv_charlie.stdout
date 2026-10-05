@@ -1,0 +1,407 @@
+{
+  "target_drill_mm": 0.35,
+  "target_diameter_mm": 0.7,
+  "manufacturer": "jlcpcb",
+  "dry_run": false,
+  "fixes": [
+    {
+      "x": 131.1,
+      "y": 98.4,
+      "net": 1,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "e4791945-22ec-408a-b0cc-65b08f0e2b47"
+    },
+    {
+      "x": 157.9,
+      "y": 98.0,
+      "net": 4,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "e2c4dd5f-1828-4b60-b8ed-f0fb8025e0d7"
+    },
+    {
+      "x": 132.2,
+      "y": 80.8,
+      "net": 5,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "0b6329f6-cd4f-467d-92d0-499a4cd8c71a"
+    },
+    {
+      "x": 139.0,
+      "y": 84.2,
+      "net": 5,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "51c11c9c-6c54-4a5f-848f-1c020e502b9a"
+    },
+    {
+      "x": 133.0,
+      "y": 97.4,
+      "net": 5,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "5248ad89-10d9-4b7e-b92b-9163f1cbb07b"
+    },
+    {
+      "x": 157.1,
+      "y": 71.2,
+      "net": 5,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "9ef183d0-8783-4fc1-886b-b7a99003b5b9"
+    },
+    {
+      "x": 150.7,
+      "y": 68.7,
+      "net": 5,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "a636e8ac-5702-4823-a55e-bfa78c256eeb"
+    },
+    {
+      "x": 138.6,
+      "y": 74.4,
+      "net": 5,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "caaa0397-ce5b-490c-b08b-c97767470939"
+    },
+    {
+      "x": 156.2,
+      "y": 76.7,
+      "net": 5,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "d7f82b66-4be1-4235-bafe-b195a59dafef"
+    },
+    {
+      "x": 148.0,
+      "y": 69.6,
+      "net": 5,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "f41b10e6-4718-41a8-9cee-fa3477bbe674"
+    },
+    {
+      "x": 141.5,
+      "y": 67.9,
+      "net": 6,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "0d2338cd-a97b-467f-94b6-7612fa06516a"
+    },
+    {
+      "x": 143.0,
+      "y": 77.8,
+      "net": 6,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "6fbf4279-9edf-4cf1-a689-eb205a828a3a"
+    },
+    {
+      "x": 140.1,
+      "y": 69.3,
+      "net": 6,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "b6d690b9-0349-4703-a89f-ac942db14e8a"
+    },
+    {
+      "x": 139.3,
+      "y": 71.0,
+      "net": 6,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "ce81a591-8500-4646-ae81-766a8d96658c"
+    },
+    {
+      "x": 144.2,
+      "y": 73.6,
+      "net": 7,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "175284e1-8e36-4a76-b24f-4fe50ca34d85"
+    },
+    {
+      "x": 142.9,
+      "y": 88.0,
+      "net": 7,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "1d472f16-6b1c-47db-b241-3a77208e8241"
+    },
+    {
+      "x": 140.7,
+      "y": 88.0,
+      "net": 7,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "51836d58-ef53-4c6d-9015-02a504277fbe"
+    },
+    {
+      "x": 154.7,
+      "y": 70.9,
+      "net": 7,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "8d4f6fba-d8fb-4f11-8da7-2b219c99fe6e"
+    },
+    {
+      "x": 140.1,
+      "y": 80.7,
+      "net": 7,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "93a9dc23-ffd3-4000-a61c-ae7fd8a9fcd8"
+    },
+    {
+      "x": 140.1,
+      "y": 76.5,
+      "net": 7,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "fae3a813-26fa-4dca-9a5a-1f85fa25c69b"
+    },
+    {
+      "x": 166.0,
+      "y": 97.4,
+      "net": 8,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "17111016-7faa-4604-8ced-d828f6d184dc"
+    },
+    {
+      "x": 157.9,
+      "y": 78.3,
+      "net": 8,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "426d621d-5e13-4ffb-989e-61d0022189d1"
+    },
+    {
+      "x": 166.7,
+      "y": 96.8,
+      "net": 8,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "8eb22fe2-56dc-4aa3-8623-1e597721b0e5"
+    },
+    {
+      "x": 156.2,
+      "y": 87.6,
+      "net": 8,
+      "old_drill_mm": 0.3,
+      "new_drill_mm": 0.35,
+      "old_diameter_mm": 0.6,
+      "new_diameter_mm": 0.7,
+      "uuid": "b36bb6c6-912a-4f9a-95e7-16c873c074e0"
+    }
+  ],
+  "warnings": [
+    {
+      "x": 131.1,
+      "y": 98.4,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (131.00, 98.40)",
+      "clearance_mm": -0.35000000000000564
+    },
+    {
+      "x": 131.1,
+      "y": 98.4,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (130.60, 98.00)",
+      "clearance_mm": 0.19031242374328847
+    },
+    {
+      "x": 133.0,
+      "y": 97.4,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (133.00, 97.50)",
+      "clearance_mm": -0.35000000000000564
+    },
+    {
+      "x": 157.1,
+      "y": 71.2,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (157.10, 70.60)",
+      "clearance_mm": 0.15000000000000854
+    },
+    {
+      "x": 148.0,
+      "y": 69.6,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (147.90, 69.60)",
+      "clearance_mm": -0.35000000000000564
+    },
+    {
+      "x": 148.0,
+      "y": 69.6,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (147.50, 70.00)",
+      "clearance_mm": 0.19031242374328847
+    },
+    {
+      "x": 148.0,
+      "y": 69.6,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (147.55, 70.05)",
+      "clearance_mm": 0.18639610306788676
+    },
+    {
+      "x": 141.5,
+      "y": 67.9,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (141.85, 68.25)",
+      "clearance_mm": 0.04497474683057526
+    },
+    {
+      "x": 140.1,
+      "y": 69.3,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (140.00, 69.50)",
+      "clearance_mm": -0.22639320225002102
+    },
+    {
+      "x": 140.1,
+      "y": 69.3,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (140.00, 69.40)",
+      "clearance_mm": -0.30857864376268845
+    },
+    {
+      "x": 139.3,
+      "y": 71.0,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (139.50, 70.40)",
+      "clearance_mm": 0.1824555320336669
+    },
+    {
+      "x": 139.3,
+      "y": 71.0,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (139.30, 70.60)",
+      "clearance_mm": -0.0499999999999943
+    },
+    {
+      "x": 144.2,
+      "y": 73.6,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (144.20, 73.96)",
+      "clearance_mm": -0.08839999999999007
+    },
+    {
+      "x": 154.7,
+      "y": 70.9,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (155.00, 70.60)",
+      "clearance_mm": -0.025735931288055375
+    },
+    {
+      "x": 140.1,
+      "y": 76.5,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (140.40, 76.80)",
+      "clearance_mm": -0.025735931288065478
+    },
+    {
+      "x": 140.1,
+      "y": 76.5,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (140.60, 76.90)",
+      "clearance_mm": 0.19031242374328847
+    },
+    {
+      "x": 140.1,
+      "y": 76.5,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (140.30, 76.70)",
+      "clearance_mm": -0.16715728752536693
+    },
+    {
+      "x": 140.1,
+      "y": 76.5,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (140.50, 76.80)",
+      "clearance_mm": 0.0500000000000029
+    },
+    {
+      "x": 166.0,
+      "y": 97.4,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (166.00, 97.50)",
+      "clearance_mm": -0.35000000000000564
+    },
+    {
+      "x": 157.9,
+      "y": 78.3,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (157.60, 78.00)",
+      "clearance_mm": -0.025735931288065478
+    },
+    {
+      "x": 157.9,
+      "y": 78.3,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (157.50, 78.00)",
+      "clearance_mm": 0.0500000000000029
+    },
+    {
+      "x": 166.7,
+      "y": 96.8,
+      "new_diameter_mm": 0.7,
+      "nearby_item": "track at (166.70, 97.40)",
+      "clearance_mm": 0.15000000000000854
+    }
+  ],
+  "skipped": [],
+  "same_layer_fixes": [],
+  "same_layer_warnings": []
+}

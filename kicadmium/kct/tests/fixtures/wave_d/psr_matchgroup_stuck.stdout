@@ -1,0 +1,138 @@
+{
+  "clearance_mm": 0.15,
+  "dry_run": true,
+  "total_moved": 4,
+  "total_unchanged": 3,
+  "total_unplaceable": 1,
+  "total_under_component_fallback": 0,
+  "placements": [
+    {
+      "footprint_ref": "J1",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        15.0,
+        52.0
+      ],
+      "new_position_mm": [
+        15.0,
+        52.0
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "J2",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        60.0,
+        52.0
+      ],
+      "new_position_mm": [
+        60.0,
+        52.0
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "J3",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        20.0,
+        77.0
+      ],
+      "new_position_mm": [
+        20.0,
+        77.0
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unchanged",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "U1",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        20.0,
+        19.0
+      ],
+      "new_position_mm": [
+        14.15,
+        19.15
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "moved",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "U2",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        50.0,
+        19.0
+      ],
+      "new_position_mm": [
+        44.15,
+        19.15
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "moved",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "U3",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        35.0,
+        52.0
+      ],
+      "new_position_mm": [
+        31.25,
+        51.25
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "moved",
+      "reason": ""
+    },
+    {
+      "footprint_ref": "U4",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        85.0,
+        51.0
+      ],
+      "new_position_mm": [
+        85.0,
+        51.0
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "unplaceable",
+      "reason": "pad aperture U4 pad G7"
+    },
+    {
+      "footprint_ref": "U5",
+      "layer": "F.SilkS",
+      "old_position_mm": [
+        60.0,
+        75.0
+      ],
+      "new_position_mm": [
+        65.85,
+        74.15
+      ],
+      "old_rotation_deg": 0.0,
+      "new_rotation_deg": 0.0,
+      "status": "moved",
+      "reason": ""
+    }
+  ]
+}

@@ -1,0 +1,1095 @@
+use super::{parse_args, Globals};
+use crate::sexp::{Document, SExp, Value};
+use anyhow::{bail, Context, Result};
+use clap::Parser;
+use serde::Serialize;
+use std::{
+    collections::BTreeMap,
+    ffi::OsString,
+    path::{Path, PathBuf},
+    process::Command,
+};
+
+#[derive(Parser)]
+struct ExportArgs {
+    input: PathBuf,
+    #[arg(short, long, default_value = "output")]
+    output: PathBuf,
+    #[arg(short = 'm', long, default_value = "jlcpcb")]
+    mfr: String,
+    #[arg(long)]
+    skip_gerbers: bool,
+    #[arg(long)]
+    skip_bom: bool,
+    #[arg(long)]
+    skip_pnp: bool,
+    #[arg(long)]
+    skip_drc: bool,
+    #[arg(long)]
+    include_dnp: bool,
+    #[arg(long, default_value = "text")]
+    format: String,
+}
+#[derive(Serialize)]
+struct ExportReport {
+    board: PathBuf,
+    output: PathBuf,
+    manufacturer: String,
+    artifacts: Vec<PathBuf>,
+}
+pub fn export(args: Vec<OsString>, _: &Globals) -> Result<i32> {
+    let a = parse_args::<ExportArgs>("export", args);
+    let board = resolve_board(&a.input)?;
+    std::fs::create_dir_all(&a.output)?;
+    let cli = kicad_cli()?;
+    let mut artifacts = vec![];
+    if !a.skip_drc {
+        let p = a.output.join("drc.json");
+        run(
+            &cli,
+            [
+                "pcb",
+                "drc",
+                "--format",
+                "json",
+                "-o",
+                path(&p),
+                path(&board),
+            ],
+        )?;
+        artifacts.push(p)
+    }
+    if !a.skip_gerbers {
+        let g = a.output.join("gerbers");
+        std::fs::create_dir_all(&g)?;
+        run(&cli, ["pcb", "gerbers", "-o", path(&g), path(&board)])?;
+        run(&cli, ["pcb", "drill", "-o", path(&g), path(&board)])?;
+        artifacts.push(g)
+    }
+    if !a.skip_pnp {
+        let p = a.output.join(format!(
+            "cpl_{}.csv",
+            crate::manufacturers::fab_family(&a.mfr)
+        ));
+        run(
+            &cli,
+            [
+                "pcb",
+                "pos",
+                "--format",
+                "csv",
+                "--units",
+                "mm",
+                "-o",
+                path(&p),
+                path(&board),
+            ],
+        )?;
+        artifacts.push(p)
+    }
+    if !a.skip_bom {
+        if let Some(sch) = sibling(&board, "kicad_sch") {
+            let p = a.output.join(format!(
+                "bom_{}.csv",
+                crate::manufacturers::fab_family(&a.mfr)
+            ));
+            run(&cli, ["sch", "export", "bom", "-o", path(&p), path(&sch)])?;
+            artifacts.push(p)
+        }
+    }
+    let report = ExportReport {
+        board,
+        output: a.output,
+        manufacturer: a.mfr,
+        artifacts,
+    };
+    let manifest = report.output.join("manifest.json");
+    crate::fsutil::atomic_write(&manifest, serde_json::to_vec_pretty(&report)?.as_slice())?;
+    if a.format == "json" {
+        println!("{}", serde_json::to_string_pretty(&report)?)
+    } else {
+        println!("Manufacturing package: {}", report.output.display());
+        for p in report.artifacts {
+            println!("  {}", p.display())
+        }
+    }
+    let _ = a.include_dnp;
+    Ok(0)
+}
+
+#[derive(Parser)]
+struct CreateArgs {
+    schematic: PathBuf,
+    #[arg(short, long)]
+    output: Option<PathBuf>,
+    #[arg(long)]
+    project: Option<PathBuf>,
+    #[arg(long, default_value = "text")]
+    format: String,
+    #[arg(long)]
+    dry_run: bool,
+    #[arg(long)]
+    force: bool,
+    #[arg(long)]
+    no_update: bool,
+    #[arg(long)]
+    keep_netlist: bool,
+    #[arg(long, default_value_t = 100.0)]
+    width: f64,
+    #[arg(long, default_value_t = 100.0)]
+    height: f64,
+    #[arg(long, default_value_t = 2, value_parser = clap::value_parser!(u32).range(2..=4))]
+    layers: u32,
+    #[arg(long)]
+    title: Option<String>,
+    #[arg(long, default_value = "1.0")]
+    revision: String,
+    #[arg(long, default_value = "")]
+    company: String,
+    #[arg(long)]
+    no_place: bool,
+    #[arg(long, default_value_t = 15.0)]
+    spacing: f64,
+    #[arg(long)]
+    columns: Option<usize>,
+    #[arg(long, default_value_t = 3.0)]
+    margin: f64,
+    /// Additional KiCad footprint-library root (contains *.pretty directories).
+    #[arg(long = "footprint-dir")]
+    footprint_dirs: Vec<PathBuf>,
+}
+pub fn create_pcb(args: Vec<OsString>, _: &Globals) -> Result<i32> {
+    let a = parse_args::<CreateArgs>("create-pcb", args);
+    if !a.schematic.is_file() {
+        bail!("schematic not found: {}", a.schematic.display())
+    }
+    let out = a.output.clone().context(
+        "create-pcb is a design edit; provide an explicit --output (or use --dry-run with --output)",
+    )?;
+    if out.exists() && !a.force {
+        bail!("{} exists (use --force)", out.display())
+    }
+    if !(a.width.is_finite() && a.width > 0.0 && a.height.is_finite() && a.height > 0.0) {
+        bail!("--width and --height must be finite positive millimetre values")
+    }
+    if !matches!(a.layers, 2 | 4) {
+        bail!("--layers must be 2 or 4")
+    }
+    if !(a.spacing.is_finite() && a.spacing > 0.0 && a.margin.is_finite() && a.margin >= 0.0) {
+        bail!("--spacing must be positive and --margin must be non-negative")
+    }
+
+    let project_dir = project_dir(&a);
+    let netlist_path = a.schematic.with_file_name(format!(
+        "{}-netlist.kicad_net",
+        a.schematic
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy()
+    ));
+    let temporary_netlist = !a.keep_netlist && !a.no_update;
+    if !a.no_update {
+        export_netlist(&a.schematic, &netlist_path)?;
+    } else if !netlist_path.is_file() {
+        bail!(
+            "--no-update requires an existing netlist: {}",
+            netlist_path.display()
+        )
+    }
+    let result = (|| -> Result<_> {
+        let netlist = parse_create_netlist(&netlist_path)?;
+        let mut board = crate::schema::pcb::Pcb::create(crate::schema::pcb::CreateOptions {
+            width: a.width,
+            height: a.height,
+            layers: a.layers,
+            title: a.title.clone().unwrap_or_else(|| {
+                a.schematic
+                    .file_stem()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .into_owned()
+            }),
+            revision: a.revision.clone(),
+            company: a.company.clone(),
+            ..Default::default()
+        })?;
+        let libraries = footprint_libraries(&project_dir, &a.footprint_dirs)?;
+        let placeable = netlist
+            .components
+            .iter()
+            .filter(|component| !component.footprint.is_empty())
+            .count();
+        let columns = a.columns.unwrap_or_else(|| {
+            (((a.width - 2.0 * a.margin) / a.spacing).floor() as usize)
+                .max(1)
+                .min(placeable.max(1))
+        });
+        if columns == 0 {
+            bail!("--columns must be positive")
+        }
+        let mut placed = Vec::new();
+        let mut failed = Vec::new();
+        let mut slot = 0usize;
+        for component in &netlist.components {
+            if component.reference.is_empty() || component.reference.starts_with('#') {
+                continue;
+            }
+            if component.footprint.is_empty() {
+                failed.push(CreateFailure {
+                    reference: component.reference.clone(),
+                    reason: "no footprint assigned".into(),
+                });
+                continue;
+            }
+            let Some(fp_path) = resolve_footprint(&component.footprint, &libraries) else {
+                failed.push(CreateFailure {
+                    reference: component.reference.clone(),
+                    reason: format!("footprint '{}' was not found", component.footprint),
+                });
+                continue;
+            };
+            let (x, y) = if a.no_place {
+                (a.margin, a.margin)
+            } else {
+                let point = (
+                    a.margin + (slot % columns) as f64 * a.spacing,
+                    a.margin + (slot / columns) as f64 * a.spacing,
+                );
+                slot += 1;
+                point
+            };
+            if !a.no_place && (x > a.width - a.margin || y > a.height - a.margin) {
+                failed.push(CreateFailure {
+                    reference: component.reference.clone(),
+                    reason: "placement grid exceeds board outline; increase board size or reduce spacing".into(),
+                });
+                continue;
+            }
+            board
+                .add_footprint_from_file(
+                    &fp_path,
+                    &component.reference,
+                    x,
+                    y,
+                    0.0,
+                    "F.Cu",
+                    &component.value,
+                )
+                .with_context(|| {
+                    format!("placing {} from {}", component.reference, fp_path.display())
+                })?;
+            placed.push(component.reference.clone());
+        }
+        let stats = board.assign_nets_from_netlist(&netlist.nets, None);
+        if !a.dry_run {
+            if let Some(parent) = out.parent().filter(|p| !p.as_os_str().is_empty()) {
+                std::fs::create_dir_all(parent)?;
+            }
+            board.save(Some(&out))?;
+        }
+        Ok(CreateReport {
+            command: "create-pcb",
+            schematic: a.schematic.clone(),
+            output: out.clone(),
+            board: CreateBoardReport {
+                width_mm: a.width,
+                height_mm: a.height,
+                layers: a.layers,
+            },
+            components_found: netlist.components.len(),
+            footprints_placed: placed.len(),
+            placed,
+            failed,
+            nets_defined: board.nets().iter().filter(|net| net.number != 0).count(),
+            pads_assigned: stats.assigned.len(),
+            missing_pads: stats.missing_pads,
+            dry_run: a.dry_run,
+            saved: !a.dry_run,
+        })
+    })();
+    if temporary_netlist {
+        let _ = std::fs::remove_file(&netlist_path);
+    }
+    let report = result?;
+    if a.format == "json" {
+        println!("{}", serde_json::to_string_pretty(&report)?)
+    } else {
+        println!(
+            "{} {} with {} of {} footprints and {} assigned pads",
+            if a.dry_run { "Would create" } else { "Created" },
+            out.display(),
+            report.footprints_placed,
+            report.components_found,
+            report.pads_assigned,
+        );
+        for failure in &report.failed {
+            eprintln!("warning: {}: {}", failure.reference, failure.reason);
+        }
+    }
+    Ok(
+        if report.failed.is_empty() && report.missing_pads.is_empty() {
+            0
+        } else {
+            1
+        },
+    )
+}
+
+#[derive(Debug)]
+struct CreateComponent {
+    reference: String,
+    value: String,
+    footprint: String,
+}
+
+#[derive(Debug)]
+struct CreateNetlist {
+    components: Vec<CreateComponent>,
+    nets: Vec<(String, Vec<(String, String)>)>,
+}
+
+#[derive(Serialize)]
+struct CreateFailure {
+    reference: String,
+    reason: String,
+}
+
+#[derive(Serialize)]
+struct CreateBoardReport {
+    width_mm: f64,
+    height_mm: f64,
+    layers: u32,
+}
+
+#[derive(Serialize)]
+struct CreateReport {
+    command: &'static str,
+    schematic: PathBuf,
+    output: PathBuf,
+    board: CreateBoardReport,
+    components_found: usize,
+    footprints_placed: usize,
+    placed: Vec<String>,
+    failed: Vec<CreateFailure>,
+    nets_defined: usize,
+    pads_assigned: usize,
+    missing_pads: Vec<String>,
+    dry_run: bool,
+    saved: bool,
+}
+
+fn export_netlist(schematic: &Path, output: &Path) -> Result<()> {
+    let cli = kicad_cli()?;
+    run(
+        &cli,
+        [
+            "sch",
+            "export",
+            "netlist",
+            "--format",
+            "kicadsexpr",
+            "-o",
+            path(output),
+            path(schematic),
+        ],
+    )
+    .context("exporting schematic netlist with kicad-cli")
+}
+
+fn parse_create_netlist(path: &Path) -> Result<CreateNetlist> {
+    let root = crate::sexp::parse_file(path)
+        .with_context(|| format!("parsing exported netlist {}", path.display()))?;
+    let components = root
+        .get("components")
+        .into_iter()
+        .flat_map(|node| node.children_named("comp"))
+        .map(|component| CreateComponent {
+            reference: component.child_str("ref").unwrap_or("").to_string(),
+            value: component.child_str("value").unwrap_or("").to_string(),
+            footprint: component.child_str("footprint").unwrap_or("").to_string(),
+        })
+        .collect();
+    let nets = root
+        .get("nets")
+        .into_iter()
+        .flat_map(|node| node.children_named("net"))
+        .filter_map(|net| {
+            let name = net.child_str("name")?.to_string();
+            let nodes = net
+                .children_named("node")
+                .filter_map(|node| {
+                    Some((
+                        node.child_str("ref")?.to_string(),
+                        node.child_str("pin")?.to_string(),
+                    ))
+                })
+                .collect();
+            Some((name, nodes))
+        })
+        .collect();
+    Ok(CreateNetlist { components, nets })
+}
+
+fn project_dir(args: &CreateArgs) -> PathBuf {
+    args.project
+        .as_deref()
+        .map(|p| {
+            if p.is_dir() {
+                p
+            } else {
+                p.parent().unwrap_or(Path::new("."))
+            }
+        })
+        .unwrap_or_else(|| args.schematic.parent().unwrap_or(Path::new(".")))
+        .to_path_buf()
+}
+
+fn footprint_libraries(project: &Path, extras: &[PathBuf]) -> Result<BTreeMap<String, PathBuf>> {
+    let mut libraries = BTreeMap::new();
+    if let Ok(table) = crate::sexp::parse_file(project.join("fp-lib-table")) {
+        for lib in table.children_named("lib") {
+            let Some(name) = lib.child_str("name") else {
+                continue;
+            };
+            let Some(uri) = lib.child_str("uri") else {
+                continue;
+            };
+            let expanded = uri.replace("${KIPRJMOD}", &project.to_string_lossy());
+            libraries.insert(name.to_string(), PathBuf::from(expanded));
+        }
+    }
+    let mut roots = extras.to_vec();
+    for key in [
+        "KICAD_FOOTPRINT_DIR",
+        "KICAD10_FOOTPRINT_DIR",
+        "KICAD9_FOOTPRINT_DIR",
+        "KICAD8_FOOTPRINT_DIR",
+    ] {
+        if let Some(root) = std::env::var_os(key) {
+            roots.push(root.into());
+        }
+    }
+    roots.extend([
+        PathBuf::from("/usr/share/kicad/footprints"),
+        PathBuf::from("/usr/local/share/kicad/footprints"),
+    ]);
+    for root in roots {
+        if let Ok(entries) = std::fs::read_dir(&root) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                let Some(stem) = path
+                    .file_name()
+                    .and_then(|v| v.to_str())
+                    .and_then(|v| v.strip_suffix(".pretty"))
+                else {
+                    continue;
+                };
+                libraries.entry(stem.to_string()).or_insert(path);
+            }
+        }
+    }
+    Ok(libraries)
+}
+
+fn resolve_footprint(id: &str, libraries: &BTreeMap<String, PathBuf>) -> Option<PathBuf> {
+    let (library, footprint) = id.split_once(':')?;
+    let path = libraries
+        .get(library)?
+        .join(format!("{footprint}.kicad_mod"));
+    path.is_file().then_some(path)
+}
+
+#[cfg(test)]
+mod create_pcb_tests {
+    use super::*;
+
+    #[test]
+    fn exported_netlist_keeps_components_and_pin_connectivity() {
+        let dir = tempfile::tempdir().unwrap();
+        let netlist = dir.path().join("design.kicad_net");
+        std::fs::write(
+            &netlist,
+            r#"(export (version "E")
+              (components
+                (comp (ref "R1") (value "10k") (footprint "Resistor_SMD:R_0603_1608Metric"))
+                (comp (ref "U1") (value "MCU") (footprint "Package_QFP:LQFP-32_7x7mm_P0.8mm")))
+              (nets
+                (net (code "1") (name "GND")
+                  (node (ref "R1") (pin "1")) (node (ref "U1") (pin "4")))
+                (net (code "2") (name "/SIG")
+                  (node (ref "R1") (pin "2")) (node (ref "U1") (pin "5")))))"#,
+        )
+        .unwrap();
+        let parsed = parse_create_netlist(&netlist).unwrap();
+        assert_eq!(parsed.components.len(), 2);
+        assert_eq!(parsed.components[0].reference, "R1");
+        assert_eq!(
+            parsed.components[0].footprint,
+            "Resistor_SMD:R_0603_1608Metric"
+        );
+        assert_eq!(parsed.nets[0].0, "GND");
+        assert_eq!(
+            parsed.nets[0].1,
+            [("R1".into(), "1".into()), ("U1".into(), "4".into())]
+        );
+    }
+
+    #[test]
+    fn project_library_table_resolves_kiprjmod_footprints() {
+        let dir = tempfile::tempdir().unwrap();
+        let pretty = dir.path().join("Local.pretty");
+        std::fs::create_dir(&pretty).unwrap();
+        let footprint = pretty.join("Widget.kicad_mod");
+        std::fs::write(&footprint, "(footprint \"Widget\")").unwrap();
+        std::fs::write(
+            dir.path().join("fp-lib-table"),
+            "(fp_lib_table (version 7) (lib (name \"Local\") (type \"KiCad\") (uri \"${KIPRJMOD}/Local.pretty\") (options \"\") (descr \"\")))",
+        )
+        .unwrap();
+        let libraries = footprint_libraries(dir.path(), &[]).unwrap();
+        assert_eq!(
+            resolve_footprint("Local:Widget", &libraries),
+            Some(footprint)
+        );
+        assert_eq!(resolve_footprint("Local:Missing", &libraries), None);
+    }
+}
+
+#[derive(Parser)]
+struct PanelArgs {
+    input: PathBuf,
+    #[arg(short, long)]
+    output: Option<PathBuf>,
+    #[arg(long, default_value_t = 2)]
+    rows: usize,
+    #[arg(long, default_value_t = 2)]
+    cols: usize,
+    #[arg(long, default_value_t = 2.0)]
+    spacing: f64,
+    #[arg(long, default_value = "mousebite")]
+    cut: String,
+    #[arg(long, default_value_t = 3.0)]
+    tab_width: f64,
+    #[arg(long, default_value_t = 3)]
+    tab_count: usize,
+    #[arg(long, default_value_t = 0.5)]
+    mousebite_diameter: f64,
+    #[arg(long, default_value_t = 0.8)]
+    mousebite_spacing: f64,
+    #[arg(long)]
+    frame: bool,
+    #[arg(long, default_value_t = 5.0)]
+    frame_width: f64,
+    #[arg(long, default_value_t = 2.0)]
+    frame_space: f64,
+    #[arg(long)]
+    tooling_holes: bool,
+    #[arg(long)]
+    fiducials: bool,
+    #[arg(long, default_value = "text")]
+    format: String,
+}
+pub fn panel(args: Vec<OsString>, _: &Globals) -> Result<i32> {
+    let a = parse_args::<PanelArgs>("panel", args);
+    if a.rows == 0 || a.cols == 0 {
+        bail!("rows and cols must be positive")
+    }
+    let doc = Document::load(&a.input)?;
+    let (minx, miny, maxx, maxy) =
+        edge_bounds(&doc.root).context("board has no Edge.Cuts coordinates")?;
+    let dx = maxx - minx + a.spacing;
+    let dy = maxy - miny + a.spacing;
+    let mut root = doc.root.clone();
+    let originals = root.children.clone();
+    root.children.retain(|n| !is_board_object(n));
+    for row in 0..a.rows {
+        for col in 0..a.cols {
+            let x = col as f64 * dx;
+            let y = row as f64 * dy;
+            for original in originals
+                .iter()
+                .filter(|n| is_board_object(n) && !is_edge_graphic(n))
+            {
+                let mut n = original.clone();
+                translate_board_object(&mut n, x, y);
+                root.children.push(n)
+            }
+        }
+    }
+    let board_w = maxx - minx;
+    let board_h = maxy - miny;
+    let panel_max_x = (a.cols as f64 - 1.0) * dx + board_w;
+    let panel_max_y = (a.rows as f64 - 1.0) * dy + board_h;
+    let mut tabs = Vec::new();
+    // Upstream places `tab_count` equally spaced tabs at every internal seam.
+    for row in 0..a.rows {
+        for col in 0..a.cols.saturating_sub(1) {
+            let x = col as f64 * dx + board_w + a.spacing / 2.0;
+            for i in 0..a.tab_count {
+                let y = row as f64 * dy + board_h * (i + 1) as f64 / (a.tab_count + 1) as f64;
+                tabs.push(Tab {
+                    x,
+                    y,
+                    width: a.spacing,
+                    height: a.tab_width,
+                    horizontal: false,
+                });
+            }
+        }
+    }
+    for col in 0..a.cols {
+        for row in 0..a.rows.saturating_sub(1) {
+            let y = row as f64 * dy + board_h + a.spacing / 2.0;
+            for i in 0..a.tab_count {
+                let x = col as f64 * dx + board_w * (i + 1) as f64 / (a.tab_count + 1) as f64;
+                tabs.push(Tab {
+                    x,
+                    y,
+                    width: a.tab_width,
+                    height: a.spacing,
+                    horizontal: true,
+                });
+            }
+        }
+    }
+    for tab in &tabs {
+        render_tab(&mut root, tab);
+        if a.cut == "mousebite" {
+            render_mousebites(&mut root, tab, a.mousebite_diameter, a.mousebite_spacing);
+        }
+    }
+    if a.cut == "vcut" {
+        for col in 0..a.cols.saturating_sub(1) {
+            let x = col as f64 * dx + board_w + a.spacing / 2.0;
+            root.children.push(gr_line(x, 0.0, x, panel_max_y));
+        }
+        for row in 0..a.rows.saturating_sub(1) {
+            let y = row as f64 * dy + board_h + a.spacing / 2.0;
+            root.children.push(gr_line(0.0, y, panel_max_x, y));
+        }
+    }
+    let mut bounds = (0.0, 0.0, panel_max_x, panel_max_y);
+    if a.frame {
+        bounds = (
+            -a.frame_space - a.frame_width,
+            -a.frame_space - a.frame_width,
+            panel_max_x + a.frame_space + a.frame_width,
+            panel_max_y + a.frame_space + a.frame_width,
+        );
+        render_rect(&mut root, bounds);
+        render_rect(
+            &mut root,
+            (
+                -a.frame_space,
+                -a.frame_space,
+                panel_max_x + a.frame_space,
+                panel_max_y + a.frame_space,
+            ),
+        );
+    } else {
+        render_rect(&mut root, bounds);
+    }
+    if a.tooling_holes {
+        let pts = [
+            (bounds.0 + 3.5, bounds.3 - 3.5),
+            (bounds.2 - 3.5, bounds.3 - 3.5),
+            (bounds.0 + 3.5, bounds.1 + 3.5),
+        ];
+        for (x, y) in pts {
+            root.children
+                .push(hole_footprint("Panel:ToolingHole", x, y, 3.0));
+        }
+    }
+    if a.fiducials {
+        let pts = [
+            (bounds.0 + 5.0, bounds.3 - 5.0),
+            (bounds.2 - 5.0, bounds.3 - 5.0),
+            (bounds.0 + 5.0, bounds.1 + 5.0),
+        ];
+        for (x, y) in pts {
+            root.children.push(fiducial_footprint(x, y));
+        }
+    }
+    let out = a.output.unwrap_or_else(|| {
+        a.input.with_file_name(format!(
+            "{}_panel.kicad_pcb",
+            a.input.file_stem().unwrap_or_default().to_string_lossy()
+        ))
+    });
+    Document {
+        root,
+        path: Some(out.clone()),
+    }
+    .save(None)?;
+    let data = serde_json::json!({"command":"panel","input":a.input,"output":out,
+        "grid":{"rows":a.rows,"cols":a.cols,"spacing_mm":a.spacing},
+        "board_count":a.rows*a.cols,"tabs":tabs.len(),"cut_method":a.cut,
+        "tab_width_mm":a.tab_width,"tab_count":a.tab_count,"frame":a.frame,
+        "tooling_holes":a.tooling_holes,"fiducials":a.fiducials,"success":true});
+    if a.format == "json" {
+        println!("{}", serde_json::to_string_pretty(&data)?)
+    } else {
+        println!("Created {}x{} panel: {}", a.cols, a.rows, out.display())
+    }
+    Ok(0)
+}
+#[derive(Clone, Copy)]
+struct Tab {
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+    horizontal: bool,
+}
+
+fn is_edge_graphic(n: &SExp) -> bool {
+    n.name.as_deref().is_some_and(|v| v.starts_with("gr_"))
+        && n.get("layer").and_then(|l| l.string_at(0)) == Some("Edge.Cuts")
+}
+fn render_rect(root: &mut SExp, (x0, y0, x1, y1): (f64, f64, f64, f64)) {
+    for (a, b, c, d) in [
+        (x0, y0, x1, y0),
+        (x1, y0, x1, y1),
+        (x1, y1, x0, y1),
+        (x0, y1, x0, y0),
+    ] {
+        root.children.push(gr_line(a, b, c, d));
+    }
+}
+fn render_tab(root: &mut SExp, t: &Tab) {
+    let (box_w, box_h) = if t.horizontal {
+        (t.width, t.height)
+    } else {
+        (t.height, t.width)
+    };
+    let (x0, x1, y0, y1) = (
+        t.x - box_w / 2.0,
+        t.x + box_w / 2.0,
+        t.y - box_h / 2.0,
+        t.y + box_h / 2.0,
+    );
+    if t.horizontal {
+        root.children.push(gr_line(x0, y0, x0, y1));
+        root.children.push(gr_line(x1, y0, x1, y1));
+    } else {
+        root.children.push(gr_line(x0, y0, x1, y0));
+        root.children.push(gr_line(x0, y1, x1, y1));
+    }
+}
+fn gr_line(x0: f64, y0: f64, x1: f64, y1: f64) -> SExp {
+    SExp::list(
+        "gr_line",
+        [
+            SExp::list("start", [SExp::atom(x0), SExp::atom(y0)]),
+            SExp::list("end", [SExp::atom(x1), SExp::atom(y1)]),
+            SExp::list(
+                "stroke",
+                [
+                    SExp::pair("width", 0.05),
+                    SExp::list("type", [SExp::symbol("default")]),
+                ],
+            ),
+            SExp::list("layer", [SExp::quoted("Edge.Cuts")]),
+        ],
+    )
+}
+fn render_mousebites(root: &mut SExp, t: &Tab, diameter: f64, spacing: f64) {
+    // Upstream's `Tab.width` is the perforation-line dimension in both
+    // orientations: the tab bridge is wide along X when horizontal and along
+    // Y when vertical.
+    let length = t.width;
+    let count = ((length / spacing).floor() as usize + 1).max(1);
+    for i in 0..count {
+        let p = if count == 1 {
+            0.0
+        } else {
+            -length / 2.0 + length * i as f64 / (count - 1) as f64
+        };
+        let (x, y) = if t.horizontal {
+            (t.x + p, t.y)
+        } else {
+            (t.x, t.y + p)
+        };
+        root.children
+            .push(hole_footprint("Panel:Mousebite", x, y, diameter));
+    }
+}
+fn hole_footprint(name: &str, x: f64, y: f64, d: f64) -> SExp {
+    SExp::list(
+        "footprint",
+        [
+            SExp::quoted(name),
+            SExp::list("layer", [SExp::quoted("F.Cu")]),
+            SExp::list("at", [SExp::atom(x), SExp::atom(y)]),
+            SExp::list(
+                "attr",
+                [
+                    SExp::symbol("board_only"),
+                    SExp::symbol("exclude_from_pos_files"),
+                    SExp::symbol("exclude_from_bom"),
+                ],
+            ),
+            SExp::list(
+                "pad",
+                [
+                    SExp::quoted(""),
+                    SExp::symbol("np_thru_hole"),
+                    SExp::symbol("circle"),
+                    SExp::list("at", [SExp::atom(0.0), SExp::atom(0.0)]),
+                    SExp::list("size", [SExp::atom(d), SExp::atom(d)]),
+                    SExp::pair("drill", d),
+                    SExp::list("layers", [SExp::quoted("*.Cu"), SExp::quoted("*.Mask")]),
+                ],
+            ),
+        ],
+    )
+}
+fn fiducial_footprint(x: f64, y: f64) -> SExp {
+    SExp::list(
+        "footprint",
+        [
+            SExp::quoted("Panel:Fiducial"),
+            SExp::list("layer", [SExp::quoted("F.Cu")]),
+            SExp::list("at", [SExp::atom(x), SExp::atom(y)]),
+            SExp::list(
+                "attr",
+                [
+                    SExp::symbol("board_only"),
+                    SExp::symbol("exclude_from_pos_files"),
+                    SExp::symbol("exclude_from_bom"),
+                ],
+            ),
+            SExp::list(
+                "pad",
+                [
+                    SExp::quoted("1"),
+                    SExp::symbol("smd"),
+                    SExp::symbol("circle"),
+                    SExp::list("at", [SExp::atom(0.0), SExp::atom(0.0)]),
+                    SExp::list("size", [SExp::atom(1.0), SExp::atom(1.0)]),
+                    SExp::list("layers", [SExp::quoted("F.Cu"), SExp::quoted("F.Mask")]),
+                    SExp::pair("solder_mask_margin", 2.0),
+                ],
+            ),
+        ],
+    )
+}
+
+#[cfg(test)]
+#[allow(clippy::items_after_test_module)]
+mod panel_parity_tests {
+    use super::*;
+
+    #[test]
+    fn upstream_2x2_mousebite_golden_has_42_holes() {
+        let mut root = SExp::list("kicad_pcb", []);
+        let horizontal = Tab {
+            x: 0.0,
+            y: 0.0,
+            width: 3.0,
+            height: 2.0,
+            horizontal: true,
+        };
+        let vertical = Tab {
+            x: 0.0,
+            y: 0.0,
+            width: 2.0,
+            height: 3.0,
+            horizontal: false,
+        };
+        for _ in 0..6 {
+            render_mousebites(&mut root, &horizontal, 0.5, 0.8);
+        }
+        for _ in 0..6 {
+            render_mousebites(&mut root, &vertical, 0.5, 0.8);
+        }
+        assert_eq!(
+            root.children.len(),
+            42,
+            "matches rjwalters/kicad-tools golden panel"
+        );
+        assert!(root
+            .children
+            .iter()
+            .all(|n| n.string_at(0) == Some("Panel:Mousebite")));
+    }
+
+    #[test]
+    fn panel_furniture_uses_upstream_footprint_shapes() {
+        let hole = hole_footprint("Panel:ToolingHole", 3.5, 3.5, 3.0);
+        assert_eq!(hole.get("at").and_then(|n| n.float_at(0)), Some(3.5));
+        let pad = hole.children_named("pad").next().unwrap();
+        assert_eq!(pad.string_at(1), Some("np_thru_hole"));
+        let fid = fiducial_footprint(5.0, 5.0);
+        let pad = fid.children_named("pad").next().unwrap();
+        assert_eq!(pad.string_at(1), Some("smd"));
+        assert_eq!(
+            pad.get("solder_mask_margin").and_then(|n| n.float_at(0)),
+            Some(2.0)
+        );
+    }
+}
+fn is_board_object(n: &SExp) -> bool {
+    matches!(
+        n.name.as_deref(),
+        Some(
+            "footprint"
+                | "segment"
+                | "arc"
+                | "via"
+                | "zone"
+                | "gr_line"
+                | "gr_arc"
+                | "gr_rect"
+                | "gr_circle"
+                | "gr_poly"
+                | "gr_curve"
+                | "gr_text"
+                | "gr_text_box"
+                | "dimension"
+                | "image"
+                | "target"
+        )
+    )
+}
+fn translate_board_object(n: &mut SExp, dx: f64, dy: f64) {
+    match n.name.as_deref() {
+        Some("footprint" | "via" | "gr_text" | "gr_text_box" | "image" | "target") => {
+            translate_named(n, "at", dx, dy)
+        }
+        Some(
+            "segment" | "arc" | "gr_line" | "gr_arc" | "gr_rect" | "gr_circle" | "gr_curve"
+            | "dimension",
+        ) => {
+            for key in ["start", "mid", "end", "center"] {
+                translate_named(n, key, dx, dy)
+            }
+        }
+        Some("zone" | "gr_poly") => translate_recursive(n, dx, dy),
+        _ => {}
+    }
+}
+fn translate_named(n: &mut SExp, key: &str, dx: f64, dy: f64) {
+    if let Some(p) = n
+        .children
+        .iter_mut()
+        .find(|c| c.name.as_deref() == Some(key))
+    {
+        translate_pair(p, dx, dy)
+    }
+}
+fn translate_recursive(n: &mut SExp, dx: f64, dy: f64) {
+    if matches!(
+        n.name.as_deref(),
+        Some("xy" | "at" | "start" | "mid" | "end" | "center")
+    ) {
+        translate_pair(n, dx, dy)
+    }
+    for c in &mut n.children {
+        translate_recursive(c, dx, dy)
+    }
+}
+fn translate_pair(n: &mut SExp, dx: f64, dy: f64) {
+    if n.children.len() >= 2 {
+        if let (Some(x), Some(y)) = (
+            n.children[0].value.as_ref().and_then(Value::as_f64),
+            n.children[1].value.as_ref().and_then(Value::as_f64),
+        ) {
+            n.children[0].value = Some(Value::Float(x + dx));
+            n.children[1].value = Some(Value::Float(y + dy));
+        }
+    }
+}
+fn edge_bounds(root: &SExp) -> Option<(f64, f64, f64, f64)> {
+    let mut points = vec![];
+    fn walk(n: &SExp, on_edge: bool, p: &mut Vec<(f64, f64)>) {
+        let owns_edge = n.children.iter().any(|c| {
+            c.name.as_deref() == Some("layer")
+                && c.children
+                    .first()
+                    .and_then(|x| x.value.as_ref())
+                    .and_then(Value::as_str)
+                    == Some("Edge.Cuts")
+        });
+        let edge = on_edge || owns_edge;
+        if edge
+            && matches!(
+                n.name.as_deref(),
+                Some("start" | "mid" | "end" | "center" | "xy")
+            )
+        {
+            if let (Some(x), Some(y)) = (
+                n.children
+                    .first()
+                    .and_then(|x| x.value.as_ref())
+                    .and_then(Value::as_f64),
+                n.children
+                    .get(1)
+                    .and_then(|x| x.value.as_ref())
+                    .and_then(Value::as_f64),
+            ) {
+                p.push((x, y))
+            }
+        }
+        for c in &n.children {
+            walk(c, edge, p)
+        }
+    }
+    walk(root, false, &mut points);
+    if points.is_empty() {
+        return None;
+    }
+    Some(points.into_iter().fold(
+        (
+            f64::INFINITY,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::NEG_INFINITY,
+        ),
+        |(a, b, c, d), (x, y)| (a.min(x), b.min(y), c.max(x), d.max(y)),
+    ))
+}
+fn resolve_board(input: &Path) -> Result<PathBuf> {
+    if input.extension().and_then(|x| x.to_str()) == Some("kicad_pcb") {
+        return Ok(input.to_owned());
+    }
+    let dir = input.parent().unwrap_or(Path::new("."));
+    let stem = input.file_stem().unwrap_or_default();
+    let p = dir.join(stem).with_extension("kicad_pcb");
+    if p.exists() {
+        Ok(p)
+    } else {
+        bail!("could not resolve PCB for {}", input.display())
+    }
+}
+fn sibling(board: &Path, ext: &str) -> Option<PathBuf> {
+    let p = board.with_extension(ext);
+    p.exists().then_some(p)
+}
+fn kicad_cli() -> Result<PathBuf> {
+    for key in ["KICADMIUM_KICAD_CLI", "KICAD_CLI"] {
+        if let Some(p) = std::env::var_os(key).map(PathBuf::from) {
+            if p.is_file() {
+                return Ok(p);
+            }
+        }
+    }
+    std::env::var_os("PATH")
+        .and_then(|p| {
+            p.to_string_lossy()
+                .split(':')
+                .map(|d| Path::new(d).join("kicad-cli"))
+                .find(|p| p.is_file())
+        })
+        .context("kicad-cli not found")
+}
+fn path(p: &Path) -> &str {
+    p.to_str().unwrap_or("")
+}
+fn run<const N: usize>(cli: &Path, args: [&str; N]) -> Result<()> {
+    let status = Command::new(cli).args(args).status()?;
+    if !status.success() {
+        bail!("kicad-cli exited with {status}")
+    }
+    Ok(())
+}

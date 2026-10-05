@@ -4,27 +4,18 @@ This repository is a collection of test and reference plugins for Agent Portal.
 Each plugin lives in a subdirectory and contains its own
 `agent-portal-plugin.toml` manifest.
 
-The former `kicad-pcb` plugin has moved to the standalone, all-Rust
-[kicadmium](https://github.com/meawoppl/kicadmium) repository. Its workbench,
-viewers, skills, exports, quality checks, and automation tools now ship as one
-embedded-web-UI binary. Agent Portal retains only its generic surface and
-interaction/queue machinery.
-
-Install Kicadmium from its own repository:
+Install any plugin from its subdirectory:
 
 ```console
-agent-portal plugin install github:meawoppl/kicadmium
-```
-
-The installed checkout still materializes as one plugin directory:
-
-```text
-~/agent-portal-plugins/kicadmium
+agent-portal plugin install github:meawoppl/agent-portal-plugins//kicadmium
+agent-portal plugin install github:meawoppl/agent-portal-plugins//verilog
 ```
 
 ## Plugins
 
 - [`verilog`](verilog/) - Icarus testbench runs, GTKWave-inspired waveform
   inspection, retained artifacts, and queued annotation feedback.
-- [Kicadmium](https://github.com/meawoppl/kicadmium) - KiCad PCB/electronics
-  workbench, now maintained independently of this reference-plugin collection.
+- [`kicadmium`](kicadmium/) - all-Rust KiCad PCB/electronics workbench: one
+  binary with a browser workbench, `kct` (a native port of kicad-tools) and
+  `kct lint`. It replaces the former `kicad-pcb` plugin and lived in
+  `meawoppl/kicadmium` (now archived) before moving here with its full history.

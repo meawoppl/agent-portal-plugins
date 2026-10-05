@@ -1,0 +1,68 @@
+{
+ "file": "<FIXTURES>/conformance/roundrect-corner-gap-seed5229.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 1,
+  "warnings": 1,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 47,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "track_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling track end: Track [CORNER_TRACK] on F.Cu, length 4.0000 mm (both ends dangling)",
+   "location": [
+    20.8986,
+    13.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 4.0,
+   "required_value": null,
+   "items": [
+    "a14f906e-bbab-4683-a6cd-5079e6c5e390",
+    "net:CORNER_TRACK"
+   ],
+   "nets": [
+    "CORNER_TRACK"
+   ],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "single_pad_net",
+   "type": "single_pad_net",
+   "severity": "error",
+   "message": "Net 'PAD_ROUNDRECT' has only 1 pad on P1-1 -- likely missing footprint or schematic/PCB drift",
+   "location": [
+    20.0,
+    15.0
+   ],
+   "layer": null,
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "P1-1"
+   ],
+   "nets": [
+    "PAD_ROUNDRECT"
+   ],
+   "status": "error",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

@@ -1,0 +1,2373 @@
+[
+ {
+  "board": "board05_sync_drift/bldc_controller_drifted.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "Q2",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "board06_pour_escape.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "J1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "board07_native_refill_5507/matchgroup_test_routed.kicad_pcb",
+  "shorts": [
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 26.43025,
+    "y": 78.6298,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 26.689,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 26.788999999999998,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 27.389000000000003,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 27.489,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 27.589000000000002,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 28.189,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 28.289,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 28.389000000000003,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 28.988999999999997,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 29.089,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 29.189,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 29.788999999999998,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 29.889,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 29.988999999999997,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 30.589000000000002,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 30.689,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 30.788999999999998,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 31.389000000000003,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 31.489,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 31.589000000000002,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 32.189,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 32.289,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 32.389,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 32.989,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 33.089,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 33.189,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 33.789,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 33.888999999999996,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 33.989,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 34.589000000000006,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 34.68900000000001,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 34.78900000000001,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 35.38899999999999,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 35.48899999999999,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 35.58899999999999,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 36.189,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 36.289,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 36.389,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 36.989000000000004,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 37.089,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 37.18899999999999,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 37.788999999999994,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 37.888999999999996,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 37.989,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 38.589000000000006,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 38.68900000000001,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 38.78900000000001,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 39.38899999999999,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 39.48899999999999,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 39.58899999999999,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 40.189,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 40.289,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 40.389,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 40.989000000000004,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 41.089,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 41.18899999999999,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 41.788999999999994,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 41.888999999999996,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 41.989,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 42.589000000000006,
+    "y": 78.53305,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 42.68900000000001,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 42.78900000000001,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 43.38899999999999,
+    "y": 78.626075,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 43.48899999999999,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 43.58899999999999,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 44.189,
+    "y": 78.626075,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 46.52,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 46.620000000000005,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 46.82000000000001,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 46.92,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 47.019999999999996,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 47.22,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 47.32,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 47.42,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 47.620000000000005,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 47.720000000000006,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 47.82000000000001,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 48.019999999999996,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 48.12,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 48.22,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 48.42,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 48.52,
+    "y": 78.47104999999999,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A4",
+    "b": "A5",
+    "layer": "In1.Cu",
+    "x": 48.620000000000005,
+    "y": 78.440525,
+    "gap": 0.1859000000000066
+   },
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "+1V8",
+    "layer": "In1.Cu",
+    "x": 89.53,
+    "y": 52.459999999999994,
+    "gap": 0.1930000000000007
+   }
+  ],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "conformance/issue5398-seg-via-0p18-order-seed5398.kicad_pcb",
+  "shorts": [
+   {
+    "kind": "via-segment",
+    "a": "SENSE_VIA",
+    "b": "SENSE_TRACK",
+    "layer": "F.Cu",
+    "x": 20.0,
+    "y": 15.555,
+    "gap": 0.17999999999999972
+   }
+  ],
+  "incremental": [],
+  "delta": null
+ },
+ {
+  "board": "conformance/issue5410-dqs-n-halo-vs-legal-via-seed5410.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": null
+ },
+ {
+  "board": "conformance/roundrect-corner-gap-seed5229.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "P1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "conformance/search-vs-commit-seg-via-max-seed5425.kicad_pcb",
+  "shorts": [
+   {
+    "kind": "via-segment",
+    "a": "COMMIT_VIA",
+    "b": "SEARCH_TRACK",
+    "layer": "F.Cu",
+    "x": 20.0,
+    "y": 15.555,
+    "gap": 0.17999999999999972
+   }
+  ],
+  "incremental": [],
+  "delta": null
+ },
+ {
+  "board": "copper_arc_routed.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "J1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "copper_sliver_positive.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "drc/orphan_island.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": null
+ },
+ {
+  "board": "drc/orphan_island_pad.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "drc/orphan_island_transitive.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "hierarchical_lvs/board_lvs.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "historical_demo_boards/01-voltage-divider/output/voltage_divider.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "J1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "historical_demo_boards/02-charlieplex-led/output/charlieplex_3x3.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "historical_demo_boards/02-charlieplex-led/output/charlieplex_3x3_routed.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R3",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "historical_demo_boards/05-bldc-motor-controller/output/bldc_controller.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "MH1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "historical_demo_boards/07-matchgroup-test/output/matchgroup_test_routed.kicad_pcb",
+  "shorts": [
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 22.237499999999997,
+    "y": 77.501725,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 22.3375,
+    "y": 77.38895,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 22.3375,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 22.4375,
+    "y": 77.3303,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 22.637500000000003,
+    "y": 77.3303,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 22.7375,
+    "y": 77.38895,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 22.737500000000004,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 22.837500000000002,
+    "y": 77.501725,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.037499999999998,
+    "y": 77.501725,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.1375,
+    "y": 77.38895,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.137499999999996,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.237499999999997,
+    "y": 77.3303,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.4375,
+    "y": 77.3303,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.537499999999998,
+    "y": 77.38895,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.5375,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.6375,
+    "y": 77.501725,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.837500000000002,
+    "y": 77.501725,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.9375,
+    "y": 77.38895,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 23.9375,
+    "y": 77.443075,
+    "gap": 0.17800715601691627
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 24.037499999999998,
+    "y": 77.3303,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 24.2375,
+    "y": 77.3303,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 24.3375,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 24.337500000000002,
+    "y": 77.38895,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 24.4375,
+    "y": 77.501725,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 24.637500000000003,
+    "y": 77.501725,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 24.7375,
+    "y": 77.38895,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 24.737500000000004,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 24.837500000000002,
+    "y": 77.3303,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.037499999999998,
+    "y": 77.3303,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.1375,
+    "y": 77.38895,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.137499999999996,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.237499999999997,
+    "y": 77.501725,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.4375,
+    "y": 77.501725,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.5375,
+    "y": 77.38895,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.5375,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.637500000000003,
+    "y": 77.3303,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.8375,
+    "y": 77.3303,
+    "gap": 0.17800715601691627
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.9375,
+    "y": 77.38895,
+    "gap": 0.17800715601691627
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 25.9375,
+    "y": 77.443075,
+    "gap": 0.17800715601691627
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 26.0375,
+    "y": 77.501725,
+    "gap": 0.17800715601691627
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 26.237499999999997,
+    "y": 77.501725,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 26.3375,
+    "y": 77.38895,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 26.3375,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 26.4375,
+    "y": 77.3303,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 26.637500000000003,
+    "y": 77.3303,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 26.7375,
+    "y": 77.38895,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 26.737500000000004,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 26.837500000000002,
+    "y": 77.501725,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.037499999999998,
+    "y": 77.501725,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.1375,
+    "y": 77.38895,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.137499999999996,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.237499999999997,
+    "y": 77.3303,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.4375,
+    "y": 77.3303,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.537499999999998,
+    "y": 77.38895,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.5375,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.6375,
+    "y": 77.501725,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.837500000000002,
+    "y": 77.501725,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.9375,
+    "y": 77.38895,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 27.9375,
+    "y": 77.443075,
+    "gap": 0.17800715601691627
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 28.037499999999998,
+    "y": 77.3303,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 28.2375,
+    "y": 77.3303,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 28.3375,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 28.337500000000002,
+    "y": 77.38895,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 28.4375,
+    "y": 77.501725,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 28.637500000000003,
+    "y": 77.501725,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 28.7375,
+    "y": 77.38895,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 28.737500000000004,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 28.837500000000002,
+    "y": 77.3303,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.037499999999998,
+    "y": 77.3303,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.1375,
+    "y": 77.38895,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.137499999999996,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.237499999999997,
+    "y": 77.501725,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.4375,
+    "y": 77.501725,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.5375,
+    "y": 77.38895,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.5375,
+    "y": 77.443075,
+    "gap": 0.1780071560169166
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.637500000000003,
+    "y": 77.3303,
+    "gap": 0.1778999999999968
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.8375,
+    "y": 77.3303,
+    "gap": 0.17800715601691627
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.9375,
+    "y": 77.38895,
+    "gap": 0.17800715601691627
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 29.9375,
+    "y": 77.443075,
+    "gap": 0.17800715601691627
+   },
+   {
+    "kind": "segment-segment",
+    "a": "A2",
+    "b": "A3",
+    "layer": "F.Cu",
+    "x": 30.0375,
+    "y": 77.501725,
+    "gap": 0.17800715601691627
+   },
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "MIPI_CLK_P",
+    "layer": "F.Cu",
+    "x": 32.540000000000006,
+    "y": 51.540000000000006,
+    "gap": 0.1615000000000123
+   },
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "MIPI_CLK_P",
+    "layer": "F.Cu",
+    "x": 32.540000000000006,
+    "y": 51.540000000000006,
+    "gap": 0.16483872206878314
+   }
+  ],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "issue-5362-witness/usb_joystick_routed.kicad_pcb",
+  "shorts": [
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 37.65625,
+    "y": 13.163125,
+    "gap": 0.1499999999999943
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 37.8,
+    "y": 13.650000000000002,
+    "gap": 0.1499999999999943
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 37.9,
+    "y": 12.6125,
+    "gap": 0.1499999999999943
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 38.043749999999996,
+    "y": 13.099375000000002,
+    "gap": 0.1499999999999943
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 38.35,
+    "y": 14.506875,
+    "gap": 0.1499999999999943
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 38.349999999999994,
+    "y": 14.543125000000003,
+    "gap": 0.15001785668733467
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 38.9,
+    "y": 15.400000000000002,
+    "gap": 0.15001785668733467
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 39.449999999999996,
+    "y": 16.006875,
+    "gap": 0.15001785668736364
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 39.45,
+    "y": 16.043125,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 39.90625,
+    "y": 17.129999999999995,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 40.0,
+    "y": 16.65,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 40.0,
+    "y": 16.785624999999996,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 40.0,
+    "y": 16.821875,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 40.0,
+    "y": 16.957499999999996,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 40.0,
+    "y": 17.302499999999995,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_D+",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 40.09375,
+    "y": 17.129999999999995,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_MCU_D+",
+    "b": "USB_MCU_D-",
+    "layer": "F.Cu",
+    "x": 39.90625,
+    "y": 19.55625,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_MCU_D+",
+    "b": "USB_MCU_D-",
+    "layer": "F.Cu",
+    "x": 39.94375,
+    "y": 21.006249999999998,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_MCU_D+",
+    "b": "USB_MCU_D-",
+    "layer": "F.Cu",
+    "x": 40.0,
+    "y": 18.8125,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_MCU_D+",
+    "b": "USB_MCU_D-",
+    "layer": "F.Cu",
+    "x": 40.0,
+    "y": 20.299999999999997,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_MCU_D+",
+    "b": "USB_MCU_D-",
+    "layer": "F.Cu",
+    "x": 40.0,
+    "y": 21.7125,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_MCU_D+",
+    "b": "USB_MCU_D-",
+    "layer": "F.Cu",
+    "x": 40.05625,
+    "y": 21.006249999999998,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "segment-segment",
+    "a": "USB_MCU_D+",
+    "b": "USB_MCU_D-",
+    "layer": "F.Cu",
+    "x": 40.09375,
+    "y": 19.55625,
+    "gap": 0.15000000000002275
+   },
+   {
+    "kind": "via-segment",
+    "a": "BTN2",
+    "b": "BTN3",
+    "layer": "In2.Cu",
+    "x": 32.837500000000006,
+    "y": 29.599999999999994,
+    "gap": 0.17500000000000002
+   },
+   {
+    "kind": "via-segment",
+    "a": "BTN2",
+    "b": "JOY_Y",
+    "layer": "B.Cu",
+    "x": 32.837500000000006,
+    "y": 29.599999999999994,
+    "gap": 0.16250000000001139
+   },
+   {
+    "kind": "via-segment",
+    "a": "BTN3",
+    "b": "JOY_BTN",
+    "layer": "In2.Cu",
+    "x": 46.849999999999994,
+    "y": 50.099999999999994,
+    "gap": 0.17500000000000002
+   },
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "BTN2",
+    "layer": "In2.Cu",
+    "x": 34.0,
+    "y": 31.42,
+    "gap": 0.17500000000000002
+   },
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "BTN3",
+    "layer": "In2.Cu",
+    "x": 40.22,
+    "y": 37.599999999999994,
+    "gap": 0.19499999999998627
+   },
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "BTN3",
+    "layer": "In2.Cu",
+    "x": 40.22,
+    "y": 37.599999999999994,
+    "gap": 0.19499999999998627
+   },
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "ISP_MISO",
+    "layer": "In2.Cu",
+    "x": 38.80000000000001,
+    "y": 20.099999999999994,
+    "gap": 0.17500000000000002
+   },
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "ISP_MOSI",
+    "layer": "In2.Cu",
+    "x": 47.78,
+    "y": 20.03,
+    "gap": 0.1939412298131634
+   },
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "ISP_MOSI",
+    "layer": "In2.Cu",
+    "x": 47.78,
+    "y": 20.03,
+    "gap": 0.1939412298131634
+   },
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "JOY_BTN",
+    "layer": "In2.Cu",
+    "x": 55.5,
+    "y": 43.900000000000006,
+    "gap": 0.17500000000000002
+   },
+   {
+    "kind": "via-segment",
+    "a": "VBUS",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 38.650000000000006,
+    "y": 13.25,
+    "gap": 0.17500000000001134
+   },
+   {
+    "kind": "via-segment",
+    "a": "VBUS",
+    "b": "USB_D-",
+    "layer": "In2.Cu",
+    "x": 38.650000000000006,
+    "y": 13.25,
+    "gap": 0.15407377259756447
+   },
+   {
+    "kind": "via-segment",
+    "a": "VCC",
+    "b": "BTN2",
+    "layer": "In2.Cu",
+    "x": 34.80000000000001,
+    "y": 33.662499999999994,
+    "gap": 0.17500000000000002
+   },
+   {
+    "kind": "via-segment",
+    "a": "VCC",
+    "b": "ISP_MOSI",
+    "layer": "In2.Cu",
+    "x": 44.25,
+    "y": 22.0,
+    "gap": 0.17500000000000002
+   }
+  ],
+  "incremental": [],
+  "delta": {
+   "ref": "R2",
+   "new": 1,
+   "resolved": 0,
+   "summary": "+1 violations (1 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "kelvin_native/rotated-shunt.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "mirror_flip/mirror_back_lr.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "mirror_flip/mirror_front.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "physics/composite_six_layer.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": null
+ },
+ {
+  "board": "pin1_marker.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "projects/multilayer_zones.kicad_pcb",
+  "shorts": [
+   {
+    "kind": "via-segment",
+    "a": "GND",
+    "b": "+5V",
+    "layer": "F.Cu",
+    "x": 40.0,
+    "y": 25.0,
+    "gap": -0.425
+   }
+  ],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "projects/test_project.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "purge_test_project/test_purge.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "routing-diagnostic.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "schema_pcb/minimal.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "schema_pcb/routing_test.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "schema_pcb/zone_test.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "sheet_qualified_lvs/board_sq.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "sheet_qualified_lvs/collision_board.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "sheet_qualified_lvs/repeat_board.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "stale_nets.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "C11",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "stitch-5388/continuous.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "C2",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "stitch-5388/split.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "C2",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "test_kicad10_save_board.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "test_kicad10_save_board_new_tokens.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "test_zone_fill.kicad_pcb",
+  "shorts": [
+   {
+    "kind": "segment-segment",
+    "a": "GND",
+    "b": "VCC",
+    "layer": "F.Cu",
+    "x": 105.0,
+    "y": 100.0,
+    "gap": -0.25
+   }
+  ],
+  "incremental": [],
+  "delta": {
+   "ref": "R2",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "u3_wide_copper_contact.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "U3",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "unnamed_net_lvs/unnamed_net.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "unnamed_net_lvs/unnamed_net_open.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "R1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "via_relocation/blocked_slide.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "via_relocation/hole_floor.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "via_relocation/isolated_inner_plane.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "J1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ },
+ {
+  "board": "via_under_body.kicad_pcb",
+  "shorts": [],
+  "incremental": [],
+  "delta": {
+   "ref": "U1",
+   "new": 0,
+   "resolved": 0,
+   "summary": "No net change (0 new, 0 resolved)"
+  }
+ }
+]

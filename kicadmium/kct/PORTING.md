@@ -1,0 +1,95 @@
+# kct: porting rjwalters/kicad-tools to Rust
+
+Upstream reference: https://github.com/rjwalters/kicad-tools (MIT, see
+`LICENSE-kicad-tools`), checked out at `~/repos/kicad-tools`, main `37665de5`
+(v0.22.0+97). Port target: every `kct` command, in Rust, no Python.
+
+## Rules
+
+- Module map mirrors upstream: `kicad_tools/<pkg>/<mod>.py` -> `kct/src/<pkg>/<mod>.rs`.
+  Keep upstream names for types/functions where reasonable so ports can be
+  cross-checked.
+- Commands live in `kct/src/cli/<command>.rs` (dashes -> underscores) and expose
+  `pub fn run(args: Vec<OsString>, g: &Globals) -> Result<i32>`; register by
+  setting `run: Some(<cmd>::run)` in `cli/mod.rs`'s `COMMANDS` row.
+- Parse args with clap via `cli::parse_args::<Args>(name, args)`; keep upstream
+  flag names, defaults, and output formats (`--format json|text|...`). JSON
+  output must match upstream key names so existing consumers keep working.
+- Port upstream tests alongside (`kct/tests/<area>.rs`, fixtures under
+  `kct/tests/fixtures/`, copied from upstream `tests/fixtures`).
+- No subprocesses to Python. Shelling out to `kicad-cli` is allowed where
+  upstream does (KiCad itself is out of scope).
+- Mutating commands write through `fsutil::atomic_write` and keep untouched
+  s-expression text byte-exact (`Document::save`).
+
+## Waves and owners
+
+| Wave | Commands | Owner |
+| --- | --- | --- |
+| foundation | `sexp`, `units`, `fsutil`, `cli` registry, `core`, `schema` | kc-claude |
+| A | check, drc, erc, explain, detect-mistakes | kc-claude |
+| B | symbols, nets, netlist, sch, bom, lib, validate, sync | kc-codex |
+| C | pcb, analyze, net-status, board-metrics, audit, readiness, report, estimate, fleet, render, screenshot | kc-claude (subagent) |
+| D | optimize-traces, validate-footprints, fix-footprints, fix-vias, fix-silkscreen, place-silk-refs, repair-clearance, fix-drc, fix-erc | kc-claude |
+| E | zones, stitch, creepage, creepage-export-rules, impedance, constraints, placement, optimize-placement, decisions, optim | kc-claude (subagent) |
+| F | native Rust route, route-auto, benchmark, bench, calibrate | kc-claude (subagent) |
+| G | parts, datasheet, suggest, mfr (+ `manufacturers`), init, footprint, panel, export, create-pcb, build, spec, pipeline, config, doctor, clean | kc-codex |
+| H | ipc, reason, interactive, run | shell-native agent workflows |
+
+Every command in `kct --help` is wired to a native Rust implementation. Wave G
+includes manufacturer presets/DRU, parametric footprints, live LCSC parts and
+cache, datasheet acquisition/PDF analysis, suggestions, project/spec setup,
+panelization, manufacturing export, cleanup/doctor/config, and the repair/build
+orchestrators. These implementations invoke `kicad-cli` only for KiCad-native
+exports and checks; no Python interpreter or wrapper remains in their path.
+
+### Known practical divergence
+
+`optimize-placement` currently uses a deterministic force-directed optimizer
+with HPWL, overlap, and board-boundary penalties. Upstream uses CMA-ES. The
+native command is useful and reproducible on real boards today; CMA-ES remains
+a future fidelity improvement rather than a claim of algorithmic parity.
+
+### Project design rules in `kct check`
+
+Upstream `kct check` always measures the board against a manufacturer profile
+(the `jlcpcb` default when nothing selects one). Kicadmium treats the board's
+own KiCad constraints as authoritative instead: `<board>.kicad_pro`
+`board.design_settings.rules` minima, net-class clearances, and unconditional
+`<board>.kicad_dru` rules replace the profile's generic minima (clearance,
+track, via, drill, hole-to-hole, copper-to-edge, text height) whenever the
+profile was auto-selected (default, `fab_profile.json`, `project.kct`).
+Fabricator refinements with no KiCad board setting keep the profile values;
+`min_pad_size` is capped at the project's minimum track width. An explicit
+`--mfr` keeps upstream's fab-capability semantics and ignores project minima.
+The rule source is logged to stderr. See `manufacturers::project_rules`.
+
+### `kct validate --sync` / `--connectivity`
+
+Upstream `validate --sync` only compares component references and global-label
+name variants (its pad-net check is a placeholder). Kicadmium keeps the
+upstream JSON contract (`in_sync`, `summary`, `issues[]`) but also compares
+every matched pad net, pin/pad numbering and footprint library IDs against
+`kicad-cli sch export netlist`. Without kicad-cli those net checks are
+reported as a `coverage` warning rather than passing. Comparison modes exit 1
+when either input is missing. `--connectivity` runs the native
+`ConnectivityValidator` with upstream's refill-time kicad-cli reconciliation.
+
+### `kct run` migration
+
+Upstream `kct run FILE.py -- ARGS...` executes arbitrary Python in the
+kicad-tools interpreter. Kicadmium cannot preserve that ABI without shipping
+Python, so native `kct run` intentionally accepts a versioned JSON or YAML
+workflow instead. A workflow contains `steps`, each with a native `command`,
+`args`, and optional `continue_on_error`; `${1}` etc. expand trailing CLI
+arguments and `${NAME}` expands values from the workflow's `env` map.
+`--dry-run` prints every resolved command without executing it. This covers
+sequencing, arguments, variables, and error policy, but does not execute Python
+language constructs or imports; those must become native kct commands.
+
+### `kct lint` (kicadmium extension)
+
+`kct lint` has no upstream counterpart. Its engine, `kct::lint`
+(`kct/src/lint/`), was the standalone `pcb-lint` crate. Its tests are
+`kct/tests/lint_*.rs` with fixtures in `kct/tests/fixtures/lint/`. See
+`docs/lint.md`.

@@ -1,0 +1,292 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30.00 -30.00 1160.00 1010.00" width="1160" height="1010">
+<rect x="-30.00" y="-30.00" width="1160.00" height="1010.00" fill="white"/>
+<!-- kct place-silk-refs review artifact (issue #5030) -->
+<!-- legend: green=unchanged, blue(+dashed old)=moved, red=unplaceable/under_component_fallback -->
+<line x1="0.00" y1="0.00" x2="1100.00" y2="0.00" stroke="black" stroke-width="1"/>
+<line x1="1100.00" y1="0.00" x2="1100.00" y2="950.00" stroke="black" stroke-width="1"/>
+<line x1="1100.00" y1="950.00" x2="0.00" y2="950.00" stroke="black" stroke-width="1"/>
+<line x1="0.00" y1="950.00" x2="0.00" y2="0.00" stroke="black" stroke-width="1"/>
+<rect x="146.00" y="204.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 1</title></rect>
+<rect x="146.00" y="212.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 2</title></rect>
+<rect x="146.00" y="220.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 3</title></rect>
+<rect x="146.00" y="228.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 4</title></rect>
+<rect x="146.00" y="236.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 5</title></rect>
+<rect x="146.00" y="244.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 6</title></rect>
+<rect x="146.00" y="252.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 7</title></rect>
+<rect x="146.00" y="260.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 8</title></rect>
+<rect x="146.00" y="268.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 9</title></rect>
+<rect x="146.00" y="276.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 10</title></rect>
+<rect x="146.00" y="284.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 11</title></rect>
+<rect x="146.00" y="292.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 12</title></rect>
+<rect x="154.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 13</title></rect>
+<rect x="162.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 14</title></rect>
+<rect x="170.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 15</title></rect>
+<rect x="178.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 16</title></rect>
+<rect x="186.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 17</title></rect>
+<rect x="194.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 18</title></rect>
+<rect x="202.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 19</title></rect>
+<rect x="210.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 20</title></rect>
+<rect x="218.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 21</title></rect>
+<rect x="226.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 22</title></rect>
+<rect x="234.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 23</title></rect>
+<rect x="242.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 24</title></rect>
+<rect x="246.00" y="292.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 25</title></rect>
+<rect x="246.00" y="284.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 26</title></rect>
+<rect x="246.00" y="276.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 27</title></rect>
+<rect x="246.00" y="268.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 28</title></rect>
+<rect x="246.00" y="260.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 29</title></rect>
+<rect x="246.00" y="252.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 30</title></rect>
+<rect x="246.00" y="244.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 31</title></rect>
+<rect x="246.00" y="236.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 32</title></rect>
+<rect x="246.00" y="228.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 33</title></rect>
+<rect x="246.00" y="220.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 34</title></rect>
+<rect x="246.00" y="212.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 35</title></rect>
+<rect x="246.00" y="204.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 36</title></rect>
+<rect x="242.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 37</title></rect>
+<rect x="234.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 38</title></rect>
+<rect x="226.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 39</title></rect>
+<rect x="218.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 40</title></rect>
+<rect x="210.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 41</title></rect>
+<rect x="202.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 42</title></rect>
+<rect x="194.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 43</title></rect>
+<rect x="186.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 44</title></rect>
+<rect x="178.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 45</title></rect>
+<rect x="170.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 46</title></rect>
+<rect x="162.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 47</title></rect>
+<rect x="154.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U1 pad 48</title></rect>
+<rect x="90.40" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 1</title></rect>
+<rect x="115.80" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 2</title></rect>
+<rect x="141.20" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 3</title></rect>
+<rect x="166.60" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 4</title></rect>
+<rect x="192.00" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 5</title></rect>
+<rect x="217.40" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 6</title></rect>
+<rect x="242.80" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 7</title></rect>
+<rect x="268.20" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 8</title></rect>
+<rect x="293.60" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 9</title></rect>
+<rect x="546.00" y="754.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 1</title></rect>
+<rect x="546.00" y="762.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 2</title></rect>
+<rect x="546.00" y="770.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 3</title></rect>
+<rect x="546.00" y="778.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 4</title></rect>
+<rect x="546.00" y="786.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 5</title></rect>
+<rect x="546.00" y="794.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 6</title></rect>
+<rect x="546.00" y="802.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 7</title></rect>
+<rect x="546.00" y="810.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 8</title></rect>
+<rect x="546.00" y="818.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 9</title></rect>
+<rect x="546.00" y="826.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 10</title></rect>
+<rect x="546.00" y="834.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 11</title></rect>
+<rect x="546.00" y="842.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 12</title></rect>
+<rect x="554.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 13</title></rect>
+<rect x="562.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 14</title></rect>
+<rect x="570.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 15</title></rect>
+<rect x="578.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 16</title></rect>
+<rect x="586.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 17</title></rect>
+<rect x="594.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 18</title></rect>
+<rect x="602.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 19</title></rect>
+<rect x="610.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 20</title></rect>
+<rect x="618.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 21</title></rect>
+<rect x="626.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 22</title></rect>
+<rect x="634.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 23</title></rect>
+<rect x="642.00" y="746.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 24</title></rect>
+<rect x="646.00" y="842.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 25</title></rect>
+<rect x="646.00" y="834.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 26</title></rect>
+<rect x="646.00" y="826.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 27</title></rect>
+<rect x="646.00" y="818.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 28</title></rect>
+<rect x="646.00" y="810.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 29</title></rect>
+<rect x="646.00" y="802.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 30</title></rect>
+<rect x="646.00" y="794.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 31</title></rect>
+<rect x="646.00" y="786.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 32</title></rect>
+<rect x="646.00" y="778.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 33</title></rect>
+<rect x="646.00" y="770.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 34</title></rect>
+<rect x="646.00" y="762.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 35</title></rect>
+<rect x="646.00" y="754.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 36</title></rect>
+<rect x="642.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 37</title></rect>
+<rect x="634.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 38</title></rect>
+<rect x="626.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 39</title></rect>
+<rect x="618.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 40</title></rect>
+<rect x="610.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 41</title></rect>
+<rect x="602.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 42</title></rect>
+<rect x="594.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 43</title></rect>
+<rect x="586.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 44</title></rect>
+<rect x="578.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 45</title></rect>
+<rect x="570.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 46</title></rect>
+<rect x="562.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 47</title></rect>
+<rect x="554.00" y="846.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U5 pad 48</title></rect>
+<rect x="122.50" y="545.00" width="5.00" height="10.00" fill="#ffcc66" fill-opacity="0.5"><title>J1 pad 1</title></rect>
+<rect x="132.50" y="545.00" width="5.00" height="10.00" fill="#ffcc66" fill-opacity="0.5"><title>J1 pad 2</title></rect>
+<rect x="142.50" y="545.00" width="5.00" height="10.00" fill="#ffcc66" fill-opacity="0.5"><title>J1 pad 3</title></rect>
+<rect x="152.50" y="545.00" width="5.00" height="10.00" fill="#ffcc66" fill-opacity="0.5"><title>J1 pad 4</title></rect>
+<rect x="162.50" y="545.00" width="5.00" height="10.00" fill="#ffcc66" fill-opacity="0.5"><title>J1 pad 5</title></rect>
+<rect x="172.50" y="545.00" width="5.00" height="10.00" fill="#ffcc66" fill-opacity="0.5"><title>J1 pad 6</title></rect>
+<rect x="109.50" y="559.50" width="11.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J1 pad M1</title></rect>
+<rect x="179.50" y="559.50" width="11.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J1 pad M2</title></rect>
+<rect x="316.00" y="528.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 1</title></rect>
+<rect x="316.00" y="536.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 2</title></rect>
+<rect x="316.00" y="544.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 3</title></rect>
+<rect x="316.00" y="552.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 4</title></rect>
+<rect x="316.00" y="560.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 5</title></rect>
+<rect x="316.00" y="568.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 6</title></rect>
+<rect x="328.00" y="516.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 7</title></rect>
+<rect x="336.00" y="516.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 8</title></rect>
+<rect x="344.00" y="516.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 9</title></rect>
+<rect x="352.00" y="516.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 10</title></rect>
+<rect x="360.00" y="516.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 11</title></rect>
+<rect x="368.00" y="516.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 12</title></rect>
+<rect x="376.00" y="568.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 13</title></rect>
+<rect x="376.00" y="560.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 14</title></rect>
+<rect x="376.00" y="552.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 15</title></rect>
+<rect x="376.00" y="544.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 16</title></rect>
+<rect x="376.00" y="536.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 17</title></rect>
+<rect x="376.00" y="528.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 18</title></rect>
+<rect x="368.00" y="576.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 19</title></rect>
+<rect x="360.00" y="576.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 20</title></rect>
+<rect x="352.00" y="576.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 21</title></rect>
+<rect x="344.00" y="576.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 22</title></rect>
+<rect x="336.00" y="576.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 23</title></rect>
+<rect x="328.00" y="576.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U3 pad 24</title></rect>
+<rect x="809.15" y="509.15" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad A1</title></rect>
+<rect x="821.85" y="509.15" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad A2</title></rect>
+<rect x="834.55" y="509.15" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad A3</title></rect>
+<rect x="847.25" y="509.15" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad A4</title></rect>
+<rect x="859.95" y="509.15" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad A5</title></rect>
+<rect x="872.65" y="509.15" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad A6</title></rect>
+<rect x="885.35" y="509.15" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad A7</title></rect>
+<rect x="809.15" y="521.85" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad B1</title></rect>
+<rect x="821.85" y="521.85" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad B2</title></rect>
+<rect x="834.55" y="521.85" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad B3</title></rect>
+<rect x="847.25" y="521.85" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad B4</title></rect>
+<rect x="859.95" y="521.85" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad B5</title></rect>
+<rect x="872.65" y="521.85" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad B6</title></rect>
+<rect x="885.35" y="521.85" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad B7</title></rect>
+<rect x="809.15" y="534.55" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad C1</title></rect>
+<rect x="821.85" y="534.55" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad C2</title></rect>
+<rect x="834.55" y="534.55" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad C3</title></rect>
+<rect x="847.25" y="534.55" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad C4</title></rect>
+<rect x="859.95" y="534.55" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad C5</title></rect>
+<rect x="872.65" y="534.55" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad C6</title></rect>
+<rect x="885.35" y="534.55" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad C7</title></rect>
+<rect x="809.15" y="547.25" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad D1</title></rect>
+<rect x="821.85" y="547.25" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad D2</title></rect>
+<rect x="834.55" y="547.25" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad D3</title></rect>
+<rect x="847.25" y="547.25" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad D4</title></rect>
+<rect x="859.95" y="547.25" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad D5</title></rect>
+<rect x="872.65" y="547.25" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad D6</title></rect>
+<rect x="885.35" y="547.25" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad D7</title></rect>
+<rect x="809.15" y="559.95" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad E1</title></rect>
+<rect x="821.85" y="559.95" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad E2</title></rect>
+<rect x="834.55" y="559.95" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad E3</title></rect>
+<rect x="847.25" y="559.95" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad E4</title></rect>
+<rect x="859.95" y="559.95" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad E5</title></rect>
+<rect x="872.65" y="559.95" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad E6</title></rect>
+<rect x="885.35" y="559.95" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad E7</title></rect>
+<rect x="809.15" y="572.65" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad F1</title></rect>
+<rect x="821.85" y="572.65" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad F2</title></rect>
+<rect x="834.55" y="572.65" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad F3</title></rect>
+<rect x="847.25" y="572.65" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad F4</title></rect>
+<rect x="859.95" y="572.65" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad F5</title></rect>
+<rect x="872.65" y="572.65" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad F6</title></rect>
+<rect x="885.35" y="572.65" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad F7</title></rect>
+<rect x="809.15" y="585.35" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad G1</title></rect>
+<rect x="821.85" y="585.35" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad G2</title></rect>
+<rect x="834.55" y="585.35" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad G3</title></rect>
+<rect x="847.25" y="585.35" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad G4</title></rect>
+<rect x="859.95" y="585.35" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad G5</title></rect>
+<rect x="872.65" y="585.35" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad G6</title></rect>
+<rect x="885.35" y="585.35" width="5.50" height="5.50" fill="#ffcc66" fill-opacity="0.5"><title>U4 pad G7</title></rect>
+<rect x="562.50" y="544.50" width="5.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad 1</title></rect>
+<rect x="572.50" y="544.50" width="5.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad 2</title></rect>
+<rect x="582.50" y="544.50" width="5.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad 3</title></rect>
+<rect x="592.50" y="544.50" width="5.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad 4</title></rect>
+<rect x="602.50" y="544.50" width="5.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad 5</title></rect>
+<rect x="612.50" y="544.50" width="5.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad 6</title></rect>
+<rect x="622.50" y="544.50" width="5.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad 7</title></rect>
+<rect x="632.50" y="544.50" width="5.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad 8</title></rect>
+<rect x="543.50" y="558.50" width="13.00" height="13.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad S1</title></rect>
+<rect x="643.50" y="558.50" width="13.00" height="13.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad S2</title></rect>
+<rect x="446.00" y="204.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 1</title></rect>
+<rect x="446.00" y="212.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 2</title></rect>
+<rect x="446.00" y="220.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 3</title></rect>
+<rect x="446.00" y="228.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 4</title></rect>
+<rect x="446.00" y="236.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 5</title></rect>
+<rect x="446.00" y="244.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 6</title></rect>
+<rect x="446.00" y="252.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 7</title></rect>
+<rect x="446.00" y="260.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 8</title></rect>
+<rect x="446.00" y="268.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 9</title></rect>
+<rect x="446.00" y="276.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 10</title></rect>
+<rect x="446.00" y="284.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 11</title></rect>
+<rect x="446.00" y="292.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 12</title></rect>
+<rect x="454.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 13</title></rect>
+<rect x="462.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 14</title></rect>
+<rect x="470.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 15</title></rect>
+<rect x="478.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 16</title></rect>
+<rect x="486.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 17</title></rect>
+<rect x="494.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 18</title></rect>
+<rect x="502.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 19</title></rect>
+<rect x="510.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 20</title></rect>
+<rect x="518.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 21</title></rect>
+<rect x="526.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 22</title></rect>
+<rect x="534.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 23</title></rect>
+<rect x="542.00" y="196.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 24</title></rect>
+<rect x="546.00" y="292.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 25</title></rect>
+<rect x="546.00" y="284.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 26</title></rect>
+<rect x="546.00" y="276.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 27</title></rect>
+<rect x="546.00" y="268.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 28</title></rect>
+<rect x="546.00" y="260.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 29</title></rect>
+<rect x="546.00" y="252.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 30</title></rect>
+<rect x="546.00" y="244.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 31</title></rect>
+<rect x="546.00" y="236.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 32</title></rect>
+<rect x="546.00" y="228.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 33</title></rect>
+<rect x="546.00" y="220.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 34</title></rect>
+<rect x="546.00" y="212.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 35</title></rect>
+<rect x="546.00" y="204.00" width="8.00" height="4.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 36</title></rect>
+<rect x="542.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 37</title></rect>
+<rect x="534.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 38</title></rect>
+<rect x="526.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 39</title></rect>
+<rect x="518.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 40</title></rect>
+<rect x="510.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 41</title></rect>
+<rect x="502.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 42</title></rect>
+<rect x="494.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 43</title></rect>
+<rect x="486.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 44</title></rect>
+<rect x="478.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 45</title></rect>
+<rect x="470.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 46</title></rect>
+<rect x="462.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 47</title></rect>
+<rect x="454.00" y="296.00" width="4.00" height="8.00" fill="#ffcc66" fill-opacity="0.5"><title>U2 pad 48</title></rect>
+<rect x="90.40" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 1</title></rect>
+<rect x="115.80" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 2</title></rect>
+<rect x="141.20" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 3</title></rect>
+<rect x="166.60" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 4</title></rect>
+<rect x="192.00" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 5</title></rect>
+<rect x="217.40" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 6</title></rect>
+<rect x="242.80" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 7</title></rect>
+<rect x="268.20" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 8</title></rect>
+<rect x="293.60" y="792.00" width="16.00" height="16.00" fill="#ffcc66" fill-opacity="0.5"><title>J3 pad 9</title></rect>
+<rect x="109.50" y="559.50" width="11.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J1 pad M1</title></rect>
+<rect x="179.50" y="559.50" width="11.00" height="11.00" fill="#ffcc66" fill-opacity="0.5"><title>J1 pad M2</title></rect>
+<rect x="543.50" y="558.50" width="13.00" height="13.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad S1</title></rect>
+<rect x="643.50" y="558.50" width="13.00" height="13.00" fill="#ffcc66" fill-opacity="0.5"><title>J2 pad S2</title></rect>
+<polygon points="156.20,515.40 156.20,524.60 143.80,524.60 143.80,515.40 156.20,515.40" fill="#2e8b57" fill-opacity="0.35" stroke="#2e8b57" stroke-width="0.4"><title>J1: unchanged</title></polygon>
+<text x="150.00" y="520.00" font-size="4.8" transform="rotate(-0 150.00 520.00)" fill="#2e8b57" text-anchor="middle" dominant-baseline="middle">J1</text>
+<polygon points="606.20,515.40 606.20,524.60 593.80,524.60 593.80,515.40 606.20,515.40" fill="#2e8b57" fill-opacity="0.35" stroke="#2e8b57" stroke-width="0.4"><title>J2: unchanged</title></polygon>
+<text x="600.00" y="520.00" font-size="4.8" transform="rotate(-0 600.00 520.00)" fill="#2e8b57" text-anchor="middle" dominant-baseline="middle">J2</text>
+<polygon points="206.20,765.40 206.20,774.60 193.80,774.60 193.80,765.40 206.20,765.40" fill="#2e8b57" fill-opacity="0.35" stroke="#2e8b57" stroke-width="0.4"><title>J3: unchanged</title></polygon>
+<text x="200.00" y="770.00" font-size="4.8" transform="rotate(-0 200.00 770.00)" fill="#2e8b57" text-anchor="middle" dominant-baseline="middle">J3</text>
+<polygon points="207.75,184.25 207.75,195.75 192.25,195.75 192.25,184.25 207.75,184.25" fill="none" stroke="#999999" stroke-width="0.5" stroke-dasharray="1,1"/>
+<line x1="200.00" y1="190.00" x2="200.00" y2="186.50" stroke="#3366cc" stroke-width="0.3" stroke-dasharray="1,1"/>
+<polygon points="207.75,180.75 207.75,192.25 192.25,192.25 192.25,180.75 207.75,180.75" fill="#3366cc" fill-opacity="0.35" stroke="#3366cc" stroke-width="0.4"><title>U1: moved</title></polygon>
+<text x="200.00" y="186.50" font-size="6.0" transform="rotate(-0 200.00 186.50)" fill="#3366cc" text-anchor="middle" dominant-baseline="middle">U1</text>
+<polygon points="507.75,184.25 507.75,195.75 492.25,195.75 492.25,184.25 507.75,184.25" fill="none" stroke="#999999" stroke-width="0.5" stroke-dasharray="1,1"/>
+<line x1="500.00" y1="190.00" x2="500.00" y2="186.50" stroke="#3366cc" stroke-width="0.3" stroke-dasharray="1,1"/>
+<polygon points="507.75,180.75 507.75,192.25 492.25,192.25 492.25,180.75 507.75,180.75" fill="#3366cc" fill-opacity="0.35" stroke="#3366cc" stroke-width="0.4"><title>U2: moved</title></polygon>
+<text x="500.00" y="186.50" font-size="6.0" transform="rotate(-0 500.00 186.50)" fill="#3366cc" text-anchor="middle" dominant-baseline="middle">U2</text>
+<polygon points="356.20,515.40 356.20,524.60 343.80,524.60 343.80,515.40 356.20,515.40" fill="none" stroke="#999999" stroke-width="0.5" stroke-dasharray="1,1"/>
+<line x1="350.00" y1="520.00" x2="350.00" y2="507.50" stroke="#3366cc" stroke-width="0.3" stroke-dasharray="1,1"/>
+<polygon points="356.20,502.90 356.20,512.10 343.80,512.10 343.80,502.90 356.20,502.90" fill="#3366cc" fill-opacity="0.35" stroke="#3366cc" stroke-width="0.4"><title>U3: moved</title></polygon>
+<text x="350.00" y="507.50" font-size="4.8" transform="rotate(-0 350.00 507.50)" fill="#3366cc" text-anchor="middle" dominant-baseline="middle">U3</text>
+<polygon points="857.75,504.25 857.75,515.75 842.25,515.75 842.25,504.25 857.75,504.25" fill="none" stroke="#999999" stroke-width="0.5" stroke-dasharray="1,1"/>
+<line x1="850.00" y1="510.00" x2="850.00" y2="499.65" stroke="#3366cc" stroke-width="0.3" stroke-dasharray="1,1"/>
+<polygon points="857.75,493.90 857.75,505.40 842.25,505.40 842.25,493.90 857.75,493.90" fill="#3366cc" fill-opacity="0.35" stroke="#3366cc" stroke-width="0.4"><title>U4: moved</title></polygon>
+<text x="850.00" y="499.65" font-size="6.0" transform="rotate(-0 850.00 499.65)" fill="#3366cc" text-anchor="middle" dominant-baseline="middle">U4</text>
+<polygon points="607.75,744.25 607.75,755.75 592.25,755.75 592.25,744.25 607.75,744.25" fill="none" stroke="#999999" stroke-width="0.5" stroke-dasharray="1,1"/>
+<line x1="600.00" y1="750.00" x2="600.00" y2="736.50" stroke="#3366cc" stroke-width="0.3" stroke-dasharray="1,1"/>
+<polygon points="607.75,730.75 607.75,742.25 592.25,742.25 592.25,730.75 607.75,730.75" fill="#3366cc" fill-opacity="0.35" stroke="#3366cc" stroke-width="0.4"><title>U5: moved</title></polygon>
+<text x="600.00" y="736.50" font-size="6.0" transform="rotate(-0 600.00 736.50)" fill="#3366cc" text-anchor="middle" dominant-baseline="middle">U5</text>
+</svg>

@@ -1,0 +1,47 @@
+{
+ "file": "<FIXTURES>/stitch-5388/split.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 0,
+  "warnings": 1,
+  "infos": 0,
+  "waived": 0,
+  "rules_checked": 47,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": true
+ },
+ "violations": [
+  {
+   "rule_id": "track_dangling",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "Dangling track end: Track [GNDA] on F.Cu, length 2.0000 mm",
+   "location": [
+    112.0,
+    110.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": 2.0,
+   "required_value": null,
+   "items": [
+    "315c8354-2298-5b7b-b8aa-742b2dcf2112",
+    "net:GNDA"
+   ],
+   "nets": [
+    "GNDA"
+   ],
+   "status": "warning",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

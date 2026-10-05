@@ -1,0 +1,200 @@
+{
+ "summary": {
+  "errors": 0,
+  "warnings": 7,
+  "info": 0
+ },
+ "mistakes": [
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "U1"
+   ],
+   "location": [
+    15.0,
+    20.0
+   ],
+   "explanation": "C1 is 13.3mm from U1 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of U1 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "R1"
+   ],
+   "location": [
+    15.0,
+    20.0
+   ],
+   "explanation": "C1 is 49.7mm from R1 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 49.7mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of R1 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "R2"
+   ],
+   "location": [
+    15.0,
+    20.0
+   ],
+   "explanation": "C1 is 54.3mm from R2 pin 2 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 54.3mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of R2 pin 2, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C1",
+    "J1"
+   ],
+   "location": [
+    15.0,
+    20.0
+   ],
+   "explanation": "C1 is 55.9mm from J1 pin 1 (+3V3). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 55.9mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C1 to within 3.0mm of J1 pin 1, with a short, wide trace to both +3V3 and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "bypass_capacitor",
+   "severity": "warning",
+   "title": "Bypass capacitor too far from power pin",
+   "components": [
+    "C2",
+    "U1"
+   ],
+   "location": [
+    45.0,
+    20.0
+   ],
+   "explanation": "C2 is 13.0mm from U1 pin 36 (+5V). Bypass capacitors should be within 3.0mm of the power pin they're decoupling. At 13.0mm, the inductance of the trace reduces filtering effectiveness.",
+   "fix_suggestion": "Move C2 to within 3.0mm of U1 pin 36, with a short, wide trace to both +5V and GND.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "GND"
+   ],
+   "location": [
+    15.480000000000004,
+    20.0
+   ],
+   "explanation": "Power trace on GND is only 0.25mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on GND to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  },
+  {
+   "category": "power_trace",
+   "severity": "warning",
+   "title": "Power trace too narrow",
+   "components": [
+    "+5V"
+   ],
+   "location": [
+    45.0,
+    20.0
+   ],
+   "explanation": "Power trace on +5V is only 0.25mm wide. Narrow power traces cause voltage drop and can overheat under load. For 1A at 1oz copper, traces should be at least 0.5mm wide.",
+   "fix_suggestion": "Increase trace width on +5V to at least 0.3mm, or use a copper pour for power distribution. Consider the expected current draw.",
+   "learn_more_url": "docs/mistakes/power-trace-width.md"
+  }
+ ],
+ "coverage": [
+  {
+   "check_name": "BypassCapDistanceCheck",
+   "category": "bypass_capacitor",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalTraceLengthCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalNoiseProximityCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "DifferentialPairSkewCheck",
+   "category": "differential_pair",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PowerTraceWidthCheck",
+   "category": "power_trace",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ThermalPadConnectionCheck",
+   "category": "thermal_management",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ViaInPadCheck",
+   "category": "via_placement",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "AcidTrapCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "TombstoningRiskCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "MissingDecouplingCapCheck",
+   "category": "decoupling",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PullUpResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "LedSeriesResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "BomFieldHealthCheck",
+   "category": "bom_health",
+   "status": "incomplete",
+   "reason": "no BOM-eligible component on this board defines an MPN/LCSC-style property (checked ['jlc', 'jlcpcb', 'lcsc', 'lcsc part', 'lcsc_pn', 'manufacturer_pn', 'mfr_pn', 'mpn', 'pn']); this board may not track manufacturer part numbers in footprint properties, so BOM part-number coverage cannot be assessed"
+  }
+ ],
+ "coverage_complete": false
+}

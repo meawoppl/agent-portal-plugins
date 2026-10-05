@@ -1,0 +1,535 @@
+{
+ "file": "<FIXTURES>/pin1_marker.kicad_pcb",
+ "manufacturer": "jlcpcb",
+ "layers": 2,
+ "summary": {
+  "errors": 8,
+  "warnings": 17,
+  "infos": 1,
+  "waived": 0,
+  "rules_checked": 47,
+  "rules_checked_by_rule": {
+   "connectivity": 1,
+   "copper_sliver": 1,
+   "track_dangling": 1,
+   "via_dangling": 1,
+   "doc_drift_stale_pin": 1,
+   "doc_drift_unresolvable_pin": 1,
+   "isolated_copper": 1
+  },
+  "passed": false
+ },
+ "violations": [
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U2 (Package_DFN_QFN:QFN-8-1EP_3x3mm_P0.65mm_EP1.5x1.5mm) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    114.55,
+    107.025
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_obscured",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "U3 (Package_DFN_QFN:QFN-8-1EP_3x3mm_P0.65mm_EP1.5x1.5mm) has pin-1 silkscreen marks only under the package body or on pad copper, so none is visible after assembly -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    122.55,
+    107.025
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "U3"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "pin1_marker_missing",
+   "type": "unknown",
+   "severity": "warning",
+   "message": "D2 (LED_SMD:LED_0603_1608Metric) has no silkscreen pin-1 / polarity marker within 2.5mm of pad 1 -- add a dot, triangle or bar next to pad 1 outside the body, or waive via .kct_waivers.json",
+   "location": [
+    115.213,
+    120.0
+   ],
+   "layer": "F.Cu",
+   "actual_value": null,
+   "required_value": 2.5,
+   "items": [
+    "D2"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_line_width",
+   "type": "silkscreen_line_width",
+   "severity": "warning",
+   "message": "Silkscreen line width 0.12mm < minimum 0.15mm on U1",
+   "location": [
+    108.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.12,
+   "required_value": 0.15,
+   "items": [
+    "U1",
+    "fp_poly"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_line_width",
+   "type": "silkscreen_line_width",
+   "severity": "warning",
+   "message": "Silkscreen line width 0.12mm < minimum 0.15mm on U2",
+   "location": [
+    116.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.12,
+   "required_value": 0.15,
+   "items": [
+    "U2",
+    "fp_rect"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_line_width",
+   "type": "silkscreen_line_width",
+   "severity": "warning",
+   "message": "Silkscreen line width 0.12mm < minimum 0.15mm on U3",
+   "location": [
+    124.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.12,
+   "required_value": 0.15,
+   "items": [
+    "U3",
+    "fp_circle"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_line_width",
+   "type": "silkscreen_line_width",
+   "severity": "warning",
+   "message": "Silkscreen line width 0.12mm < minimum 0.15mm on D1",
+   "location": [
+    108.0,
+    120.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.12,
+   "required_value": 0.15,
+   "items": [
+    "D1",
+    "fp_line"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_line_width",
+   "type": "silkscreen_line_width",
+   "severity": "warning",
+   "message": "Silkscreen line width 0.12mm < minimum 0.15mm on D1",
+   "location": [
+    108.0,
+    120.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.12,
+   "required_value": 0.15,
+   "items": [
+    "D1",
+    "fp_line"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_line_width",
+   "type": "silkscreen_line_width",
+   "severity": "warning",
+   "message": "Silkscreen line width 0.12mm < minimum 0.15mm on D1",
+   "location": [
+    108.0,
+    120.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.12,
+   "required_value": 0.15,
+   "items": [
+    "D1",
+    "fp_line"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_line_width",
+   "type": "silkscreen_line_width",
+   "severity": "warning",
+   "message": "Silkscreen line width 0.12mm < minimum 0.15mm on D2",
+   "location": [
+    116.0,
+    120.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.12,
+   "required_value": 0.15,
+   "items": [
+    "D2",
+    "fp_line"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_line_width",
+   "type": "silkscreen_line_width",
+   "severity": "warning",
+   "message": "Silkscreen line width 0.12mm < minimum 0.15mm on D2",
+   "location": [
+    116.0,
+    120.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.12,
+   "required_value": 0.15,
+   "items": [
+    "D2",
+    "fp_line"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_text_height",
+   "type": "silkscreen_text_height",
+   "severity": "warning",
+   "message": "Silkscreen text height 0.80mm < minimum 1.00mm on U1",
+   "location": [
+    108.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.8,
+   "required_value": 1.0,
+   "items": [
+    "U1 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_text_height",
+   "type": "silkscreen_text_height",
+   "severity": "warning",
+   "message": "Silkscreen text height 0.80mm < minimum 1.00mm on U2",
+   "location": [
+    116.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.8,
+   "required_value": 1.0,
+   "items": [
+    "U2 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_text_height",
+   "type": "silkscreen_text_height",
+   "severity": "warning",
+   "message": "Silkscreen text height 0.80mm < minimum 1.00mm on U3",
+   "location": [
+    124.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.8,
+   "required_value": 1.0,
+   "items": [
+    "U3 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_text_height",
+   "type": "silkscreen_text_height",
+   "severity": "warning",
+   "message": "Silkscreen text height 0.80mm < minimum 1.00mm on D1",
+   "location": [
+    108.0,
+    120.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.8,
+   "required_value": 1.0,
+   "items": [
+    "D1 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_text_height",
+   "type": "silkscreen_text_height",
+   "severity": "warning",
+   "message": "Silkscreen text height 0.80mm < minimum 1.00mm on D2",
+   "location": [
+    116.0,
+    120.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.8,
+   "required_value": 1.0,
+   "items": [
+    "D2 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silkscreen_text_height",
+   "type": "silkscreen_text_height",
+   "severity": "warning",
+   "message": "Silkscreen text height 0.80mm < minimum 1.00mm on R1",
+   "location": [
+    124.0,
+    120.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.8,
+   "required_value": 1.0,
+   "items": [
+    "R1 (reference)"
+   ],
+   "nets": [],
+   "status": "warning",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_pad_clearance",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Silk to pad clearance 0.0000mm < 0.15mm",
+   "location": [
+    116.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.0,
+   "required_value": 0.15,
+   "items": [
+    "U2 rect {00000000-0000-0000-0000-000000001001}",
+    "U2-1"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_pad_clearance",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Silk to pad clearance 0.0000mm < 0.15mm",
+   "location": [
+    116.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.0,
+   "required_value": 0.15,
+   "items": [
+    "U2 rect {00000000-0000-0000-0000-000000001001}",
+    "U2-2"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_pad_clearance",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Silk to pad clearance 0.0000mm < 0.15mm",
+   "location": [
+    116.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.0,
+   "required_value": 0.15,
+   "items": [
+    "U2 rect {00000000-0000-0000-0000-000000001001}",
+    "U2-3"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_pad_clearance",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Silk to pad clearance 0.0000mm < 0.15mm",
+   "location": [
+    116.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.0,
+   "required_value": 0.15,
+   "items": [
+    "U2 rect {00000000-0000-0000-0000-000000001001}",
+    "U2-8"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_pad_clearance",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Silk to pad clearance 0.0000mm < 0.15mm",
+   "location": [
+    116.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.0,
+   "required_value": 0.15,
+   "items": [
+    "U2 rect {00000000-0000-0000-0000-000000001001}",
+    "U2-7"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_pad_clearance",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Silk to pad clearance 0.0000mm < 0.15mm",
+   "location": [
+    116.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.0,
+   "required_value": 0.15,
+   "items": [
+    "U2 rect {00000000-0000-0000-0000-000000001001}",
+    "U2-6"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_pad_clearance",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Silk to pad clearance 0.0000mm < 0.15mm",
+   "location": [
+    116.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.0,
+   "required_value": 0.15,
+   "items": [
+    "U2 rect {00000000-0000-0000-0000-000000001001}",
+    "U2-4"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_pad_clearance",
+   "type": "clearance",
+   "severity": "error",
+   "message": "Silk to pad clearance 0.0000mm < 0.15mm",
+   "location": [
+    116.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": 0.0,
+   "required_value": 0.15,
+   "items": [
+    "U2 rect {00000000-0000-0000-0000-000000001001}",
+    "U2-5"
+   ],
+   "nets": [],
+   "status": "error",
+   "waived": false
+  },
+  {
+   "rule_id": "silk_geometry_unmodeled",
+   "type": "silk_geometry_unmodeled",
+   "severity": "info",
+   "message": "Silkscreen U3 (fp_circle) is a 'circle' primitive that kct's silk clearance geometry does not model; it was NOT checked for silk-over-copper / silk-to-pad / silk-to-edge clearance (native DRC remains authoritative for it)",
+   "location": [
+    124.0,
+    108.0
+   ],
+   "layer": "F.SilkS",
+   "actual_value": null,
+   "required_value": null,
+   "items": [
+    "U3 (fp_circle) {00000000-0000-0000-0000-000000001002}"
+   ],
+   "nets": [],
+   "status": "info",
+   "waived": false
+  }
+ ],
+ "mask_copper_assessments": []
+}

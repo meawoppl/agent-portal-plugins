@@ -1,0 +1,77 @@
+[
+  {
+    "board": "direction-led-tester",
+    "before": {
+      "via.low_attachment": 0,
+      "route.layer_excursion": 0
+    },
+    "after": {
+      "via.low_attachment": 0,
+      "route.layer_excursion": 0
+    },
+    "coverage": {
+      "via.low_attachment": "evaluated",
+      "route.layer_excursion": "evaluated"
+    }
+  },
+  {
+    "board": "esp32-fpga-module",
+    "before": {
+      "via.low_attachment": 47,
+      "route.layer_excursion": 16
+    },
+    "after": {
+      "via.low_attachment": 0,
+      "route.layer_excursion": 0
+    },
+    "coverage": {
+      "via.low_attachment": "evaluated",
+      "route.layer_excursion": "evaluated"
+    }
+  },
+  {
+    "board": "gps-time-calibrator",
+    "before": {
+      "via.low_attachment": 193,
+      "route.layer_excursion": 33
+    },
+    "after": {
+      "via.low_attachment": 0,
+      "route.layer_excursion": 0
+    },
+    "coverage": {
+      "via.low_attachment": "evaluated",
+      "route.layer_excursion": "evaluated"
+    }
+  },
+  {
+    "board": "mainboard-reference",
+    "before": {
+      "via.low_attachment": 108,
+      "route.layer_excursion": 136
+    },
+    "after": {
+      "via.low_attachment": 0,
+      "route.layer_excursion": 0
+    },
+    "coverage": {
+      "via.low_attachment": "partial_unsupported_geometry",
+      "route.layer_excursion": "partial_unsupported_geometry"
+    }
+  },
+  {
+    "board": "programming-carrier",
+    "before": {
+      "via.low_attachment": 162,
+      "route.layer_excursion": 64
+    },
+    "after": {
+      "via.low_attachment": 0,
+      "route.layer_excursion": 0
+    },
+    "coverage": {
+      "via.low_attachment": "evaluated",
+      "route.layer_excursion": "evaluated"
+    }
+  }
+]

@@ -1,0 +1,249 @@
+{
+ "summary": {
+  "errors": 1,
+  "warnings": 9,
+  "info": 0
+ },
+ "mistakes": [
+  {
+   "category": "decoupling",
+   "severity": "error",
+   "title": "Missing decoupling capacitor",
+   "components": [
+    "U1"
+   ],
+   "location": [
+    25.0,
+    47.0
+   ],
+   "explanation": "U1 has a power pin on net 'VCC', but no bypass/decoupling capacitor connects that net to a recognized ground return. Without local decoupling, supply transients from switching current can couple into the IC and cause glitches, resets, or radiated noise.",
+   "fix_suggestion": "Add a decoupling capacitor (typically 100nF, or per the datasheet) from VCC to the nearest ground return, placed within a few mm of U1's power pin.",
+   "learn_more_url": "docs/mistakes/bypass-cap-placement.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "R4",
+    "pad 2"
+   ],
+   "location": [
+    42.5,
+    37.400000000000006
+   ],
+   "explanation": "Via found in SMD pad 2 of R4. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "R1",
+    "pad 2"
+   ],
+   "location": [
+    9.5,
+    37.400000000000006
+   ],
+   "explanation": "Via found in SMD pad 2 of R1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "D6",
+    "pad 2"
+   ],
+   "location": [
+    34.400000000000006,
+    18.299999999999997
+   ],
+   "explanation": "Via found in SMD pad 2 of D6. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "via_placement",
+   "severity": "warning",
+   "title": "Via in SMD pad",
+   "components": [
+    "D2",
+    "pad 1"
+   ],
+   "location": [
+    24.5,
+    9.599999999999994
+   ],
+   "explanation": "Via found in SMD pad 1 of D2. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
+   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
+   "learn_more_url": "docs/mistakes/via-in-pad.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "NODE_B",
+    "F.Cu"
+   ],
+   "location": [
+    18.0,
+    26.0
+   ],
+   "explanation": "Trace on NODE_B (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "NODE_B",
+    "F.Cu"
+   ],
+   "location": [
+    25.687999999999988,
+    9.187899999999999
+   ],
+   "explanation": "Trace on NODE_B (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "NODE_C",
+    "F.Cu"
+   ],
+   "location": [
+    18.0,
+    18.0
+   ],
+   "explanation": "Trace on NODE_C (F.Cu) has a 45\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "NODE_D",
+    "F.Cu"
+   ],
+   "location": [
+    31.69999999999999,
+    26.599999999999994
+   ],
+   "explanation": "Trace on NODE_D (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  },
+  {
+   "category": "manufacturability",
+   "severity": "warning",
+   "title": "Acute angle in trace (acid trap)",
+   "components": [
+    "NODE_D",
+    "F.Cu"
+   ],
+   "location": [
+    43.0,
+    38.0
+   ],
+   "explanation": "Trace on NODE_D (F.Cu) has a 90\u00b0 angle. Angles less than 90\u00b0 can trap etchant during PCB manufacturing, causing over-etching at the vertex. This can weaken the trace and cause reliability issues.",
+   "fix_suggestion": "Reroute the trace to use 45\u00b0 or 90\u00b0 angles instead. If the acute angle is unavoidable, add a teardrop at the junction to eliminate the sharp corner.",
+   "learn_more_url": "docs/mistakes/acid-traps.md"
+  }
+ ],
+ "coverage": [
+  {
+   "check_name": "BypassCapDistanceCheck",
+   "category": "bypass_capacitor",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalTraceLengthCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "CrystalNoiseProximityCheck",
+   "category": "crystal_oscillator",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "DifferentialPairSkewCheck",
+   "category": "differential_pair",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PowerTraceWidthCheck",
+   "category": "power_trace",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ThermalPadConnectionCheck",
+   "category": "thermal_management",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "ViaInPadCheck",
+   "category": "via_placement",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "AcidTrapCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "TombstoningRiskCheck",
+   "category": "manufacturability",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "MissingDecouplingCapCheck",
+   "category": "decoupling",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "PullUpResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "LedSeriesResistorCheck",
+   "category": "connectivity",
+   "status": "ran",
+   "reason": null
+  },
+  {
+   "check_name": "BomFieldHealthCheck",
+   "category": "bom_health",
+   "status": "incomplete",
+   "reason": "no BOM-eligible component on this board defines an MPN/LCSC-style property (checked ['jlc', 'jlcpcb', 'lcsc', 'lcsc part', 'lcsc_pn', 'manufacturer_pn', 'mfr_pn', 'mpn', 'pn']); this board may not track manufacturer part numbers in footprint properties, so BOM part-number coverage cannot be assessed"
+  }
+ ],
+ "coverage_complete": false
+}

@@ -2,7 +2,7 @@ schema_version = 1
 name = "kicadmium"
 display_name = "kicadmium"
 description = "The heavy metal your PCBs were missing: workbench for KiCad review, checks, fabrication export, BOMs, Gerbers, panelization, and 3D/STEP inspection."
-homepage = "https://github.com/meawoppl/kicadmium"
+homepage = "https://github.com/meawoppl/agent-portal-plugins/tree/main/kicadmium"
 license = "MIT"
 
 [compat]

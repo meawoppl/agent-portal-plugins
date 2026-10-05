@@ -1,10 +1,16 @@
-name: CI
+name: kicadmium
 
 on:
   push:
     branches: [main]
+    paths: ["kicadmium/**", ".github/workflows/kicadmium.yml"]
   pull_request:
     branches: [main]
+    paths: ["kicadmium/**", ".github/workflows/kicadmium.yml"]
+
+defaults:
+  run:
+    working-directory: kicadmium
 
 env:
   CARGO_TERM_COLOR: always
@@ -31,6 +37,8 @@ jobs:
           components: clippy
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: kicadmium
       - name: Install trunk
         run: cargo install trunk --locked
       - name: Build frontend (required for backend embed)

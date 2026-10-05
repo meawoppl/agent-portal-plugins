@@ -11,6 +11,14 @@ Bring your own and turn it up.
 
 ## Quick start
 
+As an Agent Portal plugin:
+
+```sh
+agent-portal plugin install github:meawoppl/agent-portal-plugins//kicadmium
+```
+
+From a checkout of this directory:
+
 ```sh
 rustup target add wasm32-unknown-unknown
 cargo install trunk --locked

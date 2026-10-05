@@ -8,8 +8,7 @@
 #     contact sheets for each board (self-contained, open offline);
 #   - with code scanning enabled, findings.sarif annotates the PR.
 #
-# kicadmium is private. Add a repository secret KICADMIUM_TOKEN: a fine-grained
-# token with read-only Contents access to meawoppl/kicadmium.
+# kicadmium is installed from the public meawoppl/agent-portal-plugins repo.
 name: kct lint
 
 on:
@@ -53,13 +52,9 @@ jobs:
           restore-keys: kicadmium-${{ runner.os }}-${{ env.KICADMIUM_REF }}-
 
       - name: Install kicadmium
-        env:
-          KICADMIUM_TOKEN: ${{ secrets.KICADMIUM_TOKEN }}
         run: |
-          git config --global url."https://x-access-token:${KICADMIUM_TOKEN}@github.com/".insteadOf "https://github.com/"
-          cargo install --locked --git https://github.com/meawoppl/kicadmium \
+          cargo install --locked --git https://github.com/meawoppl/agent-portal-plugins \
             --branch "$KICADMIUM_REF" backend
-          git config --global --unset-all url."https://x-access-token:${KICADMIUM_TOKEN}@github.com/".insteadOf
           kicadmium kct -- lint rules --format json > /dev/null
 
       - name: Lint boards

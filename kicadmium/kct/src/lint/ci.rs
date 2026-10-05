@@ -251,7 +251,7 @@ pub fn sarif(boards: &[(&Path, &Checked)]) -> Value {
             "tool": {"driver": {
                 "name": "kct-lint",
                 "version": env!("CARGO_PKG_VERSION"),
-                "informationUri": "https://github.com/meawoppl/kicadmium",
+                "informationUri": "https://github.com/meawoppl/agent-portal-plugins/tree/main/kicadmium",
                 "rules": rules
             }},
             "results": results

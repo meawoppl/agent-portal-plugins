@@ -77,11 +77,9 @@ const TABS: &[&str] = &[
     "pcb",
     "gerbers",
     "3d",
-    "step",
     "bom",
     "libraries",
     "analysis",
-    "panelization",
     "checks",
 ];
 
@@ -335,6 +333,13 @@ fn restore_default_sigpipe() {
     }
 }
 
+async fn portal_unavailable() -> (StatusCode, &'static str) {
+    (
+        StatusCode::NOT_FOUND,
+        "Agent Portal endpoint: open this workbench through Agent Portal",
+    )
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt()
@@ -447,6 +452,10 @@ async fn main() -> Result<()> {
             watch::spawn(state.clone());
             let app = Router::new()
                 .route("/ws/events", get(events_ws))
+                // Agent Portal intercepts /__portal/* on its forward origin. Anything
+                // that reaches us there is unhandled; never let the SPA fallback
+                // answer it with a 200 that looks like success.
+                .route("/__portal/*rest", axum::routing::any(portal_unavailable))
                 .route("/healthz", get(healthz))
                 .route("/api/projects", get(projects_endpoint))
                 .route("/api/kicad/manifest", get(manifest))

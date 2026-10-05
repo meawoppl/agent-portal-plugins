@@ -21,6 +21,9 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
+/// Tabs whose content can be annotated: the drawn design views.
+const ANNOTATABLE: &[&str] = &["schematic", "pcb", "gerbers", "3d"];
+
 const TABS: &[(&str, &str)] = &[
     ("schematic", "Schematic"),
     ("pcb", "PCB"),
@@ -29,7 +32,6 @@ const TABS: &[(&str, &str)] = &[
     ("bom", "BOM"),
     ("libraries", "Libraries"),
     ("analysis", "Analysis"),
-    ("panelization", "Panelization"),
     ("checks", "Checks"),
 ];
 fn saved_tab() -> String {
@@ -97,10 +99,12 @@ fn app() -> Html {
         let live_revision = live_revision.clone();
         Callback::from(move |revision: String| live_revision.set(Some(revision)))
     };
-    html! {<div class="app-shell"><header><div><h1>{"kicadmium"}</h1><span class="tagline">{"The heavy metal your PCBs were missing."}</span></div><div class="header-tools"><input class="project-input" list="projects" aria-label="Project id" placeholder="default project" value={(*project).clone()} oninput={change_project}/><datalist id="projects">{for workspace.as_ref().map(|w|w.projects.iter().map(|p|html!{<option value={p.id.clone()}>{p.name.clone()}</option>}).collect::<Vec<_>>()).unwrap_or_default()}</datalist><LiveStatus project={(*project).clone()} {on_revision}/><Annotator project={(*project).clone()} tab={(*active).clone()} revision={revision.clone()}/></div></header>
+    html! {<div class="app-shell"><header><div><h1>{"kicadmium"}</h1><span class="tagline">{"The heavy metal your PCBs were missing."}</span></div><div class="header-tools"><input class="project-input" list="projects" aria-label="Project id" placeholder="default project" value={(*project).clone()} oninput={change_project}/><datalist id="projects">{for workspace.as_ref().map(|w|w.projects.iter().map(|p|html!{<option value={p.id.clone()}>{p.name.clone()}</option>}).collect::<Vec<_>>()).unwrap_or_default()}</datalist><LiveStatus project={(*project).clone()} {on_revision}/></div></header>
     <build_strip::BuildStrip project={(*project).clone()}/>
     <nav class="tabs" aria-label="Workbench views">{for TABS.iter().map(|(id,label)|{let id=(*id).to_owned();let selected=*active==id;let active=active.clone();html!{<button class={classes!(selected.then_some("active"))} aria-selected={selected.to_string()} onclick={Callback::from(move |_|{if let Some(s)=web_sys::window().and_then(|w|w.local_storage().ok().flatten()){let _=s.set_item("kicadmium:tab",&id);}active.set(id.clone())})}>{*label}</button>}})}</nav>
-    <main>{match active.as_str(){"schematic"=>html!{<viewer::Viewer project={(*project).clone()} kind="schematic" revision={revision.clone()}/>},"pcb"=>html!{<viewer::Viewer project={(*project).clone()} kind="pcb" revision={revision.clone()}/>} ,"3d"=>html!{<viewer::Viewer project={(*project).clone()} kind="model" revision={revision.clone()}/>} ,"checks"=>html!{<Checks project={(*project).clone()}/>} ,"bom"=>html!{<bom::BomTab project={(*project).clone()} revision={revision.clone()}/>} ,"libraries"=>html!{<library::LibraryTab project={(*project).clone()}/>} ,"gerbers"=>html!{<gerbers::GerberTab project={(*project).clone()} revision={revision.clone()}/>} ,"analysis"=>html!{<misc::AnalysisTab project={(*project).clone()} revision={revision.clone()}/>},_=>html!{<misc::PanelizationTab project={(*project).clone()} revision={revision.clone()}/>}}}</main></div>}
+    <main>{{let view=match active.as_str(){"schematic"=>html!{<viewer::Viewer project={(*project).clone()} kind="schematic" revision={revision.clone()}/>},"pcb"=>html!{<viewer::Viewer project={(*project).clone()} kind="pcb" revision={revision.clone()}/>} ,"3d"=>html!{<viewer::Viewer project={(*project).clone()} kind="model" revision={revision.clone()}/>} ,"checks"=>html!{<Checks project={(*project).clone()}/>} ,"bom"=>html!{<bom::BomTab project={(*project).clone()} revision={revision.clone()}/>} ,"libraries"=>html!{<library::LibraryTab project={(*project).clone()}/>} ,"gerbers"=>html!{<gerbers::GerberTab project={(*project).clone()} revision={revision.clone()}/>} ,_=>html!{<misc::AnalysisTab project={(*project).clone()} revision={revision.clone()}/>}};
+    // Annotation targets what is on screen, so it floats over the visual views only.
+    if ANNOTATABLE.contains(&active.as_str()){html!{<div class={classes!("view-stage",format!("view-{}",*active))}>{view}<div class="view-annotate"><Annotator project={(*project).clone()} tab={(*active).clone()} revision={revision.clone()}/></div></div>}}else{view}}}</main></div>}
 }
 fn main() {
     yew::Renderer::<App>::new().render();

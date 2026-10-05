@@ -18,7 +18,7 @@ other electronics design artifacts and the KiCad PCB Portal plugin is available.
    decoupling distance.
 2. Open the `kicadmium` Agent Portal surface when visual context would help.
    The surface has tabs for schematic, PCB, Gerbers, 3D, BOM, libraries,
-   analysis, panelization, and checks, plus a build strip.
+   analysis and checks, plus a build strip.
 3. Run the plugin `doctor` command before promising native KiCad or `kct`
    checks.
 4. Use the plugin commands as the automation boundary:

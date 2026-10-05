@@ -1,5 +1,4 @@
 use crate::api;
-use gloo_net::http::Request;
 use serde_json::{json, Value};
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -101,10 +100,61 @@ fn card(props: &CardProps) -> Html {
     } else {
         Html::default()
     };
-    html! {<article class="card check-card"><h2>{&props.title}</h2>{if let Some(value)=value{html!{<><div class="check-summary"><span class={classes!("pill",if errors>0{"error"}else{"ok"})}>{if errors>0{"needs attention"}else{"reviewed"}}</span><span class="pill">{format!("{} findings",list.len())}</span><span class="pill error">{format!("{errors} errors")}</span></div>{lint_links}<div class="issue-list">{for list.into_iter().take(100).map(|item|{let severity=item.get("severity").and_then(Value::as_str).unwrap_or("warning").to_owned();let title=item.get("message").or_else(||item.get("description")).or_else(||item.get("rule")).and_then(Value::as_str).unwrap_or("Finding").to_owned();let enqueue=if props.lint{let project=props.project.to_string();Some(Callback::from(move |_|{let body=json!({"kind":"pcb-lint-finding","project":project,"finding":item,"authorizedRepair":false});spawn_local(async move{let _=Request::post("/__portal/edit-stack").header("content-type","application/json").body(body.to_string()).unwrap().send().await;});}))}else{None};html!{<article class="issue"><div class="issue-head"><strong>{title}</strong><span class={classes!("severity",severity.clone())}>{severity}</span></div>{enqueue.map(|cb|html!{<button class="enqueue" onclick={cb}>{"Enqueue for review"}</button>}).unwrap_or_default()}</article>}})}</div><details class="raw"><summary>{"Raw report"}</summary><pre>{serde_json::to_string_pretty(value).unwrap_or_default()}</pre></details></>}}else{html!{<p>{"Loading…"}</p>}}}</article>}
+    html! {<article class="card check-card"><h2>{&props.title}</h2>{if let Some(value)=value{html!{<><div class="check-summary"><span class={classes!("pill",if errors>0{"error"}else{"ok"})}>{if errors>0{"needs attention"}else{"reviewed"}}</span><span class="pill">{format!("{} findings",list.len())}</span><span class="pill error">{format!("{errors} errors")}</span></div>{lint_links}<div class="issue-list">{for list.into_iter().take(100).map(|item|{let severity=item.get("severity").and_then(Value::as_str).unwrap_or("warning").to_owned();let title=item.get("message").or_else(||item.get("description")).or_else(||item.get("rule")).and_then(Value::as_str).unwrap_or("Finding").to_owned();html!{<Issue lint={props.lint} project={props.project.clone()} {title} {severity} {item}/>}})}</div><details class="raw"><summary>{"Raw report"}</summary><pre>{serde_json::to_string_pretty(value).unwrap_or_default()}</pre></details></>}}else{html!{<p>{"Loading…"}</p>}}}</article>}
 }
 
 #[function_component(Checks)]
 pub fn checks(props: &Props) -> Html {
     html! {<div class="grid"><CheckCard title="Layout quality" kind="quality" project={props.project.clone()}/><CheckCard title="DRC" kind="drc" project={props.project.clone()}/><CheckCard title="ERC" kind="erc" project={props.project.clone()}/><CheckCard title="Heuristic lint" kind="lint" project={props.project.clone()} lint=true/></div>}
+}
+
+#[derive(Properties, PartialEq)]
+struct IssueProps {
+    lint: bool,
+    project: AttrValue,
+    title: String,
+    severity: String,
+    item: Value,
+}
+
+/// One finding; lint findings can be queued for agent review.
+#[function_component(Issue)]
+fn issue(props: &IssueProps) -> Html {
+    let state = use_state(|| None::<Result<String, String>>);
+    let enqueue = props.lint.then(|| {
+        let (state, project, item, title) = (
+            state.clone(),
+            props.project.to_string(),
+            props.item.clone(),
+            props.title.clone(),
+        );
+        Callback::from(move |_| {
+            let (state, project, item, title) =
+                (state.clone(), project.clone(), item.clone(), title.clone());
+            let rule = item.get("rule").and_then(Value::as_str).unwrap_or("lint");
+            let key = item.get("key").and_then(Value::as_str).unwrap_or("");
+            let suggestion = item.get("suggestion").and_then(Value::as_str).unwrap_or("");
+            let body = format!(
+                "kct lint finding `{rule}` (key {key}): {title}\n\nSuggested action: {suggestion}\n\nReview it with `kicadmium kct -- lint run` and either fix it or record a reasoned waiver."
+            );
+            let payload = json!({
+                "title": crate::annotate::title_from(&format!("{rule}: {title}"), "kct lint finding"),
+                "body": body,
+                "context": {"plugin": "kicadmium", "project": project, "tab": "checks",
+                    "kind": "kct-lint-finding", "finding": item, "authorizedRepair": false},
+            });
+            spawn_local(async move {
+                let source = json!({"plugin": "kicadmium", "project": project});
+                state.set(Some(crate::annotate::enqueue(source, vec![payload]).await));
+            });
+        })
+    });
+    html! {<article class="issue"><div class="issue-head"><strong>{&props.title}</strong><span class={classes!("severity",props.severity.clone())}>{&props.severity}</span></div>
+        {match (&*state, enqueue) {
+            (Some(Ok(msg)), _) => html!{<span class="annotate-ok">{format!("✓ {msg}")}</span>},
+            (Some(Err(msg)), Some(cb)) => html!{<><button class="enqueue" onclick={cb}>{"Retry"}</button><span class="annotate-err">{msg.clone()}</span></>},
+            (None, Some(cb)) => html!{<button class="enqueue" onclick={cb}>{"Send to agent for review"}</button>},
+            _ => Html::default(),
+        }}
+    </article>}
 }

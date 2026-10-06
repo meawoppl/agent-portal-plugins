@@ -567,7 +567,6 @@ impl fmt::Display for SymbolInstance {
 #[cfg(test)]
 mod property_tests {
     use super::SymbolProperty;
-    use crate::sexp::SExp;
 
     fn property(text: &str) -> SymbolProperty {
         SymbolProperty::from_sexp(&crate::sexp::parse(text).expect("property s-expression"))

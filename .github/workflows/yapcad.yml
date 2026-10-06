@@ -1,0 +1,33 @@
+name: yapcad
+
+on:
+  push:
+    branches: [main]
+    paths: ["yapcad/**", ".github/workflows/yapcad.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["yapcad/**", ".github/workflows/yapcad.yml"]
+
+defaults:
+  run:
+    working-directory: yapcad
+
+jobs:
+  test:
+    name: Unit tests + pane smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --ignore-scripts
+      - run: cp static/app.js /tmp/app.mjs && node --check /tmp/app.mjs
+      - run: uv run --locked python -m unittest discover -s tests -v
+      - name: Browser smoke
+        run: |
+          uv run --locked playwright install --with-deps chromium
+          bin/yapcad serve --cwd examples/bracket --port 49131 &
+          for i in $(seq 60); do curl -sf localhost:49131/healthz && break; sleep 1; done
+          uv run --locked python tests/browser_smoke.py http://localhost:49131

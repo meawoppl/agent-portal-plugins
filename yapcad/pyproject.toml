@@ -1,0 +1,18 @@
+[project]
+name = "portal-yapcad"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "aiohttp==3.13.3",
+  "watchfiles==1.1.1",
+  "pillow==11.3.0",
+  "scipy",
+  "yapcad[manifold,meshcheck]",
+]
+
+[tool.uv.sources]
+# PyPI's 1.1.0 predates yapcad.sdf; pin the upstream revision this plugin targets.
+yapcad = { git = "https://github.com/rdevaul/yapCAD", rev = "5225474a23af509b95a08ae3b9815db6a32737c8" }
+
+[dependency-groups]
+dev = ["playwright==1.55.0"]

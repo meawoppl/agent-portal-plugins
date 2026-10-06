@@ -36,6 +36,7 @@ Install any plugin from its subdirectory:
 agent-portal plugin install github:meawoppl/agent-portal-plugins//kicadmium
 agent-portal plugin install github:meawoppl/agent-portal-plugins//visilog
 agent-portal plugin install github:meawoppl/agent-portal-plugins//unlinked
+agent-portal plugin install github:meawoppl/agent-portal-plugins//yapcad
 ```
 
 ## Plugins
@@ -47,6 +48,10 @@ agent-portal plugin install github:meawoppl/agent-portal-plugins//unlinked
   [Unlinked](https://github.com/CosmicFrontierLabs/unlinked): SVG diagrams
   and subsystems, block inventories, the supported simulation subset with
   plotted traces, and MATLAB-to-Rust transpilation.
+- [`yapcad`](yapcad/) - parametric [yapCAD](https://github.com/rdevaul/yapCAD)
+  DSL workbench: retained builds with stats and previews, a live 3D/2D pane
+  with sections, measurement and pinned annotations, STL/STEP/DXF/SVG
+  exports, `.ycpkg` packages and assemblies.
 - [`kicadmium`](kicadmium/) - all-Rust KiCad PCB/electronics workbench: one
   binary with a browser workbench, `kct` (a native port of kicad-tools) and
   `kct lint`. It replaces the former `kicad-pcb` plugin and lived in

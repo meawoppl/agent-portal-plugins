@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>yapCAD Workbench</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/three/build/three.module.js",
+          "three/addons/": "/three/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="/lucide.js" defer></script>
+    <script type="module" src="/static/app.js"></script>
+  </head>
+  <body>
+    <header>
+      <button id="sidebar" title="Toggle side panel">
+        <i data-lucide="panel-left"></i></button
+      ><strong>yapCAD</strong
+      ><select id="file" aria-label="DSL source"></select
+      ><select id="command" aria-label="Command"></select
+      ><button id="build" title="Build command (Ctrl+Enter)">
+        <i data-lucide="play"></i><span>Build</span></button
+      ><button id="stop" title="Cancel build" disabled>
+        <i data-lucide="square"></i></button
+      ><label class="toggle" title="Rebuild when the source file changes"
+        ><input type="checkbox" id="live" checked />Live</label
+      ><select id="tab" aria-label="Workbench view">
+        <option value="model">Model</option>
+        <option value="source">Source</option>
+        <option value="reference">DSL reference</option></select
+      ><span id="status" role="status">Connecting</span>
+    </header>
+    <div id="error" role="alert" hidden></div>
+    <main>
+      <aside>
+        <section>
+          <h2>
+            Parameters
+            <button id="reset" class="small" title="Reset to defaults">
+              <i data-lucide="rotate-ccw"></i>
+            </button>
+          </h2>
+          <form id="params" autocomplete="off"></form>
+          <details id="options">
+            <summary>Build options</summary>
+            <label
+              >Representation
+              <select id="representation">
+                <option value="">mesh (default)</option>
+                <option value="sdf">sdf (fields)</option>
+              </select></label
+            >
+            <label
+              >SDF cell (mm)
+              <input
+                id="sdf-cell"
+                type="number"
+                min="0.01"
+                step="0.05"
+                placeholder="auto"
+            /></label>
+            <fieldset id="exports">
+              <legend>Exports</legend>
+              <label><input type="checkbox" value="stl" />STL</label>
+              <label><input type="checkbox" value="step" />STEP</label>
+              <label><input type="checkbox" value="dxf" />DXF</label>
+              <label><input type="checkbox" value="svg" />SVG</label>
+            </fieldset>
+            <label
+              ><input type="checkbox" id="strict-step" />Analytic STEP
+              only</label
+            >
+            <button
+              id="package"
+              type="button"
+              title="Build a .ycpkg package with provenance"
+            >
+              <i data-lucide="package"></i><span>Package</span>
+            </button>
+          </details>
+        </section>
+        <section>
+          <h2>Runs</h2>
+          <select id="runs" aria-label="Run history"></select>
+          <label class="toggle"
+            ><input type="checkbox" id="follow" checked />Follow latest</label
+          >
+          <div id="downloads"></div>
+        </section>
+        <section>
+          <h2>Result</h2>
+          <div id="messages"></div>
+          <table id="stats"></table>
+        </section>
+        <section>
+          <h2>Parts</h2>
+          <div id="parts"></div>
+        </section>
+        <section>
+          <h2>Library</h2>
+          <div id="library"></div>
+        </section>
+      </aside>
+      <section class="workspace">
+        <div class="toolbar" id="model-tools">
+          <button id="fit" title="Fit model (F)">
+            <i data-lucide="maximize"></i></button
+          ><select id="view" aria-label="View direction">
+            <option value="iso">Iso</option>
+            <option value="front">Front</option>
+            <option value="back">Back</option>
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+            <option value="right">Right</option>
+            <option value="left">Left</option></select
+          ><label class="toggle"
+            ><input type="checkbox" id="ortho" />Ortho</label
+          ><label class="toggle"
+            ><input type="checkbox" id="edges" checked />Edges</label
+          ><label class="toggle"><input type="checkbox" id="wire" />Wire</label
+          ><label class="toggle"
+            ><input type="checkbox" id="grid" checked />Grid</label
+          ><span class="group"
+            ><select id="clip-axis" aria-label="Section plane">
+              <option value="">No section</option>
+              <option value="x">Section X</option>
+              <option value="y">Section Y</option>
+              <option value="z">Section Z</option></select
+            ><input
+              id="clip"
+              type="range"
+              min="0"
+              max="1000"
+              value="500"
+              aria-label="Section offset"
+              hidden /><button
+              id="clip-flip"
+              class="small"
+              title="Flip section side"
+              hidden
+            >
+              <i data-lucide="flip-horizontal"></i></button></span
+          ><select id="mode" aria-label="Pointer mode">
+            <option value="orbit">Orbit</option>
+            <option value="pin">Drop pin</option>
+            <option value="measure">Measure</option></select
+          ><button id="clear-marks" title="Clear pins and measurements">
+            <i data-lucide="eraser"></i></button
+          ><button id="annotate" title="Annotate this view for the agent">
+            <i data-lucide="message-square-plus"></i><span>Annotate</span>
+          </button>
+        </div>
+        <div id="viewport">
+          <canvas id="canvas" aria-label="3D model view"></canvas>
+          <div id="labels"></div>
+          <div id="overlay" hidden></div>
+          <div id="readout"></div>
+        </div>
+        <pre id="source" hidden></pre>
+        <div id="reference" hidden>
+          <input
+            id="ref-search"
+            type="search"
+            placeholder="Search functions, types, methods"
+            aria-label="Search DSL reference"
+          />
+          <div id="ref-list"></div>
+        </div>
+        <details id="logs">
+          <summary>Build log <span id="result"></span></summary>
+          <pre id="log"></pre>
+        </details>
+      </section>
+    </main>
+    <dialog id="note">
+      <form method="dialog">
+        <h2>Model annotation</h2>
+        <p id="note-context"></p>
+        <img id="capture" alt="Annotated model view" /><textarea
+          id="body"
+          rows="5"
+          aria-label="Review note"
+          placeholder="Describe the change or question"
+        ></textarea>
+        <div class="actions">
+          <button type="button" id="record" title="Record voice note">
+            <i data-lucide="mic"></i></button
+          ><button value="cancel">Cancel</button
+          ><button type="button" id="send">
+            <i data-lucide="send"></i>Queue for agent
+          </button>
+        </div>
+        <p id="note-status" role="status"></p>
+      </form>
+    </dialog>
+  </body>
+</html>

@@ -1,0 +1,105 @@
+schema_version = 1
+name = "yapcad"
+display_name = "yapCAD"
+description = "Parametric yapCAD DSL workbench: retained builds, live 3D/2D review, previews, STL/STEP/DXF/SVG exports, .ycpkg packages and pinned model annotations."
+homepage = "https://github.com/meawoppl/agent-portal-plugins/tree/main/yapcad"
+license = "MIT"
+
+[compat]
+platforms = ["linux", "macos"]
+
+[install]
+setup = "bin/yapcad setup"
+doctor = "bin/yapcad doctor --cwd {cwd}"
+
+[surface]
+kind = "http"
+default_title = "yapCAD"
+default_width_percent = 60
+health_path = "/healthz"
+start = "bin/yapcad serve --port {port} --session {session_id} --cwd {cwd}"
+
+[[commands]]
+name = "doctor"
+description = "Report the yapCAD interpreter, BREP/manifold/trimesh capabilities and discovered sources, packages and geometry files."
+run = "bin/yapcad doctor --cwd {cwd}"
+
+[[commands]]
+name = "list"
+description = "List DSL commands with typed parameters, defaults, @ui hints and @meta as JSON; optionally pass .dsl paths."
+run = "bin/yapcad list --cwd {cwd}"
+
+[[commands]]
+name = "check"
+description = "Parse and type-check DSL sources; JSON diagnostics with line, column and hints."
+run = "bin/yapcad check --cwd {cwd}"
+
+[[commands]]
+name = "build"
+description = "Build a DSL command into a retained run with stats and preview PNG: --file F --command C [-p name=value] [--export stl,step,dxf,svg] [--representation sdf]."
+run = "bin/yapcad build --cwd {cwd}"
+
+[[commands]]
+name = "package"
+description = "Build a DSL command into a validated .ycpkg package with provenance: --file F --command C [-p ...] [--name N --version V]."
+run = "bin/yapcad package --cwd {cwd}"
+
+[[commands]]
+name = "import"
+description = "Open an STL, STEP, DXF file or .ycpkg package as a run for review, stats and preview: --file PATH."
+run = "bin/yapcad import --cwd {cwd}"
+
+[[commands]]
+name = "render"
+description = "Render a run (default latest) to PNG: [--run ID] [--view sheet|iso|front|top|right|x,y,z] [--size WxH] [--out PATH]."
+run = "bin/yapcad render --cwd {cwd}"
+
+[[commands]]
+name = "runs"
+description = "List retained runs, newest first, with status, stats and artifact paths."
+run = "bin/yapcad runs --cwd {cwd}"
+
+[[commands]]
+name = "validate"
+description = "Validate .ycpkg packages (all discovered when none given); --strict requires hashes."
+run = "bin/yapcad validate --cwd {cwd}"
+
+[[commands]]
+name = "api"
+description = "DSL built-in reference from yapCAD introspection; pass a function, type or pattern name for detail."
+run = "bin/yapcad api --cwd {cwd}"
+
+[[commands]]
+name = "tool"
+description = "Run Python in the yapCAD environment, e.g. tool -- -m yapcad.dsl run part.dsl CMD, or tool -- script.py."
+run = "bin/yapcad tool --cwd {cwd} --"
+
+[[toolchains]]
+name = "core"
+description = "Locked pure-Python yapCAD (mesh, SDF, manifold3d booleans, trimesh diagnostics) and the pane's three.js assets."
+doctor = "bin/yapcad doctor --cwd {cwd}"
+install = "bin/yapcad setup"
+
+[[toolchains]]
+name = "brep"
+description = "Optional conda-forge pythonocc-core environment for BREP fillets, analytic STEP and STEP import."
+doctor = "bin/yapcad doctor --cwd {cwd} --require-brep"
+install = "bin/yapcad setup-brep"
+
+[[skills]]
+name = "yapcad-workflow"
+path = "skills/yapcad-workflow/SKILL.md"
+agents = ["claude", "codex"]
+
+[[skills]]
+name = "model-review"
+path = "skills/model-review/SKILL.md"
+agents = ["claude", "codex"]
+
+[[prompts]]
+name = "session"
+path = "prompts/session.md"
+
+[[detect]]
+name = "yapcad"
+any = ["*.dsl", "*.ycpkg"]

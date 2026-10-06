@@ -209,19 +209,43 @@ fn fit_distance(width: f64, height: f64, depth: f64, vertical_fov: f64, aspect: 
     radius / vertical_half.min(horizontal_half).sin().max(1.0e-6) * 1.12
 }
 
-/// Depth range for an orbiting camera around a model with `radius`.
+/// Fitted model bounds, in GLB units, kept for per-frame clip planes.
+#[derive(Clone, Copy)]
+struct Bounds {
+    center: (f64, f64, f64),
+    radius: f64,
+}
+
+type BoundsSlot = Rc<RefCell<Option<Bounds>>>;
+
+/// Depth range for a camera `distance` from the centre of a model bounded by a
+/// sphere of `radius`.
 ///
-/// The old near plane was derived from the initial fitted camera distance.
-/// It therefore sat more than a radius in front of the camera and cut through
-/// the board as soon as OrbitControls zoomed closer.  Keep the near plane near
-/// the camera instead, and make the far plane cover the controls' complete
-/// zoom-out range.  Scaling both by the model radius keeps this useful for
-/// metre-scale board GLBs and millimetre-scale library previews alike.
-fn clip_planes(radius: f64, fitted_distance: f64) -> (f64, f64) {
+/// A 24-bit depth buffer resolves roughly `distance² / (near · 2²⁴)` at the
+/// model, so a fixed near plane tuned for close zoom (a thousandth of the
+/// radius) tears KiCad boards from the fitted view: their copper is 35 µm
+/// thick and the exported soldermask is a flat face only 15 µm above it. The
+/// planes are therefore recomputed every frame from the camera's actual
+/// distance.  Outside the bounding sphere nothing can be nearer than
+/// `distance - radius`; inside it the near plane follows the camera.  The far
+/// plane likewise hugs the sphere's back, so the whole buffer spans the model.
+fn clip_planes(distance: f64, radius: f64) -> (f64, f64) {
     let radius = radius.max(1.0e-9);
-    let near = radius / 1_000.0;
-    let far = fitted_distance * 50.0 + radius * 2.0;
-    (near, far.max(near * 10.0))
+    let distance = distance.max(1.0e-9);
+    let near = ((distance - radius) * 0.9).max(distance / 1_000.0);
+    let far = ((distance + radius) * 1.1).max(near * 10.0);
+    (near, far)
+}
+
+fn apply_clip_planes(camera: &Camera, bounds: &Bounds) {
+    if let Some(position) = property::<Vec3>(camera.as_ref(), "position") {
+        let (cx, cy, cz) = bounds.center;
+        let (dx, dy, dz) = (position.x() - cx, position.y() - cy, position.z() - cz);
+        let (near, far) = clip_planes((dx * dx + dy * dy + dz * dz).sqrt(), bounds.radius);
+        number(camera.as_ref(), "near", near);
+        number(camera.as_ref(), "far", far);
+        camera.update_projection();
+    }
 }
 
 fn resize(renderer: &Renderer, camera: &Camera, canvas: &HtmlCanvasElement) {
@@ -232,7 +256,7 @@ fn resize(renderer: &Renderer, camera: &Camera, canvas: &HtmlCanvasElement) {
     renderer.set_size(width, height, false);
 }
 
-fn frame(camera: &Camera, controls: &OrbitControls, model: &JsValue) {
+fn frame(camera: &Camera, controls: &OrbitControls, model: &JsValue) -> Bounds {
     // setFromObject walks only this GLTF scene. Lights and helper objects from
     // our outer scene therefore cannot inflate the fitted bounds.
     let bounds = Box3::new_box().set_from_object(model);
@@ -262,18 +286,25 @@ fn frame(camera: &Camera, controls: &OrbitControls, model: &JsValue) {
     if let Some(target) = property::<Vec3>(controls.as_ref(), "target") {
         target.set(center.x(), center.y(), center.z());
     }
-    let (near, far) = clip_planes(radius, distance);
-    number(camera.as_ref(), "near", near);
-    number(camera.as_ref(), "far", far);
+    let bounds = Bounds {
+        center: (center.x(), center.y(), center.z()),
+        radius,
+    };
     number(controls.as_ref(), "minDistance", radius * 0.05);
     number(controls.as_ref(), "maxDistance", distance * 50.0);
-    camera.update_projection();
     controls.update();
+    apply_clip_planes(camera, &bounds);
+    bounds
 }
 
 #[cfg(test)]
 mod tests {
     use super::{clip_planes, fit_distance};
+
+    /// Smallest depth difference a 24-bit buffer resolves at `distance`.
+    fn depth_resolution(distance: f64, near: f64) -> f64 {
+        distance * distance / (near * f64::from(1u32 << 24))
+    }
 
     #[test]
     fn fits_metre_scale_kicad_board_without_world_unit_floor() {
@@ -289,16 +320,30 @@ mod tests {
     }
 
     #[test]
+    fn fitted_view_resolves_copper_above_board() {
+        // A 50 × 30 mm KiCad board in metres: copper tops sit 15 µm below the
+        // flat soldermask face and 35 µm above the board body.
+        let radius = 0.5_f64 * (0.05_f64.powi(2) + 0.03_f64.powi(2) + 0.0016_f64.powi(2)).sqrt();
+        let distance = fit_distance(0.05, 0.0016, 0.03, 42.0, 16.0 / 9.0);
+        let (near, far) = clip_planes(distance, radius);
+        assert!(near < distance - radius && near > 0.0, "near={near}");
+        assert!(far > distance + radius, "far={far}");
+        let resolution = depth_resolution(distance + radius, near);
+        assert!(resolution < 1.0e-6, "resolution={resolution}");
+        // The old fixed near plane (radius / 1000) could not tell them apart.
+        assert!(depth_resolution(distance, radius / 1_000.0) > 15.0e-6);
+    }
+
+    #[test]
     fn clipping_plane_stays_close_when_orbiting_into_the_model() {
         let radius = 0.1;
-        let distance = fit_distance(radius * 2.0, 0.01, radius * 2.0, 42.0, 16.0 / 9.0);
-        let (near, far) = clip_planes(radius, distance);
-
-        // OrbitControls permits a distance of radius * 0.05.  The near plane
-        // must remain comfortably closer than that instead of being tied to
-        // the much farther initial fit.
-        assert!(near < radius * 0.05, "near={near}");
-        assert!(far > distance * 50.0, "far={far}");
+        // OrbitControls permits a distance of radius * 0.05; the near plane
+        // must stay well inside that so zooming in never cuts the board.
+        for distance in [radius * 0.05, radius * 0.5, radius, radius * 3.0] {
+            let (near, far) = clip_planes(distance, radius);
+            assert!(near < distance * 0.95, "near={near} distance={distance}");
+            assert!(far > distance + radius, "far={far} distance={distance}");
+        }
     }
 }
 
@@ -345,17 +390,19 @@ fn start(
     let loaded = Rc::new(RefCell::new(None));
     let failed = Rc::new(RefCell::new(None));
     let model = Rc::new(RefCell::new(None));
+    let bounds: BoundsSlot = Rc::new(RefCell::new(None));
     *loaded.borrow_mut() = Some({
         let scene = scene.clone();
         let camera = camera.clone();
         let controls = controls.clone();
         let model_slot = model.clone();
+        let bounds = bounds.clone();
         let status = status.clone();
         Closure::<dyn FnMut(JsValue)>::new(move |gltf: JsValue| {
             match Reflect::get(&gltf, &"scene".into()) {
                 Ok(model) => {
                     scene.add(&model);
-                    frame(&camera, &controls, &model);
+                    *bounds.borrow_mut() = Some(frame(&camera, &controls, &model));
                     *model_slot.borrow_mut() = Some(model);
                     status.set(String::new());
                 }
@@ -392,9 +439,13 @@ fn start(
     let loop_scene = scene.clone();
     let loop_camera = camera.clone();
     let loop_controls = controls.clone();
+    let loop_bounds = bounds.clone();
     *animation.borrow_mut() = Some(Closure::<dyn FnMut(f64)>::new(move |_| {
         if active {
             loop_controls.update();
+            if let Some(bounds) = loop_bounds.borrow().as_ref() {
+                apply_clip_planes(&loop_camera, bounds);
+            }
             loop_renderer.render(&loop_scene, &loop_camera);
         }
         if let (Some(window), Some(callback)) = (web_sys::window(), callback_slot.borrow().as_ref())

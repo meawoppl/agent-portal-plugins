@@ -367,7 +367,15 @@ impl SymbolProperty {
 
     pub fn from_sexp(sexp: &SExp) -> Self {
         let (position, rotation) = find_at(sexp);
-        let visible = !sexp.find("effects").is_some_and(|e| e.flag("hide"));
+        // KiCad <= 8 writes `(effects ... (hide yes))` (or a bare `hide`
+        // atom); KiCad 9 moved the flag to the property itself:
+        // `(property "Footprint" "..." (at ...) (effects ...) (hide yes))`.
+        // Only a `(hide ...)` *list* is honoured at property level so a
+        // property whose value is literally `hide` is not mistaken for one.
+        let hidden_here = sexp
+            .children_named("hide")
+            .any(|h| h.string_at(0).is_none_or(|v| v == "yes" || v == "true"));
+        let visible = !(hidden_here || sexp.find("effects").is_some_and(|e| e.flag("hide")));
         SymbolProperty {
             name: get_string(sexp, 0).unwrap_or_default(),
             value: get_string(sexp, 1).unwrap_or_default(),

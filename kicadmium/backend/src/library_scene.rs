@@ -5,8 +5,10 @@
 //! project schematic; the browser never parses KiCad source files.
 
 use crate::pcb_model::PcbBoard;
+use crate::schematic_view::palette;
+use crate::symbol_graphics::{body_prims, Fill};
 use anyhow::{anyhow, Result};
-use kct::schema::library::{LibrarySymbol, SymbolGraphic, SymbolLibrary};
+use kct::schema::library::{LibrarySymbol, SymbolLibrary};
 use vector_view::{
     Group, GroupKind, Item, Layer, LayerKind, Prim, Prop, Role, Scene, SceneKind, Side,
 };
@@ -14,6 +16,7 @@ use vector_view::{
 const SYMBOL_LAYER: u16 = 1;
 const PIN_LAYER: u16 = 2;
 const TEXT_LAYER: u16 = 3;
+const FILL_LAYER: u16 = 4;
 
 pub(crate) fn symbol_scene(library_text: &str, symbol_name: &str) -> Result<Scene> {
     let library = SymbolLibrary::load_from_string(library_text)?;
@@ -26,28 +29,24 @@ pub(crate) fn symbol_scene(library_text: &str, symbol_name: &str) -> Result<Scen
 
 fn scene_from_symbol(symbol: &LibrarySymbol) -> Scene {
     let mut scene = Scene::new(SceneKind::Symbol, true);
+    // Same palette and fill semantics as the project schematic.
     scene.layers = vec![
+        layer(
+            FILL_LAYER,
+            "Symbol body fill",
+            LayerKind::Symbol,
+            5,
+            palette::BODY_FILL,
+        ),
         layer(
             SYMBOL_LAYER,
             "Symbol body",
             LayerKind::Symbol,
             10,
-            [80, 180, 120, 255],
+            palette::BODY,
         ),
-        layer(
-            PIN_LAYER,
-            "Pins",
-            LayerKind::Symbol,
-            20,
-            [220, 120, 120, 255],
-        ),
-        layer(
-            TEXT_LAYER,
-            "Text",
-            LayerKind::Text,
-            30,
-            [210, 210, 220, 255],
-        ),
+        layer(PIN_LAYER, "Pins", LayerKind::Symbol, 20, palette::PIN),
+        layer(TEXT_LAYER, "Text", LayerKind::Text, 30, palette::PIN_TEXT),
     ];
     scene.groups.push(Group {
         id: 1,
@@ -62,54 +61,22 @@ fn scene_from_symbol(symbol: &LibrarySymbol) -> Scene {
     scene.meta.push(Prop::new("symbol", &symbol.name));
     let mut id = 1;
     for graphic in &symbol.graphics {
-        let prim = match graphic {
-            SymbolGraphic::Polyline(g) if g.points.len() >= 2 => {
-                let points = g.points.iter().map(|&(x, y)| [x, -y]).collect::<Vec<_>>();
-                if g.fill_type != "none" && points.len() >= 3 {
-                    Prim::Polygon {
-                        outer: points,
-                        holes: vec![],
-                        fill: true,
-                        stroke: g.stroke_width,
-                    }
-                } else {
-                    Prim::Polyline {
-                        points,
-                        width: stroke_width(g.stroke_width),
-                    }
-                }
-            }
-            SymbolGraphic::Circle(g) => Prim::Circle {
-                center: [g.center.0, -g.center.1],
-                radius: g.radius,
-                fill: g.fill_type != "none",
-                stroke: g.stroke_width,
-            },
-            SymbolGraphic::Rectangle(g) => Prim::Polygon {
-                outer: vec![
-                    [g.start.0, -g.start.1],
-                    [g.end.0, -g.start.1],
-                    [g.end.0, -g.end.1],
-                    [g.start.0, -g.end.1],
-                ],
-                holes: vec![],
-                fill: g.fill_type != "none",
-                stroke: g.stroke_width,
-            },
-            SymbolGraphic::Arc(g) => arc_prim(
-                [g.start.0, -g.start.1],
-                [g.mid.0, -g.mid.1],
-                [g.end.0, -g.end.1],
-                stroke_width(g.stroke_width),
-            ),
-            _ => continue,
+        let Some(body) = body_prims(graphic, |(x, y)| [x, -y], stroke_width) else {
+            continue;
         };
+        if let Some((fill, prim)) = body.fill {
+            let layer = match fill {
+                Fill::Outline => SYMBOL_LAYER,
+                _ => FILL_LAYER,
+            };
+            push_item(&mut scene, &mut id, layer, Role::SymbolBody, prim, vec![]);
+        }
         push_item(
             &mut scene,
             &mut id,
             SYMBOL_LAYER,
             Role::SymbolBody,
-            prim,
+            body.outline,
             vec![],
         );
     }
@@ -235,41 +202,29 @@ fn add_text(
     }
 }
 
-fn arc_prim(a: [f64; 2], b: [f64; 2], c: [f64; 2], width: f64) -> Prim {
-    let d = 2.0 * (a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1]));
-    if d.abs() < 1e-9 {
-        return Prim::Polyline {
-            points: vec![a, c],
-            width,
-        };
-    }
-    let aa = a[0] * a[0] + a[1] * a[1];
-    let bb = b[0] * b[0] + b[1] * b[1];
-    let cc = c[0] * c[0] + c[1] * c[1];
-    let center = [
-        (aa * (b[1] - c[1]) + bb * (c[1] - a[1]) + cc * (a[1] - b[1])) / d,
-        (aa * (c[0] - b[0]) + bb * (a[0] - c[0]) + cc * (b[0] - a[0])) / d,
-    ];
-    let angle = |p: [f64; 2]| (p[1] - center[1]).atan2(p[0] - center[0]);
-    let mut start = angle(a);
-    let mut end = angle(c);
-    let mid = angle(b);
-    let tau = std::f64::consts::TAU;
-    if (mid - start).rem_euclid(tau) > (end - start).rem_euclid(tau) {
-        std::mem::swap(&mut start, &mut end);
-    }
-    Prim::Arc {
-        center,
-        radius: (a[0] - center[0]).hypot(a[1] - center[1]),
-        start,
-        end,
-        width,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn background_body_is_a_wash_not_an_opaque_box() {
+        let text = r#"(kicad_symbol_lib (version 20231120) (generator test) (symbol "U" (symbol "U_0_1" (rectangle (start -5 5) (end 5 -5) (stroke (width .254) (type default)) (fill (type background)))) (symbol "U_1_1" (pin passive line (at -10 0 0) (length 5) (name "A") (number "1")))))"#;
+        let scene = symbol_scene(text, "U").unwrap();
+        let bodies: Vec<_> = scene
+            .items
+            .iter()
+            .filter(|i| i.role == Role::SymbolBody)
+            .collect();
+        assert_eq!(bodies.len(), 2);
+        assert!(bodies
+            .iter()
+            .any(|i| i.layer == FILL_LAYER && matches!(i.prim, Prim::Polygon { fill: true, .. })));
+        assert!(bodies.iter().any(
+            |i| i.layer == SYMBOL_LAYER && matches!(i.prim, Prim::Polygon { fill: false, .. })
+        ));
+        let fill = scene.layers.iter().find(|l| l.id == FILL_LAYER).unwrap();
+        assert!(fill.color[3] < 64 && fill.z < 10);
+    }
+
     #[test]
     fn symbol_is_reified() {
         let text = r#"(kicad_symbol_lib (version 20231120) (generator test) (symbol "R" (property "Value" "R") (symbol "R_0_1" (rectangle (start -1 -1) (end 1 1) (stroke (width .2) (type default)) (fill (type none)))) (symbol "R_1_1" (pin passive line (at -2 0 0) (length 1) (name "A") (number "1")))))"#;

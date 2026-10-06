@@ -4,6 +4,17 @@ use std::rc::Rc;
 use vector_view::{ItemId, Scene, SCENE_VERSION};
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
+/// Portal (Tokyo Night) canvas background; the scene's layer colours carry
+/// the rest of the default palette (see backend `schematic_view::palette`).
+const SCHEMATIC_BACKGROUND: vector_view::style::Rgba = [0x1a, 0x1b, 0x26, 255];
+/// Selected items are drawn in Tokyo Night orange while the rest dims.
+const SCHEMATIC_SELECTION: vector_view::style::Rgba = [0xff, 0x9e, 0x64, 255];
+fn schematic_theme() -> vector_view::style::Theme {
+    vector_view::style::Theme {
+        highlight: Some(SCHEMATIC_SELECTION),
+        ..Default::default()
+    }
+}
 #[derive(Properties, PartialEq)]
 pub struct SchematicViewProps {
     pub project: AttrValue,
@@ -62,7 +73,7 @@ pub fn schematic_view(props: &SchematicViewProps) -> Html {
                 let selected = selected.clone();
                 Callback::from(move |id: Option<ItemId>| selected.set(id))
             };
-            html! {<div class="schematicv"><VectorSceneCanvas scene={scene.clone()} selected={*selected} {on_select}/>{if let Some(id)=*selected{html!{<SceneProperties scene={scene.clone()} item={id} onclose={{let selected=selected.clone();Callback::from(move |_|selected.set(None))}}/>}}else{Html::default()}}</div>}
+            html! {<div class="schematicv"><VectorSceneCanvas scene={scene.clone()} selected={*selected} {on_select} theme={schematic_theme()} background={Some(SCHEMATIC_BACKGROUND)}/>{if let Some(id)=*selected{html!{<SceneProperties scene={scene.clone()} item={id} onclose={{let selected=selected.clone();Callback::from(move |_|selected.set(None))}}/>}}else{Html::default()}}</div>}
         }
     }
 }

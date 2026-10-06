@@ -549,6 +549,21 @@ fn symbol_property_round_trip() {
 }
 
 #[test]
+fn symbol_property_hide_at_property_level() {
+    // KiCad 9 writes the hide flag beside `effects`, not inside it.
+    let sexp = parse(
+        r#"(property "Footprint" "Tesla:TB" (at 1 2 0) (effects (font (size 1.27 1.27))) (hide yes))"#,
+    )
+    .unwrap();
+    assert!(!SymbolProperty::from_sexp(&sexp).visible);
+    let sexp = parse(
+        r#"(property "Value" "hide" (at 1 2 0) (effects (font (size 1.27 1.27))) (hide no))"#,
+    )
+    .unwrap();
+    assert!(SymbolProperty::from_sexp(&sexp).visible);
+}
+
+#[test]
 fn symbol_pin_round_trip() {
     let pin = SymbolPin::new("1", "aaaa-bbbb");
     let sexp = pin.to_sexp();

@@ -1,5 +1,6 @@
 //! Backend-normalized schematic geometry using pastebom's canonical scene.
 
+use crate::symbol_graphics::{body_prims, Fill};
 use crate::{
     current_source_revision, pick_project_file, rel, selected_project, AppError, AppState,
     ProjectContext, ProjectQuery,
@@ -10,7 +11,7 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use kct::schema::{library::SymbolGraphic, schematic::Schematic};
+use kct::{schema::schematic::Schematic, SExp};
 use std::{
     collections::{HashMap, HashSet},
     path::{Path, PathBuf},
@@ -19,10 +20,49 @@ use vector_view::{
     BBox, Group, GroupKind, Item, Layer, LayerKind, Net, Prim, Prop, Role, Scene, SceneKind, Side,
 };
 
+// Layer ids. Each schematic element class gets its own layer so the viewer
+// (and any theme override) can colour it independently.
 const CONNECTIVITY: u16 = 0;
 const SYMBOLS: u16 = 1;
-const TEXT: u16 = 2;
+const FIELDS: u16 = 2;
 const SHEETS: u16 = 3;
+const BODY_FILL: u16 = 4;
+const PINS: u16 = 5;
+const PIN_TEXT: u16 = 6;
+const NO_CONNECTS: u16 = 7;
+const LABELS: u16 = 8;
+const GLOBAL_LABELS: u16 = 9;
+const POWER: u16 = 10;
+
+/// Default schematic palette: the Agent Portal's Tokyo Night colours, drawn
+/// over the #1a1b26 canvas the schematic tab sets.
+pub(crate) mod palette {
+    pub type Rgba = [u8; 4];
+    /// Wires and junctions (green).
+    pub const WIRE: Rgba = [0x9e, 0xce, 0x6a, 255];
+    /// Symbol body outlines and `(fill (type outline))` shapes (blue).
+    pub const BODY: Rgba = [0x7a, 0xa2, 0xf7, 255];
+    /// `(fill (type background))` bodies: the body blue at ~9% (about
+    /// #23283a on the canvas), a wash under everything that never hides
+    /// pins or text.
+    pub const BODY_FILL: Rgba = [0x7a, 0xa2, 0xf7, 24];
+    /// Pin lines (orange).
+    pub const PIN: Rgba = [0xe0, 0xaf, 0x68, 255];
+    /// Pin names and numbers (muted foreground).
+    pub const PIN_TEXT: Rgba = [0x9a, 0xa5, 0xce, 255];
+    /// Reference, value and other visible fields (teal).
+    pub const FIELD: Rgba = [0x7d, 0xcf, 0xff, 255];
+    /// Local net labels (foreground).
+    pub const LABEL: Rgba = [0xc0, 0xca, 0xf5, 255];
+    /// Global and hierarchical labels (purple, like sheets).
+    pub const GLOBAL_LABEL: Rgba = [0xbb, 0x9a, 0xf7, 255];
+    /// Power symbols: body, pins and value (red).
+    pub const POWER: Rgba = [0xf7, 0x76, 0x8e, 255];
+    /// No-connect flags (blue).
+    pub const NO_CONNECT: Rgba = [0x7a, 0xa2, 0xf7, 255];
+    /// Hierarchical sheet frames (purple).
+    pub const SHEET: Rgba = [0xbb, 0x9a, 0xf7, 255];
+}
 
 pub(crate) fn routes() -> Router<AppState> {
     Router::new().route("/api/kicad/schematic", get(endpoint))
@@ -65,23 +105,49 @@ struct Builder {
 impl Builder {
     fn new() -> Self {
         let mut scene = Scene::new(SceneKind::Schematic, true);
+        // Paint order (z): sheets, body wash, wires, bodies, pins, text.
         scene.layers = vec![
+            layer(SHEETS, "Sheets", LayerKind::Sheet, 5, palette::SHEET),
+            layer(
+                BODY_FILL,
+                "Symbol body fill",
+                LayerKind::Symbol,
+                6,
+                palette::BODY_FILL,
+            ),
             layer(
                 CONNECTIVITY,
-                "Connectivity",
+                "Wires",
                 LayerKind::Connectivity,
                 10,
-                [80, 180, 90, 255],
+                palette::WIRE,
             ),
             layer(
-                SYMBOLS,
-                "Symbols",
-                LayerKind::Symbol,
-                20,
-                [205, 170, 80, 255],
+                NO_CONNECTS,
+                "No-connects",
+                LayerKind::Connectivity,
+                11,
+                palette::NO_CONNECT,
             ),
-            layer(TEXT, "Text", LayerKind::Text, 30, [190, 200, 220, 255]),
-            layer(SHEETS, "Sheets", LayerKind::Sheet, 5, [120, 130, 190, 255]),
+            layer(SYMBOLS, "Symbols", LayerKind::Symbol, 20, palette::BODY),
+            layer(PINS, "Pins", LayerKind::Symbol, 21, palette::PIN),
+            layer(
+                POWER,
+                "Power symbols",
+                LayerKind::Symbol,
+                22,
+                palette::POWER,
+            ),
+            layer(PIN_TEXT, "Pin text", LayerKind::Text, 30, palette::PIN_TEXT),
+            layer(FIELDS, "Fields", LayerKind::Text, 31, palette::FIELD),
+            layer(LABELS, "Labels", LayerKind::Text, 32, palette::LABEL),
+            layer(
+                GLOBAL_LABELS,
+                "Global labels",
+                LayerKind::Text,
+                33,
+                palette::GLOBAL_LABEL,
+            ),
         ];
         Self {
             scene,
@@ -206,7 +272,7 @@ fn collect_page(
     for n in s.no_connects() {
         let p = pt(n.position);
         b.add(
-            CONNECTIVITY,
+            NO_CONNECTS,
             Role::NoConnect,
             Prim::Polyline {
                 points: vec![
@@ -226,6 +292,7 @@ fn collect_page(
     for l in s.labels() {
         add_text(
             b,
+            LABELS,
             page,
             &l.uuid,
             &l.text,
@@ -239,6 +306,7 @@ fn collect_page(
     for l in s.hierarchical_labels() {
         add_text(
             b,
+            GLOBAL_LABELS,
             page,
             &l.uuid,
             &l.text,
@@ -252,6 +320,7 @@ fn collect_page(
     for l in s.global_labels() {
         add_text(
             b,
+            GLOBAL_LABELS,
             page,
             &l.uuid,
             &l.text,
@@ -262,126 +331,7 @@ fn collect_page(
             None,
         )
     }
-    for inst in s.symbols() {
-        let Some(lib) = s.get_lib_symbol_resolved(&inst.lib_id)? else {
-            continue;
-        };
-        let gid = b.group(
-            GroupKind::Symbol,
-            inst.reference().into(),
-            vec![
-                Prop::new("page", page),
-                Prop::new("uuid", &inst.uuid),
-                Prop::new("lib_id", &inst.lib_id),
-                Prop::new("value", inst.value()),
-                Prop::new("unit", inst.unit.to_string()),
-            ],
-        );
-        for (i, g) in lib.graphics.iter().enumerate() {
-            let props = identity(page, &format!("{}:{i}", inst.uuid));
-            match g {
-                SymbolGraphic::Polyline(x) => b.add(
-                    SYMBOLS,
-                    Role::SymbolBody,
-                    Prim::Polyline {
-                        points: x
-                            .points
-                            .iter()
-                            .map(|&p| transform(p, inst.position, inst.rotation, &inst.mirror))
-                            .collect(),
-                        width: width(x.stroke_width),
-                    },
-                    None,
-                    Some(gid),
-                    props,
-                ),
-                SymbolGraphic::Circle(x) => b.add(
-                    SYMBOLS,
-                    Role::SymbolBody,
-                    Prim::Circle {
-                        center: transform(x.center, inst.position, inst.rotation, &inst.mirror),
-                        radius: x.radius,
-                        fill: x.fill_type != "none",
-                        stroke: width(x.stroke_width),
-                    },
-                    None,
-                    Some(gid),
-                    props,
-                ),
-                SymbolGraphic::Arc(x) => b.add(
-                    SYMBOLS,
-                    Role::SymbolBody,
-                    arc_prim(
-                        transform(x.start, inst.position, inst.rotation, &inst.mirror),
-                        transform(x.mid, inst.position, inst.rotation, &inst.mirror),
-                        transform(x.end, inst.position, inst.rotation, &inst.mirror),
-                        width(x.stroke_width),
-                    ),
-                    None,
-                    Some(gid),
-                    props,
-                ),
-                SymbolGraphic::Rectangle(x) => {
-                    let a = transform(x.start, inst.position, inst.rotation, &inst.mirror);
-                    let c = transform(x.end, inst.position, inst.rotation, &inst.mirror);
-                    b.add(
-                        SYMBOLS,
-                        Role::SymbolBody,
-                        Prim::Polygon {
-                            outer: vec![a, [c[0], a[1]], c, [a[0], c[1]]],
-                            holes: vec![],
-                            fill: x.fill_type != "none",
-                            stroke: width(x.stroke_width),
-                        },
-                        None,
-                        Some(gid),
-                        props,
-                    )
-                }
-            }
-        }
-        for pin in lib
-            .pins
-            .iter()
-            .filter(|p| p.unit == inst.unit || p.unit == 0)
-        {
-            let at = transform(pin.position, inst.position, inst.rotation, &inst.mirror);
-            let a = (pin.rotation + inst.rotation).to_radians();
-            let end = [at[0] + pin.length * a.cos(), at[1] - pin.length * a.sin()];
-            let n = nets.get(&key((at[0], at[1]))).map(String::as_str);
-            let mut props = identity(page, &format!("{}:{}", inst.uuid, pin.number));
-            props.extend([
-                Prop::new("number", &pin.number),
-                Prop::new("name", &pin.name),
-                Prop::new("electrical_type", &pin.pin_type),
-                Prop::new("shape", &pin.shape),
-            ]);
-            b.add(
-                SYMBOLS,
-                Role::Pin,
-                Prim::Polyline {
-                    points: vec![at, end],
-                    width: 0.2,
-                },
-                n,
-                Some(gid),
-                props,
-            )
-        }
-        for p in inst.properties.values().filter(|p| p.visible) {
-            add_text(
-                b,
-                page,
-                &format!("{}:{}", inst.uuid, p.name),
-                &p.value,
-                p.position,
-                p.rotation,
-                None,
-                Role::Field,
-                Some(gid),
-            )
-        }
-    }
+    add_symbols(&s, page, &nets, b)?;
     let sheets: Vec<_> = s
         .sheets()
         .iter()
@@ -434,6 +384,137 @@ fn collect_page(
     Ok(())
 }
 
+/// Symbol bodies, pins, pin text and visible fields of one page.
+fn add_symbols(
+    s: &Schematic,
+    page: &str,
+    nets: &HashMap<String, String>,
+    b: &mut Builder,
+) -> Result<()> {
+    for inst in s.symbols() {
+        let Some(lib) = s.get_lib_symbol_resolved(&inst.lib_id)? else {
+            continue;
+        };
+        let gid = b.group(
+            GroupKind::Symbol,
+            inst.reference().into(),
+            vec![
+                Prop::new("page", page),
+                Prop::new("uuid", &inst.uuid),
+                Prop::new("lib_id", &inst.lib_id),
+                Prop::new("value", inst.value()),
+                Prop::new("unit", inst.unit.to_string()),
+            ],
+        );
+        let lib_sexp = s.get_lib_symbol(&inst.lib_id);
+        let power =
+            lib_sexp.is_some_and(|l| l.get("power").is_some()) || inst.lib_id.starts_with("power:");
+        let (body_layer, pin_layer, field_layer) = if power {
+            (POWER, POWER, POWER)
+        } else {
+            (SYMBOLS, PINS, FIELDS)
+        };
+        let place = |p| transform(p, inst.position, inst.rotation, &inst.mirror);
+        for (i, g) in lib.graphics.iter().enumerate() {
+            let Some(body) = body_prims(g, place, width) else {
+                continue;
+            };
+            let props = identity(page, &format!("{}:{i}", inst.uuid));
+            if let Some((fill, prim)) = body.fill {
+                let fill_layer = match fill {
+                    Fill::Outline => body_layer,
+                    _ => BODY_FILL,
+                };
+                b.add(
+                    fill_layer,
+                    Role::SymbolBody,
+                    prim,
+                    None,
+                    Some(gid),
+                    props.clone(),
+                );
+            }
+            b.add(
+                body_layer,
+                Role::SymbolBody,
+                body.outline,
+                None,
+                Some(gid),
+                props,
+            );
+        }
+        let style = PinTextStyle::from_lib(lib_sexp);
+        for pin in lib
+            .pins
+            .iter()
+            .filter(|p| p.unit == inst.unit || p.unit == 0)
+        {
+            let pin_style = style.pins.get(&pin.number).cloned().unwrap_or_default();
+            if pin_style.hidden {
+                // KiCad does not draw hidden (usually power) pins.
+                continue;
+            }
+            let at = place(pin.position);
+            let a = pin.rotation.to_radians();
+            let end = place((
+                pin.position.0 + pin.length * a.cos(),
+                pin.position.1 + pin.length * a.sin(),
+            ));
+            let n = nets.get(&key((at[0], at[1]))).map(String::as_str);
+            let mut props = identity(page, &format!("{}:{}", inst.uuid, pin.number));
+            props.extend([
+                Prop::new("number", &pin.number),
+                Prop::new("name", &pin.name),
+                Prop::new("electrical_type", &pin.pin_type),
+                Prop::new("shape", &pin.shape),
+            ]);
+            b.add(
+                pin_layer,
+                Role::Pin,
+                Prim::Polyline {
+                    points: vec![at, end],
+                    width: 0.2,
+                },
+                n,
+                Some(gid),
+                props,
+            );
+            if !power {
+                for (role, text, spec) in
+                    pin_text(&style, &pin_style, &pin.name, &pin.number, at, end)
+                {
+                    add_text_spec(
+                        b,
+                        PIN_TEXT,
+                        page,
+                        &format!("{}:{}:{role}", inst.uuid, pin.number),
+                        text,
+                        spec,
+                        None,
+                        Role::Text,
+                        Some(gid),
+                    );
+                }
+            }
+        }
+        for p in inst.properties.values().filter(|p| p.visible) {
+            add_text(
+                b,
+                field_layer,
+                page,
+                &format!("{}:{}", inst.uuid, p.name),
+                &p.value,
+                p.position,
+                p.rotation,
+                None,
+                Role::Field,
+                Some(gid),
+            )
+        }
+    }
+    Ok(())
+}
+
 fn connectivity_names(s: &Schematic) -> HashMap<String, String> {
     let mut n = HashMap::new();
     for l in s.labels() {
@@ -471,6 +552,7 @@ fn connectivity_names(s: &Schematic) -> HashMap<String, String> {
 #[allow(clippy::too_many_arguments)]
 fn add_text(
     b: &mut Builder,
+    layer: u16,
     page: &str,
     id: &str,
     text: &str,
@@ -480,8 +562,7 @@ fn add_text(
     role: Role,
     group: Option<u32>,
 ) {
-    let strokes = kicad_strokes::to_strokes(&kicad_strokes::TextSpec {
-        text: text.to_owned(),
+    let spec = kicad_strokes::TextSpec {
         pos: [pos.0, pos.1],
         angle_deg: rotation,
         // The current schematic schema deliberately normalizes only the
@@ -491,40 +572,192 @@ fn add_text(
         thickness: kicad_strokes::SCH_DEFAULT_PEN,
         keep_upright: true,
         ..kicad_strokes::TextSpec::default()
+    };
+    add_text_spec(b, layer, page, id, text, spec, net, role, group)
+}
+#[allow(clippy::too_many_arguments)]
+fn add_text_spec(
+    b: &mut Builder,
+    layer: u16,
+    page: &str,
+    id: &str,
+    text: &str,
+    spec: kicad_strokes::TextSpec,
+    net: Option<&str>,
+    role: Role,
+    group: Option<u32>,
+) {
+    let pos = spec.pos;
+    let rotation = spec.angle_deg;
+    let strokes = kicad_strokes::to_strokes(&kicad_strokes::TextSpec {
+        text: text.to_owned(),
+        ..spec
     });
     let mut props = identity(page, id);
     props.extend([
         Prop::new("text", text),
-        Prop::new("at", format!("{},{}", pos.0, pos.1)),
+        Prop::new("at", format!("{},{}", pos[0], pos[1])),
         Prop::new("rotation", rotation.to_string()),
     ]);
-    b.add(TEXT, role, strokes.into_prim(), net, group, props)
+    b.add(layer, role, strokes.into_prim(), net, group, props)
+}
+
+/// Symbol-level pin text settings from the embedded library symbol:
+/// `(pin_names (offset o) [hide])`, `(pin_numbers [hide])` and per-pin
+/// `hide` flags and font sizes.
+#[derive(Debug, Clone)]
+struct PinTextStyle {
+    /// Pin-name offset into the body; `None` when names are hidden.
+    name_offset: Option<f64>,
+    numbers: bool,
+    pins: HashMap<String, PinStyle>,
+}
+#[derive(Debug, Clone)]
+struct PinStyle {
+    hidden: bool,
+    name_size: f64,
+    number_size: f64,
+    name_hidden: bool,
+    number_hidden: bool,
+}
+impl Default for PinStyle {
+    fn default() -> Self {
+        Self {
+            hidden: false,
+            name_size: 1.27,
+            number_size: 1.27,
+            name_hidden: false,
+            number_hidden: false,
+        }
+    }
+}
+impl PinTextStyle {
+    fn from_lib(lib: Option<&SExp>) -> Self {
+        let hide = |n: Option<&SExp>| n.is_some_and(|n| n.flag("hide"));
+        let names = lib.and_then(|l| l.get("pin_names"));
+        let name_offset =
+            (!hide(names)).then(|| names.and_then(|n| n.child_f64("offset")).unwrap_or(0.508));
+        let numbers = !hide(lib.and_then(|l| l.get("pin_numbers")));
+        let mut pins = HashMap::new();
+        for pin in lib.into_iter().flat_map(|l| l.find_all("pin")) {
+            let text = |tag| pin.get(tag);
+            let size = |tag| {
+                text(tag)
+                    .and_then(|t| t.find("size"))
+                    .and_then(|s| s.float_at(0))
+                    .filter(|s| *s > 0.0)
+                    .unwrap_or(1.27)
+            };
+            let text_hidden = |tag| hide(text(tag).and_then(|t| t.get("effects")));
+            let Some(number) = text("number").and_then(|t| t.string_at(0)) else {
+                continue;
+            };
+            pins.insert(
+                number.to_owned(),
+                PinStyle {
+                    hidden: pin.flag("hide"),
+                    name_size: size("name"),
+                    number_size: size("number"),
+                    name_hidden: text_hidden("name"),
+                    number_hidden: text_hidden("number"),
+                },
+            );
+        }
+        Self {
+            name_offset,
+            numbers,
+            pins,
+        }
+    }
+}
+
+/// KiCad pin name/number placement for a pin from connection point `at` to
+/// body end `end` (scene coordinates). Names sit inside the body past
+/// `end` (or above the pin when the offset is 0); numbers sit above the pin
+/// (below it when names are above). Vertical pins read bottom-to-top.
+fn pin_text<'a>(
+    style: &PinTextStyle,
+    pin: &PinStyle,
+    name: &'a str,
+    number: &'a str,
+    at: [f64; 2],
+    end: [f64; 2],
+) -> Vec<(&'static str, &'a str, kicad_strokes::TextSpec)> {
+    use kicad_strokes::{HJustify, TextSpec, VJustify};
+    const GAP: f64 = 0.3;
+    let (dx, dy) = (end[0] - at[0], end[1] - at[1]);
+    let len = dx.hypot(dy);
+    if len < 1e-9 {
+        return vec![];
+    }
+    let (ux, uy) = (dx / len, dy / len);
+    let vertical = uy.abs() > ux.abs();
+    let angle = if vertical { 90.0 } else { 0.0 };
+    // "Above" the pin in the text frame: screen up, or screen left when
+    // the text is rotated to read upward.
+    let (ax, ay) = if vertical { (-1.0, 0.0) } else { (0.0, -1.0) };
+    let mid = [(at[0] + end[0]) / 2.0, (at[1] + end[1]) / 2.0];
+    let spec = |pos: [f64; 2], size: f64, h, v| TextSpec {
+        pos,
+        size: [size, size],
+        angle_deg: angle,
+        justify_h: h,
+        justify_v: v,
+        thickness: kicad_strokes::SCH_DEFAULT_PEN,
+        keep_upright: true,
+        ..TextSpec::default()
+    };
+    let mut out = vec![];
+    let show_name = !name.is_empty() && name != "~" && !pin.name_hidden;
+    let names_above = matches!(style.name_offset, Some(o) if o <= 0.0);
+    if let (Some(offset), true) = (style.name_offset, show_name) {
+        if offset > 0.0 {
+            // Text runs away from the pin: rightward/upward pins start at
+            // the anchor (Left), the others end at it (Right).
+            let forward = if vertical { uy < 0.0 } else { ux > 0.0 };
+            out.push((
+                "name",
+                name,
+                spec(
+                    [end[0] + ux * offset, end[1] + uy * offset],
+                    pin.name_size,
+                    if forward {
+                        HJustify::Left
+                    } else {
+                        HJustify::Right
+                    },
+                    VJustify::Center,
+                ),
+            ));
+        } else {
+            out.push((
+                "name",
+                name,
+                spec(
+                    [mid[0] + ax * GAP, mid[1] + ay * GAP],
+                    pin.name_size,
+                    HJustify::Center,
+                    VJustify::Bottom,
+                ),
+            ));
+        }
+    }
+    if style.numbers && !pin.number_hidden && !number.is_empty() {
+        let (pos, v) = if names_above && show_name {
+            ([mid[0] - ax * GAP, mid[1] - ay * GAP], VJustify::Top)
+        } else {
+            ([mid[0] + ax * GAP, mid[1] + ay * GAP], VJustify::Bottom)
+        };
+        out.push((
+            "number",
+            number,
+            spec(pos, pin.number_size, HJustify::Center, v),
+        ));
+    }
+    out
 }
 fn identity(page: &str, id: &str) -> Vec<Prop> {
     vec![Prop::new("page", page), Prop::new("uuid", id)]
-}
-fn arc_prim(s: [f64; 2], m: [f64; 2], e: [f64; 2], w: f64) -> Prim {
-    let d = 2.0 * (s[0] * (m[1] - e[1]) + m[0] * (e[1] - s[1]) + e[0] * (s[1] - m[1]));
-    if d.abs() < 1e-9 {
-        return Prim::Polyline {
-            points: vec![s, m, e],
-            width: w,
-        };
-    }
-    let ss = s[0] * s[0] + s[1] * s[1];
-    let mm = m[0] * m[0] + m[1] * m[1];
-    let ee = e[0] * e[0] + e[1] * e[1];
-    let c = [
-        (ss * (m[1] - e[1]) + mm * (e[1] - s[1]) + ee * (s[1] - m[1])) / d,
-        (ss * (e[0] - m[0]) + mm * (s[0] - e[0]) + ee * (m[0] - s[0])) / d,
-    ];
-    Prim::Arc {
-        center: c,
-        radius: ((s[0] - c[0]).powi(2) + (s[1] - c[1]).powi(2)).sqrt(),
-        start: (s[1] - c[1]).atan2(s[0] - c[0]),
-        end: (e[1] - c[1]).atan2(e[0] - c[0]),
-        width: w,
-    }
 }
 fn transform((mut x, mut y): (f64, f64), o: (f64, f64), rot: f64, mirror: &str) -> [f64; 2] {
     if mirror == "x" {
@@ -592,6 +825,7 @@ mod tests {
         let mut b = Builder::new();
         add_text(
             &mut b,
+            LABELS,
             "/",
             "u",
             "R1",
@@ -607,11 +841,104 @@ mod tests {
             .iter()
             .any(|p| p.key == "text" && p.value == "R1"))
     }
+    const SCH: &str = r#"(kicad_sch (version 20250114) (generator "eeschema")
+  (lib_symbols
+    (symbol "Tesla:U1" (pin_names (offset 0.762)) (in_bom yes) (on_board yes)
+      (property "Reference" "U" (at 0 0 0) (effects (font (size 1.27 1.27))))
+      (symbol "U1_0_1"
+        (rectangle (start -5 5) (end 5 -5) (stroke (width 0.254) (type default)) (fill (type background)))
+        (polyline (pts (xy -1 0) (xy 1 1) (xy 1 -1)) (stroke (width 0) (type default)) (fill (type outline))))
+      (symbol "U1_1_1"
+        (pin passive line (at -10 0 0) (length 5) (name "VIN" (effects (font (size 0.95 0.95)))) (number "1" (effects (font (size 0.95 0.95)))))
+        (pin power_in line (at 10 0 180) (length 5) hide (name "GND" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27))))))))
+  (symbol (lib_id "Tesla:U1") (at 100 100 0) (unit 1) (in_bom yes) (on_board yes) (uuid "u-1")
+    (property "Reference" "U1" (at 100 92 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "LM21421" (at 100 108 0) (effects (font (size 1.27 1.27))))
+    (property "Footprint" "Tesla:TerminalBlock" (at 100 100 0) (effects (font (size 1.27 1.27))) (hide yes))
+    (property "Datasheet" "https://example.com/ds.pdf" (at 100 100 0) (effects (font (size 1.27 1.27)) (hide yes)))))"#;
+
+    fn scene() -> Scene {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("t.kicad_sch");
+        std::fs::write(&path, SCH).unwrap();
+        let s = Schematic::load(&path).unwrap();
+        let mut b = Builder::new();
+        add_symbols(&s, "/", &HashMap::new(), &mut b).unwrap();
+        b.scene
+    }
+    fn filled(p: &Prim) -> bool {
+        matches!(
+            p,
+            Prim::Polygon { fill: true, .. } | Prim::Circle { fill: true, .. }
+        )
+    }
+
     #[test]
-    fn arc_reifies() {
-        assert!(matches!(
-            arc_prim([1., 0.], [0., 1.], [-1., 0.], 0.2),
-            Prim::Arc { .. }
-        ))
+    fn background_fill_is_a_wash_under_unfilled_outline() {
+        let sc = scene();
+        let bodies: Vec<_> = sc
+            .items
+            .iter()
+            .filter(|i| i.role == Role::SymbolBody)
+            .collect();
+        // Rectangle: wash + outline; triangle: outline fill + stroke.
+        assert_eq!(bodies.len(), 4);
+        let wash: Vec<_> = bodies.iter().filter(|i| i.layer == BODY_FILL).collect();
+        assert_eq!(wash.len(), 1);
+        assert!(filled(&wash[0].prim));
+        // Nothing opaque is filled on the body layer except outline fills.
+        let on_body: Vec<_> = bodies.iter().filter(|i| i.layer == SYMBOLS).collect();
+        assert_eq!(on_body.iter().filter(|i| filled(&i.prim)).count(), 1);
+        assert!(on_body
+            .iter()
+            .any(|i| matches!(i.prim, Prim::Polygon { fill: false, .. })));
+        // The wash layer is translucent and painted below wires and bodies.
+        let layer = |id| sc.layers.iter().find(|l| l.id == id).unwrap();
+        assert!(layer(BODY_FILL).color[3] < 64);
+        assert!(layer(BODY_FILL).z < layer(CONNECTIVITY).z);
+        assert!(layer(BODY_FILL).z < layer(SYMBOLS).z);
+    }
+
+    #[test]
+    fn hidden_fields_and_pins_are_not_drawn() {
+        let sc = scene();
+        let texts: Vec<_> = sc
+            .items
+            .iter()
+            .filter(|i| i.role == Role::Field)
+            .filter_map(|i| i.props.iter().find(|p| p.key == "text"))
+            .map(|p| p.value.as_str())
+            .collect();
+        assert_eq!(texts, ["U1", "LM21421"]);
+        let pins: Vec<_> = sc.items.iter().filter(|i| i.role == Role::Pin).collect();
+        assert_eq!(pins.len(), 1, "hidden GND pin is skipped");
+    }
+
+    #[test]
+    fn pin_name_inside_body_and_number_above_pin() {
+        let sc = scene();
+        let pin_text = |suffix: &str| {
+            sc.items
+                .iter()
+                .find(|i| {
+                    i.layer == PIN_TEXT
+                        && i.props
+                            .iter()
+                            .any(|p| p.key == "uuid" && p.value.ends_with(suffix))
+                })
+                .unwrap()
+        };
+        let bbox = |i: &Item| {
+            let mut s = Scene::new(SceneKind::Schematic, true);
+            s.items.push(i.clone());
+            s.recompute_bbox();
+            s.bbox
+        };
+        // Pin 1 runs from x=90 to x=95; the name starts inside the body.
+        let name = bbox(pin_text(":1:name"));
+        assert!(name.min[0] >= 95.0 && name.max[0] < 105.0);
+        let number = bbox(pin_text(":1:number"));
+        assert!(number.min[0] > 90.0 && number.max[0] < 95.0);
+        assert!(number.max[1] < 100.0, "number sits above the pin line");
     }
 }

@@ -15,6 +15,7 @@ mod revision;
 mod schematic_view;
 mod sexp;
 mod sexpr;
+mod symbol_graphics;
 mod thumbnails;
 mod watch;
 use std::{

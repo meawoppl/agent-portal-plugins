@@ -804,8 +804,21 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
         .map(|l| l.revision.clone())
         .unwrap_or_default();
     let message = (*status).clone();
+    // Advertised for the annotation composer: which copper is on screen.
+    let annotate_layers = scene
+        .as_ref()
+        .map(|scene| {
+            scene
+                .layers
+                .iter()
+                .filter(|l| l.kind == LayerKind::Copper && s.layer_visible(l))
+                .map(|l| l.name.as_str())
+                .collect::<Vec<_>>()
+                .join(",")
+        })
+        .unwrap_or_default();
     html! {
-        <div class="pcbv" ref={stage} data-revision={revision}>
+        <div class="pcbv" ref={stage} data-revision={revision} data-annotate-layers={annotate_layers}>
             {canvas}
             {toolbar}
             {layers_panel}

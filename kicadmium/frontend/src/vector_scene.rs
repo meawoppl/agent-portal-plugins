@@ -203,7 +203,43 @@ fn redraw(c: &HtmlCanvasElement, s: &Scene, r: &mut Runtime) -> bool {
         r.state.background,
     );
     draw_cached(s, &ctx, &r.state, &mut r.cache);
+    publish_view(c, &r.state.view);
     true
+}
+
+/// Attribute on the canvas carrying the current camera, so components that
+/// only see the DOM (the annotation composer) can map CSS pixels to scene
+/// millimetres with [`view_of`].
+const VIEW_ATTR: &str = "data-view";
+
+fn publish_view(c: &HtmlCanvasElement, v: &View) {
+    let _ = c.set_attribute(VIEW_ATTR, &encode_view(v));
+}
+
+fn encode_view(v: &View) -> String {
+    format!(
+        "{} {} {} {} {} {}",
+        v.scale, v.tx, v.ty, v.rotation, v.mirrored as u8, v.y_up as u8
+    )
+}
+
+fn decode_view(text: &str) -> Option<View> {
+    let mut parts = text.split(' ');
+    let mut next = || parts.next()?.parse::<f64>().ok();
+    let view = View {
+        scale: next()?,
+        tx: next()?,
+        ty: next()?,
+        rotation: next()?,
+        mirrored: next()? != 0.0,
+        y_up: next()? != 0.0,
+    };
+    (view.scale.is_finite() && view.scale > 0.0).then_some(view)
+}
+
+/// The camera last drawn on a `VectorSceneCanvas` canvas, if any.
+pub fn view_of(c: &HtmlCanvasElement) -> Option<View> {
+    decode_view(&c.get_attribute(VIEW_ATTR)?)
 }
 /// Redraw and report the view when it is valid for the current viewport.
 fn redraw_report(c: &HtmlCanvasElement, s: &Scene, r: &mut Runtime, on_view: &Callback<View>) {
@@ -584,6 +620,21 @@ mod tests {
         min: [100.0, 50.0],
         max: [150.0, 80.0],
     };
+
+    #[test]
+    fn published_view_round_trips() {
+        let view = View {
+            scale: 12.5,
+            tx: -3.25,
+            ty: 480.0,
+            rotation: 0.5,
+            mirrored: true,
+            y_up: false,
+        };
+        assert_eq!(super::decode_view(&super::encode_view(&view)), Some(view));
+        assert_eq!(super::decode_view("junk"), None);
+        assert_eq!(super::decode_view("0 0 0 0 0 0"), None);
+    }
 
     fn screen_extent(v: &View, b: &BBox) -> (f64, f64) {
         let a = v.to_screen(b.min);

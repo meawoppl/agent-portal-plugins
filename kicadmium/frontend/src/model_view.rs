@@ -158,16 +158,8 @@ fn dispose_model(model: &JsValue) {
                 call_no_args(&geometry, "dispose");
             }
         }
-        if let Ok(material) = Reflect::get(&object, &"material".into()) {
-            let materials = if js_sys::Array::is_array(&material) {
-                js_sys::Array::from(&material)
-            } else {
-                js_sys::Array::of1(&material)
-            };
-            for value in materials.iter() {
-                if value.is_null() || value.is_undefined() {
-                    continue;
-                }
+        {
+            for value in materials_of(&object) {
                 // Dispose textures reachable from enumerable material fields.
                 for key in Object::keys(value.unchecked_ref::<Object>()) {
                     if let Ok(candidate) = Reflect::get(&value, &key) {
@@ -181,6 +173,49 @@ fn dispose_model(model: &JsValue) {
                     }
                 }
                 call_no_args(&value, "dispose");
+            }
+        }
+    });
+    if let Ok(value) = Reflect::get(model, &"traverse".into()) {
+        if let Ok(traverse) = value.dyn_into::<Function>() {
+            let _ = traverse.call1(model, visitor.as_ref().unchecked_ref());
+        }
+    }
+}
+
+/// Every material on `object`, whether it holds one or an array.
+fn materials_of(object: &JsValue) -> Vec<JsValue> {
+    let Ok(material) = Reflect::get(object, &"material".into()) else {
+        return Vec::new();
+    };
+    let list = if js_sys::Array::is_array(&material) {
+        js_sys::Array::from(&material)
+    } else {
+        js_sys::Array::of1(&material)
+    };
+    list.iter()
+        .filter(|v| !v.is_null() && !v.is_undefined())
+        .collect()
+}
+
+/// KiCad exports the soldermask, silkscreen and board body as blended
+/// materials, and `GLTFLoader` makes every blended material transparent
+/// without depth writes. Three.js then orders those flat faces only by mesh
+/// centre: at grazing angles the soldermask's centre lands closer than the
+/// silkscreen's, so the mask is painted last and tints the legend away, and
+/// the near-opaque body can likewise end up under the far-side mask. They are
+/// real surfaces 15–50 µm apart, which the depth buffer resolves now that the
+/// clip planes track the camera, so let them write depth and let the depth
+/// test decide instead of the sort order.
+fn settle_layers(model: &JsValue) {
+    let visitor = Closure::<dyn FnMut(JsValue)>::new(move |object: JsValue| {
+        for material in materials_of(&object) {
+            let transparent = Reflect::get(&material, &"transparent".into())
+                .ok()
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            if transparent {
+                let _ = Reflect::set(&material, &"depthWrite".into(), &JsValue::TRUE);
             }
         }
     });
@@ -401,6 +436,7 @@ fn start(
         Closure::<dyn FnMut(JsValue)>::new(move |gltf: JsValue| {
             match Reflect::get(&gltf, &"scene".into()) {
                 Ok(model) => {
+                    settle_layers(&model);
                     scene.add(&model);
                     *bounds.borrow_mut() = Some(frame(&camera, &controls, &model));
                     *model_slot.borrow_mut() = Some(model);

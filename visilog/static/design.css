@@ -1,0 +1,19 @@
+/* Host sizing for the pinned upstream reference viewer. */
+* { letter-spacing: 0 !important; }
+#canvas, #waves-canvas { user-select: none; }
+#canvas-hint, #waves-head .hint { display: none; }
+#waves-head { justify-content: space-between; }
+main { grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); }
+@media (max-width: 650px) {
+  body { overflow-y: auto; }
+  #toolbar { gap: 8px; padding: 8px; }
+  .group { border: 0; padding: 0; max-width: 100%; flex-wrap: wrap; }
+  .field { min-width: 0; max-width: 100%; }
+  .field > * { min-width: 0; }
+  #edge-signal { max-width: 140px; }
+  #break-expr { width: 190px; }
+  main { flex: none; grid-template-columns: minmax(0, 1fr); grid-template-rows: 340px 170px 230px; }
+  #canvas-wrap { grid-column: 1; grid-row: 1; }
+  #waves { grid-column: 1; grid-row: 2; }
+  #side { grid-column: 1; grid-row: 3; border-left: 0; border-top: 1px solid var(--line); }
+}

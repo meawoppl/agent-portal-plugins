@@ -2,6 +2,8 @@
 
 Agent Portal plugin for Icarus simulation and waveform review. Run a bench,
 inspect its retained VCD and log, and queue a waveform annotation to the session.
+Interactive hierarchy exploration lives in the sibling [`visilog`](../visilog/)
+plugin, which shares this plugin's bench discovery and config schema.
 
 ## Install and run
 

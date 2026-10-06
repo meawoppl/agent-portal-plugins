@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Visilog</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <strong>Visilog</strong
+      ><select id="test" aria-label="Testbench"></select
+      ><button id="load" title="Elaborate the current sources and open the design">Load design</button
+      ><span id="status" role="status"></span>
+    </header>
+    <div id="error" role="alert" hidden></div>
+    <section id="empty">
+      <p id="empty-text">Loading…</p>
+    </section>
+    <iframe id="frame" title="Visilog interactive design" hidden></iframe>
+  </body>
+</html>

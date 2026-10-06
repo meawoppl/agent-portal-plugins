@@ -1,0 +1,46 @@
+schema_version = 1
+name = "visilog"
+display_name = "Visilog"
+description = "Interactive Verilog design exploration: nested module diagrams, live values, source inspection, pinned waveforms, edge stepping and expression breakpoints."
+license = "MIT"
+
+[install]
+setup = "bin/visilog setup"
+doctor = "bin/visilog doctor --cwd {cwd}"
+
+[surface]
+kind = "http"
+default_title = "Visilog"
+default_width_percent = 65
+health_path = "/healthz"
+start = "bin/visilog serve --port {port} --session {session_id} --cwd {cwd}"
+
+[[commands]]
+name = "doctor"
+description = "Report the managed Visilog binary and the benches discovered in the project."
+run = "bin/visilog doctor --cwd {cwd}"
+
+[[commands]]
+name = "graph"
+description = "Print a bench's elaborated design graph as JSON; select one with --test ID."
+run = "bin/visilog graph --cwd {cwd}"
+
+[[commands]]
+name = "tool"
+description = "Forward arguments after -- to the managed visilog binary (run, graph, serve, compare)."
+run = "bin/visilog tool --cwd {cwd} --"
+
+[[toolchains]]
+name = "visilog"
+description = "Pinned Visilog simulator and interactive hierarchy viewer, built from source into the plugin directory."
+doctor = "bin/visilog tool --cwd {cwd} -- --version"
+install = "bin/visilog setup-visilog"
+
+[[skills]]
+name = "visilog-design"
+path = "skills/visilog-design/SKILL.md"
+agents = ["claude", "codex"]
+
+[[detect]]
+name = "hdl"
+any = ["*.v", "*.sv", ".verilog-workbench.json"]

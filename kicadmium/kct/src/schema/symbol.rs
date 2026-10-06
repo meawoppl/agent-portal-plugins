@@ -595,7 +595,15 @@ mod property_tests {
 
     #[test]
     fn hide_no_and_no_flag_stay_visible() {
-        assert!(property(r#"(property "Reference" "R1" (at 0 0 0) (effects (font (size 1.27 1.27))))"#).visible);
-        assert!(property(r#"(property "Value" "1k" (at 0 0 0) (hide no) (effects (font (size 1.27 1.27))))"#).visible);
+        assert!(
+            property(r#"(property "Reference" "R1" (at 0 0 0) (effects (font (size 1.27 1.27))))"#)
+                .visible
+        );
+        assert!(
+            property(
+                r#"(property "Value" "1k" (at 0 0 0) (hide no) (effects (font (size 1.27 1.27))))"#
+            )
+            .visible
+        );
     }
 }

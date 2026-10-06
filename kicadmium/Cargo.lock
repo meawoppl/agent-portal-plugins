@@ -247,13 +247,14 @@ dependencies = [
  "alloc-stdlib",
  "anyhow",
  "axum",
+ "brotli",
  "clap",
  "csv",
  "futures",
+ "http-body-util",
  "kct",
  "kicad-strokes",
  "libc",
- "memory-serve",
  "mime_guess",
  "notify",
  "serde",
@@ -1589,12 +1590,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e17592d60ebacc7d5e169f4663c5f84f9161cc90328abcfe8456f41e4dfcb284"
 
 [[package]]
-name = "hex"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
-
-[[package]]
 name = "home"
 version = "0.5.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2207,37 +2202,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d1219ed1b7f229ee7104d281dd01d6802fe28bb6e95d292942c4daacdeb798c0"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "memory-serve"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c173f042b9373765a43929acaec201a58696dfe78fccf833f1d860ce64b4da7d"
-dependencies = [
- "axum",
- "brotli",
- "flate2",
- "memory-serve-macros",
- "sha256",
- "tracing",
-]
-
-[[package]]
-name = "memory-serve-macros"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc43baf532501122643a988a2bbb8f9b85819d453d5a96fdb8fc87a5026bb576"
-dependencies = [
- "brotli",
- "mime_guess",
- "proc-macro2",
- "quote",
- "sha256",
- "syn 2.0.119",
- "tracing",
- "tracing-subscriber",
- "walkdir",
 ]
 
 [[package]]
@@ -3261,19 +3225,6 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
-]
-
-[[package]]
-name = "sha256"
-version = "1.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f880fc8562bdeb709793f00eb42a2ad0e672c4f883bbe59122b926eca935c8f6"
-dependencies = [
- "async-trait",
- "bytes",
- "hex",
- "sha2",
- "tokio",
 ]
 
 [[package]]

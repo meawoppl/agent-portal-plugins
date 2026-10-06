@@ -10,7 +10,7 @@ agent_portal = ">=2.14.1525"
 platforms = ["linux", "macos"]
 
 [install]
-setup = "cargo run --release -p backend -- setup"
+setup = "sh scripts/setup.sh"
 doctor = "target/release/kicadmium doctor --json --cwd {cwd}"
 
 [surface]

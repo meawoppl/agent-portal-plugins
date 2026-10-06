@@ -17,6 +17,14 @@ As an Agent Portal plugin:
 agent-portal plugin install github:meawoppl/agent-portal-plugins//kicadmium
 ```
 
+Install builds the binary with `scripts/setup.sh`. The portal gives plugin
+commands a private `HOME`, so the script points rustup, cargo, trunk and
+sccache at the account's existing caches (otherwise every install downloads a
+toolchain and the crate index afresh) and uses `sccache` as the rustc wrapper
+when it is installed. A reinstall then recompiles only what changed: about a
+minute when nothing did, two with a `kct` change, versus twenty cold.
+`KICADMIUM_SETUP_PLAIN=1` disables all of that.
+
 From a checkout of this directory:
 
 ```sh

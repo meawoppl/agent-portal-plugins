@@ -29,5 +29,8 @@ jobs:
         run: |
           uv run --locked playwright install --with-deps chromium
           bin/yapcad serve --cwd examples/bracket --port 49131 &
+          server=$!
+          # Stop the server so it releases uv's cache lock before setup-uv prunes it.
+          trap 'kill $server; wait $server || true' EXIT
           for i in $(seq 60); do curl -sf localhost:49131/healthz && break; sleep 1; done
           uv run --locked python tests/browser_smoke.py http://localhost:49131

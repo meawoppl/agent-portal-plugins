@@ -1,0 +1,26 @@
+name: plugin manifests
+
+# Checks every plugin's agent-portal-plugin.toml against the latest Agent
+# Portal release's `plugin validate`, and renders `plugin preview` into the
+# job summary. Runs on every change: any file (a skill, a prompt) can be
+# something a manifest references.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install agent-portal (latest release)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/agent-portal" \
+            https://github.com/meawoppl/agent-portal/releases/download/latest/agent-portal-linux-x86_64
+          chmod +x "$RUNNER_TEMP/agent-portal"
+      - name: Validate and preview
+        run: .github/scripts/validate-plugins.sh "$RUNNER_TEMP/agent-portal"

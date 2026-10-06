@@ -8,7 +8,7 @@ version.workspace = true
 yew = { version = "0.21", features = ["csr"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ["CanvasRenderingContext2d", "CustomEvent", "CustomEventInit", "DomRect", "Element", "EventTarget", "HtmlCanvasElement", "HtmlIFrameElement", "HtmlInputElement", "HtmlSelectElement", "HtmlTextAreaElement", "Document", "NodeList", "Node", "KeyboardEvent", "Location", "MessageEvent", "MouseEvent", "PointerEvent", "Storage", "WheelEvent", "Window"] }
+web-sys = { version = "0.3", features = ["CanvasRenderingContext2d", "CustomEvent", "CustomEventInit", "DomRect", "Element", "EventTarget", "HtmlCanvasElement", "HtmlIFrameElement", "HtmlInputElement", "HtmlSelectElement", "HtmlTextAreaElement", "Document", "NodeList", "Node", "KeyboardEvent", "Location", "MessageEvent", "MouseEvent", "PointerEvent", "ResizeObserver", "Storage", "WheelEvent", "Window"] }
 js-sys = "0.3"
 gloo-events = "0.2"
 gloo-timers = "0.3"

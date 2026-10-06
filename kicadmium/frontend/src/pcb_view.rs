@@ -522,6 +522,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
                             if same_project
                                 && previous.as_ref().is_some_and(|p| p.revision == revision)
                             {
+                                status.set(String::new());
                                 return;
                             }
                             let scene = Rc::new(scene);
@@ -788,13 +789,12 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
                 })
             };
             let passes = if s.flipped { &p.back } else { &p.front };
-            let size = container_size(&stage);
             html! {
                 <VectorSceneCanvas scene={scene.clone()} {on_select} {visibility} {hidden_items}
                     mirrored={s.flipped} passes={Some(passes.clone())} {highlight} {overlay}
                     {outline_items}
                     theme={p.theme.clone()} background={Some(p.background)} grid={Some(p.grid)}
-                    fit_bbox={Some(fit_frame(p.outline, size.0, size.1))} initial_view={*initial_view} {on_view}/>
+                    fit_bbox={Some(p.outline)} fit_fill={Some(FIT_FILL)} initial_view={*initial_view} {on_view}/>
             }
         }
         _ => Html::default(),

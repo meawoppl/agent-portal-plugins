@@ -9,8 +9,11 @@ use vector_view::{
     view::View,
     BBox, ItemId, Scene,
 };
+use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, PointerEvent, WheelEvent};
+use web_sys::{
+    CanvasRenderingContext2d, HtmlCanvasElement, PointerEvent, ResizeObserver, WheelEvent,
+};
 use yew::prelude::*;
 #[derive(Debug, Clone, PartialEq)]
 #[allow(dead_code)] // Public command surface; consumers land independently.
@@ -49,6 +52,10 @@ pub struct VectorSceneCanvasProps {
     pub grid: Option<Grid>,
     #[prop_or_default]
     pub fit_bbox: Option<BBox>,
+    /// Share of the limiting viewport side the fit box fills (KiCanvas-style
+    /// framing); `None` fits it to the padded viewport.
+    #[prop_or_default]
+    pub fit_fill: Option<f64>,
     #[prop_or(true)]
     pub fill: bool,
     #[prop_or_default]
@@ -58,16 +65,36 @@ pub struct VectorSceneCanvasProps {
     #[prop_or_default]
     pub command: Option<VectorSceneCommand>,
 }
+/// Padding left around a fit, in CSS pixels.
+const FIT_PAD: f64 = 24.0;
+/// A restored camera showing the fit box smaller than this (CSS pixels) is
+/// treated as stale and replaced by a fit.
+const MIN_VISIBLE_PX: f64 = 8.0;
+
 struct Runtime {
     state: ViewState,
     input: Input,
     hit: HitIndex,
     cache: PathCache,
+    /// The view is valid for drawing (fitted, restored or user-driven).
     fitted: bool,
+    /// The view came from an automatic fit; resizes refit it.
+    auto_fit: bool,
+    /// A restored camera still has to be checked against a real viewport.
+    unchecked: bool,
     fit_bbox: Option<BBox>,
+    fit_fill: Option<f64>,
+    /// Last laid-out canvas size in CSS pixels.
+    size: (f64, f64),
 }
 impl Runtime {
-    fn new(s: &Scene, initial_view: Option<View>, mirrored: bool, fit_bbox: Option<BBox>) -> Self {
+    fn new(
+        s: &Scene,
+        initial_view: Option<View>,
+        mirrored: bool,
+        fit_bbox: Option<BBox>,
+        fit_fill: Option<f64>,
+    ) -> Self {
         let mut view = initial_view.unwrap_or_else(|| View::for_scene(s));
         view.mirrored = mirrored;
         Self {
@@ -76,32 +103,98 @@ impl Runtime {
             hit: HitIndex::new(s),
             cache: PathCache::new(),
             fitted: initial_view.is_some(),
+            auto_fit: false,
+            unchecked: initial_view.is_some(),
             fit_bbox,
+            fit_fill,
+            size: (0.0, 0.0),
         }
     }
+    /// Use `view` as given (a restored or toolbar camera), validated on draw.
+    fn restore(&mut self, view: View) {
+        self.state.view = view;
+        self.fitted = true;
+        self.auto_fit = false;
+        self.unchecked = true;
+    }
+    /// Fit on the next draw that has a real viewport.
+    fn refit(&mut self) {
+        self.fitted = false;
+    }
 }
-fn size(c: &HtmlCanvasElement) -> (f64, f64, f64) {
-    let w = f64::from(c.client_width().max(1));
-    let h = f64::from(c.client_height().max(1));
+
+/// Fit `bbox` into a `w` x `h` viewport; with `fill`, the box covers that
+/// share of the limiting side instead of the padded viewport.
+fn fit_view(view: &mut View, bbox: &BBox, w: f64, h: f64, fill: Option<f64>) {
+    view.fit(bbox, w, h, FIT_PAD);
+    if let (Some(fill), false) = (fill, bbox.is_empty()) {
+        let (bw, bh) = (bbox.width().max(1e-6), bbox.height().max(1e-6));
+        let want = (w / bw).min(h / bh) * fill;
+        let padded = ((w - 2.0 * FIT_PAD).max(1.0) / bw).min((h - 2.0 * FIT_PAD).max(1.0) / bh);
+        view.zoom_at(w / 2.0, h / 2.0, (want / padded).clamp(0.05, 1.0));
+    }
+}
+
+/// Whether `view` shows `bbox` at a usable size somewhere in the viewport.
+fn frames(view: &View, bbox: &BBox, w: f64, h: f64) -> bool {
+    if bbox.is_empty() {
+        return true;
+    }
+    let corners = [
+        bbox.min,
+        bbox.max,
+        [bbox.min[0], bbox.max[1]],
+        [bbox.max[0], bbox.min[1]],
+    ]
+    .map(|p| view.to_screen(p));
+    let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+    for [x, y] in corners {
+        (x0, y0, x1, y1) = (x0.min(x), y0.min(y), x1.max(x), y1.max(y));
+    }
+    let finite = [x0, y0, x1, y1].iter().all(|v| v.is_finite());
+    finite && (x1 - x0).max(y1 - y0) >= MIN_VISIBLE_PX && x1 > 0.0 && y1 > 0.0 && x0 < w && y0 < h
+}
+/// Size the backing store; `None` while the canvas is not laid out (a hidden
+/// tab or a docked pane that is still opening).
+fn size(c: &HtmlCanvasElement) -> Option<(f64, f64, f64)> {
+    if c.client_width() <= 0 || c.client_height() <= 0 {
+        return None;
+    }
+    let w = f64::from(c.client_width());
+    let h = f64::from(c.client_height());
     let d = web_sys::window().map_or(1.0, |x| x.device_pixel_ratio().clamp(1.0, 3.0));
     c.set_width((w * d).round() as u32);
     c.set_height((h * d).round() as u32);
-    (w, h, d)
+    Some((w, h, d))
 }
-fn redraw(c: &HtmlCanvasElement, s: &Scene, r: &mut Runtime) {
+/// Draw the scene; returns whether a view valid for this viewport exists
+/// (and so may be reported and persisted).
+fn redraw(c: &HtmlCanvasElement, s: &Scene, r: &mut Runtime) -> bool {
     let Ok(Some(raw)) = c.get_context("2d") else {
-        return;
+        return false;
     };
     let Ok(ctx) = raw.dyn_into::<CanvasRenderingContext2d>() else {
-        return;
+        return false;
     };
-    let (w, h, d) = size(c);
+    // Never fit against a collapsed canvas: a 1x1 fit shrinks the scene to a
+    // dot, and the host would persist that camera for every later load.
+    let Some((w, h, d)) = size(c) else {
+        return false;
+    };
+    let resized = r.size != (w, h);
+    r.size = (w, h);
     r.state.dpr = d;
-    if !r.fitted {
-        r.state
-            .view
-            .fit(r.fit_bbox.as_ref().unwrap_or(&s.bbox), w, h, 24.0);
-        r.fitted = true
+    let bbox = r.fit_bbox.unwrap_or(s.bbox);
+    if r.unchecked {
+        r.unchecked = false;
+        if !frames(&r.state.view, &bbox, w, h) {
+            r.fitted = false;
+        }
+    }
+    if !r.fitted || (r.auto_fit && resized) {
+        fit_view(&mut r.state.view, &bbox, w, h, r.fit_fill);
+        r.fitted = true;
+        r.auto_fit = true;
     }
     clear(
         &ctx,
@@ -109,7 +202,14 @@ fn redraw(c: &HtmlCanvasElement, s: &Scene, r: &mut Runtime) {
         f64::from(c.height()),
         r.state.background,
     );
-    draw_cached(s, &ctx, &r.state, &mut r.cache)
+    draw_cached(s, &ctx, &r.state, &mut r.cache);
+    true
+}
+/// Redraw and report the view when it is valid for the current viewport.
+fn redraw_report(c: &HtmlCanvasElement, s: &Scene, r: &mut Runtime, on_view: &Callback<View>) {
+    if redraw(c, s, r) {
+        on_view.emit(r.state.view);
+    }
 }
 fn offset(c: &HtmlCanvasElement, x: i32, y: i32) -> [f64; 2] {
     let b = c.get_bounding_client_rect();
@@ -126,13 +226,12 @@ fn apply(
     match r.input.handle(&e, &mut r.state.view) {
         InputOutcome::None => {}
         InputOutcome::ViewChanged => {
-            redraw(c, s, r);
-            on_view.emit(r.state.view);
+            r.auto_fit = false;
+            redraw_report(c, s, r, on_view);
         }
         InputOutcome::Reset => {
-            r.fitted = false;
-            redraw(c, s, r);
-            on_view.emit(r.state.view);
+            r.refit();
+            redraw_report(c, s, r, on_view);
         }
         InputOutcome::Tap { x, y, .. } => {
             let p = r.state.view.to_world([x, y]);
@@ -152,6 +251,7 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
             props.initial_view,
             props.mirrored,
             props.fit_bbox,
+            props.fit_fill,
         )
     });
     {
@@ -161,6 +261,7 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
         let initial_view = props.initial_view;
         let mirrored = props.mirrored;
         let fit_bbox = props.fit_bbox;
+        let fit_fill = props.fit_fill;
         let on_view = props.on_view.clone();
         // A scene replacement rebuilds the runtime. Capture and apply every
         // declarative drawing prop here as well as in the config effect below:
@@ -177,7 +278,7 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
         let background = props.background;
         let grid = props.grid;
         use_effect_with(props.scene.clone(), move |_| {
-            let mut fresh = Runtime::new(&scene, initial_view, mirrored, fit_bbox);
+            let mut fresh = Runtime::new(&scene, initial_view, mirrored, fit_bbox, fit_fill);
             fresh.state.visibility = visibility.clone();
             fresh.state.hidden_items = hidden_items.clone();
             fresh.state.passes = passes.clone();
@@ -192,9 +293,7 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
             fresh.state.grid = grid;
             *runtime.borrow_mut() = fresh;
             if let Some(c) = canvas.cast::<HtmlCanvasElement>() {
-                let mut r = runtime.borrow_mut();
-                redraw(&c, &scene, &mut r);
-                on_view.emit(r.state.view);
+                redraw_report(&c, &scene, &mut runtime.borrow_mut(), &on_view);
             }
         });
     }
@@ -207,13 +306,10 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
         use_effect_with(props.initial_view, move |initial| {
             if let Some(view) = initial {
                 let mut r = runtime.borrow_mut();
-                r.state.view = *view;
-                r.state.view.mirrored = mirrored;
-                r.fitted = true;
+                r.restore(View { mirrored, ..*view });
                 if let Some(c) = canvas.cast::<HtmlCanvasElement>() {
-                    redraw(&c, &scene, &mut r)
+                    redraw_report(&c, &scene, &mut r, &on_view);
                 }
-                on_view.emit(r.state.view);
             }
         });
     }
@@ -231,15 +327,19 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
             };
             let mut r = runtime.borrow_mut();
             match command {
-                VectorSceneCommand::Fit => r.fitted = false,
-                VectorSceneCommand::Reset => {
-                    r.state.view = initial.unwrap_or_else(|| View::for_scene(&scene));
-                    r.state.view.mirrored = mirrored;
-                    r.fitted = initial.is_some();
-                }
+                VectorSceneCommand::Fit => r.refit(),
+                VectorSceneCommand::Reset => match initial {
+                    Some(view) => r.restore(View { mirrored, ..view }),
+                    None => {
+                        r.state.view = View {
+                            mirrored,
+                            ..View::for_scene(&scene)
+                        };
+                        r.refit();
+                    }
+                },
             }
-            redraw(&c, &scene, &mut r);
-            on_view.emit(r.state.view);
+            redraw_report(&c, &scene, &mut r, &on_view);
         });
     }
     {
@@ -258,7 +358,7 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
             props.theme.clone(),
             props.background,
             props.grid,
-            props.fit_bbox,
+            (props.fit_bbox, props.fit_fill),
         );
         use_effect_with(config, move |config| {
             let (
@@ -273,7 +373,7 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
                 theme,
                 background,
                 grid,
-                fit_bbox,
+                (fit_bbox, fit_fill),
             ) = config;
             let mut r = runtime.borrow_mut();
             r.state.visibility = visibility.clone();
@@ -296,6 +396,7 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
             r.state.background = *background;
             r.state.grid = *grid;
             r.fit_bbox = *fit_bbox;
+            r.fit_fill = *fit_fill;
             if let Some(c) = canvas.cast::<HtmlCanvasElement>() {
                 redraw(&c, &scene, &mut r);
             }
@@ -305,15 +406,45 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
         let canvas = canvas.clone();
         let scene = props.scene.clone();
         let runtime = runtime.clone();
-        use_effect_with((), move |_| {
-            let listener = web_sys::window().map(|w| {
-                EventListener::new(&w, "resize", move |_| {
+        let on_view = props.on_view.clone();
+        // Track the canvas box itself: docked panes and tabs resize (or first
+        // lay out) without a window resize.
+        use_effect_with(props.scene.clone(), move |_| {
+            let element = canvas.cast::<HtmlCanvasElement>();
+            let callback = Closure::<dyn FnMut()>::new({
+                let canvas = canvas.clone();
+                move || {
                     if let Some(c) = canvas.cast::<HtmlCanvasElement>() {
-                        redraw(&c, &scene, &mut runtime.borrow_mut())
+                        let Ok(mut r) = runtime.try_borrow_mut() else {
+                            return;
+                        };
+                        let before = (r.state.view, r.size);
+                        if redraw(&c, &scene, &mut r) && (r.state.view, r.size) != before {
+                            on_view.emit(r.state.view);
+                        }
                     }
+                }
+            });
+            let observer = ResizeObserver::new(callback.as_ref().unchecked_ref()).ok();
+            if let (Some(observer), Some(element)) = (&observer, &element) {
+                observer.observe(element);
+            }
+            let listener = web_sys::window().map(|w| {
+                let callback = callback
+                    .as_ref()
+                    .unchecked_ref::<js_sys::Function>()
+                    .clone();
+                EventListener::new(&w, "resize", move |_| {
+                    let _ = callback.call0(&wasm_bindgen::JsValue::NULL);
                 })
             });
-            move || drop(listener)
+            move || {
+                if let Some(observer) = observer {
+                    observer.disconnect();
+                }
+                drop(listener);
+                drop(callback);
+            }
         });
     }
     let down = pointer(
@@ -404,9 +535,8 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
         Callback::from(move |_| {
             if let Some(c) = canvas.cast::<HtmlCanvasElement>() {
                 let mut r = runtime.borrow_mut();
-                r.fitted = false;
-                redraw(&c, &scene, &mut r);
-                on_view.emit(r.state.view);
+                r.refit();
+                redraw_report(&c, &scene, &mut r, &on_view);
             }
         })
     };
@@ -443,4 +573,59 @@ fn pointer(
             &on_view,
         )
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{fit_view, frames};
+    use vector_view::{view::View, BBox};
+
+    const BOARD: BBox = BBox {
+        min: [100.0, 50.0],
+        max: [150.0, 80.0],
+    };
+
+    fn screen_extent(v: &View, b: &BBox) -> (f64, f64) {
+        let a = v.to_screen(b.min);
+        let c = v.to_screen(b.max);
+        ((c[0] - a[0]).abs(), (c[1] - a[1]).abs())
+    }
+
+    #[test]
+    fn fill_fit_covers_requested_share_of_limiting_side() {
+        let mut v = View::default();
+        fit_view(&mut v, &BOARD, 1200.0, 600.0, Some(0.78));
+        let (w, h) = screen_extent(&v, &BOARD);
+        // 50 x 30 board in 1200 x 600: height limits.
+        assert!((h - 0.78 * 600.0).abs() < 1e-6, "{w} x {h}");
+        let centre = v.to_screen([125.0, 65.0]);
+        assert!((centre[0] - 600.0).abs() < 1e-6 && (centre[1] - 300.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn fit_without_fill_uses_padded_viewport() {
+        let mut v = View::default();
+        fit_view(&mut v, &BOARD, 1200.0, 600.0, None);
+        let (_, h) = screen_extent(&v, &BOARD);
+        assert!((h - (600.0 - 2.0 * super::FIT_PAD)).abs() < 1e-6);
+    }
+
+    #[test]
+    fn collapsed_viewport_camera_is_not_a_usable_frame() {
+        // What a fit against a 1x1 canvas produced, then persisted.
+        let mut collapsed = View::default();
+        fit_view(&mut collapsed, &BOARD, 1.0, 1.0, Some(0.78));
+        assert!(!frames(&collapsed, &BOARD, 1242.0, 567.0));
+        let mut good = View::default();
+        fit_view(&mut good, &BOARD, 1242.0, 567.0, Some(0.78));
+        assert!(frames(&good, &BOARD, 1242.0, 567.0));
+        // Panned entirely off-screen.
+        let mut away = good;
+        away.pan(5000.0, 0.0);
+        assert!(!frames(&away, &BOARD, 1242.0, 567.0));
+        // Zoomed in past the board edges still frames it.
+        let mut close = good;
+        close.zoom_at(621.0, 283.0, 20.0);
+        assert!(frames(&close, &BOARD, 1242.0, 567.0));
+    }
 }

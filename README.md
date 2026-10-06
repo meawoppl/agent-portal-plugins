@@ -1,8 +1,34 @@
 # Agent Portal Plugins
 
-This repository is a collection of test and reference plugins for Agent Portal.
-Each plugin lives in a subdirectory and contains its own
-`agent-portal-plugin.toml` manifest.
+This repository is a collection of test and reference plugins for
+[Agent Portal](https://github.com/meawoppl/agent-portal). Each plugin lives in a
+subdirectory and contains its own `agent-portal-plugin.toml` manifest.
+
+![Agent Portal plugin interface](docs/agent-portal-plugin-interface.svg)
+
+## Interface Design
+
+Agent Portal owns the session lifecycle, agent launch, authentication, work
+queues, docked surfaces, and plugin discovery UI. This repository owns
+domain-specific plugin packages: manifests, skills, prompts, command shims,
+managed toolchains, and optional HTTP workbench surfaces.
+
+The interface is intentionally manifest-first:
+
+- `[[detect]]` patterns let Portal suggest plugins for a working directory before
+  an agent is launched.
+- `[[skills]]` and `[[prompts]]` describe context Portal can inject into agent
+  sessions, with visible context-cost accounting in the Portal UI.
+- `[[commands]]` define safe, named command surfaces that Portal and agents can
+  call without learning each plugin's private shell layout.
+- `[surface]` describes an optional local HTTP app that Portal can start and dock
+  beside the conversation.
+- `[install]` and `[[toolchains]]` keep plugin setup and health checks inside
+  the plugin package instead of hard-coding domain tooling into Portal.
+
+This split keeps Agent Portal generic while still making plugin capability
+discoverable in the launch menu, session header, plugin dock, and collapsed
+plugin-context notice.
 
 Install any plugin from its subdirectory:
 

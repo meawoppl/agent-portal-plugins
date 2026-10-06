@@ -563,3 +563,39 @@ impl fmt::Display for SymbolInstance {
         )
     }
 }
+
+#[cfg(test)]
+mod property_tests {
+    use super::SymbolProperty;
+    use crate::sexp::SExp;
+
+    fn property(text: &str) -> SymbolProperty {
+        SymbolProperty::from_sexp(&crate::sexp::parse(text).expect("property s-expression"))
+    }
+
+    #[test]
+    fn hide_flag_on_the_property_itself_hides_it() {
+        // KiCad 8+ schematic instance form.
+        let p = property(
+            r#"(property "Footprint" "Tesla:R_0805_2012Metric" (at 364.49 327.66 0)
+                (effects (font (size 1.27 1.27))) (hide yes))"#,
+        );
+        assert!(!p.visible);
+        assert_eq!(p.value, "Tesla:R_0805_2012Metric");
+    }
+
+    #[test]
+    fn hide_inside_effects_still_hides_and_round_trips() {
+        let p = property(
+            r#"(property "Datasheet" "~" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))"#,
+        );
+        assert!(!p.visible);
+        assert!(!SymbolProperty::from_sexp(&p.to_sexp()).visible);
+    }
+
+    #[test]
+    fn hide_no_and_no_flag_stay_visible() {
+        assert!(property(r#"(property "Reference" "R1" (at 0 0 0) (effects (font (size 1.27 1.27))))"#).visible);
+        assert!(property(r#"(property "Value" "1k" (at 0 0 0) (hide no) (effects (font (size 1.27 1.27))))"#).visible);
+    }
+}

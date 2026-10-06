@@ -37,8 +37,13 @@ const TEXT_VALUES: u8 = 2;
 /// drawing notes). Silkscreen user text always follows its layer.
 const TEXT_USER: u8 = 4;
 
-/// Selection overlay colour and opacity (as the previous PCB view).
-const SELECTION: [u8; 4] = [64, 169, 255, 255];
+/// Selection overlay colour. White, like the theme's board cursor: composited
+/// over any copper it reads as "lit". The previous light blue at 55% turned a
+/// selected front track the colour of B.Cu, which looked like a layer change.
+const SELECTION: [u8; 4] = [255, 255, 255, 255];
+/// Opacity of the selection overlay; high enough that the layer colour
+/// underneath only tints the highlight.
+const SELECTION_ALPHA: f64 = 0.75;
 /// Board outline share of the viewport after a fit (KiCanvas framing).
 const FIT_FILL: f64 = 0.78;
 /// KiCanvas draws zone fills at this fraction of the copper opacity.
@@ -768,7 +773,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
                 .map(|ids| Overlay {
                     highlight: Highlight::Items(ids.clone()),
                     color: SELECTION,
-                    alpha: 0.55,
+                    alpha: SELECTION_ALPHA,
                 });
             let outline_items = sel
                 .map(|sel| overlay_items(scene, p, sel))

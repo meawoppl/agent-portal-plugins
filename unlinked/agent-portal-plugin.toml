@@ -1,0 +1,46 @@
+schema_version = 1
+name = "unlinked"
+display_name = "Unlinked"
+description = "Simulink model review without MATLAB: render .slx/.mdl diagrams and subsystems, inspect block inventories, run the supported simulation subset and plot traces, transpile MATLAB to Rust."
+homepage = "https://github.com/CosmicFrontierLabs/unlinked"
+license = "MIT"
+
+[install]
+setup = "bin/unlinked setup"
+doctor = "bin/unlinked doctor --cwd {cwd}"
+
+[surface]
+kind = "http"
+default_title = "Unlinked"
+default_width_percent = 60
+health_path = "/healthz"
+start = "bin/unlinked serve --port {port} --session {session_id} --cwd {cwd}"
+
+[[commands]]
+name = "doctor"
+description = "Report the pinned unlinked binary and the Simulink models and MATLAB scripts found in the project."
+run = "bin/unlinked doctor --cwd {cwd}"
+
+[[commands]]
+name = "tool"
+description = "Forward arguments after -- to the pinned unlinked CLI: info, render, sim, transpile, coverage."
+run = "bin/unlinked tool --cwd {cwd} --"
+
+[[toolchains]]
+name = "unlinked"
+description = "Pinned Unlinked CLI (Simulink import, SVG rendering, simulation, MATLAB transpilation), built from source into the plugin directory."
+doctor = "bin/unlinked tool --cwd {cwd} -- --version"
+install = "bin/unlinked setup"
+
+[[skills]]
+name = "unlinked-models"
+path = "skills/unlinked-models/SKILL.md"
+agents = ["claude", "codex"]
+
+[[detect]]
+name = "simulink"
+any = ["*.slx", "*.mdl"]
+
+[[detect]]
+name = "matlab"
+any = ["*.m"]

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Unlinked</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <strong>Unlinked</strong
+      ><select id="model" aria-label="Model file"></select
+      ><select id="view" aria-label="View">
+        <option value="diagram">Diagram</option>
+        <option value="simulate">Simulate</option></select
+      ><select id="system" aria-label="Subsystem" hidden></select
+      ><span id="status" role="status"></span>
+    </header>
+    <div id="error" role="alert" hidden></div>
+    <section id="empty"><p id="empty-text">Loading…</p></section>
+    <section id="diagram" hidden>
+      <div id="svg-host"></div>
+      <details id="info">
+        <summary>Model info</summary>
+        <pre id="info-text"></pre>
+      </details>
+    </section>
+    <section id="simulate" hidden>
+      <form id="sim-form">
+        <label>Start <input id="start" type="number" step="any" value="0" /></label>
+        <label>Stop <input id="stop" type="number" step="any" required /></label>
+        <label>Step <input id="step" type="number" step="any" required /></label>
+        <label>Solver
+          <select id="solver">
+            <option value="euler">Euler</option>
+            <option value="rk4" selected>RK4</option>
+            <option value="rk45">RK45</option>
+          </select></label>
+        <label id="vars-label">Workspace <code>NAME=EXPR</code>, one per line
+          <textarea id="vars" rows="2" placeholder="m=1&#10;k=20"></textarea></label>
+        <button id="run" type="submit">Run</button>
+        <select id="runs" aria-label="Previous runs"></select>
+      </form>
+      <div id="plot-wrap">
+        <canvas id="plot" width="900" height="360"></canvas>
+        <ul id="legend"></ul>
+      </div>
+      <pre id="run-log" hidden></pre>
+    </section>
+  </body>
+</html>

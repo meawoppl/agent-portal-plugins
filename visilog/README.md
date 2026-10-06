@@ -3,9 +3,9 @@
 Agent Portal plugin for interactive Verilog design exploration. It embeds the
 native [Visilog](https://github.com/meawoppl/visilog) hierarchy viewer: nested
 module diagrams with live values, source inspection, pinned waveforms, edge
-stepping and expression breakpoints. Batch simulation and retained waveform
-review stay in the sibling `verilog` plugin; this one is about looking at how a
-design is built and how it behaves step by step.
+stepping and expression breakpoints. It is for looking at how a design is
+built and how it behaves step by step; keep the project's own test runner as
+the authority on pass/fail.
 
 ## Install and run
 
@@ -41,12 +41,32 @@ fetched from a CDN.
 
 ## Project conventions
 
-Bench discovery matches the Verilog plugin so the two agree on what a test is:
-`_tb.v`/`_tb.sv` files with same-directory RTL (or the sibling source
-directory for `*_test` folders), or explicit entries in
-`.verilog-workbench.json` with `id`, `top`, `sources`, `includes`, `defines`,
-`plusargs` and `timeout`. Vendor cell models resolve from `VERILOG_CELLS_SIM`,
-project-local Yosys `cells_sim.v` copies, then the system Yosys share paths.
+Autodiscovery finds `_tb.v`/`_tb.sv` files and same-directory RTL, or the
+sibling source directory for `*_test` folders, and uses the filename stem as
+the top. For custom tops, nested sources, include directories, defines or
+plusargs, write an explicit `.verilog-workbench.json` at the project root.
+Paths are relative to the root; globs are deliberately not implicit. Unknown
+fields, duplicate IDs, missing inputs, invalid timeouts and paths escaping the
+root are rejected.
+
+```json
+{
+  "version": 1,
+  "tests": [{
+    "id": "uart",
+    "top": "uart_tb",
+    "sources": ["rtl/uart.sv", "tests/uart_tb.sv"],
+    "includes": ["rtl"],
+    "defines": ["SIMULATION=1"],
+    "plusargs": ["+seed=42"],
+    "timeout": 60
+  }]
+}
+```
+
+Vendor cell models resolve from `VERILOG_CELLS_SIM`, project-local
+`fpga/third_party/yosys/cells_sim.v` or `third_party/yosys/cells_sim.v`, then
+`/usr/share/yosys/ice40/cells_sim.v` and `/usr/local/share/yosys/ice40/cells_sim.v`.
 
 Each load writes a `design-*` directory under `.visilog-runs/` with the exact
 command, `viewer.log`, and any `$dumpfile` or `$fopen` output. Add

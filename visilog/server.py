@@ -52,7 +52,7 @@ class Bench:
 
 
 def discover(root: Path) -> list[Bench]:
-    """Same bench definitions as the Verilog plugin: explicit config or `_tb` discovery."""
+    """Bench definitions: explicit `.verilog-workbench.json` or `_tb` discovery."""
     config = root / ".verilog-workbench.json"
     if config.exists():
         data = json.loads(config.read_text())

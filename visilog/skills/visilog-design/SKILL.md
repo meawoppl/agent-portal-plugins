@@ -7,13 +7,13 @@ description: Explore Verilog/SystemVerilog structure interactively with the Visi
 
 Use this plugin to understand how a design is built and how values move through
 it. It is a functional simulator and viewer, not a verification reference:
-keep the project's own runner (or the Verilog plugin's Icarus runs) as the
-authority on pass/fail, and do not claim timing verification from Visilog.
+keep the project's own runner as the authority on pass/fail, and do not claim
+timing verification from Visilog.
 
 Start with `bin/visilog doctor --cwd PROJECT`. It reports whether the managed
 binary is installed and lists the benches it discovered: `_tb.v`/`_tb.sv`
 files with sibling RTL, or the explicit tests in `.verilog-workbench.json`
-(same schema as the Verilog plugin, documented in its README). Install the
+(schema in the plugin README). Install the
 pinned toolchain with `bin/visilog setup-visilog`; it builds into the plugin's
 `.tools/` with Cargo and does not touch the system.
 

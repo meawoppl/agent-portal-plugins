@@ -90,25 +90,33 @@
   <text x="1442" y="813" fill="#e6e9f5" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="700">Plugin surface</text>
   <text x="1442" y="845" fill="#a9b1d6" font-family="Inter, Arial, sans-serif" font-size="20">domain UI hosted through Portal's proxy</text>
 
-  <path d="M630 380 C670 380 680 380 720 380" fill="none" stroke="#7aa2f7" stroke-width="5" marker-end="url(#arrow-blue)"/>
-  <text x="655" y="350" fill="#7aa2f7" font-family="Inter, Arial, sans-serif" font-size="20" text-anchor="middle">scan manifests</text>
+  <rect x="605" y="354" width="140" height="34" rx="17" fill="#1a1b26" stroke="#3d4666" stroke-width="1"/>
+  <text x="675" y="377" fill="#7aa2f7" font-family="Inter, Arial, sans-serif" font-size="18" text-anchor="middle">scan manifests</text>
+  <path d="M630 398 L720 398" fill="none" stroke="#7aa2f7" stroke-width="5" marker-end="url(#arrow-blue)"/>
 
-  <path d="M1280 380 C1320 380 1330 380 1370 380" fill="none" stroke="#bb9af7" stroke-width="5" marker-end="url(#arrow-blue)"/>
-  <text x="1325" y="350" fill="#7aa2f7" font-family="Inter, Arial, sans-serif" font-size="20" text-anchor="middle">match detect rules</text>
+  <rect x="1252" y="354" width="146" height="34" rx="17" fill="#1a1b26" stroke="#3d4666" stroke-width="1"/>
+  <text x="1325" y="377" fill="#7aa2f7" font-family="Inter, Arial, sans-serif" font-size="18" text-anchor="middle">detect rules</text>
+  <path d="M1280 398 L1370 398" fill="none" stroke="#bb9af7" stroke-width="5" marker-end="url(#arrow-blue)"/>
 
-  <path d="M1370 532 C1320 532 1310 526 1280 526" fill="none" stroke="#9ece6a" stroke-width="5" marker-end="url(#arrow-green)"/>
-  <text x="1328" y="505" fill="#9ece6a" font-family="Inter, Arial, sans-serif" font-size="20" text-anchor="middle">inject context</text>
+  <rect x="1242" y="480" width="166" height="34" rx="17" fill="#1a1b26" stroke="#3d4666" stroke-width="1"/>
+  <text x="1325" y="503" fill="#9ece6a" font-family="Inter, Arial, sans-serif" font-size="18" text-anchor="middle">inject context</text>
+  <path d="M1410 532 L1358 532 L1358 526 L1280 526" fill="none" stroke="#9ece6a" stroke-width="5" marker-end="url(#arrow-green)"/>
 
-  <path d="M630 726 C675 726 695 676 760 676" fill="none" stroke="#e0af68" stroke-width="5" marker-end="url(#arrow-orange)"/>
-  <text x="675" y="698" fill="#e0af68" font-family="Inter, Arial, sans-serif" font-size="20" text-anchor="middle">run named commands</text>
+  <rect x="582" y="732" width="188" height="34" rx="17" fill="#1a1b26" stroke="#3d4666" stroke-width="1"/>
+  <text x="676" y="755" fill="#e0af68" font-family="Inter, Arial, sans-serif" font-size="18" text-anchor="middle">named commands</text>
+  <path d="M630 726 L676 726 L676 676 L760 676" fill="none" stroke="#e0af68" stroke-width="5" marker-end="url(#arrow-orange)"/>
 
-  <path d="M1240 676 C1320 676 1340 676 1410 676" fill="none" stroke="#e0af68" stroke-width="5" marker-end="url(#arrow-orange)"/>
-  <text x="1326" y="650" fill="#e0af68" font-family="Inter, Arial, sans-serif" font-size="20" text-anchor="middle">produce artifacts</text>
+  <rect x="1252" y="732" width="146" height="34" rx="17" fill="#1a1b26" stroke="#3d4666" stroke-width="1"/>
+  <text x="1325" y="755" fill="#e0af68" font-family="Inter, Arial, sans-serif" font-size="18" text-anchor="middle">artifacts</text>
+  <path d="M1240 676 L1325 676 L1325 676 L1410 676" fill="none" stroke="#e0af68" stroke-width="5" marker-end="url(#arrow-orange)"/>
 
-  <path d="M630 841 C705 841 690 676 1022 676" fill="none" stroke="#7dcfff" stroke-width="5" marker-end="url(#arrow-blue)"/>
-  <text x="800" y="822" fill="#7dcfff" font-family="Inter, Arial, sans-serif" font-size="20" text-anchor="middle">start local HTTP surface</text>
+  <rect x="590" y="884" width="172" height="34" rx="17" fill="#1a1b26" stroke="#3d4666" stroke-width="1"/>
+  <text x="676" y="907" fill="#7dcfff" font-family="Inter, Arial, sans-serif" font-size="18" text-anchor="middle">start surface</text>
+  <path d="M630 841 L676 841 L676 940 L1300 940 L1300 676 L1240 676" fill="none" stroke="#7dcfff" stroke-width="5" marker-end="url(#arrow-blue)"/>
 
-  <path d="M1240 676 C1335 770 1335 822 1410 822" fill="none" stroke="#7dcfff" stroke-width="5" marker-end="url(#arrow-blue)"/>
+  <rect x="1244" y="884" width="162" height="34" rx="17" fill="#1a1b26" stroke="#3d4666" stroke-width="1"/>
+  <text x="1325" y="907" fill="#7dcfff" font-family="Inter, Arial, sans-serif" font-size="18" text-anchor="middle">dock in Portal</text>
+  <path d="M1240 696 L1325 696 L1325 822 L1410 822" fill="none" stroke="#7dcfff" stroke-width="5" marker-end="url(#arrow-blue)"/>
 
   <rect x="140" y="1000" width="1720" height="95" rx="18" fill="#1e202e" stroke="#3d4666" stroke-width="2"/>
   <text x="180" y="1037" fill="#c0caf5" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700">Design rule</text>

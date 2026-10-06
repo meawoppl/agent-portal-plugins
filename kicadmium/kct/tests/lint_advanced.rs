@@ -37,6 +37,7 @@ detection!(via_avoidable, "via.avoidable");
 detection!(via_role_missing, "via.role_missing");
 detection!(via_return_distance, "via.return_distance");
 detection!(route_legal_shortcut, "route.legal_shortcut");
+detection!(route_redundant_bend, "route.redundant_bend");
 detection!(route_backtrack, "route.backtrack");
 detection!(pad_grazing, "pad.grazing");
 detection!(route_tuning_integrity, "route.tuning_integrity");
@@ -101,13 +102,13 @@ detection!(checker_noise, "checker.noise");
 detection!(review_reattach, "review.reattach");
 detection!(annotation_stale, "annotation.stale");
 #[test]
-fn all_101_are_registered_and_executable() {
+fn all_102_are_registered_and_executable() {
     let catalog = kct::lint::rules::catalog();
-    assert_eq!(catalog.len(), 101);
-    assert_eq!(kct::lint::advanced::IDS.len(), 70);
+    assert_eq!(catalog.len(), 102);
+    assert_eq!(kct::lint::advanced::IDS.len(), 71);
     assert!(catalog.iter().all(|r| r.status == "implemented"));
     let r = lint(BAD, "fixture", configuration()).unwrap();
-    assert_eq!(r.coverage.len(), 101);
+    assert_eq!(r.coverage.len(), 102);
     for id in kct::lint::advanced::IDS {
         assert!(count(&r, id) > 0, "{id}");
     }

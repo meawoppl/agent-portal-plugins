@@ -11,6 +11,7 @@ pub const IDS: &[&str] = &[
     "via.role_missing",
     "via.return_distance",
     "route.legal_shortcut",
+    "route.redundant_bend",
     "route.backtrack",
     "pad.grazing",
     "route.tuning_integrity",
@@ -481,11 +482,13 @@ fn geometry(e: &mut Emitter, g: &Geometry) {
     }
     let route_ok = g.outline.is_some() && !g.uncertain;
     ready(e, "route.legal_shortcut", route_ok);
+    ready(e, "route.redundant_bend", route_ok);
     ready(e, "via.avoidable", route_ok);
     ready(e, "neck.clearance_reason", route_ok);
     let mut searches = 0;
     if route_ok {
         local_shortcuts(e, g, &chains);
+        redundant_bends(e, g, &chains);
         for f in e
             .findings
             .clone()
@@ -764,6 +767,193 @@ fn local_shortcuts(e: &mut Emitter, g: &Geometry, chains: &[(Vec<String>, Vec<Po
                 }
             }
         }
+    }
+}
+
+/// Turns along consecutive legs: (count, sharpest turn in degrees). Parallel
+/// same-direction legs merge; zero-length legs are ignored.
+fn bends(legs: &[Point], tolerance_deg: f64) -> (usize, f64) {
+    let sin = tolerance_deg.to_radians().sin();
+    let mut previous: Option<Point> = None;
+    let (mut count, mut sharpest) = (0, 0_f64);
+    for v in legs {
+        let length = v.x.hypot(v.y);
+        if length < 1e-9 {
+            continue;
+        }
+        if let Some(u) = previous {
+            let norm = u.x.hypot(u.y) * length;
+            let cross = (u.x * v.y - u.y * v.x) / norm;
+            let dot = (u.x * v.x + u.y * v.y) / norm;
+            if cross.abs() > sin || dot < 0. {
+                count += 1;
+                sharpest = sharpest.max(dot.clamp(-1., 1.).acos().to_degrees());
+            }
+        }
+        previous = Some(*v);
+    }
+    (count, sharpest)
+}
+
+/// Same-length reorderings of a chain's legs that remove bends. Moving leg
+/// `k` to position `m` translates the legs between them by that leg: the
+/// route takes the other two sides of the parallelogram they span, so both
+/// endpoints, every leg direction and the total length are unchanged.
+fn redundant_bends(e: &mut Emitter, g: &Geometry, chains: &[(Vec<String>, Vec<Point>)]) {
+    let b = e.board;
+    let p = &e.config.intent.route;
+    let tolerance = e.config.angle_tolerance_deg;
+    // Smaller jogs are off-grid jitter, reported by `trace.short_segment`.
+    let minimum = e.config.short_segment_mm;
+    let rule = "route.redundant_bend";
+    // A legal shortcut is strictly better advice for the same copper.
+    let shortcut: BTreeSet<String> = e
+        .findings
+        .iter()
+        .filter(|f| f.rule == "route.legal_shortcut")
+        .flat_map(|f| f.subjects.clone())
+        .collect();
+    let mut checks = 0;
+    for (ids, points) in chains {
+        let n = ids.len();
+        if !(3..=64).contains(&n) || ids.iter().any(|id| shortcut.contains(id)) {
+            continue;
+        }
+        let tracks: Vec<_> = ids
+            .iter()
+            .filter_map(|id| b.tracks.iter().find(|t| &t.id == id))
+            .collect();
+        if tracks.len() != n {
+            continue;
+        }
+        let t = tracks[0];
+        if p.tuned_nets.contains(&t.net)
+            || e.config
+                .intent
+                .pairs
+                .iter()
+                .any(|q| q.positive == t.net || q.negative == t.net)
+        {
+            continue;
+        }
+        let legs: Vec<Point> = points.windows(2).map(|w| w[1].minus(w[0])).collect();
+        let (before, sharpest) = bends(&legs, tolerance);
+        if before < 2 {
+            continue;
+        }
+        // A monotone dogleg (E, SE, E) is good routing: only a chain that
+        // backtracks along an axis (the zag) may change an end direction.
+        let zag = [|v: &Point| v.x, |v: &Point| v.y].iter().any(|axis| {
+            legs.iter().any(|v| axis(v) > 1e-6) && legs.iter().any(|v| axis(v) < -1e-6)
+        });
+        // (bends removed, swept area, keeps both end directions, k, m, path)
+        let mut candidates = vec![];
+        for k in 0..n {
+            for m in 0..n {
+                if k == m {
+                    continue;
+                }
+                let mut order = legs.clone();
+                let leg = order.remove(k);
+                order.insert(m, leg);
+                let (after, worst) = bends(&order, tolerance);
+                if after >= before || worst > sharpest + tolerance {
+                    continue;
+                }
+                let (lo, hi) = (k.min(m), k.max(m));
+                // Moved copper keeps its width only when the span is uniform.
+                if tracks[lo..=hi]
+                    .iter()
+                    .any(|x| (x.width - t.width).abs() > 1e-6 || x.layer != t.layer)
+                {
+                    continue;
+                }
+                let mut path = vec![points[0]];
+                for v in &order {
+                    let q = *path.last().unwrap();
+                    path.push(Point {
+                        x: q.x + v.x,
+                        y: q.y + v.y,
+                    });
+                }
+                let run = legs[lo..=hi]
+                    .iter()
+                    .enumerate()
+                    .filter(|(i, _)| lo + i != k)
+                    .fold(Point { x: 0., y: 0. }, |a, (_, v)| Point {
+                        x: a.x + v.x,
+                        y: a.y + v.y,
+                    });
+                if leg.x.hypot(leg.y) < minimum || run.x.hypot(run.y) < minimum {
+                    continue;
+                }
+                let area = (leg.x * run.y - leg.y * run.x).abs();
+                let ends = order[0] == legs[0] && order[n - 1] == legs[n - 1];
+                if !ends && !zag {
+                    continue;
+                }
+                candidates.push((before - after, area, ends, k, m, path));
+            }
+        }
+        candidates.sort_by(|a, z| z.0.cmp(&a.0).then(z.2.cmp(&a.2)).then(a.1.total_cmp(&z.1)));
+        let width = tracks.iter().map(|x| x.width).fold(0., f64::max);
+        let found = candidates.into_iter().find(|(_, _, _, k, m, path)| {
+            checks += 1;
+            let (lo, hi) = (*k.min(m), *k.max(m));
+            if checks > 4096 || !g.legal(&path[lo..=hi + 1], width, &t.net, &t.layer, p) {
+                return false;
+            }
+            // Every via, pad or branch touching the chain must still be reached.
+            let replacement = line(path, width);
+            ids.iter().all(|id| {
+                let Some(i) = g.items.iter().position(|i| &i.id == id) else {
+                    return false;
+                };
+                g.graph.neighbors(NodeIndex::new(i)).all(|n| {
+                    ids.contains(&g.items[n.index()].id)
+                        || replacement.intersects(&g.items[n.index()].poly)
+                })
+            })
+        });
+        if checks > 4096 {
+            e.coverage.insert(rule.into(), "budget_exhausted".into());
+            return;
+        }
+        let Some((removed, area, ends, k, m, path)) = found else {
+            continue;
+        };
+        let (lo, hi) = (k.min(m), k.max(m));
+        let leg = legs[k];
+        let coordinates = path[lo..=hi + 1]
+            .iter()
+            .map(|q| format!("({:.3}, {:.3})", q.x, q.y))
+            .collect::<Vec<_>>()
+            .join(" → ");
+        let exit = if ends {
+            ""
+        } else {
+            "; changes the direction leaving a chain end, so check the pad exit"
+        };
+        emit(
+            e,
+            rule,
+            ids[lo..=hi].to_vec(),
+            points[k],
+            "",
+            format!(
+                "Move the {:.3} mm leg {} {} on {}: route {coordinates} mm removes {removed} of {before} bends at the same length; contacts preserved and clearance-screened{exit}, native DRC required",
+                leg.x.hypot(leg.y),
+                if m < k { "back" } else { "forward" },
+                if hi - lo == 1 { "one leg".to_string() } else { format!("{} legs", hi - lo) },
+                t.layer,
+            ),
+            &[
+                ("bends_before", before as f64),
+                ("bends_after", (before - removed) as f64),
+                ("moved_leg_mm", leg.x.hypot(leg.y)),
+                ("swept_area_mm2", area),
+            ],
+        );
     }
 }
 

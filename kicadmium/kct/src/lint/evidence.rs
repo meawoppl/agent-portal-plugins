@@ -196,6 +196,7 @@ pub fn config_paths(rule: &str) -> Option<Vec<&'static str>> {
                 "silk.content" => &["/intent/labels"],
                 "export.freshness" => &["/intent/artifacts"],
                 "release.manifest" => &["/intent/release", "/intent/artifacts"],
+                "route.redundant_bend" => &[SHORT, ANGLE],
                 "checker.transform" | "checker.differential" => &["/intent/native"],
                 "checker.noise" => &["/intent/observations"],
                 "annotation.stale" => &["/intent/annotations"],

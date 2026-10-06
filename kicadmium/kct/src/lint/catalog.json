@@ -396,6 +396,17 @@
     "caveat": "Requires complete modeled geometry and outline. Skips tuned nets and declared differential pairs. At most 4096 windows and 32 graph searches; budget exhaustion is reported. Configured clearance and saved fills are screening only."
   },
   {
+    "id": "route.redundant_bend",
+    "family": "R03",
+    "stage": "routing",
+    "status": "implemented",
+    "severity": "info",
+    "confidence": "medium",
+    "detection": "Same-length reordering of an unbranched chain's legs (one leg moved, so the run between takes the other two sides of their parallelogram) that removes bends without creating a sharper corner",
+    "action": "Review the replacement coordinates and validate with native DRC; a changed end direction needs a pad-exit check",
+    "caveat": "Requires complete modeled geometry and outline. Skips tuned nets, declared differential pairs, chains a legal shortcut already covers, spans with mixed widths, and moves of a leg or run shorter than short_segment_mm. Every external copper contact must survive. At most 4096 clearance screens; budget exhaustion is reported. Configured clearance and saved fills are screening only."
+  },
+  {
     "id": "route.backtrack",
     "family": "R03",
     "stage": "routing",

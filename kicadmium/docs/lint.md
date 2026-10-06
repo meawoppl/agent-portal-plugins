@@ -300,6 +300,24 @@ intentional roles and reviewed suppressions cover legitimate exceptions.
   The limits are 4096 windows and 32 graph searches per board, and exhausted
   coverage is reported. Windows longer than eight segments are not searched
   exhaustively.
+- **`route.redundant_bend`** flags an unbranched chain whose bends can be
+  reduced at the same length by moving one leg earlier or later: the legs in
+  between shift by that leg, so the route takes the other two sides of the
+  parallelogram they span. Both endpoints, every leg direction and the total
+  length are unchanged; the reorder must remove at least one bend and create
+  no corner sharper than the chain already has. Reorders that keep both end
+  directions are always eligible. One that changes the direction leaving a
+  chain end (for example a pad exit turned diagonal) is only offered when the
+  chain zig-zags, backtracking along x or y, and the message says so; a
+  monotone dogleg such as east, south-east, east is never flagged. The moved
+  copper is clearance-, edge- and keepout-screened like `route.legal_shortcut`,
+  every external contact (vias, pads, branches) must survive, and spans with
+  mixed widths, tuned nets, declared differential pairs and chains already
+  covered by a legal shortcut are skipped. Findings carry the replacement
+  coordinates and `bends_before`/`bends_after`; at most 4096 screens run per
+  board. The moved leg and the shifted run must each be at least
+  `short_segment_mm` long; smaller kinks are off-grid jitter left to
+  `trace.short_segment`.
 - **`placement.passive_alignment`** finds nearby rows or columns of matching
   two-pad SMD R/C footprints on the same side with the same cardinal pad axis
   (180-degree reversals allowed). It uses pad centres, not footprint origins.

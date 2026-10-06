@@ -824,3 +824,60 @@ fn passive_alignment_pair_opt_in_and_invalid_policy() {
     c.intent.passive_alignment.min_group = 1;
     assert!(lint(&board(&body), "x", c).is_err());
 }
+
+fn chain(points: &[(f64, f64)]) -> String {
+    points
+        .windows(2)
+        .enumerate()
+        .map(|(i, w)| seg(&format!("c{i}"), w[0], w[1], 0.3, "F.Cu"))
+        .collect()
+}
+fn redundant(body: &str, tuned: bool) -> Vec<kct::lint::Finding> {
+    overshoot_report(body, tuned)
+        .findings
+        .into_iter()
+        .filter(|f| f.rule == "route.redundant_bend")
+        .collect()
+}
+// E, SE, E, NE: down then back up (KiCad y grows downward).
+const ZAG: &[(f64, f64)] = &[(0., 0.), (2., 0.), (3., 1.), (7., 1.), (9., -1.)];
+#[test]
+fn redundant_bend_takes_the_other_side_of_the_parallelogram() {
+    let found = redundant(&chain(ZAG), false);
+    assert_eq!(found.len(), 1, "{found:?}");
+    let f = &found[0];
+    assert_eq!(f.metrics["bends_before"], 3.);
+    assert_eq!(f.metrics["bends_after"], 2.);
+    // Leaving diagonally first: (0,0) → (1,1) → (3,1), the rest unchanged.
+    assert!(
+        f.message
+            .contains("(0.000, 0.000) → (1.000, 1.000) → (3.000, 1.000)"),
+        "{}",
+        f.message
+    );
+    assert!(f.message.contains("pad exit"));
+    assert_eq!(f.subjects, ["c0", "c1"]);
+}
+#[test]
+fn redundant_bend_merges_parallel_jogs_keeping_end_directions() {
+    // E, NE, E, NE: one 45° jog would do.
+    let found = redundant(
+        &chain(&[(0., 0.), (2., 0.), (3., -1.), (6., -1.), (8., -3.)]),
+        false,
+    );
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert_eq!(found[0].metrics["bends_after"], 1.);
+    assert!(!found[0].message.contains("pad exit"));
+}
+#[test]
+fn redundant_bend_leaves_monotone_doglegs_alone() {
+    assert!(redundant(&chain(&[(0., 0.), (3., 0.), (4., 1.), (8., 1.)]), false).is_empty());
+    assert!(redundant(&chain(&[(0., 0.), (3., 0.), (3., 2.), (6., 2.)]), false).is_empty());
+}
+#[test]
+fn redundant_bend_respects_clearance_contacts_and_tuning() {
+    let blocker = r#"(segment (start 0.4 0.9) (end 0.4 1.5) (width 0.3) (layer "F.Cu") (net "OTHER") (uuid "blocker"))"#;
+    assert!(redundant(&(chain(ZAG) + blocker), false).is_empty());
+    assert!(redundant(&(chain(ZAG) + &via("anchor", 2., 0.)), false).is_empty());
+    assert!(redundant(&chain(ZAG), true).is_empty());
+}

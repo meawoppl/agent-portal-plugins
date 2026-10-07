@@ -180,11 +180,42 @@ fn app() -> Html {
             project.set(id)
         })
     };
+    // A real dropdown: an <input list> datalist filters its suggestions by the
+    // current value, so a pre-selected project hid every other board.
+    let pick_project = {
+        let project = project.clone();
+        let live_revision = live_revision.clone();
+        Callback::from(move |e: Event| {
+            live_revision.set(None);
+            let id = e
+                .target_unchecked_into::<web_sys::HtmlSelectElement>()
+                .value();
+            save_project(&id);
+            project.set(id)
+        })
+    };
+    let picker = match workspace.as_ref().filter(|w| !w.projects.is_empty()) {
+        Some(w) => {
+            let current = (*project).clone();
+            let unknown = (!current.is_empty() && !w.projects.iter().any(|p| p.id == current))
+                .then(|| html! {<option value={current.clone()} selected=true>{current.clone()}</option>});
+            html! {<select class="project-input" aria-label="Project" onchange={pick_project}>
+                {for w.projects.iter().map(|p| {
+                    let label = if p.name.is_empty() || p.name == p.id { p.id.clone() } else { format!("{} ({})", p.name, p.id) };
+                    html!{<option value={p.id.clone()} selected={p.id == current}>{label}</option>}
+                })}
+                {unknown.unwrap_or_default()}
+            </select>}
+        }
+        None => {
+            html! {<input class="project-input" aria-label="Project id" placeholder="default project" value={(*project).clone()} oninput={change_project}/>}
+        }
+    };
     let on_revision = {
         let live_revision = live_revision.clone();
         Callback::from(move |revision: String| live_revision.set(Some(revision)))
     };
-    html! {<div class="app-shell"><header><div><h1>{"kicadmium"}</h1><span class="tagline">{"The heavy metal your PCBs were missing."}</span></div><div class="header-tools"><input class="project-input" list="projects" aria-label="Project id" placeholder="default project" value={(*project).clone()} oninput={change_project}/><datalist id="projects">{for workspace.as_ref().map(|w|w.projects.iter().map(|p|html!{<option value={p.id.clone()}>{p.name.clone()}</option>}).collect::<Vec<_>>()).unwrap_or_default()}</datalist><LiveStatus project={(*project).clone()} {on_revision}/></div></header>
+    html! {<div class="app-shell"><header><div><h1>{"kicadmium"}</h1><span class="tagline">{"The heavy metal your PCBs were missing."}</span></div><div class="header-tools">{picker}<LiveStatus project={(*project).clone()} {on_revision}/></div></header>
     <build_strip::BuildStrip project={(*project).clone()}/>
     <nav class="tabs" aria-label="Workbench views">{for TABS.iter().map(|(id,label)|{let id=(*id).to_owned();let selected=*active==id;let active=active.clone();html!{<button class={classes!(selected.then_some("active"))} aria-selected={selected.to_string()} onclick={Callback::from(move |_|{if let Some(s)=web_sys::window().and_then(|w|w.local_storage().ok().flatten()){let _=s.set_item("kicadmium:tab",&id);}active.set(id.clone())})}>{*label}</button>}})}</nav>
     <main>{{let view=if !*resolved{html!{<p class="view-status" role="status">{"Opening project…"}</p>}}else{match active.as_str(){"schematic"=>html!{<viewer::Viewer project={(*project).clone()} kind="schematic" revision={revision.clone()}/>},"pcb"=>html!{<viewer::Viewer project={(*project).clone()} kind="pcb" revision={revision.clone()}/>} ,"3d"=>html!{<viewer::Viewer project={(*project).clone()} kind="model" revision={revision.clone()}/>} ,"checks"=>html!{<Checks project={(*project).clone()}/>} ,"bom"=>html!{<bom::BomTab project={(*project).clone()} revision={revision.clone()}/>} ,"libraries"=>html!{<library::LibraryTab project={(*project).clone()}/>} ,"gerbers"=>html!{<gerbers::GerberTab project={(*project).clone()} revision={revision.clone()}/>} ,_=>html!{<misc::AnalysisTab project={(*project).clone()} revision={revision.clone()}/>}}};

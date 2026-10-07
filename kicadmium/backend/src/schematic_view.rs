@@ -1,5 +1,6 @@
 //! Backend-normalized schematic geometry using pastebom's canonical scene.
 
+use crate::schematic_drawing::{self, Annotation, TitleInfo};
 use crate::symbol_graphics::{body_prims, Fill};
 use crate::{
     current_source_revision, pick_project_file, rel, selected_project, AppError, AppState,
@@ -33,6 +34,11 @@ const NO_CONNECTS: u16 = 7;
 const LABELS: u16 = 8;
 const GLOBAL_LABELS: u16 = 9;
 const POWER: u16 = 10;
+const FRAME: u16 = 11;
+const FRAME_TEXT: u16 = 12;
+const GRAPHICS: u16 = 13;
+const NOTES: u16 = 14;
+const BUSES: u16 = 15;
 
 /// Default schematic palette: the Agent Portal's Tokyo Night colours, drawn
 /// over the #1a1b26 canvas the schematic tab sets.
@@ -62,6 +68,16 @@ pub(crate) mod palette {
     pub const NO_CONNECT: Rgba = [0x7a, 0xa2, 0xf7, 255];
     /// Hierarchical sheet frames (purple).
     pub const SHEET: Rgba = [0xbb, 0x9a, 0xf7, 255];
+    /// Page border, reference grid and title block lines (muted).
+    pub const FRAME: Rgba = [0x56, 0x5f, 0x89, 255];
+    /// Reference-grid labels and title block text.
+    pub const FRAME_TEXT: Rgba = [0x73, 0x7a, 0xa2, 255];
+    /// Free graphic lines, boxes, circles and arcs drawn on the sheet.
+    pub const GRAPHICS: Rgba = [0x9a, 0xa5, 0xce, 255];
+    /// Free text notes and text boxes.
+    pub const NOTES: Rgba = [0xa9, 0xb1, 0xd6, 255];
+    /// Buses and bus entries (teal).
+    pub const BUS: Rgba = [0x7d, 0xcf, 0xff, 255];
 }
 
 pub(crate) fn routes() -> Router<AppState> {
@@ -101,12 +117,35 @@ struct Builder {
     item: u32,
     group: u32,
     nets: HashMap<String, u32>,
+    /// Pages in traversal order, framed once the sheet count is known.
+    pages: Vec<PageFrame>,
+}
+/// What a page's drawing sheet needs: path, paper and title block values.
+struct PageFrame {
+    page: String,
+    size: (f64, f64),
+    info: TitleInfo,
 }
 impl Builder {
     fn new() -> Self {
         let mut scene = Scene::new(SceneKind::Schematic, true);
-        // Paint order (z): sheets, body wash, wires, bodies, pins, text.
+        // Paint order (z): page frame, sheets, body wash, graphics, wires,
+        // bodies, pins, text.
         scene.layers = vec![
+            layer(
+                FRAME,
+                "Drawing sheet",
+                LayerKind::Drawing,
+                1,
+                palette::FRAME,
+            ),
+            layer(
+                FRAME_TEXT,
+                "Title block",
+                LayerKind::Drawing,
+                2,
+                palette::FRAME_TEXT,
+            ),
             layer(SHEETS, "Sheets", LayerKind::Sheet, 5, palette::SHEET),
             layer(
                 BODY_FILL,
@@ -115,6 +154,14 @@ impl Builder {
                 6,
                 palette::BODY_FILL,
             ),
+            layer(
+                GRAPHICS,
+                "Graphics",
+                LayerKind::Drawing,
+                7,
+                palette::GRAPHICS,
+            ),
+            layer(BUSES, "Buses", LayerKind::Connectivity, 9, palette::BUS),
             layer(
                 CONNECTIVITY,
                 "Wires",
@@ -148,12 +195,14 @@ impl Builder {
                 33,
                 palette::GLOBAL_LABEL,
             ),
+            layer(NOTES, "Notes", LayerKind::Text, 34, palette::NOTES),
         ];
         Self {
             scene,
             item: 0,
             group: 0,
             nets: HashMap::new(),
+            pages: vec![],
         }
     }
     fn net(&mut self, n: Option<&str>) -> Option<u32> {
@@ -197,7 +246,47 @@ impl Builder {
             props,
         })
     }
+    /// Draw every page's border, reference grid and title block.
+    fn frames(&mut self) {
+        let pages = std::mem::take(&mut self.pages);
+        let count = pages.len();
+        for (i, p) in pages.into_iter().enumerate() {
+            let info = TitleInfo {
+                sheet: i + 1,
+                sheets: count,
+                ..p.info
+            };
+            let f = schematic_drawing::frame(p.size.0, p.size.1, &info);
+            let props = vec![Prop::new("page", &p.page)];
+            self.add(
+                FRAME,
+                Role::Graphic,
+                Prim::Strokes {
+                    strokes: f.lines,
+                    width: schematic_drawing::FRAME_LINE,
+                },
+                None,
+                None,
+                props.clone(),
+            );
+            for spec in f.texts {
+                let text = spec.text.clone();
+                add_text_spec(
+                    self,
+                    FRAME_TEXT,
+                    &p.page,
+                    "",
+                    &text,
+                    spec,
+                    None,
+                    Role::Text,
+                    None,
+                );
+            }
+        }
+    }
     fn finish(&mut self) {
+        self.frames();
         self.scene.recompute_bbox();
         if self.scene.bbox.is_empty() {
             self.scene.bbox = BBox::default()
@@ -230,11 +319,31 @@ fn collect_page(
             .meta
             .push(Prop::new(format!("page:{page}:parent"), p))
     }
-    if let Some(p) = s.paper() {
-        b.scene
-            .meta
-            .push(Prop::new(format!("page:{page}:paper"), p))
-    }
+    let (paper, w, h) = schematic_drawing::paper(s.sexp());
+    b.scene.meta.extend([
+        Prop::new(format!("page:{page}:paper"), &paper),
+        Prop::new(format!("page:{page}:size"), format!("{w},{h}")),
+    ]);
+    let tb = s.title_block();
+    b.pages.push(PageFrame {
+        page: page.to_owned(),
+        size: (w, h),
+        info: TitleInfo {
+            title: tb.title,
+            date: tb.date,
+            rev: tb.rev,
+            company: tb.company,
+            comments: [1, 2, 3, 4].map(|k| tb.comments.get(&k).cloned().unwrap_or_default()),
+            paper,
+            file: file
+                .file_name()
+                .map(|f| f.to_string_lossy().into_owned())
+                .unwrap_or_default(),
+            sheet_path: page.to_owned(),
+            ..Default::default()
+        },
+    });
+    add_annotations(&s, page, b);
     for w in s.wires() {
         let n = nets.get(&key(w.start)).map(String::as_str);
         b.add(
@@ -382,6 +491,53 @@ fn collect_page(
         }
     }
     Ok(())
+}
+
+/// Free text, graphics and buses drawn directly on a page.
+fn add_annotations(s: &Schematic, page: &str, b: &mut Builder) {
+    for a in schematic_drawing::annotations(s.sexp()) {
+        match a {
+            Annotation::Shape {
+                uuid,
+                outline,
+                fill,
+            } => {
+                if let Some((kind, prim)) = fill {
+                    let layer = if kind == Fill::Outline {
+                        GRAPHICS
+                    } else {
+                        BODY_FILL
+                    };
+                    b.add(
+                        layer,
+                        Role::Graphic,
+                        prim,
+                        None,
+                        None,
+                        identity(page, &uuid),
+                    );
+                }
+                b.add(
+                    GRAPHICS,
+                    Role::Graphic,
+                    outline,
+                    None,
+                    None,
+                    identity(page, &uuid),
+                )
+            }
+            Annotation::Text { uuid, spec } => {
+                let text = spec.text.clone();
+                add_text_spec(b, NOTES, page, &uuid, &text, spec, None, Role::Text, None)
+            }
+            Annotation::Bus { uuid, prim } => {
+                b.add(BUSES, Role::Bus, prim, None, None, identity(page, &uuid))
+            }
+            Annotation::BusEntry { uuid, prim } => {
+                b.add(BUSES, Role::Bus, prim, None, None, identity(page, &uuid))
+            }
+        }
+    }
 }
 
 /// Symbol bodies, pins, pin text and visible fields of one page.

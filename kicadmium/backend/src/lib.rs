@@ -19,6 +19,7 @@ mod pcb_view;
 mod profile;
 mod quality;
 mod revision;
+mod schematic_drawing;
 mod schematic_view;
 mod sexp;
 mod sexpr;

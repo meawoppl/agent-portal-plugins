@@ -226,6 +226,103 @@ fn settle_layers(model: &JsValue) {
     }
 }
 
+/// Extra spacing pushed between the board's flat layer faces, in metres per
+/// rank away from the board centre (20 µm: invisible at any zoom).
+const LAYER_SPACING: f64 = 2.0e-5;
+
+/// Thinner than this (metres) counts as a flat face rather than a solid.
+const FLAT_FACE: f64 = 1.0e-6;
+
+/// KiCad exports the soldermask as a flat face 10–15 µm outside the copper
+/// and the silkscreen another 25 µm out. Whether a depth buffer separates
+/// surfaces that close depends on the GPU, the zoom and the depth format, and
+/// when it cannot the mask sizzles through the copper along every trace.
+/// Rather than depend on that, move each flat transparent face outward by
+/// `LAYER_SPACING` per rank (mask 20 µm, silkscreen 40 µm, on each side), so
+/// the smallest gap the depth test must resolve is 30 µm instead of 10. The
+/// shift is far below anything visible.
+fn separate_layers(model: &JsValue) {
+    let faces: Rc<RefCell<Vec<(JsValue, f64)>>> = Rc::new(RefCell::new(Vec::new()));
+    let collect = faces.clone();
+    let visitor = Closure::<dyn FnMut(JsValue)>::new(move |object: JsValue| {
+        let is_mesh = Reflect::get(&object, &"isMesh".into())
+            .ok()
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let transparent = materials_of(&object).iter().any(|material| {
+            Reflect::get(material, &"transparent".into())
+                .ok()
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false)
+        });
+        if !is_mesh || !transparent {
+            return;
+        }
+        let bounds = Box3::new_box().set_from_object(&object);
+        let origin = Vec3::new_vec3(0.0, 0.0, 0.0);
+        if bounds.get_size(&origin).y() < FLAT_FACE {
+            let y = bounds.get_center(&origin).y();
+            collect.borrow_mut().push((object, y));
+        }
+    });
+    if let Ok(value) = Reflect::get(model, &"traverse".into()) {
+        if let Ok(traverse) = value.dyn_into::<Function>() {
+            let _ = traverse.call1(model, visitor.as_ref().unchecked_ref());
+        }
+    }
+    let faces = faces.borrow();
+    // KiCad writes each mask aperture and silkscreen glyph as its own face, so
+    // hundreds of meshes share a level. The distinct levels sit just outside
+    // the two board surfaces; the widest gap between neighbouring levels is
+    // the board itself, which tells the sides apart without trusting the
+    // model's bounding box (tall connectors pull its centre off the board).
+    let mut levels: Vec<f64> = Vec::new();
+    for (_, y) in faces.iter() {
+        if !levels.iter().any(|level| (level - y).abs() < FLAT_FACE) {
+            levels.push(*y);
+        }
+    }
+    levels.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    let split = levels
+        .windows(2)
+        .enumerate()
+        .max_by(|(_, a), (_, b)| {
+            (a[1] - a[0])
+                .partial_cmp(&(b[1] - b[0]))
+                .unwrap_or(std::cmp::Ordering::Equal)
+        })
+        .map_or(0, |(index, _)| index + 1);
+    let (bottom, top) = levels.split_at(split);
+    let shift_of = |y: f64| -> f64 {
+        if let Some(rank) = top.iter().position(|level| (level - y).abs() < FLAT_FACE) {
+            LAYER_SPACING * (rank + 1) as f64
+        } else if let Some(rank) = bottom
+            .iter()
+            .rev()
+            .position(|level| (level - y).abs() < FLAT_FACE)
+        {
+            -LAYER_SPACING * (rank + 1) as f64
+        } else {
+            0.0
+        }
+    };
+    for (mesh, y) in faces.iter() {
+        if let Some(position) = property::<Vec3>(mesh, "position") {
+            position.set(position.x(), position.y() + shift_of(*y), position.z());
+        }
+    }
+    web_sys::console::debug_1(
+        &format!(
+            "kicadmium 3d: {} flat layer faces on {} levels above and {} below the board, spaced {} µm per level",
+            faces.len(),
+            top.len(),
+            bottom.len(),
+            LAYER_SPACING * 1.0e6
+        )
+        .into(),
+    );
+}
+
 fn property<T: JsCast>(object: &JsValue, name: &str) -> Option<T> {
     Reflect::get(object, &name.into()).ok()?.dyn_into().ok()
 }
@@ -445,6 +542,7 @@ fn start(
             match Reflect::get(&gltf, &"scene".into()) {
                 Ok(model) => {
                     settle_layers(&model);
+                    separate_layers(&model);
                     scene.add(&model);
                     *bounds.borrow_mut() = Some(frame(&camera, &controls, &model));
                     *model_slot.borrow_mut() = Some(model);

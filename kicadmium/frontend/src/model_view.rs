@@ -391,6 +391,14 @@ fn start(
     let options = Object::new();
     Reflect::set(&options, &"canvas".into(), canvas.as_ref())?;
     Reflect::set(&options, &"antialias".into(), &JsValue::TRUE)?;
+    // KiCad's GLB stacks real surfaces 10–15 µm apart (copper under a flat
+    // soldermask face, both sides), and the far side shows through the
+    // near-opaque board body. A linear 24-bit depth buffer resolves roughly
+    // distance / 16 000 once the camera is inside the model's bounding
+    // sphere, so zoomed-in views let the far side's mask and copper fight.
+    // Logarithmic depth keeps the resolution near-uniform (nanometres here)
+    // at the cost of early-depth rejection, which this scene does not need.
+    Reflect::set(&options, &"logarithmicDepthBuffer".into(), &JsValue::TRUE)?;
     // Annotation snapshots are captured after Three.js has presented the frame.
     // Retain the drawing buffer so `canvas.toDataURL()` does not return black.
     Reflect::set(&options, &"preserveDrawingBuffer".into(), &JsValue::TRUE)?;

@@ -51,8 +51,13 @@ run = "bin/yapcad import --cwd {cwd}"
 
 [[commands]]
 name = "render"
-description = "Render a run (default latest) to PNG: [--run ID] [--view sheet|iso|front|top|right|x,y,z] [--size WxH] [--out PATH]."
+description = "Render a run (default latest) to PNG with a depth buffer: [--run ID] [--view sheet|iso|front|top|right|x,y,z] [--clip x>0] [--size WxH] [--out PATH]."
 run = "bin/yapcad render --cwd {cwd}"
+
+[[commands]]
+name = "clearance"
+description = "Minimum gap and interference between part groups of a run: --a 'payload,NdFeB' [--b ...] [--exclude flex] [--min MM] [--run ID]; exits 1 unless clear."
+run = "bin/yapcad clearance --cwd {cwd}"
 
 [[commands]]
 name = "runs"

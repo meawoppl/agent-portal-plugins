@@ -27,7 +27,11 @@ directory (`agent-portal plugin runtime yapcad` prints it). All print JSON.
    `stats` (bbox, volume, area, centroid, watertight, boundary/non-manifold
    edges, bodies, euler number) and `files`. Then look at the preview with
    `agent-portal show FILES.preview`. For other angles:
-   `render --view iso --view front --size 800x600` (or `--view 1,-2,1`).
+   `render --view iso --view front --size 800x600` (or `--view -1,2,1`);
+   `render --clip x>0` shows a capped section. For assemblies judge
+   `stats.parts_watertight` and `parts[]`, not the combined `watertight`.
+   `clearance --a 'payload,NdFeB' --exclude flex [--min 0.5]` gives exact
+   minimum gaps and interference between part groups (exit 1 unless clear).
 6. Report with evidence: run id, stats that prove the change, the image.
 
 Representation: default `mesh`; `--representation sdf` builds primitives,

@@ -63,7 +63,8 @@ All commands are `bin/yapcad ACTION --cwd PROJECT ...` and print JSON.
 | `build --file F --command C [-p k=v]...` | retained run with stats and preview |
 | `package --file F --command C [--name N]` | validated `.ycpkg` with provenance |
 | `import --file PATH` | STL, STEP, DXF or `.ycpkg` as a reviewable run |
-| `render [--run ID] [--view V]... [--size WxH] [--out P]` | PNG of a run |
+| `render [--run ID] [--view V]... [--clip x>0] [--size WxH] [--out P]` | PNG of a run |
+| `clearance --a SEL [--b SEL] [--exclude SEL] [--min MM] [--run ID]` | minimum gap and interference between part groups |
 | `runs [--limit N]` | history, newest first, with artifact paths |
 | `validate [PKG...] [--strict]` | `.ycpkg` validation |
 | `api [NAME]` | DSL built-ins, types, methods, patterns (yapCAD introspection) |
@@ -77,9 +78,22 @@ lists), otherwise strings; ints are coerced to declared `float` parameters and
 unknown parameter names are rejected before building.
 
 Render views: `sheet` (default 2x2 iso/front/top/right), `iso`, `front`,
-`back`, `top`, `bottom`, `left`, `right`, or a direction `x,y,z`. Previews use
-a depth-sorted rasterizer with depth-tested feature edges on the Portal's dark
-palette; show them with `agent-portal show`.
+`back`, `top`, `bottom`, `left`, `right`, or a direction `x,y,z` (negative
+components work: `--view -1,1,0.5`). Previews use a per-pixel depth buffer
+with depth-tested feature edges on the Portal's dark palette; show them with
+`agent-portal show`. `--clip` cuts a section (`x>0`, `y<12.5`, `z>=3`, or
+`nx,ny,nz>offset` keeps that half); closed parts are capped and the cut faces
+drawn lighter.
+
+`clearance` reports the minimum distance between two groups of parts of a
+run, selected by case-insensitive part-name or material substrings
+(comma-separated; group B defaults to every other part, `--exclude` drops
+intended bridges such as a flex loop). Distances are exact: closed parts use
+manifold3d's BVH `min_gap`, open meshes an exact triangle search. Output
+lists the closest part pairs with approximate locations, and any interference
+volume between closed parts; `status` is `clear`, `too_close` (below
+`--min`), `contact` or `interference`, and the exit code is non-zero unless
+clear, so scripts can gate on it.
 
 ## Runs
 
@@ -98,7 +112,9 @@ ignores itself in git):
 
 Stats: bounding box, volume, area, volume centroid, triangle count,
 watertightness with open and non-manifold edge counts, body count, Euler number
-and per-part breakdowns. A failing `require` fails the run and the message
+and per-part breakdowns. Touching parts never make a watertight combined mesh,
+so summaries also list `parts` (name, material, volume, watertight, bodies,
+open edges) and `stats.parts_watertight`. A failing `require` fails the run and the message
 names its source line (yapCAD itself only records "Constraint violated").
 
 Builds run in a separate worker process (the yapCAD interpreter) with a hard

@@ -351,6 +351,7 @@ class Workbench:
                         "package",
                         "assembly",
                         "assembly_parts",
+                        "parts",
                         "require_failures",
                         "build_seconds",
                     )
@@ -528,10 +529,16 @@ def make_app(work: Workbench):
             raise ValueError("size must be within 64..4096")
         target = (
             directory
-            / f"render-{hashlib.sha1(json.dumps([views, width, height]).encode()).hexdigest()[:10]}.png"
+            / f"render-{hashlib.sha1(json.dumps([views, width, height, request.query.get('clip')]).encode()).hexdigest()[:10]}.png"
         )
         await asyncio.to_thread(
-            render.render_file, directory / "view.json", target, views, (width, height)
+            render.render_file,
+            directory / "view.json",
+            target,
+            views,
+            (width, height),
+            None,
+            request.query.get("clip"),
         )
         return web.FileResponse(target)
 
@@ -660,6 +667,7 @@ def summarize(record):
             "stats",
             "value",
             "assembly_parts",
+            "parts",
             "notes",
             "require_failures",
             "build_seconds",
@@ -719,6 +727,18 @@ def setup_brep():
     )
 
 
+def normalized_argv(argv):
+    """Let value options take negative vectors (``--view -1,1,0.5``), which
+    argparse would otherwise read as an unknown flag."""
+    out = list(argv)
+    for i, token in enumerate(out[:-1]):
+        if token in ("--view", "--clip") and re.fullmatch(
+            r"-[\d.,\-<>=xyz ]+", out[i + 1]
+        ):
+            out[i : i + 2] = [f"{token}={out[i + 1]}", ""]
+    return [t for t in out if t != ""]
+
+
 def main():
     actions = (
         "serve",
@@ -731,6 +751,7 @@ def main():
         "package",
         "import",
         "render",
+        "clearance",
         "runs",
         "validate",
         "api",
@@ -787,6 +808,35 @@ def main():
     )
     parser.add_argument("--size", default="960x720")
     parser.add_argument(
+        "--a",
+        dest="group_a",
+        help="clearance: group A part name/material substrings, comma-separated",
+    )
+    parser.add_argument(
+        "--b",
+        dest="group_b",
+        help="clearance: group B selectors (default: every other part)",
+    )
+    parser.add_argument(
+        "--exclude", help="clearance: parts to ignore (name/material substrings)"
+    )
+    parser.add_argument(
+        "--cell",
+        type=float,
+        default=2.0,
+        help="clearance: subdivision size in mm (speed only; results are exact)",
+    )
+    parser.add_argument(
+        "--min",
+        dest="min_clearance",
+        type=float,
+        default=0.0,
+        help="clearance: required gap in mm",
+    )
+    parser.add_argument(
+        "--clip", help="render: section, keep e.g. x>0, y<12.5 or nx,ny,nz>offset"
+    )
+    parser.add_argument(
         "--out",
         type=Path,
         help="render output path, or directory to copy build artifacts into",
@@ -800,7 +850,7 @@ def main():
         action="store_true",
         help="doctor: fail unless pythonocc-core is usable",
     )
-    args, extra = parser.parse_known_args()
+    args, extra = parser.parse_known_args(normalized_argv(sys.argv[1:]))
     root = args.cwd.resolve()
     if args.action == "tool":
         if extra[:1] == ["--"]:
@@ -863,9 +913,25 @@ def main():
             args.view or ["sheet"],
             (width, height),
             record.get("label"),
+            args.clip,
         )
         print(str(output.resolve()))
         return 0
+    if args.action == "clearance":
+        import clearance
+
+        directory = work.run_dir(args.run)
+        report = clearance.clearance(
+            json.loads((directory / "view.json").read_text()),
+            args.group_a,
+            args.group_b,
+            args.exclude,
+            args.cell,
+            args.min_clearance,
+        )
+        report["run"] = directory.name
+        print(json.dumps(report, indent=2))
+        return 0 if report["status"] == "clear" else 1
     file = args.file or (args.targets[0] if args.targets else None)
     if not file:
         parser.error(f"{args.action} requires --file")

@@ -454,6 +454,28 @@ def retained_assembly(execution):
     return annotations.get("assembly") if isinstance(annotations, dict) else None
 
 
+def part_summary(view):
+    """Per-part stats for run summaries; a combined mesh of touching parts is
+    never watertight, so assemblies are judged part by part."""
+    rows = []
+    for part in view.get("parts", []):
+        st = part.get("stats", {})
+        rows.append(
+            {
+                "name": part["name"],
+                "material": part.get("material"),
+                "triangles": st.get("triangles"),
+                "volume": st.get("volume"),
+                "watertight": st.get("watertight"),
+                "bodies": st.get("bodies"),
+                "boundary_edges": st.get("boundary_edges"),
+                "nonmanifold_edges": st.get("nonmanifold_edges"),
+                "bbox": st.get("bbox"),
+            }
+        )
+    return rows
+
+
 def build_view(geometry, name="model", assembly=None):
     """Serialize geometry for the browser viewer and the PNG renderer."""
     solids = solids_of(geometry)
@@ -776,6 +798,11 @@ def run_build(spec: dict, out: Path):
     if view.get("assembly"):
         result["assembly_parts"] = view["assembly"]["parts"]
     result["stats"] = view.get("stats", {})
+    if view.get("parts"):
+        result["parts"] = part_summary(view)
+        result["stats"]["parts_watertight"] = all(
+            p["watertight"] for p in result["parts"]
+        )
     if view["kind"] == "value":
         result["value"] = view["value"]
     result["exports"] = export(
@@ -850,6 +877,11 @@ def run_import(spec: dict, out: Path):
     view = build_view(geometry, path.stem)
     emit(view, out / "view.json")
     result.update(success=True, kind=view["kind"], stats=view.get("stats", {}))
+    if view.get("parts"):
+        result["parts"] = part_summary(view)
+        result["stats"]["parts_watertight"] = all(
+            p["watertight"] for p in result["parts"]
+        )
     result["exports"] = export(
         geometry, view, spec.get("exports") or [], out, spec, result["notes"]
     )

@@ -59,6 +59,10 @@ pub struct RouteParams {
     pub strategy: String,
     pub dry_run: bool,
     pub skip_drc: bool,
+    /// What to do when dropping offending nets cannot clear a DRC regression:
+    /// `partial` keeps the surviving routes and reports the remaining new
+    /// violations (exit [`EXIT_DRC_REGRESSION`]); `rollback` restores the input.
+    pub drc_guard: String,
     pub verbose: bool,
     pub quiet: bool,
     pub json: bool,
@@ -191,6 +195,7 @@ fn resolve_params(ns: &Namespace, g: &Globals) -> Result<RouteParams, (i32, Stri
         strategy: ns.str_or("strategy", "negotiated"),
         dry_run: ns.flag("dry_run"),
         skip_drc: ns.flag("skip_drc"),
+        drc_guard: ns.str_or("drc_guard", "partial"),
         verbose: ns.flag("verbose") || g.verbose,
         quiet,
         json: ns.get("format") == Some("json"),
@@ -580,6 +585,9 @@ fn fill_zones_and_drc(output: &Path, quiet: bool) -> Option<Json> {
 /// unconnected items than the input (the output is rolled back).
 pub const EXIT_DRC_REGRESSION: i32 = 5;
 
+/// Drop-and-re-DRC rounds the guard spends before giving up on a regression.
+const DRC_GUARD_MAX_ROUNDS: usize = 6;
+
 /// Identity key of a DRC violation (type + item descriptions).
 fn violation_key(v: &Json) -> String {
     let ty = v.get("type").and_then(Json::as_str).unwrap_or("");
@@ -643,12 +651,101 @@ fn drc_counts(pcb: &Path) -> Option<(usize, usize, HashSet<String>)> {
     Some((e, u, keys))
 }
 
-/// Nets whose new copper is implicated in violations absent from the input:
-/// nets named in the violation items, else new copper within 1 mm of it.
+/// `uuid -> net name` of every copper track, arc and via in a board source.
+fn copper_uuid_nets(source: &str) -> HashMap<String, String> {
+    let mut out = HashMap::new();
+    let Ok(root) = crate::sexp::parse(source) else {
+        return out;
+    };
+    let mut names: HashMap<i64, String> = HashMap::new();
+    for n in root.children_named("net") {
+        let mut atoms = n.atoms();
+        if let (Some(id), Some(name)) = (atoms.next().and_then(|v| v.as_i64()), atoms.next()) {
+            names.insert(id, name.to_string());
+        }
+    }
+    for node in root.children.iter() {
+        if !(node.has_tag("segment") || node.has_tag("arc") || node.has_tag("via")) {
+            continue;
+        }
+        let uuid = node
+            .get("uuid")
+            .and_then(|u| u.first_atom())
+            .map(|v| v.to_string());
+        let net = node.get("net").and_then(|n| n.first_atom()).map(|v| {
+            v.as_i64()
+                .and_then(|id| names.get(&id).cloned())
+                .unwrap_or_else(|| v.to_string())
+        });
+        if let (Some(uuid), Some(net)) = (uuid, net) {
+            out.insert(uuid, net);
+        }
+    }
+    out
+}
+
+/// Copper in `output_source` that the input board did not have: `uuid -> net`.
+fn new_copper_nets(input_uuids: &HashSet<String>, output_source: &str) -> HashMap<String, String> {
+    copper_uuid_nets(output_source)
+        .into_iter()
+        .filter(|(uuid, _)| !input_uuids.contains(uuid))
+        .collect()
+}
+
+/// Which DRC report sections count as the regression being chased: error
+/// violations when the error count rose, unconnected items when that count
+/// rose. Routing always churns the unconnected *set* (a partial route replaces
+/// one pad pair with another), so treating every unfamiliar unconnected item
+/// as a regression blamed, and dropped, dozens of innocent nets for a handful
+/// of clearance errors.
+fn regressed_kinds(base: (usize, usize), now: (usize, usize)) -> Vec<&'static str> {
+    let mut kinds = Vec::new();
+    if now.0 > base.0 {
+        kinds.push("violations");
+    }
+    if now.1 > base.1 {
+        kinds.push("unconnected_items");
+    }
+    kinds
+}
+
+/// Items of the regressed `kinds` in `report` that the input board did not
+/// have, as `{type, severity, description}` for receipts and logs.
+fn new_violations(report: &Json, baseline: &HashSet<String>, kinds: &[&str]) -> Vec<Json> {
+    let mut out = Vec::new();
+    for &kind in kinds {
+        let Some(v) = report.get(kind).and_then(Json::as_array) else {
+            continue;
+        };
+        for x in v {
+            if kind == "violations" && x.get("severity").and_then(Json::as_str) != Some("error") {
+                continue;
+            }
+            if baseline.contains(&violation_key(x)) {
+                continue;
+            }
+            out.push(json!({
+                "type": x.get("type").and_then(Json::as_str).unwrap_or(""),
+                "severity": x.get("severity").and_then(Json::as_str).unwrap_or(""),
+                "description": x.get("description").and_then(Json::as_str).unwrap_or(""),
+            }));
+        }
+    }
+    out
+}
+
+/// Nets whose new copper is implicated in violations absent from the input.
+///
+/// Attribution, in order of confidence: an item uuid that is new copper
+/// (`new_copper`, from diffing the output against the input board); a routed
+/// net named `[NET]` in an item description; new copper within 1 mm of an
+/// item; and, only when nothing else attributes a violation, within 3 mm.
 fn regression_offenders(
     report: &Json,
     routes: &[crate::router::primitives::Route],
     baseline: &HashSet<String>,
+    new_copper: &HashMap<String, String>,
+    kinds: &[&str],
 ) -> Vec<String> {
     let routed: HashSet<&str> = routes.iter().map(|r| r.net_name.as_str()).collect();
     let mut out: Vec<String> = Vec::new();
@@ -657,7 +754,26 @@ fn regression_offenders(
             out.push(n.to_string());
         }
     };
-    for kind in ["violations", "unconnected_items"] {
+    let near = |px: f64, py: f64, radius: f64, out: &mut Vec<String>| -> bool {
+        let mut hit = false;
+        for r in routes {
+            let near_seg = r.segments.iter().any(|s| {
+                crate::router::grid::point_segment_distance(px, py, s.start(), s.end()) < radius
+            });
+            let near_via = r.vias.iter().any(|v| (v.x - px).hypot(v.y - py) < radius);
+            if near_seg || near_via {
+                add(&r.net_name, out);
+                hit = true;
+            }
+        }
+        hit
+    };
+    let item_pos = |it: &Json| -> Option<(f64, f64)> {
+        let p = it.get("pos")?;
+        Some((p.get("x")?.as_f64()?, p.get("y")?.as_f64()?))
+    };
+    let mut unattributed: Vec<Vec<Json>> = Vec::new();
+    for &kind in kinds {
         let Some(v) = report.get(kind).and_then(Json::as_array) else {
             continue;
         };
@@ -675,6 +791,21 @@ fn regression_offenders(
                 .unwrap_or_default();
             let mut named = false;
             for it in &items {
+                if let Some(net) = it
+                    .get("uuid")
+                    .and_then(Json::as_str)
+                    .and_then(|u| new_copper.get(u))
+                {
+                    if routed.contains(net.as_str()) {
+                        add(net, &mut out);
+                        named = true;
+                    }
+                }
+            }
+            if named {
+                continue;
+            }
+            for it in &items {
                 let d = it.get("description").and_then(Json::as_str).unwrap_or("");
                 let mut rest = d;
                 while let Some(a) = rest.find('[') {
@@ -691,25 +822,22 @@ fn regression_offenders(
                 continue;
             }
             for it in &items {
-                let (Some(px), Some(py)) = (
-                    it.get("pos")
-                        .and_then(|p| p.get("x"))
-                        .and_then(Json::as_f64),
-                    it.get("pos")
-                        .and_then(|p| p.get("y"))
-                        .and_then(Json::as_f64),
-                ) else {
-                    continue;
-                };
-                for r in routes {
-                    let near_seg = r.segments.iter().any(|s| {
-                        crate::router::grid::point_segment_distance(px, py, s.start(), s.end())
-                            < 1.0
-                    });
-                    let near_via = r.vias.iter().any(|v| (v.x - px).hypot(v.y - py) < 1.0);
-                    if near_seg || near_via {
-                        add(&r.net_name, &mut out);
+                if let Some((px, py)) = item_pos(it) {
+                    if near(px, py, 1.0, &mut out) {
+                        named = true;
                     }
+                }
+            }
+            if !named {
+                unattributed.push(items);
+            }
+        }
+    }
+    if out.is_empty() {
+        for items in &unattributed {
+            for it in items {
+                if let Some((px, py)) = item_pos(it) {
+                    near(px, py, 3.0, &mut out);
                 }
             }
         }
@@ -833,6 +961,7 @@ const ROUTE_IMPLEMENTED: &[&str] = &[
     "auto_layers",
     "max_layers",
     "min_completion",
+    "drc_guard",
     "manufacturer",
     "skip_drc",
     "reserve_plane_layers",
@@ -1252,6 +1381,15 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
     let staged = std::env::temp_dir().join(format!("kct-route-{}.kicad_pcb", std::process::id()));
     pcb.save(Some(&staged))?;
     let baseline = if p.skip_drc { None } else { drc_counts(&p.pcb) };
+    // Copper the input already had; anything else in the output is ours and
+    // lets DRC items be attributed to routed nets by uuid.
+    let input_uuids: HashSet<String> = if baseline.is_some() {
+        std::fs::read_to_string(&p.pcb)
+            .map(|src| copper_uuid_nets(&src).into_keys().collect())
+            .unwrap_or_default()
+    } else {
+        HashSet::new()
+    };
     let mut dropped: Vec<String> = Vec::new();
     let mut drc: Option<Json>;
     let mut round = 0;
@@ -1271,30 +1409,79 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
             break;
         }
         round += 1;
-        let offenders = regression_offenders(rep, &routes, &base.2);
-        if round > 4 || offenders.is_empty() {
+        let new_copper = std::fs::read_to_string(&p.output)
+            .map(|src| new_copper_nets(&input_uuids, &src))
+            .unwrap_or_default();
+        let kinds = regressed_kinds((base.0, base.1), now);
+        let offenders = regression_offenders(rep, &routes, &base.2, &new_copper, &kinds);
+        if round > DRC_GUARD_MAX_ROUNDS || offenders.is_empty() {
             let _ = std::fs::remove_file(&staged);
-            std::fs::copy(&p.pcb, &p.output)?;
-            let _ = write_project_sidecar(&p.pcb, &p.output);
-            eprintln!(
-                "ERROR: routed board would degrade DRC (errors {} -> {}, unconnected {} -> {}); \
-                 output rolled back to the unchanged input board: {}",
-                base.0,
-                now.0,
-                base.1,
-                now.1,
-                p.output.display()
-            );
-            write_route_receipt_with(
-                &p.output,
-                EXIT_DRC_REGRESSION,
-                Some(json!({
-                    "action": "rolled_back_to_input",
-                    "message": "routed board would degrade DRC; output is the unchanged input board",
-                    "input_drc": {"errors": base.0, "unconnected": base.1},
-                    "routed_drc": {"errors": now.0, "unconnected": now.1},
-                })),
-            )?;
+            let remaining = new_violations(rep, &base.2, &kinds);
+            if p.drc_guard == "rollback" {
+                std::fs::copy(&p.pcb, &p.output)?;
+                let _ = write_project_sidecar(&p.pcb, &p.output);
+                eprintln!(
+                    "ERROR: routed board would degrade DRC (errors {} -> {}, unconnected {} -> {}); \
+                     output rolled back to the unchanged input board: {}",
+                    base.0,
+                    now.0,
+                    base.1,
+                    now.1,
+                    p.output.display()
+                );
+                write_route_receipt_with(
+                    &p.output,
+                    EXIT_DRC_REGRESSION,
+                    Some(json!({
+                        "action": "rolled_back_to_input",
+                        "message": "routed board would degrade DRC; output is the unchanged input board",
+                        "input_drc": {"errors": base.0, "unconnected": base.1},
+                        "routed_drc": {"errors": now.0, "unconnected": now.1},
+                        "dropped_nets": dropped,
+                        "new_violations": remaining,
+                    })),
+                )?;
+            } else {
+                // Partial commit: the output already holds every route that
+                // survived the drop rounds. Keep it and say exactly what is
+                // still wrong, rather than throwing the whole run away.
+                eprintln!(
+                    "WARNING: routed board still degrades DRC (errors {} -> {}, unconnected {} -> {}) \
+                     after dropping {} net(s); kept the {} surviving route(s) in {} and listed the {} \
+                     remaining new violation(s) in the receipt (--drc-guard rollback restores the input)",
+                    base.0,
+                    now.0,
+                    base.1,
+                    now.1,
+                    dropped.len(),
+                    routes.len(),
+                    p.output.display(),
+                    remaining.len()
+                );
+                for v in remaining.iter().take(10) {
+                    eprintln!(
+                        "  {}: {}",
+                        v.get("type").and_then(Json::as_str).unwrap_or(""),
+                        v.get("description").and_then(Json::as_str).unwrap_or("")
+                    );
+                }
+                if remaining.len() > 10 {
+                    eprintln!("  ... {} more in the receipt", remaining.len() - 10);
+                }
+                write_route_receipt_with(
+                    &p.output,
+                    EXIT_DRC_REGRESSION,
+                    Some(json!({
+                        "action": "kept_partial_with_regressions",
+                        "message": "routes that survived the DRC guard were kept; the listed new violations remain and need manual repair",
+                        "input_drc": {"errors": base.0, "unconnected": base.1},
+                        "routed_drc": {"errors": now.0, "unconnected": now.1},
+                        "routes_kept": routes.len(),
+                        "dropped_nets": dropped,
+                        "new_violations": remaining,
+                    })),
+                )?;
+            }
             if p.json {
                 println!(
                     "{}",
@@ -1303,8 +1490,12 @@ pub fn route_main(p: &RouteParams) -> Result<i32> {
                         "output": p.output.display().to_string(),
                         "success": false,
                         "error": "drc_regression",
+                        "kept_partial": p.drc_guard != "rollback",
+                        "routes_kept": if p.drc_guard == "rollback" { 0 } else { routes.len() },
+                        "dropped_nets": dropped,
                         "input_drc": {"errors": base.0, "unconnected": base.1},
                         "routed_drc": {"errors": now.0, "unconnected": now.1},
+                        "new_violations": remaining.len(),
                     }))?
                 );
             }
@@ -1541,6 +1732,7 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         strategy: strategy.clone(),
         dry_run: ns.flag("dry_run"),
         skip_drc: true,
+        drc_guard: "partial".into(),
         verbose: ns.flag("verbose") || g.verbose,
         quiet: true,
         json: false,
@@ -1698,4 +1890,102 @@ pub fn run_auto(args: Vec<OsString>, g: &Globals) -> Result<i32> {
         params.dry_run,
         code,
     )
+}
+
+#[cfg(test)]
+mod drc_guard_tests {
+    use super::*;
+    use crate::router::primitives::Route;
+
+    const BOARD: &str = r#"(kicad_pcb (version 20240108) (generator "kct")
+  (net 0 "")
+  (net 1 "SIG_A")
+  (net 2 "SIG_B")
+  (segment (start 1 1) (end 2 2) (width 0.2) (layer "F.Cu") (net 1) (uuid "seg-old"))
+  (segment (start 3 3) (end 4 4) (width 0.2) (layer "F.Cu") (net 2) (uuid "seg-new"))
+  (via (at 5 5) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 2) (uuid "via-new"))
+  (zone (net 1) (net_name "SIG_A") (layer "F.Cu") (uuid "zone-1") (polygon (pts (xy 0 0) (xy 1 0) (xy 1 1))))
+)"#;
+
+    #[test]
+    fn copper_uuids_map_to_net_names_and_skip_zones() {
+        let map = copper_uuid_nets(BOARD);
+        assert_eq!(map.get("seg-old").map(String::as_str), Some("SIG_A"));
+        assert_eq!(map.get("seg-new").map(String::as_str), Some("SIG_B"));
+        assert_eq!(map.get("via-new").map(String::as_str), Some("SIG_B"));
+        assert!(!map.contains_key("zone-1"));
+        let input: HashSet<String> = ["seg-old".to_string()].into_iter().collect();
+        let fresh = new_copper_nets(&input, BOARD);
+        assert_eq!(fresh.len(), 2);
+        assert!(!fresh.contains_key("seg-old"));
+    }
+
+    fn report(items: Vec<Json>) -> Json {
+        json!({
+            "violations": [{
+                "type": "clearance",
+                "severity": "error",
+                "description": "Clearance violation",
+                "items": items,
+            }],
+            "unconnected_items": [],
+        })
+    }
+
+    #[test]
+    fn offenders_are_found_by_uuid_before_names_or_proximity() {
+        let routes = vec![Route::new(2, "SIG_B"), Route::new(3, "SIG_C")];
+        let baseline = HashSet::new();
+        let input: HashSet<String> = ["seg-old".to_string()].into_iter().collect();
+        let new_copper = new_copper_nets(&input, BOARD);
+        // Descriptions carry no net names and the routes have no geometry, so
+        // only the uuid of the new segment can attribute this violation.
+        let rep = report(vec![
+            json!({"description": "Segment on F.Cu", "pos": {"x": 50.0, "y": 50.0}, "uuid": "seg-new"}),
+            json!({"description": "Pad 1 of R1", "pos": {"x": 50.1, "y": 50.0}, "uuid": "pad-1"}),
+        ]);
+        assert_eq!(
+            regression_offenders(&rep, &routes, &baseline, &new_copper, &["violations"]),
+            vec!["SIG_B".to_string()]
+        );
+        // A section that did not regress is not consulted at all.
+        assert!(regression_offenders(&rep, &routes, &baseline, &new_copper, &[]).is_empty());
+        // Names in brackets still work when nothing matches by uuid.
+        let rep = report(vec![
+            json!({"description": "Track [SIG_C] on F.Cu", "pos": {"x": 50.0, "y": 50.0}, "uuid": "x"}),
+        ]);
+        assert_eq!(
+            regression_offenders(&rep, &routes, &baseline, &HashMap::new(), &["violations"]),
+            vec!["SIG_C".to_string()]
+        );
+        // Violations already present in the input are never offenders.
+        let rep = report(vec![
+            json!({"description": "Track [SIG_C] on F.Cu", "pos": {"x": 50.0, "y": 50.0}, "uuid": "x"}),
+        ]);
+        let key = violation_key(&rep["violations"][0]);
+        let baseline: HashSet<String> = [key].into_iter().collect();
+        assert!(
+            regression_offenders(&rep, &routes, &baseline, &HashMap::new(), &["violations"])
+                .is_empty()
+        );
+        assert!(new_violations(&rep, &baseline, &["violations"]).is_empty());
+        assert_eq!(
+            new_violations(&rep, &HashSet::new(), &["violations"]).len(),
+            1
+        );
+    }
+
+    #[test]
+    fn only_the_counts_that_rose_are_chased() {
+        assert_eq!(regressed_kinds((0, 499), (5, 214)), vec!["violations"]);
+        assert_eq!(
+            regressed_kinds((0, 499), (0, 520)),
+            vec!["unconnected_items"]
+        );
+        assert_eq!(
+            regressed_kinds((0, 499), (1, 500)),
+            vec!["violations", "unconnected_items"]
+        );
+        assert!(regressed_kinds((2, 10), (2, 10)).is_empty());
+    }
 }

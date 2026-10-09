@@ -229,6 +229,12 @@ pub static ROUTE_OPTS: &[Opt] = &[
     v(&["--copper"], "copper", None),
     f(&["--high-performance"], "high_performance", "false", "true"),
     f(&["--skip-drc"], "skip_drc", "false", "true"),
+    c(
+        &["--drc-guard"],
+        "drc_guard",
+        Some("partial"),
+        &["partial", "rollback"],
+    ),
     f(&["--sync-check"], "sync_check", "true", "true"),
     f(&["--no-sync-check"], "sync_check", "true", "false"),
     v(&["--schematic"], "schematic", None),

@@ -16,6 +16,7 @@ pub mod analyze;
 pub mod audit;
 pub mod board_metrics;
 pub mod check;
+pub mod coil;
 pub mod constraints;
 pub mod creepage;
 pub mod creepage_export_rules;
@@ -101,6 +102,7 @@ pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "mfr", about: "Manufacturer tools", wave: "G", run: Some(mfr::run) },
     CommandSpec { name: "zones", about: "Add copper pour zones to PCB", wave: "E", run: Some(zones::run) },
     CommandSpec { name: "stitch", about: "Auto-add stitching vias for plane connections", wave: "E", run: Some(stitch::run) },
+    CommandSpec { name: "coil", about: "Planar coil checks: same-net spacing and per-net resistance", wave: "J", run: Some(coil::run) },
     CommandSpec { name: "route", about: "Autoroute a PCB", wave: "F", run: Some(route::run) },
     CommandSpec { name: "route-auto", about: "Route a net using RoutingOrchestrator smart strategy selection", wave: "F", run: Some(route::run_auto) },
     CommandSpec { name: "reason", about: "Export PCB reasoning state and apply explicit JSON layout commands", wave: "H", run: Some(h::reason) },

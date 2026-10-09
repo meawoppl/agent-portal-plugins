@@ -51,6 +51,9 @@ def capabilities():
         "yapcad": getattr(yapcad, "__version__", "unknown"),
         "python": sys.version.split()[0],
     }
+    import yapcad_patches
+
+    info["patches"] = yapcad_patches.apply()
     info["brep"] = bool(yapcad.has_brep())
     for module in ("manifold3d", "trimesh", "pymeshfix", "ezdxf"):
         try:
@@ -483,6 +486,8 @@ def build_view(geometry, name="model", assembly=None):
                 "stats": mesh_stats(triangles),
                 "material": (meta.get("material") or {}).get("name")
                 if isinstance(meta.get("material"), dict)
+                else meta.get("material")
+                if isinstance(meta.get("material"), str)
                 else None,
                 "tags": meta.get("tags") or [],
             }
@@ -880,6 +885,9 @@ def main():
     parser.add_argument("--out", type=Path, help="Run directory")
     parser.add_argument("--strict", action="store_true")
     args = parser.parse_args()
+    import yapcad_patches
+
+    yapcad_patches.apply()
     if args.action == "capabilities":
         emit(capabilities())
     elif args.action == "list":

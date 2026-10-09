@@ -79,6 +79,10 @@ command PLATE(width: float @ui(widget="slider", min=20.0, max=120.0) = 60.0,
   failing require fails the build and is reported with its source line.
 - `@ui(label=, min=, max=, step=, group=, widget="slider")` drives the pane's
   parameter form; `@meta(...)` adds output metadata. Neither changes geometry.
+- Reassigning in a block (`s = union(s, part)` inside `for`/`if`) updates
+  the outer variable; a typed `s: solid = ...` in a block declares a new
+  local. Booleans keep the first operand's `@meta` (material, tags).
+- `extrude` and `helical_extrude` work without pythonocc (manifold3d meshes).
 - Mesh-only installs cannot `fillet`/`chamfer` a mesh solid (doctor
   `brep: false`); use `--representation sdf` or BREP via `setup-brep` /
   `YAPCAD_PYTHON` (a conda Python with pythonocc-core and yapCAD).

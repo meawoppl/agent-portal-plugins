@@ -33,6 +33,24 @@ STEP import need BREP. Either:
 `doctor` reports which interpreter and capabilities are active
 (`doctor --require-brep` fails without BREP).
 
+### yapCAD fixes applied by the plugin
+
+`yapcad_patches.py` patches the pinned yapCAD at worker start-up (`doctor`
+lists them under `capabilities.patches`); each is meant to go upstream:
+
+- **loop_reassignment:** `x = expr` inside a `for`/`if` block now updates an
+  outer `x` (yapCAD parsed it as a new block-local declaration, so
+  accumulation like `s = union(s, part)` silently did nothing). A typed
+  `x: float = ...` inside a block still declares a new local.
+- **boolean_metadata:** `union`, `difference`, `intersection`, their `_all`
+  forms, `fillet` and `chamfer` keep the first operand's metadata
+  (`@meta(material=...)` colours, tags, assembly datums).
+- **mesh_extrude:** without pythonocc, `extrude` and `helical_extrude` build
+  watertight meshes with manifold3d: regions with holes, arcs at 3 degrees
+  per segment, oblique directions, and helical twist (positive is
+  counter-clockwise seen from +Z; at most 1 degree per slice, volume within
+  about 1%).
+
 ## Agent commands
 
 All commands are `bin/yapcad ACTION --cwd PROJECT ...` and print JSON.

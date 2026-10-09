@@ -41,7 +41,11 @@ The pane is at http://localhost:49140. Pick a model: the Diagram view renders
 it and lists its subsystems when there are any; Model info holds the full
 `info` JSON. The Simulate view is prefilled from the imported solver settings
 (`ode1`, `ode4` and `ode45` map to Euler, RK4 and RK45; anything else defaults
-to RK4) and accepts workspace values as `NAME=EXPR` lines. Runs plot on a
+to RK4), accepts workspace values as `NAME=EXPR` lines, and binds root
+Inports as `BLOCK_ID=EXPR` lines (every Inport in the diagram is prefilled
+with 0; constants and arrays only, not time-varying signals). Fixed-step
+sizes must divide every sample time in the model, or the CLI refuses the
+run naming the block. Runs plot on a
 canvas with per-signal toggles; signals are labelled from the diagram's block
 names where the SID is visible in the rendered system.
 

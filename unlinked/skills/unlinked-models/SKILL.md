@@ -30,8 +30,14 @@ The CLI is the authoritative interface; the pane is a viewer over it.
   requires explicit settings; they override the imported ones. Supply model
   workspace values with repeatable `--var NAME=EXPR`. Scripts next to the
   model are never executed automatically, so read a parameters `.m` file and
-  pass its values explicitly. Unsupported blocks or settings fail with a
-  diagnostic naming the block; report that rather than working around it.
+  pass its values explicitly. Root Inports have no source: bind each one with
+  `--input-value BLOCK_ID=EXPR` (constants or arrays; find the IDs as
+  `data-sid` on `data-type="Inport"` blocks in the rendered SVG). The step
+  must divide every ZOH/RandomNumber sample time in the model. Unsupported
+  blocks or settings fail with a diagnostic naming the block; report that
+  rather than working around it. To find every workspace variable a model
+  needs, rerun with placeholder `--var NAME=1` until the error changes, then
+  replace the placeholders with real values.
 - `transpile SCRIPT.m -o DIR` emits a Cargo project for the supported MATLAB
   subset; `--emit llvm-ir` additionally needs Cargo and rustc.
 

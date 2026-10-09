@@ -26,9 +26,13 @@ class Discovery(unittest.TestCase):
 
     def test_sim_args_validation(self):
         work = Workbench(EXAMPLES, runs=Path(tempfile.mkdtemp()))
-        args, settings = work.sim_args({"stop": 2, "step": 0.5, "solver": "rk45", "vars": ["k=2*pi"]})
+        args, settings = work.sim_args(
+            {"stop": 2, "step": 0.5, "solver": "rk45", "vars": ["k=2*pi"], "inputs": ["9=0", "23=[0 0]"]}
+        )
         self.assertEqual(settings["solver"], "rk45")
         self.assertIn("--var", args)
+        self.assertEqual(args.count("--input-value"), 2)
+        self.assertEqual(settings["inputs"], ["9=0", "23=[0 0]"])
         for bad in (
             {"stop": 1},
             {"stop": 1, "step": 0},
@@ -36,6 +40,8 @@ class Discovery(unittest.TestCase):
             {"stop": 1, "step": 0.1, "solver": "ode45"},
             {"stop": 1, "step": 0.1, "vars": ["1bad=2"]},
             {"stop": 1, "step": 0.1, "vars": ["k"]},
+            {"stop": 1, "step": 0.1, "inputs": ["=0"]},
+            {"stop": 1, "step": 0.1, "inputs": "9=0"},
         ):
             with self.assertRaises(ValueError):
                 work.sim_args(bad)

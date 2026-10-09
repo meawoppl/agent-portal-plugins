@@ -27,6 +27,8 @@ MODEL_SUFFIXES = (".slx", ".mdl")
 SOLVERS = {"euler", "rk4", "rk45"}
 SIM_TIMEOUT = 120
 VARIABLE = re.compile(r"[A-Za-z][A-Za-z0-9_]{0,62}=\S.*")
+# Root Inport bindings: stable block ID (any non-empty token without =) = expression.
+INPUT = re.compile(r"[^=\s]{1,1024}=\S.*")
 
 
 def executable():
@@ -208,6 +210,12 @@ class Workbench:
         ):
             raise ValueError("vars must be NAME=EXPR strings")
         settings["vars"] = variables
+        inputs = body.get("inputs", [])
+        if not isinstance(inputs, list) or not all(
+            isinstance(v, str) and INPUT.fullmatch(v) for v in inputs
+        ):
+            raise ValueError("inputs must be BLOCK_ID=EXPR strings")
+        settings["inputs"] = inputs
         args = [
             "--start",
             repr(settings["start"]),
@@ -222,6 +230,8 @@ class Workbench:
         ]
         for variable in variables:
             args += ["--var", variable]
+        for binding in inputs:
+            args += ["--input-value", binding]
         return args, settings
 
     async def simulate(self, relative: str, body: dict):

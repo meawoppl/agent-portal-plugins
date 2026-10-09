@@ -88,9 +88,13 @@ async function loadDiagram() {
   const system = $("system").value || "";
   const svg = await api(`/api/render?file=${encodeURIComponent(state.model)}&system=${encodeURIComponent(system)}`);
   $("svg-host").innerHTML = svg;
+  const inports = [];
   for (const block of $("svg-host").querySelectorAll("[data-sid][data-name]")) {
     state.names[block.dataset.sid] = block.dataset.name;
+    if (block.dataset.type === "Inport") inports.push(block.dataset.sid);
   }
+  // Root Inports need a value to simulate; offer zero for each, editable.
+  if (!$("inputs").value.trim()) $("inputs").value = inports.map((id) => `${id}=0`).join("\n");
 }
 
 function showView() {
@@ -125,6 +129,7 @@ async function runSimulation(event) {
       step: Number($("step").value),
       solver: $("solver").value,
       vars: $("vars").value.split("\n").map((v) => v.trim()).filter(Boolean),
+      inputs: $("inputs").value.split("\n").map((v) => v.trim()).filter(Boolean),
     });
     state.runs.unshift(record);
     await showRuns();

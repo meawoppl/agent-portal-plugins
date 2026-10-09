@@ -157,6 +157,82 @@ pub struct Track {
     pub b: Point,
     pub width: f64,
 }
+/// Circular copper track (`arc`), modelled so joins land on it and its own
+/// ends are checked; clearance rules still treat it as unmodelled geometry.
+#[derive(Debug, Clone, Serialize)]
+pub struct ArcTrack {
+    pub id: String,
+    pub stable: bool,
+    pub net: String,
+    pub layer: String,
+    pub start: Point,
+    pub mid: Point,
+    pub end: Point,
+    pub width: f64,
+}
+impl ArcTrack {
+    /// Centre and radius of the circle through the three points; `None`
+    /// when they are collinear (a degenerate arc is treated as its chord).
+    pub fn circle(&self) -> Option<(Point, f64)> {
+        let (a, b, c) = (self.start, self.mid, self.end);
+        let d = 2. * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
+        if d.abs() < 1e-12 {
+            return None;
+        }
+        let (a2, b2, c2) = (
+            a.x * a.x + a.y * a.y,
+            b.x * b.x + b.y * b.y,
+            c.x * c.x + c.y * c.y,
+        );
+        let centre = Point {
+            x: (a2 * (b.y - c.y) + b2 * (c.y - a.y) + c2 * (a.y - b.y)) / d,
+            y: (a2 * (c.x - b.x) + b2 * (a.x - c.x) + c2 * (b.x - a.x)) / d,
+        };
+        Some((centre, centre.distance(a)))
+    }
+    /// Distance from `p` to the arc's centreline (the sweep from `start`
+    /// through `mid` to `end`); beyond the sweep, to the nearer end.
+    pub fn distance(&self, p: Point) -> f64 {
+        let Some((c, r)) = self.circle() else {
+            return line_distance(p, self.start, self.end);
+        };
+        let bearing = |q: Point| (q.y - c.y).atan2(q.x - c.x);
+        let sweep = |from: f64, to: f64| (to - from).rem_euclid(std::f64::consts::TAU);
+        let (a0, am, a1, ap) = (
+            bearing(self.start),
+            bearing(self.mid),
+            bearing(self.end),
+            bearing(p),
+        );
+        // The arc runs counter-clockwise when the mid point comes before the
+        // end on the counter-clockwise sweep from the start.
+        let within = if sweep(a0, am) <= sweep(a0, a1) {
+            sweep(a0, ap) <= sweep(a0, a1)
+        } else {
+            sweep(a1, ap) <= sweep(a1, a0)
+        };
+        if within {
+            (p.distance(c) - r).abs()
+        } else {
+            p.distance(self.start).min(p.distance(self.end))
+        }
+    }
+    /// Arc length in mm (chord length when degenerate).
+    pub fn length(&self) -> f64 {
+        let Some((c, r)) = self.circle() else {
+            return self.start.distance(self.end);
+        };
+        let bearing = |q: Point| (q.y - c.y).atan2(q.x - c.x);
+        let sweep = |from: f64, to: f64| (to - from).rem_euclid(std::f64::consts::TAU);
+        let (a0, am, a1) = (bearing(self.start), bearing(self.mid), bearing(self.end));
+        let angle = if sweep(a0, am) <= sweep(a0, a1) {
+            sweep(a0, a1)
+        } else {
+            sweep(a1, a0)
+        };
+        r * angle
+    }
+}
 #[derive(Debug, Clone, Serialize)]
 pub struct Via {
     pub id: String,
@@ -204,6 +280,7 @@ pub struct Zone {
 #[derive(Debug, Clone, Serialize)]
 pub struct Board {
     pub tracks: Vec<Track>,
+    pub arcs: Vec<ArcTrack>,
     pub vias: Vec<Via>,
     pub pads: Vec<Pad>,
     pub parts: Vec<Part>,
@@ -320,6 +397,7 @@ impl Board {
             .collect();
         let mut b = Self {
             tracks: vec![],
+            arcs: vec![],
             vias: vec![],
             pads: vec![],
             parts: vec![],
@@ -473,9 +551,24 @@ impl Board {
                     });
                 }
                 "arc" => {
+                    let width = s.child("width").context("arc width missing")?.num(1)?;
+                    if width <= 0. {
+                        bail!("nonpositive arc width")
+                    };
+                    b.arcs.push(ArcTrack {
+                        id,
+                        stable,
+                        net: net(s, &nets),
+                        layer: s.get("layer").into(),
+                        start: required_point(s, "start")?,
+                        mid: required_point(s, "mid")?,
+                        end: required_point(s, "end")?,
+                        width,
+                    });
+                    // Joins and open ends see the arc; clearance rules do not.
                     b.unmodeled(crate::lint::hash(&format!("{s:?}")), anchor(s), "");
                     *b.unsupported
-                        .entry("copper arcs (not analyzed)".into())
+                        .entry("copper arcs (joins only; clearance not analyzed)".into())
                         .or_default() += 1;
                 }
                 tag if tag.starts_with("gr_") && s.get("layer").ends_with(".Cu") => {
@@ -492,6 +585,7 @@ impl Board {
             .tracks
             .iter()
             .map(|x| (&x.id, x.stable))
+            .chain(b.arcs.iter().map(|x| (&x.id, x.stable)))
             .chain(b.vias.iter().map(|x| (&x.id, x.stable)))
             .chain(b.pads.iter().map(|x| (&x.id, x.stable)))
             .chain(b.parts.iter().map(|x| (&x.id, x.stable)))
@@ -506,6 +600,7 @@ impl Board {
             }
         }
         b.tracks.sort_by(|a, b| a.id.cmp(&b.id));
+        b.arcs.sort_by(|a, b| a.id.cmp(&b.id));
         b.vias.sort_by(|a, b| a.id.cmp(&b.id));
         b.pads.sort_by(|a, b| a.id.cmp(&b.id));
         b.parts.sort_by(|a, b| a.id.cmp(&b.id));

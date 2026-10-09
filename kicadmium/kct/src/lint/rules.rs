@@ -36,32 +36,52 @@ fn near(a: Point, b: Point, c: &Config) -> bool {
 fn touches(t: &Track, p: Point, layer: &str) -> bool {
     t.layer == layer && line_distance(p, t.a, t.b) <= t.width / 2. + 1e-6
 }
-fn attachments(e: &Emitter, t: usize, p: Point) -> usize {
-    let b = e.board;
-    let tr = &b.tracks[t];
+fn touches_arc(a: &ArcTrack, p: Point, layer: &str) -> bool {
+    a.layer == layer && a.distance(p) <= a.width / 2. + 1e-6
+}
+/// Same-net copper that `p` (an endpoint of width `width` on `layer`)
+/// lands on: straight tracks, arcs, pads and vias, skipping the item the
+/// endpoint belongs to.
+fn attached(
+    b: &Board,
+    net: &str,
+    layer: &str,
+    width: f64,
+    p: Point,
+    skip_track: Option<usize>,
+    skip_arc: Option<usize>,
+) -> usize {
     let tracks = b
         .tracks
         .iter()
         .enumerate()
-        .filter(|(i, x)| *i != t && x.net == tr.net && touches(x, p, &tr.layer))
+        .filter(|(i, x)| Some(*i) != skip_track && x.net == net && touches(x, p, layer))
+        .count();
+    let arcs = b
+        .arcs
+        .iter()
+        .enumerate()
+        .filter(|(i, x)| Some(*i) != skip_arc && x.net == net && touches_arc(x, p, layer))
         .count();
     let pads = b
         .pads
         .iter()
-        .filter(|x| {
-            x.net == tr.net && on_layer(&x.layers, &tr.layer) && pad_distance(p, x) <= tr.width / 2.
-        })
+        .filter(|x| x.net == net && on_layer(&x.layers, layer) && pad_distance(p, x) <= width / 2.)
         .count();
     let vias = b
         .vias
         .iter()
         .filter(|v| {
-            v.net == tr.net
-                && on_layer(&b.via_layers(v), &tr.layer)
-                && v.at.distance(p) <= (v.size + tr.width) / 2.
+            v.net == net
+                && on_layer(&b.via_layers(v), layer)
+                && v.at.distance(p) <= (v.size + width) / 2.
         })
         .count();
-    tracks + pads + vias
+    tracks + arcs + pads + vias
+}
+fn attachments(e: &Emitter, t: usize, p: Point) -> usize {
+    let tr = &e.board.tracks[t];
+    attached(e.board, &tr.net, &tr.layer, tr.width, p, Some(t), None)
 }
 fn octile(a: Point, b: Point) -> f64 {
     let d = b.minus(a);
@@ -72,6 +92,37 @@ fn octile(a: Point, b: Point) -> f64 {
 pub fn run(e: &mut Emitter) {
     let b = e.board;
     let c = e.config;
+    for (i, a) in b.arcs.iter().enumerate() {
+        let ids = || vec![a.id.clone()];
+        let nets = || vec![a.net.clone()];
+        if a.width < c.min_trace_mm {
+            e.emit(
+                "trace.minimum_width",
+                ids(),
+                nets(),
+                a.start,
+                "",
+                format!("Width {:.3} mm below configured minimum", a.width),
+                &[("width_mm", a.width), ("minimum_mm", c.min_trace_mm)],
+            );
+        }
+        if a.net.is_empty() {
+            e.emit(
+                "trace.no_net",
+                ids(),
+                nets(),
+                a.start,
+                "",
+                "Copper arc has no net".into(),
+                &[],
+            );
+        }
+        for (slot, p) in [("end0", a.start), ("end1", a.end)] {
+            if attached(b, &a.net, &a.layer, a.width, p, None, Some(i)) == 0 {
+                e.emit("trace.open_end",ids(),nets(),p,slot,"Endpoint has no modeled same-net copper attachment; inspect for a stub or unfinished route".into(),&[]);
+            }
+        }
+    }
     for (i, t) in b.tracks.iter().enumerate() {
         let ids = || vec![t.id.clone()];
         let nets = || vec![t.net.clone()];

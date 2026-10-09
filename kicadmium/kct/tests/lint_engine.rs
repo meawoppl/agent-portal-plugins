@@ -54,6 +54,40 @@ fn layer_separation() {
     assert_eq!(count(&r, "trace.duplicate"), 0);
     assert_eq!(count(&r, "trace.open_end"), 4);
 }
+fn arc(id: &str, a: (f64, f64), m: (f64, f64), b: (f64, f64), w: f64, layer: &str) -> String {
+    format!(
+        "(arc (start {} {}) (mid {} {}) (end {} {}) (width {w}) (layer \"{layer}\") (net \"N\") (uuid \"{id}\"))",
+        a.0, a.1, m.0, m.1, b.0, b.1
+    )
+}
+/// A quarter circle, centre (10, 5), radius 5, from (10, 0) to (15, 5).
+fn quarter() -> String {
+    let k = 5. / 2f64.sqrt();
+    arc("arc", (10., 0.), (10. + k, 5. - k), (15., 5.), 0.3, "F.Cu")
+}
+#[test]
+fn arc_joins_segments() {
+    // Segment → arc → segment: only the chain's two outer ends are open.
+    let s = seg("a", (0., 0.), (10., 0.), 0.3, "F.Cu")
+        + &quarter()
+        + &seg("b", (15., 5.), (15., 10.), 0.3, "F.Cu");
+    assert_eq!(count(&report(&s), "trace.open_end"), 2);
+    // The arc alone has two open ends of its own.
+    assert_eq!(count(&report(&quarter()), "trace.open_end"), 2);
+}
+#[test]
+fn arc_body_is_an_attachment() {
+    // A segment ending on the arc's mid point attaches; one ending on the
+    // chord between the arc's ends (off the sweep) does not.
+    let k = 5. / 2f64.sqrt();
+    let on = quarter() + &seg("t", (10. + k, 5. - k), (20., 0.), 0.3, "F.Cu");
+    assert_eq!(count(&report(&on), "trace.open_end"), 3);
+    let off = quarter() + &seg("t", (12.5, 2.5), (20., 0.), 0.3, "F.Cu");
+    assert_eq!(count(&report(&off), "trace.open_end"), 4);
+    // Other-layer copper never attaches.
+    let other = quarter() + &seg("t", (10. + k, 5. - k), (20., 0.), 0.3, "B.Cu");
+    assert_eq!(count(&report(&other), "trace.open_end"), 4);
+}
 #[test]
 fn tee_midsegment_attached() {
     let s = seg("a", (0., 0.), (10., 0.), 0.3, "F.Cu") + &seg("b", (5., 0.), (5., 5.), 0.3, "F.Cu");
@@ -295,7 +329,7 @@ fn coverage_is_not_a_pass_claim() {
     assert!(r
         .limitations
         .iter()
-        .any(|s| s.contains("arcs (not analyzed): 1")));
+        .any(|s| s.contains("arcs (joins only; clearance not analyzed): 1")));
     assert!(r
         .coverage
         .iter()

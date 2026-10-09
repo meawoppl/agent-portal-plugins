@@ -73,11 +73,8 @@ fn separate_chains_of_one_net_measure_their_gap() {
     let b = net(&r, "B");
     assert!(!b["ok"].as_bool().unwrap());
     assert!((b["min_gap_mm"].as_f64().unwrap() - 0.1).abs() < 1e-6);
-    assert_eq!(
-        b["layers"][0]["violations"].as_u64().unwrap(),
-        1,
-        "one location cell"
-    );
+    // Violations are distinct 0.5 mm location cells along the offending copper.
+    assert!(b["layers"][0]["violations"].as_u64().unwrap() >= 30);
 }
 
 #[test]

@@ -60,6 +60,16 @@ kicadmium kct --cwd <repo> -- lint stale <board.kicad_pcb>
 Lint exceptions live in `<board>.lint.json` next to the board. Load `kct-lint`
 before waiving, flagging or pruning them.
 
+Generated copper (planar coils, fanout patterns, test structures) goes in
+through `kct copper import <board> --from items.json --output <out> --group
+<name> [--replace]`: JSON polylines, arcs (`start`/`mid`/`end`) and vias in mm
+or m, wrapped in a KiCad group so regenerating with `--replace` swaps only
+that group's members and leaves hand-placed copper alone. For a winding that
+is one net, KiCad DRC cannot see a shorted turn: run `kct coil spacing <board>
+[--net N] [--min-gap 0.2]` (exit 1 below the gap; per-layer minima, via-to-turn
+gaps) and `kct coil resistance <board> [--temp 70]` (tracks, arcs, stackup
+copper, via barrels) and quote their numbers, not estimates.
+
 For fabrication, use Kicadmium's publish/export flow, confirm that outputs are
 not stale, and visually review Schematic, PCB, Gerbers, 3D, BOM, Libraries, and
 Checks. Record manufacturer profiles, part/model provenance, accepted findings,

@@ -1149,6 +1149,62 @@ impl Pcb {
         Ok(out)
     }
 
+    /// Add a copper arc through `start`, `mid`, `end` (board-relative) on
+    /// `opts.layer`; `opts.waypoints` and `opts.dedupe` are ignored. The
+    /// three points must define a circle.
+    pub fn add_arc(
+        &mut self,
+        start: Point,
+        mid: Point,
+        end: Point,
+        opts: TraceOptions,
+    ) -> Result<Arc> {
+        let net = opts.net.clone().filter(|n| !n.is_empty());
+        let net_number = match &net {
+            Some(n) => self.add_net(n).number,
+            None => 0,
+        };
+        let mut arc = Arc {
+            start,
+            mid,
+            end,
+            width: opts.width,
+            layer: opts.layer.clone(),
+            net_number,
+            net_name: net.clone().unwrap_or_default(),
+            uuid: new_uuid(),
+            net_name_only: Untracked(self.net_name_only_dialect && net.is_some()),
+        };
+        arc.circular_geometry().map_err(|e| anyhow!("{e}"))?;
+        let node = arc.to_sexp(self.board_origin);
+        self.doc.root.push(node);
+        self.arcs.push(arc.clone());
+        Ok(arc)
+    }
+
+    /// Remove every root item (segment, arc, via, group, …) whose `(uuid …)`
+    /// is in `uuids`, keeping the model in step. Returns how many tree nodes
+    /// went.
+    pub fn remove_by_uuid(&mut self, uuids: &HashSet<String>) -> usize {
+        if uuids.is_empty() {
+            return 0;
+        }
+        let before = self.doc.root.children.len();
+        self.doc.root.children.retain(|child| {
+            !(child.is_list()
+                && child
+                    .find("uuid")
+                    .and_then(|u| gs(u, 0))
+                    .is_some_and(|u| uuids.contains(&u)))
+        });
+        self.segments.retain(|s| !uuids.contains(&s.uuid));
+        self.arcs.retain(|a| !uuids.contains(&a.uuid));
+        self.vias.retain(|v| !uuids.contains(&v.uuid));
+        self.segment_keys = None;
+        self.via_keys = None;
+        before - self.doc.root.children.len()
+    }
+
     /// Add a via at board-relative `(x, y)`; `None` when an identical via
     /// (net, rounded position, layer set) exists and `opts.dedupe`.
     pub fn add_via(&mut self, x: f64, y: f64, opts: ViaOptions) -> Option<Via> {

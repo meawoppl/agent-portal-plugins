@@ -124,14 +124,14 @@ fn vias_measure_against_copper_they_do_not_land_on() {
 #[test]
 fn resistance_from_length_width_copper_and_vias() {
     let dir = tempfile::tempdir().unwrap();
-    // 100 mm × 1 mm × 35 µm at 20 °C: 1.68e-8 × 0.1 / (1e-3 × 35e-6) = 0.048 Ω.
-    // One via, 1.6 mm board, 0.3 mm drill, 25 µm plating: 1.141e-3 Ω.
+    // 100 mm × 1 mm × 35 µm at 20 °C: 1.724e-8 × 0.1 / (1e-3 × 35e-6) = 0.049257 Ω.
+    // One via, 1.6 mm board, 0.3 mm drill, 25 µm plating: 1.1707e-3 Ω.
     let body = seg((0., 10.), (100., 10.), 1.0, "F.Cu", 1) + &via((100., 10.), 0.6, 0.3, 1);
     let (code, r) = run(dir.path(), &body, &["resistance"]);
     assert_eq!(code, 0);
     let a = net(&r, "A");
-    assert!((a["tracks_ohm"].as_f64().unwrap() - 0.048).abs() < 1e-6);
-    assert!((a["vias_ohm"].as_f64().unwrap() - 1.1408e-3).abs() < 1e-6);
+    assert!((a["tracks_ohm"].as_f64().unwrap() - 0.0492571).abs() < 1e-6);
+    assert!((a["vias_ohm"].as_f64().unwrap() - 1.17073e-3).abs() < 1e-6);
     assert!((a["length_mm"].as_f64().unwrap() - 100.0).abs() < 1e-9);
     assert_eq!(a["via_count"], 1);
     // 70 °C scales copper by 1 + 0.00393 × 50; half-ounce copper doubles the track term.
@@ -147,7 +147,7 @@ fn resistance_from_length_width_copper_and_vias() {
         ],
     );
     let a = net(&r, "A");
-    assert!((a["tracks_ohm"].as_f64().unwrap() - 0.048 * 2.0 * 1.1965).abs() < 1e-5);
+    assert!((a["tracks_ohm"].as_f64().unwrap() - 0.0492571 * 2.0 * 1.1965).abs() < 1e-5);
     // Arc length counts as swept length, not the chord: a half circle of r = 10.
     let body = arc((0., 10.), (10., 20.), (20., 10.), 1.0, "F.Cu", 1);
     let (_, r) = run(dir.path(), &body, &["resistance"]);

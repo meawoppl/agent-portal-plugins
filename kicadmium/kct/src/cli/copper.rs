@@ -115,7 +115,7 @@ fn string(item: &Value, key: &str, index: usize) -> Result<String> {
 }
 
 /// Members of every group named `name`, and the group nodes' own uuids.
-fn group_members(pcb: &Pcb, name: &str) -> HashSet<String> {
+pub(crate) fn group_members_of(pcb: &Pcb, name: &str) -> HashSet<String> {
     let mut out = HashSet::new();
     for g in pcb.sexp().children_named("group") {
         let named = g
@@ -176,7 +176,7 @@ fn import(a: ImportArgs) -> Result<i32> {
 
     let removed = match (&a.group, a.replace) {
         (Some(name), true) => {
-            let members = group_members(&pcb, name);
+            let members = group_members_of(&pcb, name);
             pcb.remove_by_uuid(&members)
         }
         _ => 0,

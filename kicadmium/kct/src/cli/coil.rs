@@ -24,10 +24,11 @@ use clap::{Parser, Subcommand};
 use serde_json::{json, Value};
 
 use super::{parse_args, Globals};
-use crate::schema::pcb::Pcb;
+use crate::schema::pcb::{Pcb, TraceOptions, ViaOptions};
+use crate::sexp::SExp;
 
-/// Copper resistivity at 20 °C, Ω·m.
-const RHO_CU_20: f64 = 1.68e-8;
+/// Copper resistivity at 20 °C, Ω·m (IACS annealed copper).
+const RHO_CU_20: f64 = 1.724e-8;
 /// Temperature coefficient of copper, 1/K.
 const ALPHA_CU: f64 = 0.00393;
 /// Endpoints closer than this (mm) are the same node when chaining copper.
@@ -50,6 +51,70 @@ enum Command {
     Spacing(SpacingArgs),
     /// DC resistance per net from tracks, arcs, copper thickness and vias.
     Resistance(ResistanceArgs),
+    /// Generate multilayer D-shaped spiral windings onto the board.
+    DWinding(DWindingArgs),
+}
+
+#[derive(Parser)]
+struct DWindingArgs {
+    pcb: PathBuf,
+    #[arg(short, long)]
+    output: Option<PathBuf>,
+    /// Coil centre in KiCad file coordinates, `X,Y` (mm).
+    #[arg(long, value_name = "X,Y")]
+    center: String,
+    /// D centre angles in degrees (comma separated); 0 is +x, counter-clockwise positive.
+    #[arg(long, default_value = "0,90,180,270")]
+    clock: String,
+    /// Outer copper edge of the outermost turn (mm).
+    #[arg(long)]
+    r_out: f64,
+    #[arg(long, default_value_t = 0.5)]
+    width: f64,
+    #[arg(long, default_value_t = 0.25)]
+    space: f64,
+    /// Turns per D per layer; 0 = as many as the via core allows.
+    #[arg(long, default_value_t = 0)]
+    turns: usize,
+    /// Layers a,b,c,d (or a,b) for Ds whose clock is a multiple of 180°.
+    #[arg(long, value_name = "L,L,L,L")]
+    layers: String,
+    /// Layers for the other Ds (required when any clock is not a multiple of 180°).
+    #[arg(long, value_name = "L,L,L,L")]
+    layers_alt: Option<String>,
+    /// Tap and via bisector offset from the D centre angle (degrees).
+    #[arg(long, default_value_t = 45.0)]
+    tap_offset: f64,
+    /// Tangential length of the turn-to-turn jog (mm).
+    #[arg(long, default_value_t = 3.0)]
+    jog_len: f64,
+    /// Via pad/drill diameters as `PAD/DRILL` (mm).
+    #[arg(long, default_value = "0.8/0.4")]
+    via: String,
+    /// Radial spacing of the two core vias (mm, four-layer D).
+    #[arg(long, default_value_t = 1.4)]
+    core_via_pitch: f64,
+    #[arg(long, default_value_t = 0.6)]
+    lead_width: f64,
+    /// Net name prefix; each D gets `<prefix><clock>`.
+    #[arg(long, default_value = "COIL_D")]
+    net_prefix: String,
+    /// Route leads to pads `D<clock>+` / `D<clock>-` of this footprint reference.
+    #[arg(long, value_name = "REF")]
+    lead_to_pads: Option<String>,
+    /// Write ordered 3-D polylines (metres, z = 0 at the board mid-plane) here.
+    #[arg(long, value_name = "FILE")]
+    emit_polylines: Option<PathBuf>,
+    /// Copper thickness (µm) when the stackup does not say.
+    #[arg(long, default_value_t = 35.0)]
+    copper_um: f64,
+    /// Replace the members of existing `coil:D<clock>` groups.
+    #[arg(long)]
+    replace: bool,
+    #[arg(long)]
+    dry_run: bool,
+    #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+    format: String,
 }
 
 #[derive(Parser)]
@@ -108,6 +173,7 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
     match args.command {
         Command::Spacing(a) => spacing(a),
         Command::Resistance(a) => resistance(a),
+        Command::DWinding(a) => d_winding(a),
     }
 }
 
@@ -635,4 +701,396 @@ fn resistance(a: ResistanceArgs) -> Result<i32> {
     });
     write_report(a.output.as_deref(), &a.format, &report, &text)?;
     Ok(0)
+}
+
+// ----------------------------------------------------------------------
+// d-winding generator
+// ----------------------------------------------------------------------
+
+fn parse_pair(text: &str, what: &str) -> Result<(f64, f64)> {
+    let (a, b) = text
+        .split_once(',')
+        .with_context(|| format!("{what}: expected two numbers separated by a comma"))?;
+    Ok((
+        a.trim().parse().context(what.to_string())?,
+        b.trim().parse().context(what.to_string())?,
+    ))
+}
+
+fn parse_list(text: &str) -> Vec<String> {
+    text.split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect()
+}
+
+/// z of each copper layer (mm, mid-plane 0, +z toward F.Cu): from the
+/// stackup when it carries thicknesses, else evenly spaced through the board.
+fn layer_z(pcb: &Pcb, copper: &[String], board_mm: f64, copper_um: f64) -> BTreeMap<String, f64> {
+    let mut out = BTreeMap::new();
+    if let Some(setup) = pcb.setup() {
+        let layers = &setup.stackup;
+        let has = layers
+            .iter()
+            .any(|l| l.layer_type == "copper" && l.thickness > 0.0)
+            && layers
+                .iter()
+                .any(|l| l.layer_type != "copper" && l.thickness > 0.0);
+        if has {
+            // Walk the physical stack top to bottom, skipping masks and silk.
+            let physical: Vec<_> = layers
+                .iter()
+                .filter(|l| {
+                    l.layer_type == "copper" || l.layer_type == "core" || l.layer_type == "prepreg"
+                })
+                .collect();
+            let total: f64 = physical.iter().map(|l| l.thickness).sum();
+            let mut z_top = total / 2.0;
+            for l in physical {
+                if l.layer_type == "copper" {
+                    out.insert(l.name.clone(), z_top - l.thickness / 2.0);
+                }
+                z_top -= l.thickness;
+            }
+            if copper.iter().all(|c| out.contains_key(c)) {
+                return out;
+            }
+            out.clear();
+        }
+    }
+    let n = copper.len().max(1);
+    let t = copper_um * 1e-3;
+    for (i, name) in copper.iter().enumerate() {
+        let f = if n == 1 {
+            0.0
+        } else {
+            i as f64 / (n - 1) as f64
+        };
+        out.insert(name.clone(), (board_mm / 2.0 - t / 2.0) * (1.0 - 2.0 * f));
+    }
+    out
+}
+
+fn d_winding(a: DWindingArgs) -> Result<i32> {
+    use super::coil_gen::{
+        arc_pieces, build_winding, geometry, prims_length, signed_area, winding_polyline, Params,
+        Prim,
+    };
+    if !a.dry_run && a.output.is_none() {
+        bail!("coil d-winding is a design edit; pass --output (or use --dry-run)")
+    }
+    let (cx, cy) = parse_pair(&a.center, "--center")?;
+    let (via_pad, via_drill) = {
+        let (p, d) = a.via.split_once('/').context("--via: expected PAD/DRILL")?;
+        (
+            p.trim().parse::<f64>().context("--via pad")?,
+            d.trim().parse::<f64>().context("--via drill")?,
+        )
+    };
+    if via_drill <= 0.0 || via_pad <= via_drill {
+        bail!("--via: need pad > drill > 0")
+    }
+    if a.width <= 0.0 || a.space <= 0.0 || a.r_out <= 0.0 || a.jog_len <= 0.0 || a.lead_width <= 0.0
+    {
+        bail!("width, space, r-out, jog-len and lead-width must be positive")
+    }
+    let layers = parse_list(&a.layers);
+    let layers_alt = a.layers_alt.as_deref().map(parse_list).unwrap_or_default();
+    if !matches!(layers.len(), 2 | 4) {
+        bail!("--layers must name 2 or 4 layers (got {})", layers.len())
+    }
+    let clocks: Vec<f64> = parse_list(&a.clock)
+        .iter()
+        .map(|c| c.parse::<f64>().with_context(|| format!("--clock {c:?}")))
+        .collect::<Result<_>>()?;
+    if clocks.is_empty() {
+        bail!("--clock must list at least one angle")
+    }
+    let params = Params {
+        r_out: a.r_out,
+        width: a.width,
+        space: a.space,
+        turns: a.turns,
+        layers_per_d: layers.len(),
+        via_drill,
+        via_pad,
+        via_pitch: a.core_via_pitch,
+        jog_len: a.jog_len,
+        lead_width: a.lead_width,
+        beta: a.tap_offset.to_radians(),
+    };
+    let geom = geometry(&params);
+    if a.turns > geom.max_turns {
+        bail!(
+            "--turns {} exceeds the {} turns whose vias stay inside every D's core",
+            a.turns,
+            geom.max_turns
+        )
+    }
+    let mut pcb = Pcb::load(&a.pcb)?;
+    let copper = copper_layer_names(&pcb);
+    for l in layers.iter().chain(layers_alt.iter()) {
+        if !copper.contains(l) {
+            bail!(
+                "layer {l:?} is not a copper layer of this board (have {})",
+                copper.join(", ")
+            )
+        }
+    }
+    let board_mm = general_thickness(&a.pcb).unwrap_or(1.6);
+    let z = layer_z(&pcb, &copper, board_mm, a.copper_um);
+    let mirror = |set: &[String]| -> f64 {
+        set.iter()
+            .map(|l| z.get(l).copied().unwrap_or(0.0))
+            .sum::<f64>()
+    };
+    let origin = pcb.board_origin();
+    // Maths frame (origin at the coil centre, +y up) to board-relative KiCad.
+    let to_board = |p: (f64, f64)| (cx + p.0 - origin.0, cy - p.1 - origin.1);
+    let from_board = |p: (f64, f64)| (p.0 + origin.0 - cx, cy - (p.1 + origin.1));
+
+    let mut report_windings = Vec::new();
+    let mut polylines = Vec::new();
+    let mut text = String::new();
+    let mut all_ok = true;
+    let mut removed_total = 0usize;
+    let mut nets: Vec<String> = Vec::new();
+    for clock in &clocks {
+        let group0 = (clock.rem_euclid(180.0)).abs() < 1e-9;
+        let set = if group0 { &layers } else { &layers_alt };
+        if set.is_empty() {
+            bail!("clock {clock}° needs --layers-alt (Ds off the 0/180° axis use the alternate layers)")
+        }
+        let name = format!("D{}", clock.round() as i64);
+        let net = format!("{}{}", a.net_prefix, clock.round() as i64);
+        let pads = match &a.lead_to_pads {
+            Some(reference) => {
+                let find = |suffix: &str| {
+                    let number = format!("{name}{suffix}");
+                    pcb.get_pad_position(reference, &number)
+                        .map(from_board)
+                        .with_context(|| format!("footprint {reference} has no pad {number:?}"))
+                };
+                Some((find("+")?, find("-")?))
+            }
+            None => None,
+        };
+        let w = build_winding(&params, *clock, set, pads).map_err(|e| anyhow::anyhow!("{e}"))?;
+        // Circulation: every spiral must have positive signed area (CCW, +y up).
+        let mut spirals = Vec::new();
+        let mut ccw_ok = true;
+        for (key, layer, prims, _) in &w.paths {
+            if key.starts_with("s_") {
+                let area = signed_area(prims);
+                ccw_ok &= area > 0.0;
+                spirals.push(json!({"path": key, "layer": layer, "signed_area_mm2": area, "ccw": area > 0.0}));
+            }
+        }
+        all_ok &= ccw_ok;
+        // Replace previous generation of this D.
+        let group = format!("coil:{name}");
+        if a.replace {
+            let members = super::copper::group_members_of(&pcb, &group);
+            removed_total += pcb.remove_by_uuid(&members);
+        }
+        let mut added: Vec<String> = Vec::new();
+        let (mut segments, mut arcs) = (0usize, 0usize);
+        for (_, layer, prims, width) in &w.paths {
+            for pr in prims {
+                match pr {
+                    Prim::Line(p0, p1) => {
+                        if (p1.0 - p0.0).hypot(p1.1 - p0.1) < 1e-6 {
+                            continue;
+                        }
+                        let opts = TraceOptions {
+                            width: *width,
+                            layer: layer.clone(),
+                            net: Some(net.clone()),
+                            waypoints: vec![],
+                            dedupe: false,
+                        };
+                        for s in pcb.add_trace(to_board(*p0), to_board(*p1), opts)? {
+                            added.push(s.uuid);
+                            segments += 1;
+                        }
+                    }
+                    Prim::Arc(r, t0, t1) => {
+                        for (s0, m, s1) in arc_pieces(*r, *t0, *t1) {
+                            let opts = TraceOptions {
+                                width: *width,
+                                layer: layer.clone(),
+                                net: Some(net.clone()),
+                                waypoints: vec![],
+                                dedupe: false,
+                            };
+                            let arc = pcb.add_arc(to_board(s0), to_board(m), to_board(s1), opts)?;
+                            added.push(arc.uuid);
+                            arcs += 1;
+                        }
+                    }
+                }
+            }
+        }
+        for (v, _) in &w.vias {
+            let b = to_board(*v);
+            let opts = ViaOptions {
+                size: via_pad,
+                drill: via_drill,
+                layers: vec!["F.Cu".into(), "B.Cu".into()],
+                net: Some(net.clone()),
+                dedupe: false,
+            };
+            if let Some(via) = pcb.add_via(b.0, b.1, opts) {
+                added.push(via.uuid);
+            }
+        }
+        let group_uuid = crate::schema::pcb::new_uuid();
+        pcb.sexp_mut().push(SExp::list(
+            "group",
+            [
+                SExp::quoted(group.clone()),
+                SExp::list("uuid", [SExp::quoted(group_uuid.clone())]),
+                SExp::list("members", added.iter().map(|u| SExp::quoted(u.clone()))),
+            ],
+        ));
+        let length_mm: f64 = w
+            .paths
+            .iter()
+            .map(|(_, _, prims, _)| prims_length(prims))
+            .sum();
+        let zs: Vec<f64> = set.iter().map(|l| z[l]).collect();
+        let symmetric = mirror(set).abs() < 1e-6;
+        text.push_str(&format!(
+            "{name}: net {net}, layers {}, {} turns/layer, {:.1} mm copper, {} vias, circulation {}{}\n",
+            set.join(","),
+            geom.n_turns,
+            length_mm,
+            w.vias.len(),
+            if ccw_ok { "CCW on every layer" } else { "WRONG SENSE" },
+            if symmetric { "" } else { " (layer set not mirror-symmetric about the mid-plane)" }
+        ));
+        polylines.push(json!({
+            "name": name,
+            "clock_deg": clock,
+            "net": net,
+            "layers": set,
+            "z_m": zs.iter().map(|v| v * 1e-3).collect::<Vec<_>>(),
+            "vias_xy_m": w.vias.iter().map(|(v, kind)| json!([v.0 * 1e-3, v.1 * 1e-3, kind])).collect::<Vec<_>>(),
+            "pads_xy_m": w.pads.map(|(p, m)| json!({"+": [p.0 * 1e-3, p.1 * 1e-3], "-": [m.0 * 1e-3, m.1 * 1e-3]})),
+            "copper_length_m": length_mm * 1e-3,
+            "points": winding_polyline(&w, &|l| z[l], 0.5, 0.25).iter().map(|(x, y, zz)| [x * 1e-3, y * 1e-3, zz * 1e-3]).collect::<Vec<_>>(),
+        }));
+        report_windings.push(json!({
+            "name": name, "net": net, "group": group, "group_uuid": group_uuid, "layers": set,
+            "layers_mirror_symmetric": symmetric, "turns_per_layer": geom.n_turns,
+            "copper_length_mm": length_mm, "segments": segments, "arcs": arcs, "vias": w.vias.len(),
+            "circulation_ccw": ccw_ok, "spirals": spirals,
+            "vias_xy": w.vias.iter().map(|(v, kind)| json!({"at": [cx + v.0, cy - v.1], "kind": kind})).collect::<Vec<_>>(),
+        }));
+        nets.push(net);
+    }
+    // Via legality: every via must clear every winding's copper (own net by
+    // the same-net rule, other nets by the plain gap), on every layer.
+    let mut via_min: Option<f64> = None;
+    let mut via_violations = 0usize;
+    {
+        let net_numbers: Vec<(i64, String)> = nets
+            .iter()
+            .filter_map(|n| {
+                pcb.nets()
+                    .iter()
+                    .find(|x| &x.name == n)
+                    .map(|x| (x.number, n.clone()))
+            })
+            .collect();
+        for (number, name) in &net_numbers {
+            for layer in &copper {
+                let prims = prims_for(&pcb, *number, layer)?;
+                if prims.is_empty() {
+                    continue;
+                }
+                let samples = sample_chains(&prims, 0.05);
+                for (vn, _) in &net_numbers {
+                    for via in pcb.vias_in_net(*vn) {
+                        let landings: Vec<(usize, f64)> = samples
+                            .iter()
+                            .filter(|s| dist((s.x, s.y), via.position) < JOIN_MM)
+                            .map(|s| (s.chain, s.s))
+                            .collect();
+                        for s in &samples {
+                            if vn == number
+                                && landings
+                                    .iter()
+                                    .any(|&(c, s0)| c == s.chain && (s.s - s0).abs() < VIA_STUB_MM)
+                            {
+                                continue;
+                            }
+                            let gap =
+                                dist((s.x, s.y), via.position) - via.size / 2.0 - s.width / 2.0;
+                            if via_min.is_none_or(|m| gap < m) {
+                                via_min = Some(gap);
+                            }
+                            if gap < a.space - 1e-6 {
+                                via_violations += 1;
+                                let _ = name;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let vias_ok = via_violations == 0;
+    all_ok &= vias_ok;
+    text.push_str(&format!(
+        "vias: {} (minimum via-to-copper gap {}, limit {:.3} mm); turns/layer {} (max {}), core via radius {:.2} mm, outer via radius {:.2} mm\n",
+        if vias_ok { "legal" } else { "ILLEGAL" },
+        via_min.map_or("n/a".into(), |g| format!("{g:.3} mm")),
+        a.space,
+        geom.n_turns,
+        geom.max_turns,
+        geom.r_via_core,
+        geom.r_via_outer
+    ));
+    if let Some(path) = &a.emit_polylines {
+        let doc = json!({
+            "description": "Planar D-coil stator conductor centrelines: one ordered polyline per D winding following positive current from pad + to pad -; positive current circulates CCW seen from +z (F.Cu) on every layer. Units m. Origin = coil centre, z = 0 = board mid-plane, +z toward F.Cu. Vertical steps are vias. Arcs sampled at 0.5°, straights at <= 0.25 mm.",
+            "units": "m",
+            "meta": {
+                "generator": "kct coil d-winding",
+                "trace_width_m": a.width * 1e-3, "lead_width_m": a.lead_width * 1e-3,
+                "turns_per_D_per_layer": geom.n_turns, "layers_per_D": layers.len(),
+                "r_out_m": a.r_out * 1e-3, "board_thickness_m": board_mm * 1e-3,
+                "center_kicad_mm": [cx, cy],
+            },
+            "windings": polylines,
+        });
+        crate::fsutil::atomic_write(path, &serde_json::to_vec(&doc)?)?;
+    }
+    if !a.dry_run {
+        pcb.save(a.output.as_deref())?;
+    }
+    let report = json!({
+        "command": "coil d-winding",
+        "input": a.pcb.display().to_string(),
+        "output": a.output.as_ref().map(|p| p.display().to_string()),
+        "dry_run": a.dry_run,
+        "ok": all_ok,
+        "params": {
+            "center": [cx, cy], "r_out": a.r_out, "width": a.width, "space": a.space,
+            "pitch": params.pitch(), "turns_per_layer": geom.n_turns, "max_turns": geom.max_turns,
+            "via": {"pad": via_pad, "drill": via_drill}, "core_via_pitch": a.core_via_pitch,
+            "jog_len": a.jog_len, "tap_offset_deg": a.tap_offset, "lead_width": a.lead_width,
+            "r_via_core": geom.r_via_core, "r_via_outer": geom.r_via_outer, "lead_lane_radius": geom.lane,
+            "board_thickness_mm": board_mm,
+        },
+        "vias_legal": vias_ok,
+        "via_min_gap_mm": via_min,
+        "via_violations": via_violations,
+        "replaced_items": removed_total,
+        "polylines": a.emit_polylines.as_ref().map(|p| p.display().to_string()),
+        "windings": report_windings,
+    });
+    write_report(None, &a.format, &report, &text)?;
+    Ok(if all_ok { 0 } else { 1 })
 }

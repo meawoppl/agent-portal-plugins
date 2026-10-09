@@ -17,6 +17,7 @@ pub mod audit;
 pub mod board_metrics;
 pub mod check;
 pub mod coil;
+pub mod coil_gen;
 pub mod constraints;
 pub mod copper;
 pub mod creepage;

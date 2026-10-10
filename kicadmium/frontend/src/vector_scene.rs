@@ -3,7 +3,7 @@ use gloo_events::EventListener;
 use std::{cell::RefCell, collections::HashSet, rc::Rc};
 use vector_view::{
     hit::HitIndex,
-    input::{Input, InputEvent, InputOutcome},
+    input::{InputEvent, InputOutcome},
     render::{clear, draw_cached, PathCache},
     style::{Grid, Highlight, LayerVisibility, Overlay, Pass, Rgba, Theme, ViewState},
     view::View,
@@ -73,7 +73,7 @@ const MIN_VISIBLE_PX: f64 = 8.0;
 
 struct Runtime {
     state: ViewState,
-    input: Input,
+    input: crate::view_input::ViewInput,
     hit: HitIndex,
     cache: PathCache,
     /// The view is valid for drawing (fitted, restored or user-driven).
@@ -99,7 +99,7 @@ impl Runtime {
         view.mirrored = mirrored;
         Self {
             state: ViewState::new(view),
-            input: Input::default(),
+            input: crate::view_input::ViewInput::default(),
             hit: HitIndex::new(s),
             cache: PathCache::new(),
             fitted: initial_view.is_some(),
@@ -581,7 +581,7 @@ pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
     } else {
         "position:relative"
     };
-    html! {<div class="vector-scene" {style} data-scene-version={props.scene.version.to_string()}><canvas ref={canvas} class="native-viewer vector-scene-canvas" style="touch-action:none;display:block" aria-label="Interactive vector scene" onpointerdown={down} onpointermove={moved} onpointerup={up} onpointercancel={cancel} onwheel={wheel}/><button class="vector-scene-fit" style="position:absolute;right:12px;top:12px" onclick={reset}>{"Fit"}</button></div>}
+    html! {<div class="vector-scene" {style} data-scene-version={props.scene.version.to_string()}><canvas ref={canvas} class="native-viewer vector-scene-canvas" style="touch-action:none;display:block" aria-label="Interactive vector scene" onpointerdown={down} onpointermove={moved} onpointerup={up} onpointercancel={cancel.clone()} onlostpointercapture={cancel} onwheel={wheel}/><button class="vector-scene-fit" style="position:absolute;right:12px;top:12px" onclick={reset}>{"Fit"}</button></div>}
 }
 fn pointer(
     canvas: NodeRef,

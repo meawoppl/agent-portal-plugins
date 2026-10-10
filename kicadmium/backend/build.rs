@@ -31,6 +31,8 @@ const INPUTS: &[&str] = &[
     "static",
     "index.html",
     "style.css",
+    "panels.css",
+    "touch-views.css",
     "Trunk.toml",
     "Cargo.toml",
 ];

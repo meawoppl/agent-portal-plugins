@@ -1,0 +1,40 @@
+.pcbv-layer-alias { display: none; }
+/* Keep compact desktop controls, but give touch screens real finger targets.
+   any-pointer also covers an iPad with a trackpad attached. Annotation sheet
+   placement and keyboard handling belong to the Annotator component. */
+@media (any-pointer: coarse) {
+  .tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .tabs button { flex: none; white-space: nowrap; }
+  .tabs button,
+  .pcbv-toolbar button,
+  .pcbv-presets button,
+  .pcbv-props-head button,
+  .vector-scene-fit,
+  .gerber-viewer .gv-button,
+  .lib-dialog button,
+  .build-strip button,
+  .build-strip .bs-stage summary {
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  .pcbv-toolbar { gap: 4px; }
+  /* The taller toolbar must not cover the first layer row. */
+  .pcbv-layers { top: 72px; }
+  .pcbv-presets { gap: 6px; }
+  .pcbv-layer { min-height: 44px; gap: 10px; white-space: normal; }
+  .pcbv-layer input { width: 20px; height: 20px; flex: none; }
+  .gerber-viewer .gv-layer { min-height: 44px; }
+  .gerber-viewer .gv-layer input { width: 20px; height: 20px; }
+  .pcbv-layer-name { display: flex; flex-direction: column; gap: 2px; }
+  .pcbv-layer-alias { display: block; color: #9aa5ce; font-size: 11px; }
+  .schematicv-pages { min-height: 44px; font-size: 16px; }
+  header select, header input, .viewer-options select { min-height: 44px; font-size: 16px; }
+  .viewer-options label { display: inline-flex; align-items: center; min-height: 44px; }
+  .build-strip .bs-stage summary { display: flex; align-items: center; gap: 4px; }
+  .build-strip .bs-pop { top: 100%; }
+  .view-stage { overscroll-behavior: contain; }
+}
+@media (any-pointer: coarse) and (max-width: 760px) {
+  .pcbv-layers { top: auto; }
+}

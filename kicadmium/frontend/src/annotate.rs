@@ -331,15 +331,22 @@ fn touch_primary() -> bool {
 }
 
 /// Whether a pointerdown on the view starts drawing an area straight away.
-/// Only a pen does, so fingers keep panning and pinching the view; never while
-/// the overlay is already collecting a drag, and never on the composer.
-pub fn pen_starts_area(
-    pointer_type: &str,
-    button: i16,
-    selecting: bool,
-    on_composer: bool,
-) -> bool {
-    pointer_type == "pen" && button == 0 && !selecting && !on_composer
+/// Only a pen does, so fingers keep panning and pinching the view; only on the
+/// drawing surface itself, so Pencil taps still reach the view's buttons,
+/// layer toggles and pickers; never while the overlay owns a drag.
+pub fn pen_starts_area(pointer_type: &str, button: i16, selecting: bool, on_surface: bool) -> bool {
+    pointer_type == "pen" && button == 0 && !selecting && on_surface
+}
+
+/// A pointerdown target that is a view's drawing canvas, not a control laid
+/// over it or the annotator's own UI.
+fn is_drawing_surface(target: Option<web_sys::EventTarget>) -> bool {
+    target
+        .and_then(|t| t.dyn_into::<Element>().ok())
+        .is_some_and(|el| {
+            el.tag_name().eq_ignore_ascii_case("canvas")
+                && el.closest(".annotator").ok().flatten().is_none()
+        })
 }
 
 /// CSS pixels of the layout viewport hidden under the on-screen keyboard. iOS
@@ -380,7 +387,9 @@ pub fn annotator(props: &Props) -> Html {
     {
         let selection = selection.clone();
         let selecting = selecting.clone();
+        let finger = finger.clone();
         use_effect_with(props.tab.clone(), move |_| {
+            finger.borrow_mut().take();
             selection.set(None);
             selecting.set(false);
         });
@@ -389,6 +398,7 @@ pub fn annotator(props: &Props) -> Html {
     {
         let selecting = selecting.clone();
         let drag = drag.clone();
+        let (pen, finger) = (pen.clone(), finger.clone());
         use_effect_with(*selecting, move |active| {
             let listener = active.then(|| {
                 web_sys::window().map(|w| {
@@ -396,6 +406,8 @@ pub fn annotator(props: &Props) -> Html {
                         if e.dyn_ref::<KeyboardEvent>()
                             .is_some_and(|k| k.key() == "Escape")
                         {
+                            pen.borrow_mut().take();
+                            finger.borrow_mut().take();
                             drag.set(None);
                             selecting.set(false);
                         }
@@ -428,16 +440,11 @@ pub fn annotator(props: &Props) -> Html {
                         let Some(e) = e.dyn_ref::<PointerEvent>() else {
                             return;
                         };
-                        let on_composer = e
-                            .target()
-                            .and_then(|t| t.dyn_into::<Element>().ok())
-                            .and_then(|t| t.closest(".annotator").ok().flatten())
-                            .is_some();
                         if !pen_starts_area(
                             &e.pointer_type(),
                             e.button(),
                             *selecting_now.borrow(),
-                            on_composer,
+                            is_drawing_surface(e.target()),
                         ) {
                             return;
                         }
@@ -485,7 +492,8 @@ pub fn annotator(props: &Props) -> Html {
                         drag.set(None);
                         selecting.set(false);
                         // A pen tap marks nothing; a stroke opens the composer
-                        // on the area it drew.
+                        // on the area it drew. A cancel or a lost capture
+                        // discards the stroke rather than completing it.
                         if kind == "pointerup" {
                             if let Some(found) = select(&stage, start, client(e)) {
                                 selection.set(Some(found));
@@ -494,9 +502,18 @@ pub fn annotator(props: &Props) -> Html {
                         }
                     })
                 };
-                [down, moved, finish("pointerup"), finish("pointercancel")]
+                [
+                    down,
+                    moved,
+                    finish("pointerup"),
+                    finish("pointercancel"),
+                    finish("lostpointercapture"),
+                ]
             });
-            move || drop(listeners)
+            move || {
+                pen.borrow_mut().take();
+                drop(listeners)
+            }
         });
     }
     // iOS slides the keyboard over the page; track how much it hides so the
@@ -570,6 +587,18 @@ pub fn annotator(props: &Props) -> Html {
         let selection = selection.clone();
         Callback::from(move |_: MouseEvent| selection.set(None))
     };
+    // The browser took the touch away (a system gesture, a palm): discard the
+    // box, never complete it.
+    let pointer_cancel = {
+        let (drag, selecting, finger) = (drag.clone(), selecting.clone(), finger.clone());
+        Callback::from(move |e: PointerEvent| {
+            if *finger.borrow() == Some(e.pointer_id()) {
+                finger.borrow_mut().take();
+                drag.set(None);
+                selecting.set(false);
+            }
+        })
+    };
     let cancel_select = {
         let (drag, selecting, finger) = (drag.clone(), selecting.clone(), finger.clone());
         Callback::from(move |_: MouseEvent| {
@@ -593,7 +622,8 @@ pub fn annotator(props: &Props) -> Html {
                 return;
             }
             e.prevent_default();
-            // A second finger means a pinch, not a box: give the view back.
+            // A second finger cancels the box. The overlay has already taken
+            // both touches, so the view only sees the next pinch, not this one.
             let active = *finger.borrow();
             if active.is_some_and(|id| id != e.pointer_id()) {
                 finger.borrow_mut().take();
@@ -753,9 +783,9 @@ pub fn annotator(props: &Props) -> Html {
                 html! {
                     <div class="annotate-overlay" role="application" aria-label="Select an area to annotate"
                         onpointerdown={pointer_down} onpointermove={pointer_move}
-                        onpointerup={pointer_up.clone()} onpointercancel={pointer_up}>
+                        onpointerup={pointer_up} onpointercancel={pointer_cancel}>
                         {marker.unwrap_or_default()}
-                        <div class="annotate-hint">{if touch {"Drag a box over the area · two fingers cancel"} else {"Drag to select the area · Esc cancels"}}</div>
+                        <div class="annotate-hint">{if touch {"Drag a box over the area · two fingers cancel, then pinch again"} else {"Drag to select the area · Esc cancels"}}</div>
                         {if touch && (*pen).borrow().is_none() { html! {
                             <button class="annotate-cancel" onclick={cancel_select}>{"Cancel"}</button>
                         }} else { Html::default() }}
@@ -853,23 +883,23 @@ mod tests {
 
     #[test]
     fn only_a_pen_on_the_view_draws_an_area() {
-        assert!(pen_starts_area("pen", 0, false, false));
+        assert!(pen_starts_area("pen", 0, false, true));
         assert!(
-            !pen_starts_area("touch", 0, false, false),
+            !pen_starts_area("touch", 0, false, true),
             "fingers navigate"
         );
-        assert!(!pen_starts_area("mouse", 0, false, false));
+        assert!(!pen_starts_area("mouse", 0, false, true));
         assert!(
-            !pen_starts_area("pen", 2, false, false),
+            !pen_starts_area("pen", 2, false, true),
             "barrel button is not a stroke"
         );
         assert!(
-            !pen_starts_area("pen", 0, true, false),
+            !pen_starts_area("pen", 0, true, true),
             "the overlay owns an active drag"
         );
         assert!(
-            !pen_starts_area("pen", 0, false, true),
-            "writing in the composer"
+            !pen_starts_area("pen", 0, false, false),
+            "Pencil taps on toolbar buttons, layer toggles and the composer still work"
         );
     }
 

@@ -783,7 +783,8 @@ pub fn annotator(props: &Props) -> Html {
                 html! {
                     <div class="annotate-overlay" role="application" aria-label="Select an area to annotate"
                         onpointerdown={pointer_down} onpointermove={pointer_move}
-                        onpointerup={pointer_up} onpointercancel={pointer_cancel}>
+                        onpointerup={pointer_up} onpointercancel={pointer_cancel.clone()}
+                        onlostpointercapture={pointer_cancel}>
                         {marker.unwrap_or_default()}
                         <div class="annotate-hint">{if touch {"Drag a box over the area · two fingers cancel, then pinch again"} else {"Drag to select the area · Esc cancels"}}</div>
                         {if touch && (*pen).borrow().is_none() { html! {
@@ -838,13 +839,17 @@ pub fn annotator(props: &Props) -> Html {
                             <button class="annotate-close" aria-label="Close" onclick={toggle}>{"✕"}</button>
                         }} else { Html::default() }}
                     </div>
-                    <textarea rows="3" placeholder="What should the agent look at or change in this view?"
-                        value={(*note).clone()} oninput={input} onkeydown={on_key}/>
-                    {region_block}
-                    <label class="annotate-snap">
-                        <input type="checkbox" checked={*with_snapshot} onchange={toggle_snapshot}/>
-                        {if selection.is_some() {" Attach the selected area as an image"} else {" Attach a snapshot of this view"}}
-                    </label>
+                    // Only the body scrolls, so Send stays in reach above the
+                    // keyboard however tall the snapshot is.
+                    <div class="annotate-body">
+                        <textarea rows="3" placeholder="What should the agent look at or change in this view?"
+                            value={(*note).clone()} oninput={input} onkeydown={on_key}/>
+                        {region_block}
+                        <label class="annotate-snap">
+                            <input type="checkbox" checked={*with_snapshot} onchange={toggle_snapshot}/>
+                            {if selection.is_some() {" Attach the selected area as an image"} else {" Attach a snapshot of this view"}}
+                        </label>
+                    </div>
                     <div class="annotation-actions">
                         {status_line}
                         <button class="annotate-send" disabled={sending || note.trim().is_empty()}

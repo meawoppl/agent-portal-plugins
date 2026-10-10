@@ -9,7 +9,7 @@
 //! scene millimetres read from the camera the canvas publishes, so an agent
 //! can map the note onto references and nets without the image.
 
-use gloo_events::EventListener;
+use gloo_events::{EventListener, EventListenerOptions, EventListenerPhase};
 use gloo_net::http::Request;
 use serde_json::{json, Value};
 use vector_view::view::View;
@@ -305,6 +305,63 @@ fn client(e: &PointerEvent) -> [f64; 2] {
     [f64::from(e.client_x()), f64::from(e.client_y())]
 }
 
+/// Whether the device is driven by touch first: a phone, any coarse primary
+/// pointer, or an iPad, which Safari reports as a Mac so only its touch points
+/// give it away. Touch devices get the bottom-sheet composer and big buttons;
+/// desktops keep the floating composer.
+pub fn touch_primary_from(coarse: bool, max_touch_points: i32, user_agent: &str) -> bool {
+    coarse || (max_touch_points > 1 && user_agent.contains("Macintosh"))
+}
+
+fn touch_primary() -> bool {
+    let Some(window) = web_sys::window() else {
+        return false;
+    };
+    let coarse = window
+        .match_media("(pointer: coarse)")
+        .ok()
+        .flatten()
+        .is_some_and(|m| m.matches());
+    let navigator = window.navigator();
+    touch_primary_from(
+        coarse,
+        navigator.max_touch_points(),
+        &navigator.user_agent().unwrap_or_default(),
+    )
+}
+
+/// Whether a pointerdown on the view starts drawing an area straight away.
+/// Only a pen does, so fingers keep panning and pinching the view; only on the
+/// drawing surface itself, so Pencil taps still reach the view's buttons,
+/// layer toggles and pickers; never while the overlay owns a drag.
+pub fn pen_starts_area(pointer_type: &str, button: i16, selecting: bool, on_surface: bool) -> bool {
+    pointer_type == "pen" && button == 0 && !selecting && on_surface
+}
+
+/// A pointerdown target that is a view's drawing canvas, not a control laid
+/// over it or the annotator's own UI.
+fn is_drawing_surface(target: Option<web_sys::EventTarget>) -> bool {
+    target
+        .and_then(|t| t.dyn_into::<Element>().ok())
+        .is_some_and(|el| {
+            el.tag_name().eq_ignore_ascii_case("canvas")
+                && el.closest(".annotator").ok().flatten().is_none()
+        })
+}
+
+/// CSS pixels of the layout viewport hidden under the on-screen keyboard. iOS
+/// overlays the keyboard instead of resizing the page, so a bottom-docked
+/// sheet lifts itself by this much to stay above it.
+pub fn keyboard_inset(inner_height: f64, viewport_height: f64, viewport_offset_top: f64) -> f64 {
+    (inner_height - viewport_height - viewport_offset_top).max(0.0)
+}
+
+/// The view-stage element an annotator belongs to.
+fn stage_of(root: &NodeRef) -> Option<Element> {
+    root.cast::<Element>()
+        .and_then(|el| el.closest(".view-stage").ok().flatten())
+}
+
 #[function_component(Annotator)]
 pub fn annotator(props: &Props) -> Html {
     let root = use_node_ref();
@@ -315,12 +372,24 @@ pub fn annotator(props: &Props) -> Html {
     let selecting = use_state(|| false);
     let drag: UseStateHandle<Drag> = use_state(|| None);
     let selection = use_state(|| None::<Selection>);
+    let touch = *use_memo((), |_| touch_primary());
+    let keyboard = use_state(|| 0.0_f64);
+    // Listeners registered once per view read these instead of a state
+    // handle, which would only ever show them the render they were made in.
+    let selecting_now = use_mut_ref(|| false);
+    *selecting_now.borrow_mut() = *selecting;
+    // The pointer drawing the area (a pen on the view, or the first finger on
+    // the overlay) and, for the pen, where it touched down.
+    let pen = use_mut_ref(|| None::<(i32, [f64; 2])>);
+    let finger = use_mut_ref(|| None::<i32>);
 
     // A selection belongs to the view it was drawn on.
     {
         let selection = selection.clone();
         let selecting = selecting.clone();
+        let finger = finger.clone();
         use_effect_with(props.tab.clone(), move |_| {
+            finger.borrow_mut().take();
             selection.set(None);
             selecting.set(false);
         });
@@ -329,6 +398,7 @@ pub fn annotator(props: &Props) -> Html {
     {
         let selecting = selecting.clone();
         let drag = drag.clone();
+        let (pen, finger) = (pen.clone(), finger.clone());
         use_effect_with(*selecting, move |active| {
             let listener = active.then(|| {
                 web_sys::window().map(|w| {
@@ -336,6 +406,8 @@ pub fn annotator(props: &Props) -> Html {
                         if e.dyn_ref::<KeyboardEvent>()
                             .is_some_and(|k| k.key() == "Escape")
                         {
+                            pen.borrow_mut().take();
+                            finger.borrow_mut().take();
                             drag.set(None);
                             selecting.set(false);
                         }
@@ -345,11 +417,142 @@ pub fn annotator(props: &Props) -> Html {
             move || drop(listener)
         });
     }
+    // A pen draws an area straight onto the view, no mode to enter first.
+    // Capture-phase listeners on the stage see the pen before the canvas does
+    // and stop it there, so neither the vector view nor the 3D orbit controls
+    // start a pan; fingers pass through untouched and still navigate.
+    {
+        let root = root.clone();
+        let (drag, selecting, selection) = (drag.clone(), selecting.clone(), selection.clone());
+        let (open, status) = (open.clone(), status.clone());
+        let (pen, selecting_now) = (pen.clone(), selecting_now.clone());
+        use_effect_with(props.tab.clone(), move |_| {
+            let listeners = stage_of(&root).map(|stage| {
+                let capture = EventListenerOptions {
+                    phase: EventListenerPhase::Capture,
+                    passive: false,
+                };
+                let down = {
+                    let target = stage.clone();
+                    let (pen, drag, selecting, status) =
+                        (pen.clone(), drag.clone(), selecting.clone(), status.clone());
+                    EventListener::new_with_options(&stage, "pointerdown", capture, move |e| {
+                        let Some(e) = e.dyn_ref::<PointerEvent>() else {
+                            return;
+                        };
+                        if !pen_starts_area(
+                            &e.pointer_type(),
+                            e.button(),
+                            *selecting_now.borrow(),
+                            is_drawing_surface(e.target()),
+                        ) {
+                            return;
+                        }
+                        e.prevent_default();
+                        e.stop_propagation();
+                        let _ = target.set_pointer_capture(e.pointer_id());
+                        let p = client(e);
+                        *pen.borrow_mut() = Some((e.pointer_id(), p));
+                        status.set(Status::Idle);
+                        drag.set(Some((p, p)));
+                        selecting.set(true);
+                    })
+                };
+                let moved = {
+                    let (pen, drag) = (pen.clone(), drag.clone());
+                    EventListener::new_with_options(&stage, "pointermove", capture, move |e| {
+                        let Some(e) = e.dyn_ref::<PointerEvent>() else {
+                            return;
+                        };
+                        let Some((id, start)) = *pen.borrow() else {
+                            return;
+                        };
+                        if e.pointer_id() == id {
+                            e.stop_propagation();
+                            drag.set(Some((start, client(e))));
+                        }
+                    })
+                };
+                let finish = |kind: &'static str| {
+                    let stage = stage.clone();
+                    let (pen, drag, selecting) = (pen.clone(), drag.clone(), selecting.clone());
+                    let (selection, open) = (selection.clone(), open.clone());
+                    EventListener::new_with_options(&stage.clone(), kind, capture, move |e| {
+                        let Some(e) = e.dyn_ref::<PointerEvent>() else {
+                            return;
+                        };
+                        let Some((id, start)) = *pen.borrow() else {
+                            return;
+                        };
+                        if e.pointer_id() != id {
+                            return;
+                        }
+                        e.stop_propagation();
+                        pen.borrow_mut().take();
+                        drag.set(None);
+                        selecting.set(false);
+                        // A pen tap marks nothing; a stroke opens the composer
+                        // on the area it drew. A cancel or a lost capture
+                        // discards the stroke rather than completing it.
+                        if kind == "pointerup" {
+                            if let Some(found) = select(&stage, start, client(e)) {
+                                selection.set(Some(found));
+                                open.set(true);
+                            }
+                        }
+                    })
+                };
+                [
+                    down,
+                    moved,
+                    finish("pointerup"),
+                    finish("pointercancel"),
+                    finish("lostpointercapture"),
+                ]
+            });
+            move || {
+                pen.borrow_mut().take();
+                drop(listeners)
+            }
+        });
+    }
+    // iOS slides the keyboard over the page; track how much it hides so the
+    // bottom sheet can sit on top of it.
+    {
+        let keyboard = keyboard.clone();
+        use_effect_with(touch && *open, move |active| {
+            let listeners = active
+                .then(web_sys::window)
+                .flatten()
+                .and_then(|w| w.visual_viewport().map(|vv| (w, vv)))
+                .map(|(window, vv)| {
+                    let measure = {
+                        let (window, vv, keyboard) = (window.clone(), vv.clone(), keyboard.clone());
+                        move || {
+                            let inner = window
+                                .inner_height()
+                                .ok()
+                                .and_then(|h| h.as_f64())
+                                .unwrap_or(0.0);
+                            keyboard.set(keyboard_inset(inner, vv.height(), vv.offset_top()));
+                        }
+                    };
+                    measure();
+                    let on_resize = {
+                        let measure = measure.clone();
+                        EventListener::new(&vv, "resize", move |_| measure())
+                    };
+                    let on_scroll = EventListener::new(&vv, "scroll", move |_| measure());
+                    [on_resize, on_scroll]
+                });
+            if !*active {
+                keyboard.set(0.0);
+            }
+            move || drop(listeners)
+        });
+    }
 
-    let stage = || {
-        root.cast::<Element>()
-            .and_then(|el| el.closest(".view-stage").ok().flatten())
-    };
+    let stage = || stage_of(&root);
     let toggle = {
         let open = open.clone();
         let status = status.clone();
@@ -384,23 +587,64 @@ pub fn annotator(props: &Props) -> Html {
         let selection = selection.clone();
         Callback::from(move |_: MouseEvent| selection.set(None))
     };
+    // The browser took the touch away (a system gesture, a palm): discard the
+    // box, never complete it.
+    let pointer_cancel = {
+        let (drag, selecting, finger) = (drag.clone(), selecting.clone(), finger.clone());
+        Callback::from(move |e: PointerEvent| {
+            if *finger.borrow() == Some(e.pointer_id()) {
+                finger.borrow_mut().take();
+                drag.set(None);
+                selecting.set(false);
+            }
+        })
+    };
+    let cancel_select = {
+        let (drag, selecting, finger) = (drag.clone(), selecting.clone(), finger.clone());
+        Callback::from(move |_: MouseEvent| {
+            finger.borrow_mut().take();
+            drag.set(None);
+            selecting.set(false);
+        })
+    };
     let pointer_down = {
-        let drag = drag.clone();
+        let (drag, selecting, finger) = (drag.clone(), selecting.clone(), finger.clone());
         Callback::from(move |e: PointerEvent| {
             if e.button() != 0 {
                 return;
             }
+            let on_cancel = e
+                .target()
+                .and_then(|t| t.dyn_into::<Element>().ok())
+                .and_then(|t| t.closest(".annotate-cancel").ok().flatten())
+                .is_some();
+            if on_cancel {
+                return;
+            }
             e.prevent_default();
+            // A second finger cancels the box. The overlay has already taken
+            // both touches, so the view only sees the next pinch, not this one.
+            let active = *finger.borrow();
+            if active.is_some_and(|id| id != e.pointer_id()) {
+                finger.borrow_mut().take();
+                drag.set(None);
+                selecting.set(false);
+                return;
+            }
             if let Some(target) = e.target().and_then(|t| t.dyn_into::<Element>().ok()) {
                 let _ = target.set_pointer_capture(e.pointer_id());
             }
+            *finger.borrow_mut() = Some(e.pointer_id());
             let p = client(&e);
             drag.set(Some((p, p)));
         })
     };
     let pointer_move = {
-        let drag = drag.clone();
+        let (drag, finger) = (drag.clone(), finger.clone());
         Callback::from(move |e: PointerEvent| {
+            if *finger.borrow() != Some(e.pointer_id()) {
+                return;
+            }
             if let Some((start, _)) = *drag {
                 drag.set(Some((start, client(&e))));
             }
@@ -410,21 +654,27 @@ pub fn annotator(props: &Props) -> Html {
         let drag = drag.clone();
         let selecting = selecting.clone();
         let selection = selection.clone();
-        let status = status.clone();
+        let (open, status, finger) = (open.clone(), status.clone(), finger.clone());
         let root = root.clone();
         Callback::from(move |e: PointerEvent| {
+            if *finger.borrow() != Some(e.pointer_id()) {
+                return;
+            }
+            finger.borrow_mut().take();
             let Some((start, _)) = *drag else { return };
             let end = client(&e);
             drag.set(None);
             selecting.set(false);
-            let stage = root
-                .cast::<Element>()
-                .and_then(|el| el.closest(".view-stage").ok().flatten());
-            match stage.and_then(|s| select(&s, start, end)) {
-                Some(found) => selection.set(Some(found)),
-                None => status.set(Status::Failed(
-                    "Drag out a larger area to select it (Escape cancels).".into(),
-                )),
+            match stage_of(&root).and_then(|s| select(&s, start, end)) {
+                Some(found) => {
+                    selection.set(Some(found));
+                    open.set(true);
+                }
+                None => status.set(Status::Failed(if touch {
+                    "Drag out a larger area to select it.".into()
+                } else {
+                    "Drag out a larger area to select it (Escape cancels).".into()
+                })),
             }
         })
     };
@@ -511,6 +761,9 @@ pub fn annotator(props: &Props) -> Html {
     });
     let sending = *status == Status::Sending;
     let status_line = match &*status {
+        Status::Idle if touch => {
+            html! {<span class="muted">{"Draw on the view with Apple Pencil to mark an area"}</span>}
+        }
         Status::Idle => html! {<span class="muted">{"Ctrl+Enter to send"}</span>},
         Status::Sending => html! {<span class="muted">{"Sending…"}</span>},
         Status::Done(m) => html! {<span class="annotate-ok">{format!("✓ {m}")}</span>},
@@ -530,9 +783,13 @@ pub fn annotator(props: &Props) -> Html {
                 html! {
                     <div class="annotate-overlay" role="application" aria-label="Select an area to annotate"
                         onpointerdown={pointer_down} onpointermove={pointer_move}
-                        onpointerup={pointer_up.clone()} onpointercancel={pointer_up}>
+                        onpointerup={pointer_up} onpointercancel={pointer_cancel.clone()}
+                        onlostpointercapture={pointer_cancel}>
                         {marker.unwrap_or_default()}
-                        <div class="annotate-hint">{"Drag to select the area · Esc cancels"}</div>
+                        <div class="annotate-hint">{if touch {"Drag a box over the area · two fingers cancel, then pinch again"} else {"Drag to select the area · Esc cancels"}}</div>
+                        {if touch && (*pen).borrow().is_none() { html! {
+                            <button class="annotate-cancel" onclick={cancel_select}>{"Cancel"}</button>
+                        }} else { Html::default() }}
                     </div>
                 },
                 stage_el,
@@ -553,29 +810,46 @@ pub fn annotator(props: &Props) -> Html {
         },
         None => html! {
             <div class="annotate-region-row">
-                <button class="annotate-mini" onclick={start_select}>{"⬚ Select area"}</button>
+                <button class="annotate-mini" onclick={start_select.clone()}>{"⬚ Select area"}</button>
                 <span class="muted">{"Pin the note to part of the view"}</span>
             </div>
         },
     };
+    // On touch devices marking an area is one tap away at all times, beside
+    // the toggle; with a pen it needs no tap at all.
+    let mark_button = (touch && !*open && !*selecting).then(|| {
+        html! {<button class="annotate-mark" title="Mark an area of this view for an agent"
+        onclick={start_select}>{"⬚ Mark area"}</button>}
+    });
     html! {
         // While an area is being dragged out the composer gets out of the way;
         // the overlay's hint stands in for it.
-        <div ref={root} class={classes!("annotator", open.then_some("open"))}>
+        <div ref={root} class={classes!("annotator", open.then_some("open"), touch.then_some("touch"))}>
+            {mark_button.unwrap_or_default()}
             <button class="annotate-toggle" title="Annotate this view for an agent"
-                aria-expanded={open.to_string()} hidden={*selecting} onclick={toggle}>
+                aria-expanded={open.to_string()} hidden={*selecting || (touch && *open)} onclick={toggle.clone()}>
                 {if *open {"✕ Close"} else {"✎ Annotate"}}
             </button>
             {if *open && !*selecting { html! {
-                <div class="annotation-composer">
-                    <label>{format!("{} · {}", props.tab, props.revision)}</label>
-                    <textarea rows="3" placeholder="What should the agent look at or change in this view?"
-                        value={(*note).clone()} oninput={input} onkeydown={on_key}/>
-                    {region_block}
-                    <label class="annotate-snap">
-                        <input type="checkbox" checked={*with_snapshot} onchange={toggle_snapshot}/>
-                        {if selection.is_some() {" Attach the selected area as an image"} else {" Attach a snapshot of this view"}}
-                    </label>
+                <div class={classes!("annotation-composer", touch.then_some("sheet"))}
+                    style={touch.then(|| format!("--kb:{}px", *keyboard))}>
+                    <div class="annotate-head">
+                        <label>{format!("{} · {}", props.tab, props.revision)}</label>
+                        {if touch { html! {
+                            <button class="annotate-close" aria-label="Close" onclick={toggle}>{"✕"}</button>
+                        }} else { Html::default() }}
+                    </div>
+                    // Only the body scrolls, so Send stays in reach above the
+                    // keyboard however tall the snapshot is.
+                    <div class="annotate-body">
+                        <textarea rows="3" placeholder="What should the agent look at or change in this view?"
+                            value={(*note).clone()} oninput={input} onkeydown={on_key}/>
+                        {region_block}
+                        <label class="annotate-snap">
+                            <input type="checkbox" checked={*with_snapshot} onchange={toggle_snapshot}/>
+                            {if selection.is_some() {" Attach the selected area as an image"} else {" Attach a snapshot of this view"}}
+                        </label>
+                    </div>
                     <div class="annotation-actions">
                         {status_line}
                         <button class="annotate-send" disabled={sending || note.trim().is_empty()}
@@ -591,6 +865,60 @@ pub fn annotator(props: &Props) -> Html {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ipads_count_as_touch_even_when_safari_claims_a_mac() {
+        let ipad = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15";
+        assert!(touch_primary_from(false, 5, ipad));
+        assert!(
+            !touch_primary_from(false, 0, ipad),
+            "a real Mac has no touch points"
+        );
+        assert!(touch_primary_from(
+            true,
+            0,
+            "Mozilla/5.0 (Linux; Android 14)"
+        ));
+        let windows = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)";
+        assert!(
+            !touch_primary_from(false, 10, windows),
+            "a touchscreen laptop with a fine primary pointer stays desktop"
+        );
+    }
+
+    #[test]
+    fn only_a_pen_on_the_view_draws_an_area() {
+        assert!(pen_starts_area("pen", 0, false, true));
+        assert!(
+            !pen_starts_area("touch", 0, false, true),
+            "fingers navigate"
+        );
+        assert!(!pen_starts_area("mouse", 0, false, true));
+        assert!(
+            !pen_starts_area("pen", 2, false, true),
+            "barrel button is not a stroke"
+        );
+        assert!(
+            !pen_starts_area("pen", 0, true, true),
+            "the overlay owns an active drag"
+        );
+        assert!(
+            !pen_starts_area("pen", 0, false, false),
+            "Pencil taps on toolbar buttons, layer toggles and the composer still work"
+        );
+    }
+
+    #[test]
+    fn keyboard_inset_is_the_hidden_bottom_of_the_page() {
+        assert_eq!(keyboard_inset(1024.0, 1024.0, 0.0), 0.0);
+        assert_eq!(keyboard_inset(1024.0, 640.0, 0.0), 384.0);
+        assert_eq!(
+            keyboard_inset(1024.0, 640.0, 100.0),
+            284.0,
+            "page scrolled under it"
+        );
+        assert_eq!(keyboard_inset(1000.0, 1024.0, 0.0), 0.0, "never negative");
+    }
 
     #[test]
     fn drags_are_ordered_clamped_and_debounced() {

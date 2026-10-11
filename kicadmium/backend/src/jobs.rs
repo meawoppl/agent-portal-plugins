@@ -337,6 +337,15 @@ pub(crate) fn stage_key(
             .unwrap_or_default()
             .as_bytes(),
     );
+    if stage == Stage::Glb {
+        // The export switches decide what the GLB contains.
+        digest.update(b"\0model\0");
+        digest.update(
+            serde_json::to_string(&project.config.model)
+                .unwrap_or_default()
+                .as_bytes(),
+        );
+    }
     let (sch, pcb) = stage.deps();
     if sch {
         digest.update(b"\0sch\0");

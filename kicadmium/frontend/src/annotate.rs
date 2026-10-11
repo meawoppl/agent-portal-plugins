@@ -1,7 +1,8 @@
-//! Annotations for an agent: a note, optionally pinned to a dragged-out area
-//! of the current view, plus a snapshot (of that area, or the whole view),
-//! queued on the Agent Portal edit stack of the session that opened this
-//! workbench. Portal serves `POST /__portal/edit-stack` on the forward origin;
+//! Annotations for an agent: a note pinned to a dragged-out area of the
+//! current view, plus a snapshot (of that area, or the whole view), queued on
+//! the Agent Portal edit stack of the session that opened this workbench.
+//! Clicking the corner button starts the area selector at once; the drag ends
+//! in the composer with the note focused, and Shift+Enter sends. Portal serves `POST /__portal/edit-stack` on the forward origin;
 //! outside a Portal forward there is no queue and the composer says so.
 //!
 //! Spatial feedback is the point: the selected area travels as the cropped
@@ -293,9 +294,17 @@ pub struct Props {
 #[derive(Clone, PartialEq)]
 enum Status {
     Idle,
+    /// Something worth knowing that is not an error (muted).
+    Hint(String),
     Sending,
     Done(String),
     Failed(String),
+}
+
+/// Whether a composer key press means "send": Shift+Enter, or the older
+/// Ctrl/Cmd+Enter. Plain Enter keeps inserting a newline.
+pub fn is_send_key(key: &str, shift: bool, ctrl: bool, meta: bool) -> bool {
+    key == "Enter" && (shift || ctrl || meta)
 }
 
 /// Client coordinates of a drag in progress: where it started, where it is.
@@ -365,6 +374,7 @@ fn stage_of(root: &NodeRef) -> Option<Element> {
 #[function_component(Annotator)]
 pub fn annotator(props: &Props) -> Html {
     let root = use_node_ref();
+    let textarea = use_node_ref();
     let open = use_state(|| false);
     let note = use_state(String::new);
     let with_snapshot = use_state(|| true);
@@ -394,11 +404,13 @@ pub fn annotator(props: &Props) -> Html {
             selecting.set(false);
         });
     }
-    // Escape abandons a selection in progress.
+    // Escape abandons a selection in progress and closes the annotator: the
+    // flow starts with the selector, so backing out of it backs out entirely.
     {
         let selecting = selecting.clone();
         let drag = drag.clone();
         let (pen, finger) = (pen.clone(), finger.clone());
+        let open = open.clone();
         use_effect_with(*selecting, move |active| {
             let listener = active.then(|| {
                 web_sys::window().map(|w| {
@@ -410,6 +422,7 @@ pub fn annotator(props: &Props) -> Html {
                             finger.borrow_mut().take();
                             drag.set(None);
                             selecting.set(false);
+                            open.set(false);
                         }
                     })
                 })
@@ -552,15 +565,38 @@ pub fn annotator(props: &Props) -> Html {
         });
     }
 
+    // The composer appears once the drag ends; put the caret in the note so
+    // typing can start without another click.
+    {
+        let textarea = textarea.clone();
+        use_effect_with((*open, *selecting), move |(open, selecting)| {
+            if *open && !*selecting {
+                if let Some(el) = textarea.cast::<HtmlTextAreaElement>() {
+                    let _ = el.focus();
+                }
+            }
+        });
+    }
+
     let stage = || stage_of(&root);
     let toggle = {
         let open = open.clone();
         let status = status.clone();
         let selecting = selecting.clone();
+        let drag = drag.clone();
+        let selection = selection.clone();
         Callback::from(move |_| {
             status.set(Status::Idle);
-            selecting.set(false);
-            open.set(!*open)
+            drag.set(None);
+            if *open {
+                selecting.set(false);
+                open.set(false);
+            } else {
+                selection.set(None);
+                // Open only after pointerup, so a cancelled first selection
+                // cannot expose an empty composer on touch devices.
+                selecting.set(true);
+            }
         })
     };
     let input = {
@@ -665,16 +701,18 @@ pub fn annotator(props: &Props) -> Html {
             let end = client(&e);
             drag.set(None);
             selecting.set(false);
-            match stage_of(&root).and_then(|s| select(&s, start, end)) {
-                Some(found) => {
-                    selection.set(Some(found));
-                    open.set(true);
-                }
-                None => status.set(Status::Failed(if touch {
-                    "Drag out a larger area to select it.".into()
-                } else {
-                    "Drag out a larger area to select it (Escape cancels).".into()
-                })),
+            open.set(true);
+            let stage = root
+                .cast::<Element>()
+                .and_then(|el| el.closest(".view-stage").ok().flatten());
+            match stage.and_then(|s| select(&s, start, end)) {
+                Some(found) => selection.set(Some(found)),
+                // A click or a tiny drag still opens the composer: the note
+                // then carries the whole view, and "Select area" is a click away.
+                None => status.set(Status::Hint(
+                    "No area pinned (the drag was too small); the note covers the whole view."
+                        .into(),
+                )),
             }
         })
     };
@@ -754,7 +792,7 @@ pub fn annotator(props: &Props) -> Html {
         Callback::from(move |_| send.emit(()))
     };
     let on_key = Callback::from(move |e: KeyboardEvent| {
-        if e.key() == "Enter" && (e.ctrl_key() || e.meta_key()) {
+        if is_send_key(&e.key(), e.shift_key(), e.ctrl_key(), e.meta_key()) {
             e.prevent_default();
             send.emit(());
         }
@@ -764,7 +802,8 @@ pub fn annotator(props: &Props) -> Html {
         Status::Idle if touch => {
             html! {<span class="muted">{"Draw on the view with Apple Pencil to mark an area"}</span>}
         }
-        Status::Idle => html! {<span class="muted">{"Ctrl+Enter to send"}</span>},
+        Status::Idle => html! {<span class="muted">{"Shift+Enter to send"}</span>},
+        Status::Hint(m) => html! {<span class="muted">{m.clone()}</span>},
         Status::Sending => html! {<span class="muted">{"Sending…"}</span>},
         Status::Done(m) => html! {<span class="annotate-ok">{format!("✓ {m}")}</span>},
         Status::Failed(m) => html! {<span class="annotate-err">{m.clone()}</span>},
@@ -842,7 +881,7 @@ pub fn annotator(props: &Props) -> Html {
                     // Only the body scrolls, so Send stays in reach above the
                     // keyboard however tall the snapshot is.
                     <div class="annotate-body">
-                        <textarea rows="3" placeholder="What should the agent look at or change in this view?"
+                        <textarea ref={textarea} rows="3" placeholder="What should the agent look at or change here? Shift+Enter sends."
                             value={(*note).clone()} oninput={input} onkeydown={on_key}/>
                         {region_block}
                         <label class="annotate-snap">
@@ -951,6 +990,15 @@ mod tests {
         let [min, max] = world_bounds(&mirrored, &r);
         assert!(min[0] < max[0], "bounds stay ordered under mirroring");
         assert!((max[0] - min[0] - 10.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn shift_enter_sends_and_plain_enter_does_not() {
+        assert!(is_send_key("Enter", true, false, false));
+        assert!(is_send_key("Enter", false, true, false));
+        assert!(is_send_key("Enter", false, false, true));
+        assert!(!is_send_key("Enter", false, false, false));
+        assert!(!is_send_key("a", true, false, false));
     }
 
     #[test]

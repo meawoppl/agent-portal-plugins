@@ -24,6 +24,10 @@ sha2.workspace = true
 tempfile.workspace = true
 tokio.workspace = true
 tower-http.workspace = true
+# The board GLB is tens of megabytes of highly repetitive mesh data; it is
+# served brotli/gzip encoded from a sidecar built once per revision.
+brotli = "6"
+flate2 = "1"
 tracing.workspace = true
 tracing-subscriber.workspace = true
 walkdir.workspace = true

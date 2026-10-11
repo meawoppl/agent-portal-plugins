@@ -669,10 +669,15 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
                     })
                 };
                 html! {
-                    <label class="pcbv-layer" title={alias}>
+                    <label class="pcbv-layer" title={alias.clone()}>
                         <input type="checkbox" checked={visible} onchange={toggle}/>
                         <span class="pcbv-swatch" style={format!("background:{swatch}")}/>
-                        <span>{layer.name.clone()}</span>
+                        <span class="pcbv-layer-name">
+                            <span>{layer.name.clone()}</span>
+                            if !alias.is_empty() && alias != layer.name {
+                                <span class="pcbv-layer-alias">{alias}</span>
+                            }
+                        </span>
                     </label>
                 }
             });

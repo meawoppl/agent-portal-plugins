@@ -62,6 +62,24 @@ fn save_project(id: &str) {
         let _ = s.set_item(PROJECT_KEY, id);
     }
 }
+/// The revision the views load under: the live feed's source hash once it
+/// has spoken, else the manifest's source hash, else the manifest's own
+/// (per-fetch timestamp) revision. The views key their fetches on it, so it
+/// must settle on one value: the old `loading` → timestamp → hash sequence
+/// made the 3D view download the board GLB three times.
+fn effective_revision(
+    live: Option<&str>,
+    manifest: Option<&shared::ManifestResponse>,
+) -> Option<String> {
+    live.map(str::to_owned).or_else(|| {
+        let m = manifest?;
+        Some(
+            m.source_revision
+                .clone()
+                .unwrap_or_else(|| m.revision.clone()),
+        )
+    })
+}
 /// The project to open: an explicit `?project=`, else the last one picked
 /// that still exists, else the configured `defaultProject`, else the first
 /// project. Empty only for a workspace without projects.
@@ -96,6 +114,31 @@ mod tests {
                 })
                 .collect(),
         }
+    }
+
+    #[test]
+    fn revision_prefers_live_then_source_hash_then_timestamp() {
+        use super::effective_revision;
+        let mut m = serde_json::from_value::<shared::ManifestResponse>(serde_json::json!({
+            "project": "p", "name": "p", "root": "/w/p", "revision": "1791685733887",
+            "files": [], "warnings": [], "kicad_cli": null, "kicad_version": null,
+            "source_revision": "dee326246b475da6db37",
+        }))
+        .unwrap();
+        assert_eq!(effective_revision(None, None), None);
+        assert_eq!(
+            effective_revision(None, Some(&m)).as_deref(),
+            Some("dee326246b475da6db37")
+        );
+        assert_eq!(
+            effective_revision(Some("abc"), Some(&m)).as_deref(),
+            Some("abc")
+        );
+        m.source_revision = None;
+        assert_eq!(
+            effective_revision(None, Some(&m)).as_deref(),
+            Some("1791685733887")
+        );
     }
 
     #[test]
@@ -140,16 +183,22 @@ fn app() -> Html {
             || ()
         });
     }
+    // Views wait for the manifest (success or failure) so they mount once,
+    // under the project's real revision, instead of once per placeholder.
+    let manifest_ready = use_state(|| false);
     {
         let manifest = manifest.clone();
+        let manifest_ready = manifest_ready.clone();
         let p = (*project).clone();
         use_effect_with(p.clone(), move |_| {
+            manifest_ready.set(false);
             let token = request::RequestToken::default();
             let task_token = token.clone();
             spawn_local(async move {
                 let next = api::manifest(&p).await.ok();
                 if task_token.current() {
                     manifest.set(next);
+                    manifest_ready.set(true);
                 }
             });
             move || token.cancel()
@@ -158,10 +207,7 @@ fn app() -> Html {
     // Latest live revision; LiveStatus keeps the callback from its first
     // render, so it sets this state rather than patching `manifest`.
     let live_revision = use_state(|| None::<String>);
-    let revision = live_revision
-        .as_ref()
-        .cloned()
-        .or_else(|| manifest.as_ref().map(|m| m.revision.clone()))
+    let revision = effective_revision(live_revision.as_deref(), manifest.as_ref())
         .unwrap_or_else(|| "loading".to_owned());
     let change_project = {
         let project = project.clone();
@@ -218,7 +264,7 @@ fn app() -> Html {
     html! {<div class="app-shell"><header><div><h1>{"kicadmium"}</h1><span class="tagline">{"The heavy metal your PCBs were missing."}</span></div><div class="header-tools">{picker}<LiveStatus project={(*project).clone()} {on_revision}/></div></header>
     <build_strip::BuildStrip project={(*project).clone()}/>
     <nav class="tabs" aria-label="Workbench views">{for TABS.iter().map(|(id,label)|{let id=(*id).to_owned();let selected=*active==id;let active=active.clone();html!{<button class={classes!(selected.then_some("active"))} aria-selected={selected.to_string()} onclick={Callback::from(move |_|{if let Some(s)=web_sys::window().and_then(|w|w.local_storage().ok().flatten()){let _=s.set_item("kicadmium:tab",&id);}active.set(id.clone())})}>{*label}</button>}})}</nav>
-    <main>{{let view=if !*resolved{html!{<p class="view-status" role="status">{"Opening project…"}</p>}}else{match active.as_str(){"schematic"=>html!{<viewer::Viewer project={(*project).clone()} kind="schematic" revision={revision.clone()}/>},"pcb"=>html!{<viewer::Viewer project={(*project).clone()} kind="pcb" revision={revision.clone()}/>} ,"3d"=>html!{<viewer::Viewer project={(*project).clone()} kind="model" revision={revision.clone()}/>} ,"checks"=>html!{<Checks project={(*project).clone()}/>} ,"bom"=>html!{<bom::BomTab project={(*project).clone()} revision={revision.clone()}/>} ,"libraries"=>html!{<library::LibraryTab project={(*project).clone()}/>} ,"gerbers"=>html!{<gerbers::GerberTab project={(*project).clone()} revision={revision.clone()}/>} ,_=>html!{<misc::AnalysisTab project={(*project).clone()} revision={revision.clone()}/>}}};
+    <main>{{let view=if !*resolved || !*manifest_ready{html!{<p class="view-status" role="status">{"Opening project…"}</p>}}else{match active.as_str(){"schematic"=>html!{<viewer::Viewer project={(*project).clone()} kind="schematic" revision={revision.clone()}/>},"pcb"=>html!{<viewer::Viewer project={(*project).clone()} kind="pcb" revision={revision.clone()}/>} ,"3d"=>html!{<viewer::Viewer project={(*project).clone()} kind="model" revision={revision.clone()}/>} ,"checks"=>html!{<Checks project={(*project).clone()}/>} ,"bom"=>html!{<bom::BomTab project={(*project).clone()} revision={revision.clone()}/>} ,"libraries"=>html!{<library::LibraryTab project={(*project).clone()}/>} ,"gerbers"=>html!{<gerbers::GerberTab project={(*project).clone()} revision={revision.clone()}/>} ,_=>html!{<misc::AnalysisTab project={(*project).clone()} revision={revision.clone()}/>}}};
     // Annotation targets what is on screen, so it floats over the visual views only.
     if ANNOTATABLE.contains(&active.as_str()){html!{<div class={classes!("view-stage",format!("view-{}",*active))}>{view}<div class="view-annotate"><Annotator project={(*project).clone()} tab={(*active).clone()} revision={revision.clone()}/></div></div>}}else{view}}}</main></div>}
 }

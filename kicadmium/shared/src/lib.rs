@@ -22,7 +22,13 @@ pub struct SourceFile {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ManifestResponse {
     pub root: String,
+    /// Per-fetch cache-busting value (a timestamp), unique per manifest load.
     pub revision: String,
+    /// Hash of the project's KiCad sources, the same value the live events
+    /// feed reports; views key their fetches on this so it stays stable
+    /// across manifest reloads.
+    #[serde(default)]
+    pub source_revision: Option<String>,
     pub files: Vec<FileEntry>,
     pub warnings: Vec<String>,
     pub kicad_cli: Option<String>,

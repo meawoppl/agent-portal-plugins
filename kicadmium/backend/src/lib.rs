@@ -44,7 +44,7 @@ use axum::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         Query, State,
     },
-    http::{header, HeaderValue, StatusCode},
+    http::{header, HeaderMap, HeaderValue, StatusCode},
     response::{Html, IntoResponse, Response},
     routing::get,
     Json, Router,
@@ -62,6 +62,7 @@ use tokio::{
     sync::{broadcast, RwLock},
     time::{sleep, Duration},
 };
+use tower_http::compression::CompressionLayer;
 use tower_http::trace::TraceLayer;
 use walkdir::WalkDir;
 use zip::{write::SimpleFileOptions, ZipWriter};
@@ -495,6 +496,11 @@ async fn main() -> Result<()> {
                 .merge(pcb_scene::routes())
                 .merge(schematic_view::routes())
                 .merge(jobs::routes())
+                // Everything the API returns is text (scene JSON, KiCad
+                // sources, reports) or already-encoded (the GLB sidecar, which
+                // the layer leaves alone); over the Portal forward the bytes
+                // on the wire are what the user waits for.
+                .layer(CompressionLayer::new().br(true).gzip(true))
                 .layer(TraceLayer::new_for_http())
                 .with_state(state)
                 .merge(frontend_router());
@@ -815,23 +821,136 @@ async fn quality_endpoint(
     ))
 }
 
+/// Content encodings the GLB endpoint can serve, best first.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum GlbEncoding {
+    Brotli,
+    Gzip,
+}
+
+impl GlbEncoding {
+    fn token(self) -> &'static str {
+        match self {
+            Self::Brotli => "br",
+            Self::Gzip => "gzip",
+        }
+    }
+
+    fn extension(self) -> &'static str {
+        match self {
+            Self::Brotli => "br",
+            Self::Gzip => "gz",
+        }
+    }
+}
+
+/// The best encoding an `Accept-Encoding` header allows, if any. Browsers
+/// offer brotli on HTTPS (the Portal forward) and gzip everywhere.
+fn pick_glb_encoding(accept_encoding: Option<&str>) -> Option<GlbEncoding> {
+    let accept = accept_encoding?;
+    let offered = |token: &str| {
+        accept.split(',').any(|part| {
+            let mut bits = part.trim().split(';');
+            let name = bits.next().unwrap_or("").trim();
+            let refused = bits.any(|q| q.trim().replace(' ', "") == "q=0");
+            (name == token || name == "*") && !refused
+        })
+    };
+    if offered("br") {
+        Some(GlbEncoding::Brotli)
+    } else if offered("gzip") {
+        Some(GlbEncoding::Gzip)
+    } else {
+        None
+    }
+}
+
+/// Compress `glb` into `target` (written whole, then renamed into place, so a
+/// concurrent request never reads a half-written sidecar).
+fn write_encoded_glb(glb: &Path, target: &Path, encoding: GlbEncoding) -> Result<()> {
+    use std::io::Write;
+    let raw = std::fs::read(glb)?;
+    let tmp = target.with_extension(format!(
+        "{}.part{}",
+        encoding.extension(),
+        std::process::id()
+    ));
+    {
+        let file = std::fs::File::create(&tmp)?;
+        match encoding {
+            GlbEncoding::Brotli => {
+                // Quality 5 / 4 MB window: ~10x smaller in well under a second
+                // for a 25 MB board; higher qualities cost seconds for little.
+                let mut w = brotli::CompressorWriter::new(file, 1 << 16, 5, 22);
+                w.write_all(&raw)?;
+                w.flush()?;
+            }
+            GlbEncoding::Gzip => {
+                let mut w = flate2::write::GzEncoder::new(file, flate2::Compression::new(6));
+                w.write_all(&raw)?;
+                w.finish()?;
+            }
+        }
+    }
+    std::fs::rename(&tmp, target)?;
+    Ok(())
+}
+
+/// The encoded sidecar for `glb`, building it on first use. The stage
+/// directory is keyed by the build inputs, so the sidecar is immutable too.
+async fn encoded_glb(glb: PathBuf, encoding: GlbEncoding) -> Result<Vec<u8>> {
+    let target = glb.with_extension(format!("glb.{}", encoding.extension()));
+    if !tokio::fs::try_exists(&target).await.unwrap_or(false) {
+        let (glb, target) = (glb.clone(), target.clone());
+        tokio::task::spawn_blocking(move || write_encoded_glb(&glb, &target, encoding))
+            .await
+            .map_err(|err| anyhow!("GLB compression task failed: {err}"))??;
+    }
+    Ok(tokio::fs::read(&target).await?)
+}
+
 async fn model_glb(
     State(state): State<AppState>,
     Query(query): Query<ProjectQuery>,
+    headers: HeaderMap,
 ) -> Result<Response, AppError> {
     let project = selected_project(&state, query.project.as_deref())?;
     let built = state.builds.ensure(&project, jobs::Stage::Glb).await;
     if let Ok((result, dir)) = &built {
         if let Some(name) = result.outputs.iter().find(|name| name.ends_with(".glb")) {
-            let bytes = tokio::fs::read(dir.join(name)).await?;
-            return Ok((
-                [
-                    (header::CONTENT_TYPE, "model/gltf-binary"),
-                    (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
-                ],
-                bytes,
-            )
-                .into_response());
+            let glb = dir.join(name);
+            let accept = headers
+                .get(header::ACCEPT_ENCODING)
+                .and_then(|v| v.to_str().ok());
+            let mut response = match pick_glb_encoding(accept) {
+                // A failed sidecar is a log line, not a broken viewer: fall back
+                // to the raw bytes.
+                Some(encoding) => match encoded_glb(glb.clone(), encoding).await {
+                    Ok(bytes) => (
+                        [
+                            (header::CONTENT_ENCODING, encoding.token()),
+                            (header::VARY, "Accept-Encoding"),
+                        ],
+                        bytes,
+                    )
+                        .into_response(),
+                    Err(err) => {
+                        tracing::warn!("serving {} unencoded: {err:#}", glb.display());
+                        tokio::fs::read(&glb).await?.into_response()
+                    }
+                },
+                None => tokio::fs::read(&glb).await?.into_response(),
+            };
+            let h = response.headers_mut();
+            h.insert(
+                header::CONTENT_TYPE,
+                HeaderValue::from_static("model/gltf-binary"),
+            );
+            h.insert(
+                header::CACHE_CONTROL,
+                HeaderValue::from_static("public, max-age=31536000, immutable"),
+            );
+            return Ok(response);
         }
     }
     let message = match built {
@@ -918,6 +1037,7 @@ async fn warm_viewer_state(project: &ProjectContext) -> Result<ViewerState> {
     let source_revision = current_source_revision(project)?;
     let mut manifest = manifest_for(cwd).await?;
     manifest.revision = now_ms().to_string();
+    manifest.source_revision = Some(source_revision.clone());
     // Nested boards are their own projects; keep their files out of this one.
     manifest
         .files
@@ -943,6 +1063,7 @@ async fn manifest_for(cwd: &Path) -> Result<ManifestResponse> {
     Ok(ManifestResponse {
         root: cwd.display().to_string(),
         revision: now_ms().to_string(),
+        source_revision: None,
         files: detect_files(cwd)?,
         warnings,
         kicad_version: tool_version(kicad.clone()).await,

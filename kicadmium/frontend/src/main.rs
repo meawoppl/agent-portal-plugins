@@ -12,6 +12,7 @@ mod pcb_view;
 mod request;
 mod schematic_view;
 mod vector_scene;
+mod view_input;
 mod viewer;
 
 use annotate::Annotator;

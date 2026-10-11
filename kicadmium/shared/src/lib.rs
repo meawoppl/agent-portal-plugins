@@ -19,6 +19,34 @@ pub struct SourceFile {
     pub content: String,
 }
 
+/// 3D model settings, the `model` section of a project in `.kicad-pcb.json`.
+/// Export switches change what the GLB build contains; the finish is the
+/// default the viewer's picker starts from.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelConfig {
+    /// Pad surface finish shown in the 3D view: `board` (as KiCad exported
+    /// it), `enig`, `hasl`, `osp`, `immersion-silver` or `hard-gold`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub finish: Option<String>,
+    /// Export inner copper layers into the GLB (default true).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inner_copper: Option<bool>,
+    /// Export zone fills into the GLB (default true).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub zones: Option<bool>,
+}
+
+impl ModelConfig {
+    pub fn inner_copper(&self) -> bool {
+        self.inner_copper.unwrap_or(true)
+    }
+
+    pub fn zones(&self) -> bool {
+        self.zones.unwrap_or(true)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ManifestResponse {
     pub root: String,
@@ -29,6 +57,9 @@ pub struct ManifestResponse {
     /// across manifest reloads.
     #[serde(default)]
     pub source_revision: Option<String>,
+    /// The project's 3D model settings (defaults when the project sets none).
+    #[serde(default)]
+    pub model: ModelConfig,
     pub files: Vec<FileEntry>,
     pub warnings: Vec<String>,
     pub kicad_cli: Option<String>,

@@ -294,6 +294,8 @@ struct ProjectConfig {
     /// Legacy kct lint config and review ledger paths (superseded by
     /// `<board>.lint.json`; still read by the workbench API).
     lint: Option<lint::LintConfig>,
+    /// 3D model export switches and the default pad finish for the viewer.
+    model: Option<shared::ModelConfig>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -1038,6 +1040,7 @@ async fn warm_viewer_state(project: &ProjectContext) -> Result<ViewerState> {
     let mut manifest = manifest_for(cwd).await?;
     manifest.revision = now_ms().to_string();
     manifest.source_revision = Some(source_revision.clone());
+    manifest.model = project.config.model.clone().unwrap_or_default();
     // Nested boards are their own projects; keep their files out of this one.
     manifest
         .files
@@ -1064,6 +1067,7 @@ async fn manifest_for(cwd: &Path) -> Result<ManifestResponse> {
         root: cwd.display().to_string(),
         revision: now_ms().to_string(),
         source_revision: None,
+        model: shared::ModelConfig::default(),
         files: detect_files(cwd)?,
         warnings,
         kicad_version: tool_version(kicad.clone()).await,
@@ -2113,7 +2117,8 @@ async fn export_glb(project: &ProjectContext, out: &Path) -> Result<serde_json::
     if let Some(parent) = out.parent() {
         tokio::fs::create_dir_all(parent).await?;
     }
-    let args: Vec<OsString> = [
+    let model = project.config.model.clone().unwrap_or_default();
+    let mut flags = vec![
         "pcb",
         "export",
         "glb",
@@ -2123,12 +2128,22 @@ async fn export_glb(project: &ProjectContext, out: &Path) -> Result<serde_json::
         "--include-pads",
         "--include-silkscreen",
         "--include-soldermask",
-        "--output",
-    ]
-    .into_iter()
-    .map(OsString::from)
-    .chain([out.as_os_str().into(), board.as_os_str().into()])
-    .collect();
+    ];
+    // Zones are the pours a board actually ships with; inner copper is what
+    // the viewer's layer toggles show. Both are on unless the project says
+    // otherwise (the GLB is served compressed, so size is not the concern).
+    if model.zones() {
+        flags.push("--include-zones");
+    }
+    if model.inner_copper() {
+        flags.push("--include-inner-copper");
+    }
+    flags.push("--output");
+    let args: Vec<OsString> = flags
+        .into_iter()
+        .map(OsString::from)
+        .chain([out.as_os_str().into(), board.as_os_str().into()])
+        .collect();
     let output = run_command(&cli, &args, &project.root).await?;
     Ok(serde_json::json!({
         "ok": output.status == 0,

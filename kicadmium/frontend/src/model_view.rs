@@ -96,6 +96,396 @@ extern "C" {
     fn dispose(this: &OrbitControls);
 }
 
+/// What the board view can change after the GLB has loaded, without a
+/// rebuild: all of it is material and visibility state on the loaded meshes.
+#[derive(Clone, PartialEq, Debug)]
+pub struct ViewOptions {
+    /// Pad finish: `board` (as KiCad exported it) or one of
+    /// [`finish_material`]'s names.
+    pub finish: String,
+    /// Translucent board body and soldermask, so inner layers show through.
+    pub xray: bool,
+    /// Inner copper layers visible at all.
+    pub inner: bool,
+    /// Inner copper drawn as wireframe outlines instead of solid.
+    pub outline: bool,
+}
+
+impl Default for ViewOptions {
+    fn default() -> Self {
+        Self {
+            finish: "board".into(),
+            xray: false,
+            inner: true,
+            outline: false,
+        }
+    }
+}
+
+/// `(r, g, b, metalness, roughness)` for a pad finish, in Three's working
+/// (linear) colour space. `None` keeps whatever KiCad exported, which it
+/// derives from the board stackup's own finish setting.
+pub fn finish_material(finish: &str) -> Option<(f64, f64, f64, f64, f64)> {
+    match finish {
+        "enig" => Some((0.85, 0.62, 0.15, 0.45, 0.35)),
+        "hasl" => Some((0.62, 0.64, 0.66, 0.45, 0.45)),
+        "osp" => Some((0.70, 0.30, 0.10, 0.45, 0.40)),
+        "immersion-silver" => Some((0.85, 0.85, 0.82, 0.45, 0.30)),
+        "hard-gold" => Some((0.95, 0.70, 0.18, 0.45, 0.25)),
+        _ => None,
+    }
+}
+
+/// The finishes the picker offers, as `(value, label)`.
+pub const FINISHES: &[(&str, &str)] = &[
+    ("board", "Board setting"),
+    ("enig", "ENIG (gold)"),
+    ("hasl", "HASL (tin)"),
+    ("osp", "OSP (bare copper)"),
+    ("immersion-silver", "Immersion silver"),
+    ("hard-gold", "Hard gold"),
+];
+
+/// The board parts KiCad's GLB export names its meshes after.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum BoardPart {
+    Copper,
+    Pad,
+    Via,
+    Silkscreen,
+    Soldermask,
+    Body,
+}
+
+/// KiCad names each board mesh `<board>_<part>` (`controller_pad`), and
+/// Three.js may append `_<n>` to keep names unique; footprint models keep
+/// their own names and fall through as `None`.
+pub fn board_part(name: &str) -> Option<BoardPart> {
+    let base = name
+        .trim_end_matches(|c: char| c.is_ascii_digit())
+        .trim_end_matches('_');
+    let (_, suffix) = base.rsplit_once('_')?;
+    Some(match suffix {
+        "copper" => BoardPart::Copper,
+        "pad" => BoardPart::Pad,
+        "via" => BoardPart::Via,
+        "silkscreen" => BoardPart::Silkscreen,
+        "soldermask" => BoardPart::Soldermask,
+        "PCB" => BoardPart::Body,
+        _ => return None,
+    })
+}
+
+/// Whether copper spanning `[min_y, max_y]` lies strictly inside a board whose
+/// faces are at `bottom` and `top`: an inner layer. Outer copper and
+/// through-vias touch or cross a face.
+pub fn is_inner_copper(min_y: f64, max_y: f64, bottom: f64, top: f64) -> bool {
+    let margin = (top - bottom).abs() * 0.01;
+    min_y > bottom + margin && max_y < top - margin
+}
+
+/// The loaded board's meshes sorted by what the options touch. Materials are
+/// shared between the primitives KiCad exports, so inner copper gets its own
+/// clones: a wireframe toggle on the shared copper material would outline the
+/// outer layers too.
+/// A pad material with the colour, metalness and roughness KiCad exported.
+struct PadMaterial {
+    material: JsValue,
+    rgb: (f64, f64, f64),
+    metalness: f64,
+    roughness: f64,
+}
+
+struct Classified {
+    /// Pad materials with their exported look.
+    pads: Vec<PadMaterial>,
+    /// Board body materials with their exported opacity.
+    body: Vec<(JsValue, f64)>,
+    /// Soldermask materials with their exported opacity.
+    mask: Vec<(JsValue, f64)>,
+    /// Outer copper, pad, via and silkscreen materials with their exported
+    /// opacity: what has to thin out for the inner layers to show through.
+    outer: Vec<(JsValue, f64)>,
+    /// Inner-layer copper, pad and via meshes.
+    inner: Vec<JsValue>,
+    /// The cloned materials those inner meshes now use.
+    inner_materials: Vec<JsValue>,
+}
+
+type ClassifiedSlot = Rc<RefCell<Option<Classified>>>;
+
+fn push_unique(list: &mut Vec<JsValue>, value: &JsValue) -> bool {
+    if list.iter().any(|known| known == value) {
+        return false;
+    }
+    list.push(value.clone());
+    true
+}
+
+fn get_f64(object: &JsValue, name: &str) -> Option<f64> {
+    Reflect::get(object, &name.into()).ok()?.as_f64()
+}
+
+fn get_str(object: &JsValue, name: &str) -> Option<String> {
+    Reflect::get(object, &name.into()).ok()?.as_string()
+}
+
+fn set(object: &JsValue, name: &str, value: &JsValue) {
+    let _ = Reflect::set(object, &name.into(), value);
+}
+
+fn touch(material: &JsValue) {
+    set(material, "needsUpdate", &JsValue::TRUE);
+}
+
+fn y_extent(object: &JsValue) -> Option<(f64, f64)> {
+    let bounds = Box3::new_box().set_from_object(object);
+    let min = Reflect::get(bounds.as_ref(), &"min".into()).ok()?;
+    let max = Reflect::get(bounds.as_ref(), &"max".into()).ok()?;
+    Some((get_f64(&min, "y")?, get_f64(&max, "y")?))
+}
+
+/// The glTF mesh name behind a loaded object. Three.js names a
+/// single-primitive mesh after its glTF *node*, which KiCad leaves as a bare
+/// number for some board items, so the loader's object → mesh-index map is
+/// consulted first and the object's own name is the fallback.
+fn mesh_name(gltf: &JsValue, object: &JsValue) -> Option<String> {
+    let parser = Reflect::get(gltf, &"parser".into()).ok()?;
+    let associations = Reflect::get(&parser, &"associations".into()).ok()?;
+    let get: Function = Reflect::get(&associations, &"get".into())
+        .ok()?
+        .dyn_into()
+        .ok()?;
+    let entry = get.call1(&associations, object).ok()?;
+    let index = get_f64(&entry, "meshes")?;
+    let json = Reflect::get(&parser, &"json".into()).ok()?;
+    let meshes = Reflect::get(&json, &"meshes".into()).ok()?;
+    let def = Reflect::get_u32(&meshes, index as u32).ok()?;
+    get_str(&def, "name")
+}
+
+fn classify(gltf: &JsValue, model: &JsValue) -> Classified {
+    let found: Rc<RefCell<Vec<(BoardPart, JsValue)>>> = Rc::new(RefCell::new(Vec::new()));
+    let collect = found.clone();
+    let gltf = gltf.clone();
+    let visitor = Closure::<dyn FnMut(JsValue)>::new(move |object: JsValue| {
+        let is_mesh = Reflect::get(&object, &"isMesh".into())
+            .ok()
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        if !is_mesh {
+            return;
+        }
+        let name = mesh_name(&gltf, &object)
+            .or_else(|| get_str(&object, "name"))
+            .unwrap_or_default();
+        if let Some(part) = board_part(&name) {
+            collect.borrow_mut().push((part, object));
+        }
+    });
+    if let Ok(value) = Reflect::get(model, &"traverse".into()) {
+        if let Ok(traverse) = value.dyn_into::<Function>() {
+            let _ = traverse.call1(model, visitor.as_ref().unchecked_ref());
+        }
+    }
+    let found = found.borrow();
+    // The board body's faces bound the inner layers.
+    let (mut bottom, mut top) = (f64::INFINITY, f64::NEG_INFINITY);
+    for (part, mesh) in found.iter() {
+        if *part == BoardPart::Body {
+            if let Some((lo, hi)) = y_extent(mesh) {
+                bottom = bottom.min(lo);
+                top = top.max(hi);
+            }
+        }
+    }
+    let mut out = Classified {
+        pads: Vec::new(),
+        body: Vec::new(),
+        mask: Vec::new(),
+        outer: Vec::new(),
+        inner: Vec::new(),
+        inner_materials: Vec::new(),
+    };
+    let remember_outer = |material: JsValue, out: &mut Classified| {
+        if !out.outer.iter().any(|(known, _)| known == &material) {
+            let opacity = get_f64(&material, "opacity").unwrap_or(1.0);
+            out.outer.push((material, opacity));
+        }
+    };
+    let mut clones: Vec<(JsValue, JsValue)> = Vec::new();
+    let mut pad_materials: Vec<JsValue> = Vec::new();
+    for (part, mesh) in found.iter() {
+        match part {
+            BoardPart::Body | BoardPart::Soldermask => {
+                for material in materials_of(mesh) {
+                    let opacity = get_f64(&material, "opacity").unwrap_or(1.0);
+                    let list = if *part == BoardPart::Body {
+                        &mut out.body
+                    } else {
+                        &mut out.mask
+                    };
+                    if !list.iter().any(|(known, _)| known == &material) {
+                        list.push((material, opacity));
+                    }
+                }
+            }
+            BoardPart::Copper | BoardPart::Pad | BoardPart::Via => {
+                let inner = bottom.is_finite()
+                    && y_extent(mesh).is_some_and(|(lo, hi)| is_inner_copper(lo, hi, bottom, top));
+                if inner {
+                    // One clone per exported material keeps inner layers
+                    // independent of the outer ones they shared it with.
+                    let originals = materials_of(mesh);
+                    let mut replaced: Vec<JsValue> = Vec::new();
+                    for original in &originals {
+                        let clone = match clones.iter().find(|(o, _)| o == original) {
+                            Some((_, clone)) => clone.clone(),
+                            None => {
+                                let clone = Reflect::get(original, &"clone".into())
+                                    .ok()
+                                    .and_then(|f| f.dyn_into::<Function>().ok())
+                                    .and_then(|f| f.call0(original).ok())
+                                    .unwrap_or_else(|| original.clone());
+                                clones.push((original.clone(), clone.clone()));
+                                push_unique(&mut out.inner_materials, &clone);
+                                clone
+                            }
+                        };
+                        replaced.push(clone);
+                    }
+                    if replaced.len() == 1 {
+                        set(mesh, "material", &replaced[0]);
+                    } else if !replaced.is_empty() {
+                        let array = js_sys::Array::new();
+                        for m in &replaced {
+                            array.push(m);
+                        }
+                        set(mesh, "material", &array);
+                    }
+                    out.inner.push(mesh.clone());
+                    if *part == BoardPart::Pad {
+                        for m in replaced {
+                            push_unique(&mut pad_materials, &m);
+                        }
+                    }
+                } else {
+                    for m in materials_of(mesh) {
+                        if *part == BoardPart::Pad {
+                            push_unique(&mut pad_materials, &m);
+                        }
+                        remember_outer(m, &mut out);
+                    }
+                }
+            }
+            BoardPart::Silkscreen => {
+                for m in materials_of(mesh) {
+                    remember_outer(m, &mut out);
+                }
+            }
+        }
+    }
+    for material in pad_materials {
+        let colour = Reflect::get(&material, &"color".into()).unwrap_or(JsValue::UNDEFINED);
+        let rgb = (
+            get_f64(&colour, "r").unwrap_or(0.5),
+            get_f64(&colour, "g").unwrap_or(0.5),
+            get_f64(&colour, "b").unwrap_or(0.5),
+        );
+        let metalness = get_f64(&material, "metalness").unwrap_or(1.0);
+        let roughness = get_f64(&material, "roughness").unwrap_or(0.5);
+        out.pads.push(PadMaterial {
+            material,
+            rgb,
+            metalness,
+            roughness,
+        });
+    }
+    web_sys::console::debug_1(
+        &format!(
+            "kicadmium 3d: {} pad, {} body, {} mask, {} outer material(s); {} inner copper mesh(es); board faces y={bottom:.5}..{top:.5}",
+            out.pads.len(),
+            out.body.len(),
+            out.mask.len(),
+            out.outer.len(),
+            out.inner.len()
+        )
+        .into(),
+    );
+    out
+}
+
+fn set_colour(material: &JsValue, (r, g, b): (f64, f64, f64)) {
+    if let Ok(colour) = Reflect::get(material, &"color".into()) {
+        if let Ok(f) =
+            Reflect::get(&colour, &"setRGB".into()).and_then(|f| f.dyn_into::<Function>())
+        {
+            let _ = f.call3(&colour, &r.into(), &g.into(), &b.into());
+        }
+    }
+}
+
+fn apply_options(c: &Classified, o: &ViewOptions) {
+    for pad in &c.pads {
+        match finish_material(&o.finish) {
+            Some((r, g, b, m, rough)) => {
+                set_colour(&pad.material, (r, g, b));
+                number(&pad.material, "metalness", m);
+                number(&pad.material, "roughness", rough);
+            }
+            None => {
+                set_colour(&pad.material, pad.rgb);
+                number(&pad.material, "metalness", pad.metalness);
+                number(&pad.material, "roughness", pad.roughness);
+            }
+        }
+        touch(&pad.material);
+    }
+    for (material, exported) in &c.body {
+        set(material, "transparent", &JsValue::TRUE);
+        number(material, "opacity", if o.xray { 0.18 } else { *exported });
+        set(material, "depthWrite", &JsValue::from_bool(!o.xray));
+        touch(material);
+    }
+    for (material, exported) in &c.mask {
+        number(material, "opacity", if o.xray { 0.12 } else { *exported });
+        touch(material);
+    }
+    // Outer copper (zones included) covers the inner layers completely, so
+    // x-ray has to thin it as well; it goes back to opaque when switched off.
+    for (material, exported) in &c.outer {
+        set(
+            material,
+            "transparent",
+            &JsValue::from_bool(o.xray || *exported < 1.0),
+        );
+        number(material, "opacity", if o.xray { 0.3 } else { *exported });
+        touch(material);
+    }
+    for mesh in &c.inner {
+        set(mesh, "visible", &JsValue::from_bool(o.inner));
+    }
+    for material in &c.inner_materials {
+        set(material, "wireframe", &JsValue::from_bool(o.outline));
+        touch(material);
+    }
+    web_sys::console::debug_1(
+        &format!(
+            "kicadmium 3d: applied finish={} xray={} inner={} outline={} to {} pad / {} body / {} mask / {} outer material(s), {} inner mesh(es)",
+            o.finish,
+            o.xray,
+            o.inner,
+            o.outline,
+            c.pads.len(),
+            c.body.len(),
+            c.mask.len(),
+            c.outer.len(),
+            c.inner.len()
+        )
+        .into(),
+    );
+}
+
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub project: AttrValue,
@@ -106,6 +496,10 @@ pub struct Props {
     pub url: Option<AttrValue>,
     #[prop_or(true)]
     pub active: bool,
+    /// Finish, see-through and inner-copper settings; library previews leave
+    /// the defaults, which change nothing.
+    #[prop_or_default]
+    pub options: Option<ViewOptions>,
 }
 
 struct Runtime {
@@ -117,6 +511,8 @@ struct Runtime {
     loaded: LoadSlot,
     failed: LoadSlot,
     model: Rc<RefCell<Option<JsValue>>>,
+    classified: ClassifiedSlot,
+    options: Rc<RefCell<ViewOptions>>,
 }
 
 impl Drop for Runtime {
@@ -431,7 +827,45 @@ fn frame(camera: &Camera, controls: &OrbitControls, model: &JsValue) -> Bounds {
 
 #[cfg(test)]
 mod tests {
-    use super::{clip_planes, fit_distance};
+    use super::{
+        board_part, clip_planes, finish_material, fit_distance, is_inner_copper, BoardPart,
+    };
+
+    #[test]
+    fn board_meshes_are_told_apart_from_footprint_models() {
+        assert_eq!(board_part("controller_pad"), Some(BoardPart::Pad));
+        assert_eq!(board_part("controller_pad_12"), Some(BoardPart::Pad));
+        assert_eq!(board_part("leg-controller_copper"), Some(BoardPart::Copper));
+        assert_eq!(board_part("controller_PCB"), Some(BoardPart::Body));
+        assert_eq!(
+            board_part("controller_soldermask_2"),
+            Some(BoardPart::Soldermask)
+        );
+        assert_eq!(board_part("C_0805_2012Metric"), None);
+        assert_eq!(board_part("=>[0:1:1:3]"), None);
+        assert_eq!(board_part(""), None);
+    }
+
+    #[test]
+    fn inner_layers_sit_strictly_between_the_board_faces() {
+        // The six-layer leg controller: faces at 0 and 1.51 mm, inner copper
+        // at 1.201–1.236 mm, outer copper 1.51–1.545 and -0.035–0, vias
+        // spanning the lot.
+        let (bottom, top) = (0.0, 1.51e-3);
+        assert!(is_inner_copper(1.201e-3, 1.236e-3, bottom, top));
+        assert!(is_inner_copper(0.274e-3, 0.309e-3, bottom, top));
+        assert!(!is_inner_copper(1.51e-3, 1.545e-3, bottom, top));
+        assert!(!is_inner_copper(-0.035e-3, 0.0, bottom, top));
+        assert!(!is_inner_copper(-0.035e-3, 1.545e-3, bottom, top));
+    }
+
+    #[test]
+    fn only_named_finishes_override_the_export() {
+        assert!(finish_material("board").is_none());
+        assert!(finish_material("").is_none());
+        assert!(finish_material("enig").is_some());
+        assert!(finish_material("hasl").is_some());
+    }
 
     /// Smallest depth difference a 24-bit buffer resolves at `distance`.
     fn depth_resolution(distance: f64, near: f64) -> f64 {
@@ -484,6 +918,7 @@ fn start(
     url: &str,
     active: bool,
     status: UseStateHandle<String>,
+    initial: ViewOptions,
 ) -> Result<Runtime, JsValue> {
     let options = Object::new();
     Reflect::set(&options, &"canvas".into(), canvas.as_ref())?;
@@ -531,6 +966,8 @@ fn start(
     let failed = Rc::new(RefCell::new(None));
     let model = Rc::new(RefCell::new(None));
     let bounds: BoundsSlot = Rc::new(RefCell::new(None));
+    let classified: ClassifiedSlot = Rc::new(RefCell::new(None));
+    let options = Rc::new(RefCell::new(initial));
     *loaded.borrow_mut() = Some({
         let scene = scene.clone();
         let camera = camera.clone();
@@ -538,11 +975,16 @@ fn start(
         let model_slot = model.clone();
         let bounds = bounds.clone();
         let status = status.clone();
+        let classified = classified.clone();
+        let options = options.clone();
         Closure::<dyn FnMut(JsValue)>::new(move |gltf: JsValue| {
             match Reflect::get(&gltf, &"scene".into()) {
                 Ok(model) => {
                     settle_layers(&model);
                     separate_layers(&model);
+                    let parts = classify(&gltf, &model);
+                    apply_options(&parts, &options.borrow());
+                    *classified.borrow_mut() = Some(parts);
                     scene.add(&model);
                     *bounds.borrow_mut() = Some(frame(&camera, &controls, &model));
                     *model_slot.borrow_mut() = Some(model);
@@ -620,6 +1062,8 @@ fn start(
         loaded,
         failed,
         model,
+        classified,
+        options,
     })
 }
 
@@ -636,6 +1080,7 @@ pub fn model_view(props: &Props) -> Html {
         let active = props.active;
         let status = status.clone();
         let runtime = runtime.clone();
+        let initial = props.options.clone().unwrap_or_default();
         use_effect_with(
             (
                 project.clone(),
@@ -659,6 +1104,7 @@ pub fn model_view(props: &Props) -> Html {
                         &crate::api::url(&path, &project),
                         active,
                         status.clone(),
+                        initial.clone(),
                     ) {
                         Ok(next) => *runtime.borrow_mut() = Some(next),
                         Err(error) => status.set(format!(
@@ -672,6 +1118,19 @@ pub fn model_view(props: &Props) -> Html {
                 }
             },
         );
+    }
+    // Option changes are material and visibility edits on the loaded meshes;
+    // nothing is refetched.
+    {
+        let runtime = runtime.clone();
+        use_effect_with(props.options.clone().unwrap_or_default(), move |options| {
+            if let Some(rt) = runtime.borrow().as_ref() {
+                *rt.options.borrow_mut() = options.clone();
+                if let Some(parts) = rt.classified.borrow().as_ref() {
+                    apply_options(parts, options);
+                }
+            }
+        });
     }
     html! { <div class="modelv">
         <canvas ref={canvas} class="modelv-canvas" aria-label="Interactive 3D board model" />

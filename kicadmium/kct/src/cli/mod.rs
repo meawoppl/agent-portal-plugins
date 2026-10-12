@@ -27,6 +27,7 @@ pub mod decisions;
 pub mod design;
 pub mod detect_mistakes;
 pub mod drc;
+pub mod edit;
 pub mod erc;
 pub mod estimate;
 pub mod explain;
@@ -87,6 +88,7 @@ pub struct CommandSpec {
 }
 
 pub static COMMANDS: &[CommandSpec] = &[
+    CommandSpec { name: "edit", about: "Transactional native PCB edit plans", wave: "A", run: Some(edit::run) },
     CommandSpec { name: "symbols", about: "List symbols in a schematic", wave: "B", run: Some(design::symbols) },
     CommandSpec { name: "nets", about: "Trace nets in a schematic", wave: "B", run: Some(design::nets) },
     CommandSpec { name: "netlist", about: "Netlist analysis and comparison tools", wave: "B", run: Some(design::netlist) },

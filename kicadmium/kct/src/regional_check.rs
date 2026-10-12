@@ -62,7 +62,7 @@ pub fn run(
     let source = std::fs::read_to_string(board)?;
     let local = scoped(&source, expanded)?;
     let mut material = format!(
-        "regional/v1:{}:{kind}:{}:{bounds:?}:{margin}:{local}",
+        "regional/v2:{}:{kind}:{}:{bounds:?}:{margin}:{local}",
         env!("CARGO_PKG_VERSION"),
         serde_json::to_string(&config)?
     );
@@ -126,14 +126,35 @@ pub fn run(
             }
             _ => bail!("unknown regional check"),
         };
-        let findings: Vec<_> = findings
+        let mut findings: Vec<_> = findings
             .as_array()
             .unwrap()
             .iter()
             .filter(|f| located(f, bounds))
             .cloned()
             .collect();
-        let result = json!({"schema":"kicadmium.regional-check/v1","tool":kind,"engine":"native-local","full_board_gate":false,"requires_full_verification":true,"region":bounds,"margin_mm":margin,"cache_hit":false,"coverage":if kind=="lint"{json!(LOCAL_RULES)}else{json!(["copper-clearance","zone-clearance","courtyard-overlap"])},"findings":findings});
+        for finding in &mut findings {
+            if finding.get("refs").is_none() {
+                finding["refs"] = json!([]);
+            }
+            if let Some(pair) = finding["at"].as_array().filter(|v| v.len() == 2) {
+                finding["at"] = json!({"x":pair[0],"y":pair[1]});
+            }
+        }
+        let coverage = if kind == "lint" {
+            json!(LOCAL_RULES)
+        } else {
+            json!(["copper-clearance", "zone-clearance", "courtyard-overlap"])
+        };
+        let count = |severity: &str| {
+            findings
+                .iter()
+                .filter(|f| f["severity"] == severity)
+                .count()
+        };
+        let summary =
+            json!({"errors":count("error"),"warnings":count("warning"),"infos":count("info")});
+        let result = json!({"schema":"kicadmium.check/v1","tool":kind,"summary":summary,"details":{"engine":"native-local","coverage":coverage,"full_board_gate":false,"requires_full_verification":true},"engine":"native-local","full_board_gate":false,"requires_full_verification":true,"region":bounds,"margin_mm":margin,"cache_hit":false,"coverage":coverage,"findings":findings});
         std::fs::create_dir_all(&cache_dir)?;
         crate::fsutil::atomic_write(&cache, &serde_json::to_vec(&result)?)?;
         result

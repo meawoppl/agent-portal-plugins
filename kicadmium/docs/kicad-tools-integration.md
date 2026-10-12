@@ -90,3 +90,21 @@ Declare project-root-relative outputs in the project's `.kicad-pcb.json` entry:
 ```
 
 Run `kicadmium kct -- docs sync --project ID` after editing. `--check` is read-only and returns 1 for stale outputs. Placement records carry reference, value, position, rotation and side; test-point records add label and nets. JSON preserves additional authored fields by reference while updating authoritative geometry fields. CSV and Markdown are wholly generated. Footprint-owned pin-1 silk circles near pad 1/A1 produce marker records in board and local coordinates. Removed footprints disappear from generated records. Unrecognized board-level circles are not guessed to be pin-1 markers.
+### Native edit plans
+
+`kicadmium kct -- edit BOARD --plan plan.yaml --dry-run` evaluates a complete candidate without modifying the board. Use `--in-place` or `--output` to save. New native copper-clearance findings block writes unless `--allow-violations` is explicit. This is a preflight; run full KiCad DRC after editing, especially after zone changes (zones are created unfilled).
+
+```yaml
+version: 1
+operations:
+  - {op: move, reference: U14, at: [179.2, 29.75], rotation: 90}
+  - op: add-track
+    net: GND
+    layer: F.Cu
+    width: 0.3
+    path: [U14.5, [179.2, 29.75], C63.1]
+  - {op: add-via, net: GND, at: C63.1, size: 0.6, drill: 0.3}
+  - {op: add-zone, net: GND, layer: B.Cu, priority: 1, rect: [175, 25, 180, 30]}
+```
+
+Pad references resolve after preceding moves, using full precision and checking the requested net. Collinear forward runs within each added path are merged. `delete-tracks` takes `net`, `layer`, and a `path` of endpoint pairs, with optional `tolerance` in mm (default 0.000001); reversed endpoints match too. Every requested segment must exist. Footprint-owned text and graphics stay relative during moves. All operations validate before the candidate is saved; concurrent source changes abort the write.

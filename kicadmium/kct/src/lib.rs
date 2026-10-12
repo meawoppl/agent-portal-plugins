@@ -16,6 +16,7 @@ pub mod cost;
 pub mod creepage;
 pub mod derived_docs;
 pub mod drc;
+pub mod edit_plan;
 pub mod erc;
 pub mod exceptions;
 pub mod explain;

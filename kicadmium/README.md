@@ -17,7 +17,15 @@ As an Agent Portal plugin:
 agent-portal plugin install github:meawoppl/agent-portal-plugins//kicadmium
 ```
 
-Install builds the binary with `scripts/setup.sh`. The portal gives plugin
+Install builds the binary with `scripts/setup.sh`. Cargo writes to
+`target/install-build`; only after a successful build does Rust atomically
+activate the complete executable at `bin/kicadmium`. Every portal command uses
+that stable path, so the previous executable remains callable throughout a
+rebuild. `doctor --json` reports `runtime.installation.rebuild_in_progress`.
+Concurrent installs are refused via `.install-lock/pid`; after an interrupted
+install, check that PID is no longer running before removing the lock.
+
+The portal gives plugin
 commands a private `HOME`, so the script points rustup, cargo, trunk and
 sccache at the account's existing caches (otherwise every install downloads a
 toolchain and the crate index afresh) and uses `sccache` as the rustc wrapper

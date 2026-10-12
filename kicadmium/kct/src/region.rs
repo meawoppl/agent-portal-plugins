@@ -55,6 +55,7 @@ pub fn query(
     let board = Board::read(source)?;
     let extra = copper::Extra::read(source, &board)?;
     let pcb = crate::schema::pcb::Pcb::from_sexp(crate::sexp::parse(source)?)?;
+    let origin = pcb.board_origin();
     let rect = geo::Rect::new(
         geo::Coord {
             x: bounds.x0,
@@ -76,7 +77,8 @@ pub fn query(
             fp,
             if fp.layer.starts_with('B') { "B" } else { "F" },
         )
-        .and_then(|g| g.bounds());
+        .and_then(|g| g.bounds())
+        .map(|(x0, y0, x1, y1)| (x0 + origin.0, y0 + origin.1, x1 + origin.0, y1 + origin.1));
         let nearby_pad = board
             .pads
             .iter()
@@ -86,11 +88,11 @@ pub fn query(
             && (courtyard.is_some_and(|b| bounds.touches(b))
                 || nearby_pad
                 || bounds.contains(Point {
-                    x: fp.position.0,
-                    y: fp.position.1,
+                    x: fp.position.0 + origin.0,
+                    y: fp.position.1 + origin.1,
                 }))
         {
-            items.push(json!({"kind":"footprint","id":fp.uuid,"reference":fp.reference,"value":fp.value,"at":{"x":fp.position.0,"y":fp.position.1},"rotation":fp.rotation,"side":if fp.layer.starts_with('B'){"back"}else{"front"},"layer":fp.layer,"courtyard_bbox":courtyard}));
+            items.push(json!({"kind":"footprint","id":fp.uuid,"reference":fp.reference,"value":fp.value,"at":{"x":fp.position.0+origin.0,"y":fp.position.1+origin.1},"rotation":fp.rotation,"side":if fp.layer.starts_with('B'){"back"}else{"front"},"layer":fp.layer,"courtyard_bbox":courtyard}));
         }
     }
     for pad in &board.pads {

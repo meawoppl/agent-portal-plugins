@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Intent {
+    pub neck_downs: Vec<NeckDown>,
+    pub via_role_regions: Vec<ViaRoleRegion>,
     pub roles: BTreeMap<String, String>,
     pub route: RoutePolicy,
     pub placement: Vec<Placement>,
@@ -43,6 +45,79 @@ pub struct Intent {
     pub native: Option<Native>,
     pub observations: Vec<Observation>,
     pub annotations: Vec<Annotation>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct NeckDown {
+    pub net: String,
+    pub pad_shapes: Vec<String>,
+    pub min_width_mm: f64,
+    pub max_length_mm: f64,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ViaRoleRegion {
+    pub role: String,
+    pub region: Region,
+}
+
+/// Suppress only explicitly declared, geometrically bounded intent.
+pub fn declared_geometry(
+    board: &super::model::Board,
+    config: &super::Config,
+    finding: &super::Finding,
+) -> bool {
+    use geo::Contains;
+    if matches!(finding.rule.as_str(), "via.role_missing" | "via.cluster") {
+        let vias: Vec<_> = board
+            .vias
+            .iter()
+            .filter(|v| finding.subjects.contains(&v.id))
+            .collect();
+        return !vias.is_empty()
+            && vias.iter().all(|v| {
+                config.intent.roles.contains_key(&v.id)
+                    || config.intent.via_role_regions.iter().any(|intent| {
+                        let r = &intent.region;
+                        (r.nets.is_empty() || r.nets.contains(&v.net))
+                            && board.via_layers(v).contains(&r.layer)
+                            && super::copper::polygon(&r.polygon)
+                                .contains(&geo::Point::new(v.at.x, v.at.y))
+                    })
+            });
+    }
+    if !matches!(
+        finding.rule.as_str(),
+        "width.taper"
+            | "trace.width_transition"
+            | "route.width_island"
+            | "neck.clearance_reason"
+            | "pad.oblique_exit"
+    ) {
+        return false;
+    }
+    board
+        .tracks
+        .iter()
+        .filter(|t| finding.subjects.contains(&t.id))
+        .any(|track| {
+            config.intent.neck_downs.iter().any(|intent| {
+                intent.net == track.net
+                    && track.width >= intent.min_width_mm
+                    && track.a.distance(track.b) <= intent.max_length_mm
+                    && board.pads.iter().any(|pad| {
+                        pad.net == track.net
+                            && intent.pad_shapes.contains(&pad.shape)
+                            && super::model::on_layer(&pad.layers, &track.layer)
+                            && super::model::pad_distance(finding.at, pad)
+                                <= config.join_tolerance_mm
+                            && [track.a, track.b].iter().any(|at| {
+                                super::model::pad_distance(*at, pad) <= config.join_tolerance_mm
+                            })
+                    })
+            })
+        })
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -497,6 +572,28 @@ pub struct Annotation {
 impl Intent {
     pub fn validate(&self) -> anyhow::Result<()> {
         use anyhow::bail;
+        for neck in &self.neck_downs {
+            if neck.net.is_empty()
+                || neck.pad_shapes.is_empty()
+                || neck.pad_shapes.iter().any(|s| {
+                    !["circle", "rect", "roundrect", "oval", "custom"].contains(&s.as_str())
+                })
+                || !neck.min_width_mm.is_finite()
+                || neck.min_width_mm <= 0.
+                || !neck.max_length_mm.is_finite()
+                || neck.max_length_mm <= 0.
+            {
+                bail!("neck-down intent requires a net, known pad shapes and positive finite width/length limits");
+            }
+        }
+        for intent in &self.via_role_regions {
+            if !["thermal", "return", "stitching", "signal"].contains(&intent.role.as_str())
+                || !intent.region.layer.ends_with(".Cu")
+                || intent.region.polygon.len() < 3
+            {
+                bail!("via-role region needs a known role, copper layer and polygon");
+            }
+        }
         // serde_json refuses nonfinite numbers on input, but Rust callers can construct them.
         // Optional fields legitimately serialize as null; check every numeric leaf by
         // round-tripping: a nonfinite float becomes null and cannot deserialize as f64.

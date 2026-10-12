@@ -32,6 +32,8 @@ pub fn hash(s: &str) -> String {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
+    /// Show experimental rules; they remain excluded from failure gates.
+    pub include_experimental: bool,
     pub intent: intent::Intent,
     pub disabled: BTreeSet<String>,
     pub enabled_only: BTreeSet<String>,
@@ -54,6 +56,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
+            include_experimental: false,
             intent: intent::Intent::default(),
             disabled: BTreeSet::new(),
             enabled_only: BTreeSet::new(),
@@ -179,6 +182,12 @@ impl Config {
     pub fn enabled(&self, id: &str) -> bool {
         !self.disabled.contains(id)
             && (self.enabled_only.is_empty() || self.enabled_only.contains(id))
+            && (self.include_experimental
+                || self.enabled_only.contains(id)
+                || rules::catalog_cached()
+                    .iter()
+                    .find(|r| r.id == id)
+                    .is_none_or(|r| r.confidence != "not_evaluated"))
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -260,7 +269,7 @@ impl Emitter<'_> {
             severity: r.severity.clone(),
             confidence: r.confidence.clone(),
             message,
-            suggestion: r.action.clone(),
+            suggestion: if r.confidence == "not_evaluated" { format!("Experimental, unevaluated rule: safe to ignore for the lint gate; inspect manually if useful. {}", r.action) } else { r.action.clone() },
             subjects,
             nets,
             at,
@@ -288,6 +297,8 @@ pub fn lint(input: &str, board_id: &str, config: Config) -> Result<Report> {
     rules::run(&mut e);
     advanced::run(&mut e, input)?;
     e.findings.retain(|f| config.enabled(&f.rule));
+    e.findings
+        .retain(|f| !intent::declared_geometry(&board, &config, f));
     e.findings.sort_by(|a, b| a.key.cmp(&b.key));
     e.findings.dedup_by(|a, b| a.key == b.key);
     let mut findings = e.findings;

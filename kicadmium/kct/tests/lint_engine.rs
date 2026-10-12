@@ -19,8 +19,14 @@ fn via(id: &str, x: f64, y: f64) -> String {
         "(via (at {x} {y}) (size 0.5) (drill 0.25) (layers \"F.Cu\" \"B.Cu\") (net \"N\") (uuid \"{id}\"))"
     )
 }
+fn experimental_config() -> Config {
+    Config {
+        include_experimental: true,
+        ..Default::default()
+    }
+}
 fn report(s: &str) -> kct::lint::Report {
-    lint(&board(s), "test-board", Config::default()).unwrap()
+    lint(&board(s), "test-board", experimental_config()).unwrap()
 }
 fn count(r: &kct::lint::Report, rule: &str) -> usize {
     r.findings.iter().filter(|f| f.rule == rule).count()
@@ -186,7 +192,7 @@ fn ignores_change_expire_and_do_not_cross_boards() {
     review::apply(&mut changed, &l, review::now());
     assert_eq!(changed.review_audit[0].status, "changed");
     assert!(changed.findings.iter().all(|f| f.state == "open"));
-    let mut other = lint(&board(&s), "other", Config::default()).unwrap();
+    let mut other = lint(&board(&s), "other", experimental_config()).unwrap();
     review::apply(&mut other, &l, review::now());
     assert!(other.review_audit.is_empty());
     let mut expired = l;
@@ -260,7 +266,7 @@ fn whole_run_not_first_segment_width_island() {
     assert!((f.metrics["run_mm"] - 0.8).abs() < 1e-9);
     let c = Config {
         narrow_run_mm: 0.6,
-        ..Config::default()
+        ..experimental_config()
     };
     assert_eq!(
         count(&lint(&board(&s), "x", c).unwrap(), "route.width_island"),
@@ -317,7 +323,7 @@ fn contracts_and_missing_coverage() {
 #[test]
 fn bad_configuration_and_duplicate_uuid_rejected() {
     assert!(serde_json::from_str::<Config>(r#"{"typo":1}"#).is_err());
-    let mut c = Config::default();
+    let mut c = experimental_config();
     c.enabled_only.insert("not.a.rule".into());
     assert!(lint(&board(""), "x", c).is_err());
     let s = seg("same", (0., 0.), (1., 0.), 0.3, "F.Cu");
@@ -618,7 +624,7 @@ fn overshoot() -> String {
         + &seg("lower", (4., 0.), (0., 4.), 0.3, "B.Cu")
 }
 fn overshoot_report(body: &str, tuned: bool) -> kct::lint::Report {
-    let mut c = Config::default();
+    let mut c = experimental_config();
     c.intent.route.outline = vec![
         Point { x: -5., y: -5. },
         Point { x: 10., y: -5. },
@@ -829,7 +835,7 @@ fn passive_alignment_excludes_unrelated_and_already_aligned_parts() {
         );
     }
     let body = base + &passive("R3", 6., 0.3, 0., "F.Cu");
-    let mut c = Config::default();
+    let mut c = experimental_config();
     c.intent
         .passive_alignment
         .exclude_references
@@ -846,7 +852,7 @@ fn passive_alignment_excludes_unrelated_and_already_aligned_parts() {
 fn passive_alignment_pair_opt_in_and_invalid_policy() {
     let body = passive("R1", 0., 0., 0., "F.Cu") + &passive("R2", 3., 0.3, 0., "F.Cu");
     assert_eq!(count(&report(&body), "placement.passive_alignment"), 0);
-    let mut c = Config::default();
+    let mut c = experimental_config();
     c.intent.passive_alignment.min_group = 2;
     assert_eq!(
         count(

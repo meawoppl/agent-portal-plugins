@@ -46,6 +46,9 @@ struct BoardArgs {
     /// Override the adjacent <board>.lint.json policy path.
     #[arg(long)]
     file: Option<PathBuf>,
+    /// Show unevaluated experimental rules (never included in failure gates).
+    #[arg(long)]
+    include_experimental: bool,
 }
 #[derive(Debug, Clone, Args)]
 struct RunArgs {
@@ -177,7 +180,8 @@ fn load(args: &BoardArgs) -> Result<(String, PathBuf, BoardLintFile, board_file:
     let source = fs::read_to_string(&args.board)
         .with_context(|| format!("reading {}", args.board.display()))?;
     let path = policy_path(args);
-    let file = BoardLintFile::load_or_default(&path, &board_id(&args.board))?;
+    let mut file = BoardLintFile::load_or_default(&path, &board_id(&args.board))?;
+    file.config.include_experimental |= args.include_experimental;
     let checked = board_file::lint_board(&source, &file, review::now())?;
     Ok((source, path, file, checked))
 }
@@ -193,6 +197,9 @@ fn open_at(report: &crate::lint::Report, threshold: FailOn) -> usize {
         .findings
         .iter()
         .filter(|f| {
+            if f.confidence == "not_evaluated" {
+                return false;
+            }
             f.state != "ignored"
                 && match threshold {
                     FailOn::Never => false,
@@ -470,6 +477,7 @@ fn ci(args: CiArgs) -> Result<i32> {
     let mut retained = Vec::new();
     for board in args.boards {
         let ba = BoardArgs {
+            include_experimental: false,
             board: board.clone(),
             file: None,
         };

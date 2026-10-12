@@ -1021,6 +1021,7 @@ fn lint_gate(
         .iter()
         .filter(|finding| {
             finding.state != "ignored"
+                && finding.confidence != "not_evaluated"
                 && match threshold {
                     "error" => finding.severity == "error",
                     _ => matches!(finding.severity.as_str(), "warning" | "error"),

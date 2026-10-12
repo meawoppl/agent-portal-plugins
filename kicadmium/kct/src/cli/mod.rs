@@ -51,6 +51,7 @@ pub mod pcb;
 pub mod place_silk_refs;
 pub mod placement;
 pub mod project;
+pub mod query;
 pub mod relocate_in_pad_vias;
 pub mod render;
 pub mod repair_clearance;
@@ -87,6 +88,7 @@ pub struct CommandSpec {
 }
 
 pub static COMMANDS: &[CommandSpec] = &[
+    CommandSpec { name: "query", about: "Query board geometry in a region", wave: "native", run: Some(query::run) },
     CommandSpec { name: "symbols", about: "List symbols in a schematic", wave: "B", run: Some(design::symbols) },
     CommandSpec { name: "nets", about: "Trace nets in a schematic", wave: "B", run: Some(design::nets) },
     CommandSpec { name: "netlist", about: "Netlist analysis and comparison tools", wave: "B", run: Some(design::netlist) },

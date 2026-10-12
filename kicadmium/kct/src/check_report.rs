@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 use std::collections::BTreeMap;
 pub const SCHEMA: &str = "kicadmium.check/v1";
 pub const JSON_SCHEMA: &str = include_str!("../../docs/check-report.schema.json");
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Envelope {
     pub schema: String,
     pub tool: String,

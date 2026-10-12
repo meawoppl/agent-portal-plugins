@@ -109,3 +109,11 @@ It steals ideas shamelessly from:
 - [pastebom.com](https://github.com/meawoppl/pastebom.com), for reusable Rust PCB extraction and Gerber-viewing machinery.
 - [punkfab/circuit-skills](https://github.com/punkfab/circuit-skills), for its simulate-then-lay-out workflow and its record of verification gates that gave false passes. Ideas only: the repository has no licence, so none of its code or text is used.
 - [parisxmas/fastroute](https://github.com/parisxmas/fastroute), a Rust port of Freerouting, for its unrouted-connection diagnosis, best-so-far checkpoints and benchmark boards. It is GPL-3.0-or-later, so if kicadmium uses it, it runs as a separate, discovered program; none of its code is linked or vendored.
+
+### One-shot verification
+
+`kicadmium verify --project ID --baseline HEAD --json` runs full DRC (including schematic parity), ERC, lint, lint-exception stale checks, quality, and declared derived-document checks. Both working inputs and Git baselines are checked in disposable snapshots; a baseline board file can also be supplied with current project context. No board swapping or source saves occur.
+
+Output uses `kicadmium.verify/v1`, with per-stage before/after counts, added/removed findings, and groups by rule and nets. Omit `--json` for a concise summary (seven lines when unchanged). `--gate error|warning|never` controls newly introduced finding failures; an incomplete stage always fails. Without a baseline, all current findings are considered new. Ignored lint findings do not fail the gate.
+
+Caches include the complete selected source snapshot, executable hash, KiCad version and project identity. Git baselines cache by immutable commit; expiring lint decisions invalidate their cached report at expiry. Failed/incomplete stages are not cached. Full verification is the pre-commit gate; regional checks remain partial feedback.

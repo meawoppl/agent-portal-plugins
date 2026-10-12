@@ -26,6 +26,7 @@ mod sexp;
 mod sexpr;
 mod symbol_graphics;
 mod thumbnails;
+mod verify;
 mod watch;
 
 pub use frontend_assets::EmbeddedAsset;
@@ -105,6 +106,7 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    Verify(verify::Args),
     /// Print the JSON Schema shared by DRC, ERC, lint and quality output.
     CheckSchema,
     /// Report the discovered KiCad install and runtime paths.
@@ -391,6 +393,12 @@ async fn main() -> Result<()> {
         restore_default_sigpipe();
     }
     match cli.command {
+        Commands::Verify(args) => {
+            let code = verify::run(args).await?;
+            if code != 0 {
+                std::process::exit(code)
+            }
+        }
         Commands::CheckSchema => println!("{}", kct::check_report::JSON_SCHEMA),
         Commands::Setup { json } => {
             let response = serde_json::json!({

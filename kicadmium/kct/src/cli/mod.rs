@@ -49,6 +49,7 @@ pub mod optimize_placement;
 pub mod optimize_traces;
 pub mod parts;
 pub mod pcb;
+pub mod place_check;
 pub mod place_silk_refs;
 pub mod placement;
 pub mod project;
@@ -88,6 +89,7 @@ pub struct CommandSpec {
 }
 
 pub static COMMANDS: &[CommandSpec] = &[
+    CommandSpec { name: "place-check", about: "Read-only placement-plan preflight", wave: "A", run: Some(place_check::run) },
     CommandSpec { name: "edit", about: "Transactional native PCB edit plans", wave: "A", run: Some(edit::run) },
     CommandSpec { name: "symbols", about: "List symbols in a schematic", wave: "B", run: Some(design::symbols) },
     CommandSpec { name: "nets", about: "Trace nets in a schematic", wave: "B", run: Some(design::nets) },

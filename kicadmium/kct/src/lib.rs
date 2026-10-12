@@ -33,6 +33,7 @@ pub mod parts;
 pub mod patterns;
 pub mod pcb;
 pub mod physics;
+pub mod place_check;
 pub mod progress;
 pub mod project;
 pub mod pyjson;

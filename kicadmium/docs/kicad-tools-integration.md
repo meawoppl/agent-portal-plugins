@@ -78,3 +78,9 @@ operations:
 ```
 
 Pad references resolve after preceding moves, using full precision and checking the requested net. Collinear forward runs within each added path are merged. `delete-tracks` takes `net`, `layer`, and a `path` of endpoint pairs, with optional `tolerance` in mm (default 0.000001); reversed endpoints match too. Every requested segment must exist. Footprint-owned text and graphics stay relative during moves. All operations validate before the candidate is saved; concurrent source changes abort the write.
+
+### Placement preflight
+
+`kicadmium kct -- place-check BOARD --plan moves.yaml --quality-profile pcb-profile.yaml` evaluates move operations without writing a board. It builds the proposed placements in memory, checks neighboring courtyards, copper clearances and silkscreen, and checks moved ICs/capacitors against the pins served on their power nets. `decoupling.max_pin_distance_mm` is read from the profile (default 2 mm). Output contains findings, checked footprint count, and `written: false`; exit 2 means findings need attention.
+
+Geometry checks keep nearby footprints/tracks/vias, including crossing segments, and retain zone geometry. Decoupling selection uses the complete board so a distant alternative capacitor cannot disappear from the analysis. This placement preflight supplements full post-edit DRC; copper-changing plans use `edit --dry-run`.

@@ -5,7 +5,7 @@ fn moved_offset_silk_label_checks_remote_via_without_writing() {
     (footprint "R" (uuid "r") (layer "F.Cu") (at 0 0)
       (property "Reference" "R1" (at 0 -1) (layer "F.Fab"))
       (fp_text user "GPS_RX" (at 6 0) (layer "F.SilkS") (effects (font (size 1 1) (thickness 0.15))))
-    (via (at 26 20) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 1) (uuid "via")))"#;
+    (via (at 26 20) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (tenting (front no) (back no)) (net 1) (uuid "via")))"#;
     let pcb = Pcb::from_sexp(parse(source).unwrap()).unwrap();
     let before = pcb.sexp().clone();
     let plan: Plan =

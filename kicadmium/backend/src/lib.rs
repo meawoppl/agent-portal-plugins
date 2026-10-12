@@ -4,6 +4,7 @@
 //! the logic here lets a plugin reinstall reuse this crate's compiled output
 //! and rebuild only the shim when the frontend changes.
 
+mod annotation;
 mod artifacts;
 mod audits;
 mod bom;
@@ -490,6 +491,10 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/drc", get(drc))
                 .route("/api/kicad/erc", get(erc))
                 .route("/api/kicad/quality", get(quality_endpoint))
+                .route(
+                    "/api/kicad/annotation-region",
+                    axum::routing::post(annotation::endpoint),
+                )
                 .route("/api/kicad/file", get(file))
                 .route("/api/kicad/bom", get(bom::endpoint))
                 .route("/api/kicad/libraries", get(libraries_endpoint))

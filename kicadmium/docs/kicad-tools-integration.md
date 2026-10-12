@@ -59,3 +59,19 @@ for manufacturing readiness.
 
 This repository preserves attribution to upstream ideas while ensuring the
 installed product remains one first-party Rust binary plus `kicad-cli`.
+
+### Derived documentation
+
+Declare project-root-relative outputs in the project's `.kicad-pcb.json` entry:
+
+```json
+"derivedFiles": [
+  {"path":"docs/final-placements.json","kind":"placements"},
+  {"path":"docs/testpoints.json","kind":"testpoints"},
+  {"path":"docs/testpoints.csv","kind":"testpoints"},
+  {"path":"docs/testpoints.md","kind":"testpoints"},
+  {"path":"docs/pin1-markers.json","kind":"pin1-markers"}
+]
+```
+
+Run `kicadmium kct -- docs sync --project ID` after editing. `--check` is read-only and returns 1 for stale outputs. Placement records carry reference, value, position, rotation and side; test-point records add label and nets. JSON preserves additional authored fields by reference while updating authoritative geometry fields. CSV and Markdown are wholly generated. Footprint-owned pin-1 silk circles near pad 1/A1 produce marker records in board and local coordinates. Removed footprints disappear from generated records. Unrecognized board-level circles are not guessed to be pin-1 markers.

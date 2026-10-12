@@ -14,6 +14,7 @@ pub mod constraints;
 pub mod core;
 pub mod cost;
 pub mod creepage;
+pub mod derived_docs;
 pub mod drc;
 pub mod erc;
 pub mod exceptions;

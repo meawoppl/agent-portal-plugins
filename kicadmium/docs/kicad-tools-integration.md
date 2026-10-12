@@ -59,3 +59,14 @@ for manufacturing readiness.
 
 This repository preserves attribution to upstream ideas while ensuring the
 installed product remains one first-party Rust binary plus `kicad-cli`.
+
+### Region inventory
+
+`kicadmium kct -- query region BOARD.kicad_pcb X0 Y0 X1 Y1` lists intersecting
+footprints, pads, tracks, arcs, vias and zones in millimetres. Copper crossing
+the rectangle is included even when both endpoints lie outside it; vias expand
+to every traversed copper layer. `--layers F.Cu,B.Cu` and `--nets GND,VCC`
+filter results. `--format json` includes normalized coordinates, footprint
+rotation/side and courtyard bounds, source hash, complete per-kind counts and
+omission count. The default 50-item limit keeps text under 60 lines; use
+`--limit 0` for all results. The query is read-only.

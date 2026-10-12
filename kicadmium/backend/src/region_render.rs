@@ -212,4 +212,42 @@ mod tests {
         assert!(svg.contains("evenodd"));
         assert_eq!(svg.matches('Z').count(), 2);
     }
+    #[test]
+    fn writes_native_comparison_without_modifying_sources() {
+        let dir = tempfile::tempdir().unwrap();
+        let source = include_str!("../../kicad-strokes/tests/fixtures/pcb_text.kicad_pcb");
+        let board = dir.path().join("board.kicad_pcb");
+        let baseline = dir.path().join("before.kicad_pcb");
+        std::fs::write(&board, source).unwrap();
+        std::fs::write(&baseline, source).unwrap();
+        std::fs::write(dir.path().join(".kicad-pcb.json"),r#"{"version":1,"projects":[{"id":"board","root":".","kicad":{"pcb":"board.kicad_pcb"}}]}"#).unwrap();
+        for extension in ["svg", "png"] {
+            let output = dir.path().join(format!("comparison.{extension}"));
+            run(Args {
+                cwd: dir.path().into(),
+                project: Some("board".into()),
+                region: vec![0., 0., 200., 150.],
+                layers: vec!["F.Cu".into()],
+                zones: "none".into(),
+                baseline: Some(baseline.to_string_lossy().into()),
+                highlight_nets: vec![],
+                annotation: true,
+                output: output.clone(),
+            })
+            .unwrap();
+            let bytes = std::fs::read(output).unwrap();
+            if extension == "svg" {
+                let text = String::from_utf8(bytes).unwrap();
+                assert!(
+                    text.contains("#1a1b26") && text.contains("Before") && text.contains("After")
+                );
+                assert!(resvg::usvg::Tree::from_str(&text, &Default::default()).is_ok());
+            } else {
+                assert_eq!(&bytes[..8], b"\x89PNG\r\n\x1a\n");
+                assert_eq!(u32::from_be_bytes(bytes[16..20].try_into().unwrap()), 1600);
+            }
+        }
+        assert_eq!(std::fs::read_to_string(board).unwrap(), source);
+        assert_eq!(std::fs::read_to_string(baseline).unwrap(), source);
+    }
 }

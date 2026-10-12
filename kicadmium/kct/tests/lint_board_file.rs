@@ -3,7 +3,7 @@ use kct::lint::{
         self, clear, diff, lint_board, prune, upsert, Action, BoardLintFile, ExceptionStatus,
         PruneSet,
     },
-    review, Config,
+    Config,
 };
 
 pub const BOARD: &str = r#"(kicad_pcb
@@ -133,7 +133,7 @@ fn resolved_when_fixed_but_present() {
 }
 
 #[test]
-fn changed_when_nearby_geometry_changes() {
+fn nearby_unrelated_geometry_keeps_review() {
     let (f, r) = reviewed();
     let src = BOARD.replace(
         "(segment (start 100 200)",
@@ -141,9 +141,9 @@ fn changed_when_nearby_geometry_changes() {
     );
     let c = lint_board(&src, &f, 1).unwrap();
     let k = key_for(&r, "trace-1");
-    assert_eq!(status_of(&c, &k), ExceptionStatus::Changed);
+    assert_eq!(status_of(&c, &k), ExceptionStatus::Applied);
     let finding = c.report.findings.iter().find(|x| x.key == k).unwrap();
-    assert_eq!(finding.state, "open");
+    assert_eq!(finding.state, "ignored");
 }
 
 #[test]
@@ -200,8 +200,8 @@ fn prune_removes_only_selected_statuses() {
             "",
         )
         .replace(
-            "(segment (start 100 200)",
-            "(segment (start 102 201) (end 104 201) (width 0.2) (layer \"F.Cu\") (net 2) (uuid \"near\"))\n(segment (start 100 200)",
+            "(start 100 200) (end 100.1 200)",
+            "(start 101 200) (end 101.1 200)",
         );
     let c = lint_board(&src, &f, 1).unwrap();
     assert_eq!(
@@ -293,7 +293,7 @@ fn save_load_round_trip_and_lock() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("b.lint.json");
     let missing = BoardLintFile::load_or_default(&path, "fresh").unwrap();
-    assert_eq!((missing.schema, missing.board_id.as_str()), (2, "fresh"));
+    assert_eq!((missing.schema, missing.board_id.as_str()), (3, "fresh"));
     let (f, _) = reviewed();
     f.save(&path).unwrap();
     let text = std::fs::read_to_string(&path).unwrap();
@@ -350,100 +350,18 @@ fn save_load_round_trip_and_lock() {
 fn load_rejects_unknown_fields_and_schema() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("b.lint.json");
-    std::fs::write(&path, r#"{"schema":2,"board_id":"b","bogus":1}"#).unwrap();
+    std::fs::write(&path, r#"{"schema":3,"board_id":"b","bogus":1}"#).unwrap();
     assert!(BoardLintFile::load_or_default(&path, "b").is_err());
     std::fs::write(&path, r#"{"schema":1,"board_id":"b"}"#).unwrap();
     assert!(BoardLintFile::load_or_default(&path, "b").is_err());
     std::fs::write(
         &path,
-        r#"{"schema":2,"board_id":"b","config":{"min_trace_mm":0.2}}"#,
+        r#"{"schema":3,"board_id":"b","config":{"min_trace_mm":0.2}}"#,
     )
     .unwrap();
     let f = BoardLintFile::load_or_default(&path, "b").unwrap();
     assert_eq!(f.config.min_trace_mm, 0.2);
     assert_eq!(f.config.min_drill_mm, Config::default().min_drill_mm);
-}
-
-#[test]
-fn migrate_round_trip() {
-    let (f, r) = reviewed();
-    // Express the reviewed file as a schema-1 ledger, including another board's entry.
-    let mut decisions: Vec<review::Decision> = f
-        .exceptions
-        .iter()
-        .map(|e| review::Decision {
-            board_id: "test-board".into(),
-            key: e.key.clone(),
-            evidence: e.evidence.clone(),
-            action: e.action.as_str().into(),
-            reason: e.reason.clone(),
-            reviewer: e.reviewer.clone(),
-            reviewed_at: e.reviewed_at,
-            expires_at: e.expires_at,
-        })
-        .collect();
-    let mut foreign = decisions[0].clone();
-    foreign.board_id = "other".into();
-    decisions.push(foreign);
-    let ledger = review::Ledger {
-        schema: 1,
-        decisions,
-    };
-    let mut m = BoardLintFile::migrate(Some(config()), Some(ledger), "test-board");
-    assert_eq!(m.schema, 2);
-    assert_eq!(m.exceptions.len(), 3);
-    assert!(m.exceptions.iter().all(|e| e.rule.is_empty()));
-    // Same decisions apply exactly as before.
-    let c = lint_board(BOARD, &m, 1).unwrap();
-    assert!(c.audit.iter().all(|a| a.status == ExceptionStatus::Applied));
-    // Backfill restores card metadata from the live report.
-    assert_eq!(board_file::backfill(&mut m, &r), 3);
-    assert_eq!(
-        m.exceptions,
-        f.exceptions
-            .iter()
-            .map(|e| {
-                let mut e = e.clone();
-                e.reviewed_at = m
-                    .exceptions
-                    .iter()
-                    .find(|x| x.key == e.key)
-                    .unwrap()
-                    .reviewed_at;
-                e
-            })
-            .collect::<Vec<_>>()
-    );
-    // Saved and reloaded as schema 2.
-    let dir = tempfile::tempdir().unwrap();
-    let path = dir.path().join("m.lint.json");
-    m.save(&path).unwrap();
-    let back = BoardLintFile::load_or_default(&path, "x").unwrap();
-    assert_eq!(back.exceptions, m.exceptions);
-    // Migrating nothing gives defaults.
-    let empty = BoardLintFile::migrate(None, None, "b");
-    assert!(empty.exceptions.is_empty());
-    assert_eq!(empty.config.min_trace_mm, Config::default().min_trace_mm);
-}
-
-#[test]
-fn migrated_unraised_exceptions_are_unverified() {
-    let ledger = review::Ledger {
-        schema: 1,
-        decisions: vec![review::Decision {
-            board_id: "test-board".into(),
-            key: "0".repeat(64),
-            evidence: "e".into(),
-            action: "ignore".into(),
-            reason: "r".into(),
-            reviewer: "me".into(),
-            reviewed_at: 1,
-            expires_at: None,
-        }],
-    };
-    let m = BoardLintFile::migrate(Some(config()), Some(ledger), "test-board");
-    let c = lint_board(BOARD, &m, 1).unwrap();
-    assert_eq!(c.audit[0].status, ExceptionStatus::Unverified);
 }
 
 #[test]

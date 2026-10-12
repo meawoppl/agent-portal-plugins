@@ -1,21 +1,22 @@
 //! Evidence hashes bind a review decision to the facts a finding depends on.
 //!
-//! Engine 3 scopes evidence per rule so that unrelated, distant edits leave
+//! Geometry identity version 4 scopes evidence per rule so that unrelated, distant edits leave
 //! reviews intact while nearby or rule-relevant edits reopen them:
 //!
 //! * **Subjects** are always hashed in full, with their footprint fields,
 //!   pad thermal settings and footprint-owned unmodeled copper.
 //! * **Local** rules (default) add every object within [`NEAR_MM`] of the
 //!   finding's location or of any subject's geometry, regardless of net, plus
-//!   zones that are nearby or share one of the finding's nets.
+//!   zones that are nearby.
 //! * **Whole-net** rules ([`WHOLE_NET`]), whose verdict depends on net
 //!   topology or total length, also add all copper on the finding's nets.
 //! * **Metadata** rules ([`METADATA`]) hash only their subjects and fields.
 //! * **Config**: only the config fields the rule reads ([`config_paths`]);
 //!   unmapped rules hash the whole config.
 //!
-//! Upgrading from engine 2 changes every evidence hash once: existing
-//! exceptions read as `changed` and need one re-review (re-waive/re-flag).
+//! The final finding key hashes this evidence, the rule, semantic slot, nets
+//! and location. Board IDs and object UUIDs are excluded. Old waiver schemas
+//! are rejected rather than migrated. Intrinsic rules hash subjects only.
 use crate::lint::{
     copper::Extra,
     hash,
@@ -26,7 +27,7 @@ use serde::Serialize;
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
-pub const VERSION: &str = "engine-3";
+pub const VERSION: &str = "geometry-4";
 /// Neighbourhood radius around the finding location and subject geometry.
 pub const NEAR_MM: f64 = 5.;
 
@@ -35,8 +36,6 @@ pub const WHOLE_NET: &[&str] = &[
     "copper.island",
     "copper.stale_stub",
     "via.avoidable",
-    "via.role_missing",
-    "via.low_attachment",
     "via.return_distance",
     "route.detour",
     "route.tuning_integrity",
@@ -50,13 +49,7 @@ pub const WHOLE_NET: &[&str] = &[
     "placement.rotation",
     "placement.congestion",
     "contract.missing_net",
-    "contract.net_width",
-    "contract.net_layer",
     "contract.via_budget",
-    "decoupling.pin_distance",
-    "decoupling.loop_area",
-    "regulator.feedback",
-    "regulator.hot_loop",
     "pin.swap_candidate",
     "pin.swap_legality",
 ];
@@ -86,12 +79,40 @@ pub const METADATA: &[&str] = &[
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Scope {
+    Subjects,
     Metadata,
     Local,
     WholeNet,
 }
 pub fn scope(rule: &str) -> Scope {
-    if METADATA.contains(&rule) {
+    if matches!(
+        rule,
+        "trace.zero_length"
+            | "trace.short_segment"
+            | "trace.off_angle"
+            | "trace.minimum_width"
+            | "trace.no_net"
+            | "trace.duplicate"
+            | "trace.mergeable"
+            | "trace.acute_junction"
+            | "via.no_net"
+            | "via.annulus"
+            | "via.drill"
+            | "via.cluster"
+            | "via.pad_overlap"
+            | "contract.pin_net"
+            | "contract.proximity"
+            | "contract.side"
+            | "contract.alignment"
+            | "contract.net_width"
+            | "contract.net_layer"
+            | "decoupling.pin_distance"
+            | "decoupling.loop_area"
+            | "regulator.feedback"
+            | "regulator.hot_loop"
+    ) {
+        Scope::Subjects
+    } else if METADATA.contains(&rule) {
         Scope::Metadata
     } else if WHOLE_NET.contains(&rule) {
         Scope::WholeNet
@@ -304,14 +325,42 @@ impl Hood {
 }
 
 fn json<T: Serialize>(tag: &str, v: &T) -> String {
-    format!("{tag}:{}", serde_json::to_string(v).unwrap_or_default())
+    let mut value = serde_json::to_value(v).expect("serializable geometry");
+    canonicalize(&mut value);
+    format!("{tag}:{value}")
 }
 
-/// Assign engine-3 evidence to every finding.
+/// Object handles and source-text hashes are lookup aids, never geometry.
+/// Quantize floats at nanometre resolution, matching KiCad's coordinate grid
+/// and removing trig/JSON representation noise (including negative zero).
+fn canonicalize(value: &mut Value) {
+    match value {
+        Value::Object(fields) => {
+            for key in ["id", "stable"] {
+                fields.remove(key);
+            }
+            for value in fields.values_mut() {
+                canonicalize(value);
+            }
+        }
+        Value::Array(values) => values.iter_mut().for_each(canonicalize),
+        Value::Number(number) if number.is_f64() => {
+            let n = (number.as_f64().unwrap() * 1_000_000.).round() / 1_000_000.;
+            *value = serde_json::json!(if n == 0. { 0. } else { n });
+        }
+        _ => {}
+    }
+}
+
+/// Assign canonical geometry evidence and content IDs to every finding.
 pub fn assign(board: &Board, extra: &Extra, config: &Config, findings: &mut [Finding]) {
     let zones_json: Vec<_> = extra.zones.iter().map(|z| json("zone", z)).collect();
     for f in findings {
         f.evidence = evidence(board, extra, config, f, &zones_json);
+        f.key = hash(&json(
+            "finding",
+            &(VERSION, &f.rule, &f.key, &f.nets, f.at, &f.evidence),
+        ));
     }
 }
 
@@ -395,10 +444,21 @@ fn evidence(b: &Board, x: &Extra, config: &Config, f: &Finding, zones_json: &[St
         });
     }
     let hood = Hood(hood);
-    let local = scope != Scope::Metadata && !hood.0.is_empty();
+    let local = matches!(scope, Scope::Local | Scope::WholeNet) && !hood.0.is_empty();
     let net_wide = |n: &String| scope == Scope::WholeNet && nets.contains(n.as_str());
     let mut items = vec![];
+    // Missing-object contracts have no geometry to resolve. Keep their semantic
+    // subject names so two missing pads/contracts cannot collapse into one ID.
+    items.extend(
+        f.subjects
+            .iter()
+            .filter(|s| s.starts_with("contract:"))
+            .cloned(),
+    );
     for t in &b.tracks {
+        if subjects.contains(t.id.as_str()) {
+            items.push(json("subject:track", t));
+        }
         if subjects.contains(t.id.as_str())
             || net_wide(&t.net)
             || (local && hood.seg(t.a, t.b, t.width / 2.))
@@ -407,6 +467,9 @@ fn evidence(b: &Board, x: &Extra, config: &Config, f: &Finding, zones_json: &[St
         }
     }
     for v in &b.vias {
+        if subjects.contains(v.id.as_str()) {
+            items.push(json("subject:via", v));
+        }
         if subjects.contains(v.id.as_str())
             || net_wide(&v.net)
             || (local && hood.point(v.at, v.size / 2.))
@@ -415,6 +478,9 @@ fn evidence(b: &Board, x: &Extra, config: &Config, f: &Finding, zones_json: &[St
         }
     }
     for p in &b.pads {
+        if subjects.contains(p.id.as_str()) {
+            items.push(json("subject:pad", p));
+        }
         let included = subjects.contains(p.id.as_str())
             || refs.contains(p.reference.as_str())
             || net_wide(&p.net)
@@ -422,11 +488,14 @@ fn evidence(b: &Board, x: &Extra, config: &Config, f: &Finding, zones_json: &[St
         if included {
             items.push(json("pad", p));
             if let Some(t) = x.pad_thermals.get(&p.id) {
-                items.push(format!("thermal:{}:{t}", p.id));
+                items.push(json("thermal", &(p.at, t)));
             }
         }
     }
     for p in &b.parts {
+        if subjects.contains(p.id.as_str()) {
+            items.push(json("subject:part", p));
+        }
         if subjects.contains(p.id.as_str())
             || refs.contains(p.reference.as_str())
             || (local && hood.point(p.at, 0.))
@@ -449,7 +518,10 @@ fn evidence(b: &Board, x: &Extra, config: &Config, f: &Finding, zones_json: &[St
         }
     }
     for (z, text) in x.zones.iter().zip(zones_json) {
-        let shares_net = scope != Scope::Metadata && nets.contains(z.net.as_str());
+        if subjects.contains(z.id.as_str()) {
+            items.push(format!("subject:{text}"));
+        }
+        let shares_net = scope == Scope::WholeNet && nets.contains(z.net.as_str());
         let near = local && {
             let pts: Vec<Point> = z
                 .outlines
@@ -502,11 +574,18 @@ fn evidence(b: &Board, x: &Extra, config: &Config, f: &Finding, zones_json: &[St
             items.push(json("text", t));
         }
     }
+    for a in x.arcs.iter().filter(|a| subjects.contains(a.id.as_str())) {
+        items.push(json("subject:arc", a));
+    }
+    for t in x.texts.iter().filter(|t| subjects.contains(t.id.as_str())) {
+        items.push(json("subject:text", t));
+    }
     items.sort();
     items.dedup();
     let metrics: BTreeMap<&String, &f64> = f.metrics.iter().collect();
-    hash(
-        &serde_json::to_string(&(
+    hash(&json(
+        "dependencies",
+        &(
             VERSION,
             &f.rule,
             scope,
@@ -514,7 +593,6 @@ fn evidence(b: &Board, x: &Extra, config: &Config, f: &Finding, zones_json: &[St
             &items,
             config_slice(&f.rule, config),
             metrics,
-        ))
-        .unwrap_or_default(),
-    )
+        ),
+    ))
 }

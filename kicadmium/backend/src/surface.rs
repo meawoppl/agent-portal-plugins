@@ -51,17 +51,41 @@ pub(crate) fn restart_installed(exe: &Path) -> Result<()> {
         let name = entry?.file_name().to_string_lossy().into_owned();
         if name.starts_with("kicadmium-surface-") && name.ends_with(".service") {
             if cfg!(target_os = "macos") {
+                // Transient registrations can outlive a login or a stopped surface.
+                if !Command::new("launchctl")
+                    .args(["print", &format!("{}/{}", launch_domain(), name)])
+                    .output()?
+                    .status
+                    .success()
+                {
+                    continue;
+                }
                 run(Command::new("launchctl").args([
                     "kickstart",
                     "-k",
                     &format!("{}/{}", launch_domain(), name),
                 ]))?;
             } else {
+                let state = Command::new("systemctl")
+                    .args(["--user", "show", "--property=LoadState", "--value", &name])
+                    .output()?;
+                if !state.status.success() {
+                    bail!(
+                        "surface supervisor query: {}",
+                        String::from_utf8_lossy(&state.stderr).trim()
+                    );
+                }
+                if !registered_unit_loaded(&state.stdout) {
+                    continue;
+                }
                 run(Command::new("systemctl").args(["--user", "try-restart", &name]))?;
             }
         }
     }
     Ok(())
+}
+fn registered_unit_loaded(state: &[u8]) -> bool {
+    String::from_utf8_lossy(state).trim() == "loaded"
 }
 pub(crate) fn execute(action: Action) -> Result<()> {
     match action {
@@ -212,6 +236,12 @@ fn launch_plist(name: &str, exe: &Path, cwd: &Path, port: u16, session: &str) ->
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn expired_transient_units_are_not_restarted() {
+        assert!(registered_unit_loaded(b"loaded\n"));
+        assert!(!registered_unit_loaded(b"not-found\n"));
+        assert!(!registered_unit_loaded(b"masked\n"));
+    }
     #[test]
     fn identity_is_stable_and_separates_workspaces_and_ports() {
         assert_eq!(unit(Path::new("/a"), 80), unit(Path::new("/a"), 80));

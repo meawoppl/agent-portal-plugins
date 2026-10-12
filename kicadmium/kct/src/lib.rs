@@ -7,13 +7,16 @@
 //! module per CLI command family under `cli`.
 
 pub mod analysis;
+pub mod check_report;
 pub mod cli;
 pub mod config;
 pub mod constraints;
 pub mod core;
 pub mod cost;
 pub mod creepage;
+pub mod derived_docs;
 pub mod drc;
+pub mod edit_plan;
 pub mod erc;
 pub mod exceptions;
 pub mod explain;
@@ -32,11 +35,14 @@ pub mod parts;
 pub mod patterns;
 pub mod pcb;
 pub mod physics;
+pub mod pin1;
+pub mod place_check;
 pub mod progress;
 pub mod project;
 pub mod pyjson;
 pub mod recovery;
 pub mod region;
+pub mod regional_check;
 pub mod router;
 pub mod routing_query;
 pub mod schema;

@@ -16,12 +16,17 @@ use std::{
 };
 
 #[derive(Parser)]
+#[command(
+    after_help = "JSON check output uses kicadmium.check/v1: schema, tool, ok, summary, findings. Print its JSON Schema with `lint schema`."
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
 }
 #[derive(Subcommand)]
 enum Command {
+    /// Print the versioned check-output JSON Schema.
+    Schema,
     /// Run lint using the board's adjacent .lint.json policy file.
     Run(RunArgs),
     Init(InitArgs),
@@ -52,6 +57,11 @@ struct BoardArgs {
 }
 #[derive(Debug, Clone, Args)]
 struct RunArgs {
+    /// Fast partial local lint (x0 y0 x1 y1), requiring a full pre-commit gate.
+    #[arg(long, num_args = 4, allow_hyphen_values = true)]
+    region: Vec<f64>,
+    #[arg(long, default_value_t = 2.0)]
+    margin: f64,
     #[command(flatten)]
     board: BoardArgs,
     #[arg(long, value_enum, default_value_t = OutputFormat::Text)]
@@ -286,6 +296,36 @@ fn corpus(args: CorpusArgs) -> Result<i32> {
     Ok(if failed > 0 { 2 } else { 0 })
 }
 fn run_board(args: RunArgs) -> Result<i32> {
+    if !args.region.is_empty() {
+        let b = &args.region;
+        let file = BoardLintFile::load_or_default(
+            &policy_path(&args.board),
+            &board_id(&args.board.board),
+        )?;
+        let report = crate::regional_check::run(
+            &args.board.board,
+            crate::region::Bounds {
+                x0: b[0],
+                y0: b[1],
+                x1: b[2],
+                y1: b[3],
+            },
+            args.margin,
+            "lint",
+            file.config,
+        )?;
+        println!("{}", serde_json::to_string_pretty(&report)?);
+        let fails = report["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|f| match args.fail_on {
+                FailOn::Never => false,
+                FailOn::Error => f["severity"] == "error",
+                FailOn::Warning => f["severity"] == "error" || f["severity"] == "warning",
+            });
+        return Ok(if fails { 2 } else { 0 });
+    }
     protect_sheets(&args)?;
     let (source, policy, mut file, checked) = load(&args.board)?;
     if board_file::backfill(&mut file, &checked.report) > 0 {
@@ -310,15 +350,22 @@ fn run_board(args: RunArgs) -> Result<i32> {
         )?;
     }
     match args.format {
-        OutputFormat::Json => println!(
-            "{}",
-            serde_json::to_string_pretty(&RunOutput {
+        OutputFormat::Json => {
+            let mut raw = serde_json::to_value(RunOutput {
                 board: &args.board.board,
                 policy: &policy,
                 report: &checked.report,
-                exceptions: &checked.audit
-            })?
-        ),
+                exceptions: &checked.audit,
+            })?;
+            let mut output = crate::check_report::Envelope::new(
+                "lint",
+                open_at(&checked.report, args.fail_on) == 0,
+                raw["report"].take(),
+            );
+            raw.as_object_mut().unwrap().remove("report");
+            output.details["context"] = raw;
+            println!("{}", serde_json::to_string_pretty(&output)?);
+        }
         OutputFormat::Text => {
             let open = checked
                 .report
@@ -542,6 +589,10 @@ fn artifact_key(board: &Path) -> String {
 pub fn run(args: Vec<OsString>, _globals: &Globals) -> Result<i32> {
     match parse_args::<Cli>("lint", args).command {
         Command::Run(a) => run_board(a),
+        Command::Schema => {
+            println!("{}", crate::check_report::JSON_SCHEMA);
+            Ok(0)
+        }
         Command::Init(a) => {
             if a.print_default_config {
                 println!(

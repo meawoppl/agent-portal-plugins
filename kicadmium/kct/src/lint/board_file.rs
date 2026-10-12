@@ -1,4 +1,4 @@
-//! Per-board lint file (`<pcb_stem>.lint.json`, schema 2): configuration plus
+//! Per-board lint file (`<pcb_stem>.lint.json`, schema 3): configuration plus
 //! evidence-bound exceptions, committed next to the board as the single source of
 //! truth. Exceptions are audited against every run so stale entries surface.
 use crate::lint::{
@@ -12,7 +12,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub const SCHEMA: u32 = 2;
+pub const SCHEMA: u32 = 3;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -41,7 +41,6 @@ impl fmt::Display for Action {
 #[serde(deny_unknown_fields)]
 pub struct Exception {
     pub key: String,
-    /// Empty only for exceptions migrated from a schema-1 ledger and not yet backfilled.
     #[serde(default)]
     pub rule: String,
     #[serde(default)]
@@ -185,9 +184,9 @@ impl BoardLintFile {
         let value: serde_json::Value =
             serde_json::from_str(&text).with_context(|| format!("parsing {}", path.display()))?;
         match value.get("schema").and_then(|s| s.as_u64()) {
-            Some(2) => {}
+            Some(3) => {}
             Some(s) => bail!(
-                "{}: unsupported lint file schema {s} (expected {SCHEMA}; migrate schema-1 config and reviews)",
+                "{}: unsupported lint file schema {s} (expected {SCHEMA}; old waivers are unsupported: retain config, remove exceptions, and set schema to {SCHEMA})",
                 path.display()
             ),
             None => bail!("{}: missing lint file schema", path.display()),
@@ -197,48 +196,6 @@ impl BoardLintFile {
         file.validate()
             .with_context(|| format!("validating {}", path.display()))?;
         Ok(file)
-    }
-    /// Build a schema-2 file from a legacy `--config` JSON and `--reviews` ledger.
-    /// Decisions for other boards are dropped. Migrated exceptions have no rule or
-    /// subjects until [`backfill`] sees their finding raised.
-    pub fn migrate(
-        config: Option<Config>,
-        ledger: Option<review::Ledger>,
-        board_id: &str,
-    ) -> BoardLintFile {
-        let mut exceptions: Vec<Exception> = ledger
-            .map(|l| l.decisions)
-            .unwrap_or_default()
-            .into_iter()
-            .filter(|d| d.board_id == board_id)
-            .map(|d| Exception {
-                key: d.key,
-                rule: String::new(),
-                subjects: vec![],
-                evidence: d.evidence,
-                action: if d.action == "ignore" {
-                    Action::Ignore
-                } else {
-                    Action::Flag
-                },
-                reason: d.reason,
-                reviewer: d.reviewer,
-                reviewed_at: d.reviewed_at,
-                expires_at: d.expires_at,
-                severity: String::new(),
-                message: String::new(),
-                at: None,
-                nets: vec![],
-            })
-            .collect();
-        exceptions.sort_by(|a, b| a.key.cmp(&b.key));
-        exceptions.dedup_by(|a, b| a.key == b.key);
-        BoardLintFile {
-            schema: SCHEMA,
-            board_id: board_id.into(),
-            config: config.unwrap_or_default(),
-            exceptions,
-        }
     }
     pub fn validate(&self) -> Result<()> {
         if self.schema != SCHEMA {
@@ -347,6 +304,12 @@ pub fn lint_board(pcb_source: &str, file: &BoardLintFile, at: u64) -> Result<Che
         .collect();
     let mut audit = vec![];
     for e in &file.exceptions {
+        // This is audit classification only: changed geometry always has a
+        // new key and never inherits the old decision.
+        let changed = report
+            .findings
+            .iter()
+            .any(|f| f.key != e.key && f.rule == e.rule && f.subjects == e.subjects);
         let finding = report.findings.iter_mut().find(|f| f.key == e.key);
         let expired = e.expires_at.is_some_and(|t| t <= at);
         let (status, detail) = match finding {
@@ -391,7 +354,7 @@ pub fn lint_board(pcb_source: &str, file: &BoardLintFile, at: u64) -> Result<Che
                 if rule_status != Some("evaluated") {
                     let why = match rule_status {
                         Some(s) => s.to_owned(),
-                        None if e.rule.is_empty() => "rule unknown (migrated exception)".into(),
+                        None if e.rule.is_empty() => "rule unknown".into(),
                         None => format!("unknown rule {}", e.rule),
                     };
                     (ExceptionStatus::Unverified, why)
@@ -407,6 +370,11 @@ pub fn lint_board(pcb_source: &str, file: &BoardLintFile, at: u64) -> Result<Che
                     (
                         ExceptionStatus::Expired,
                         format!("expired at {}", e.expires_at.unwrap_or_default()),
+                    )
+                } else if changed {
+                    (
+                        ExceptionStatus::Changed,
+                        "finding geometry or rule inputs changed; review the new finding ID".into(),
                     )
                 } else if e.subjects.is_empty() {
                     (
@@ -503,9 +471,7 @@ pub fn upsert(
         bail!("reason and reviewer are required")
     }
     if action == Action::Ignore && !found.stable_identity {
-        bail!(
-            "cannot persistently ignore an object without stable UUID; add UUID or encode intent in configuration"
-        )
+        bail!("cannot ignore a finding without a stable content identity")
     }
     if expires.is_some_and(|t| t <= review::now()) {
         bail!("expiry must be in the future")
@@ -529,7 +495,7 @@ pub fn clear(file: &mut BoardLintFile, key: &str) -> bool {
     before != file.exceptions.len()
 }
 
-/// Fill rule, subjects and card metadata for exceptions (typically migrated)
+/// Fill rule, subjects and card metadata for exceptions
 /// whose finding is raised in `report` but which lack a rule. Returns the count.
 pub fn backfill(file: &mut BoardLintFile, report: &Report) -> usize {
     let mut n = 0;

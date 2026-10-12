@@ -4,6 +4,7 @@
 //! the logic here lets a plugin reinstall reuse this crate's compiled output
 //! and rebuild only the shim when the frontend changes.
 
+mod annotation;
 mod artifacts;
 mod audits;
 mod bom;
@@ -20,6 +21,7 @@ mod pcb_scene;
 mod pcb_view;
 mod profile;
 mod quality;
+mod region_render;
 mod revision;
 mod schematic_drawing;
 mod schematic_view;
@@ -28,6 +30,7 @@ mod sexpr;
 mod surface;
 mod symbol_graphics;
 mod thumbnails;
+mod verify;
 mod watch;
 
 pub use frontend_assets::EmbeddedAsset;
@@ -97,6 +100,9 @@ const TABS: &[&str] = &[
 #[derive(Debug, Parser)]
 #[command(name = "kicadmium")]
 #[command(about = "kicadmium: KiCad workbench, checks, fab export, and agent tooling")]
+#[command(
+    after_help = "DRC/ERC/lint/quality JSON uses kicadmium.check/v1: schema, tool, ok, summary, findings. Print the JSON Schema with `kicadmium check-schema`."
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -104,6 +110,10 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    Verify(verify::Args),
+    /// Print the JSON Schema shared by DRC, ERC, lint and quality output.
+    CheckSchema,
+    Render(region_render::Args),
     Surface {
         #[command(subcommand)]
         action: surface::Action,
@@ -131,6 +141,11 @@ enum Commands {
         session: String,
     },
     Drc {
+        /// Fast native local check; full KiCad verification remains required.
+        #[arg(long, num_args = 4, allow_hyphen_values = true)]
+        region: Vec<f64>,
+        #[arg(long, default_value_t = 2.0)]
+        margin: f64,
         #[arg(long)]
         json: bool,
         /// Explicitly save refreshed zone fills after checking a scratch copy.
@@ -395,6 +410,14 @@ async fn main() -> Result<()> {
         restore_default_sigpipe();
     }
     match cli.command {
+        Commands::Verify(args) => {
+            let code = verify::run(args).await?;
+            if code != 0 {
+                std::process::exit(code)
+            }
+        }
+        Commands::Render(args) => region_render::run(args)?,
+        Commands::CheckSchema => println!("{}", kct::check_report::JSON_SCHEMA),
         Commands::Surface { action } => surface::execute(action)?,
         Commands::Setup { json, activate } => {
             if let Some(destination) = activate {
@@ -512,6 +535,10 @@ async fn main() -> Result<()> {
                 .route("/api/kicad/drc", get(drc))
                 .route("/api/kicad/erc", get(erc))
                 .route("/api/kicad/quality", get(quality_endpoint))
+                .route(
+                    "/api/kicad/annotation-region",
+                    axum::routing::post(annotation::endpoint),
+                )
                 .route("/api/kicad/file", get(file))
                 .route("/api/kicad/bom", get(bom::endpoint))
                 .route("/api/kicad/libraries", get(libraries_endpoint))
@@ -538,11 +565,35 @@ async fn main() -> Result<()> {
             save_fills,
             cwd,
             project,
+            region,
+            margin,
         } => {
             let cwd = cwd.canonicalize()?;
             let project = cli_project_context(&cwd, project.as_deref())?;
+            if !region.is_empty() {
+                let board = pick_project_file(&project, "kicad_pcb")?
+                    .ok_or_else(|| anyhow!("project has no PCB"))?;
+                let b = &region;
+                let report = kct::regional_check::run(
+                    &board,
+                    kct::region::Bounds {
+                        x0: b[0],
+                        y0: b[1],
+                        x1: b[2],
+                        y1: b[3],
+                    },
+                    margin,
+                    "drc",
+                    Default::default(),
+                )?;
+                println!("{}", serde_json::to_string_pretty(&report)?);
+                if report["ok"] != true {
+                    std::process::exit(1);
+                }
+                return Ok(());
+            }
             let result = run_check_options(&project, "drc", save_fills).await?;
-            print_json_or_debug(json, &result)?;
+            print_check(json, "drc", &result)?;
             if !result.ok {
                 std::process::exit(1);
             }
@@ -551,7 +602,7 @@ async fn main() -> Result<()> {
             let cwd = cwd.canonicalize()?;
             let project = cli_project_context(&cwd, project.as_deref())?;
             let result = run_check(&project, "erc").await?;
-            print_json_or_debug(json, &result)?;
+            print_check(json, "erc", &result)?;
             if !result.ok {
                 std::process::exit(1);
             }
@@ -570,7 +621,7 @@ async fn main() -> Result<()> {
             quality::limit_examples(&mut report, if all { usize::MAX } else { 5 });
             result.report = serde_json::to_string(&report)?;
             if json {
-                print_json_or_debug(true, &result)?;
+                print_check(true, "quality", &result)?;
             } else {
                 println!("{}", result.stdout);
                 let report: serde_json::Value =
@@ -695,6 +746,19 @@ async fn main() -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn print_check(json: bool, tool: &str, response: &CheckResponse) -> Result<()> {
+    if !json {
+        return print_json_or_debug(false, response);
+    }
+    let report = serde_json::from_str(&response.report).unwrap_or(serde_json::Value::Null);
+    let mut output = kct::check_report::Envelope::new(tool, response.ok, report);
+    if !output.details.is_object() {
+        output.details = serde_json::json!({});
+    }
+    output.details["diagnostics"] = serde_json::json!({"source":response.source,"command":response.command,"stdout":response.stdout,"stderr":response.stderr,"message":response.message});
+    print_json_or_debug(true, &output)
 }
 
 fn print_json_or_debug<T>(json: bool, value: &T) -> Result<()>

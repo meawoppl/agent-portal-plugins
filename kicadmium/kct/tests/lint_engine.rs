@@ -128,7 +128,7 @@ fn escapes_and_unicode() {
     assert_eq!(s.val(2), "µF \"quote\" \\ path");
 }
 #[test]
-fn fallback_identity_cannot_ignore() {
+fn geometry_identity_can_ignore_without_uuid() {
     let s = seg("a", (0., 0.), (10., 3.), 0.3, "F.Cu").replace("(uuid \"a\")", "");
     let r = report(&s);
     let f = r
@@ -136,7 +136,7 @@ fn fallback_identity_cannot_ignore() {
         .iter()
         .find(|f| f.rule == "trace.off_angle")
         .unwrap();
-    assert!(!f.stable_identity);
+    assert!(f.stable_identity);
     let d = tempfile::tempdir().unwrap();
     assert!(review::update(
         &d.path().join("r.json"),
@@ -147,7 +147,7 @@ fn fallback_identity_cannot_ignore() {
         "tester",
         None
     )
-    .is_err());
+    .is_ok());
 }
 #[test]
 fn identity_survives_format_order_and_endpoint_reversal() {
@@ -190,7 +190,7 @@ fn ignores_change_expire_and_do_not_cross_boards() {
     );
     let mut changed = report(&s.replace("width 0.3", "width 0.4"));
     review::apply(&mut changed, &l, review::now());
-    assert_eq!(changed.review_audit[0].status, "changed");
+    assert_eq!(changed.review_audit[0].status, "not_observed");
     assert!(changed.findings.iter().all(|f| f.state == "open"));
     let mut other = lint(&board(&s), "other", experimental_config()).unwrap();
     review::apply(&mut other, &l, review::now());
@@ -204,7 +204,7 @@ fn ignores_change_expire_and_do_not_cross_boards() {
     assert_eq!(missing.review_audit[0].status, "not_observed");
 }
 #[test]
-fn neighbor_edit_reopens_but_unrelated_edit_does_not() {
+fn intrinsic_angle_ignores_neighbor_edits() {
     let a = seg("a", (0., 0.), (10., 3.), 0.3, "F.Cu");
     let r = report(&a);
     let get = |r: kct::lint::Report| {
@@ -216,17 +216,25 @@ fn neighbor_edit_reopens_but_unrelated_edit_does_not() {
     };
     let original = get(r);
     let near = seg("b", (1., 0.), (2., 0.), 0.3, "F.Cu").replace("net \"N\"", "net \"OTHER\"");
-    assert_ne!(original, get(report(&(a.clone() + &near))));
+    assert_eq!(original, get(report(&(a.clone() + &near))));
     let far = seg("b", (100., 0.), (101., 0.), 0.3, "F.Cu").replace("net \"N\"", "net \"OTHER\"");
     assert_eq!(original, get(report(&(a + &far))));
 }
 #[test]
-fn zone_geometry_invalidates() {
+fn zone_geometry_does_not_change_intrinsic_angle() {
     let a = seg("a", (0., 0.), (10., 3.), 0.3, "F.Cu");
     let z = r#"(zone (net "N") (layer "F.Cu") (polygon (pts (xy 0 0) (xy 5 0) (xy 5 5))))"#;
     let r = report(&(a.clone() + z));
     let q = report(&(a + &z.replace("xy 5 5", "xy 6 5")));
-    assert_ne!(r.findings[0].evidence, q.findings[0].evidence);
+    let angle = |r: &kct::lint::Report| {
+        r.findings
+            .iter()
+            .find(|f| f.rule == "trace.off_angle")
+            .unwrap()
+            .key
+            .clone()
+    };
+    assert_eq!(angle(&r), angle(&q));
 }
 #[test]
 fn review_flag_clear_and_lock() {
@@ -445,7 +453,7 @@ fn via_attachment_missing_fill_is_unknown_only_for_affected_net() {
     assert_eq!(count(&report(&other), "via.low_attachment"), 1);
 }
 #[test]
-fn via_attachment_fill_edit_invalidates_review_without_changing_key() {
+fn via_attachment_fill_edit_changes_finding_id() {
     let s = via("v", 0., 0.) + &pour("z", "N", "F.Cu", FILL);
     let a = report(&s);
     let b = report(&s.replace("xy 2 2", "xy 3 2"));
@@ -457,7 +465,7 @@ fn via_attachment_fill_edit_invalidates_review_without_changing_key() {
     };
     let a = get(a);
     let b = get(b);
-    assert_eq!(a.key, b.key);
+    assert_ne!(a.key, b.key);
     assert_ne!(a.evidence, b.evidence);
 }
 #[test]

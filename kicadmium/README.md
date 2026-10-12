@@ -118,6 +118,16 @@ It steals ideas shamelessly from:
 - [punkfab/circuit-skills](https://github.com/punkfab/circuit-skills), for its simulate-then-lay-out workflow and its record of verification gates that gave false passes. Ideas only: the repository has no licence, so none of its code or text is used.
 - [parisxmas/fastroute](https://github.com/parisxmas/fastroute), a Rust port of Freerouting, for its unrouted-connection diagnosis, best-so-far checkpoints and benchmark boards. It is GPL-3.0-or-later, so if kicadmium uses it, it runs as a separate, discovered program; none of its code is linked or vendored.
 
+### Fast regional feedback
+
+`kicadmium drc --project ID --region X0 Y0 X1 Y1 --margin 2` runs native local copper/zone-clearance and courtyard checks. `kicadmium kct -- lint run BOARD --region X0 Y0 X1 Y1 --margin 2` runs a declared set of local trace/via/pad rules. Both print structured results with `engine: native-local`, explicit coverage, and `requires_full_verification: true`.
+
+The regional snapshot retains intersecting objects and a guard margin, including crossing segments and neighboring pads. Content-addressed caches in `.kct-region-cache` include scoped geometry, bounds, margin, rule configuration, adjacent project/custom rules, policy bytes and engine version. Edits wholly outside the snapshot reuse local results; the reported board hash still reflects the current full board. Source boards are never written.
+
+Regional checks are a partial fast-feedback path, not full KiCad DRC, schematic parity, global connectivity, or complete lint. Conditional custom DRC rules fail explicitly in native regional DRC. Always run full `verify` before commit; omitting `--region` preserves the existing full-check behavior.
+### Regional before/after rendering
+
+`kicadmium render --project ID --region 170 20 15 12 --layers F.Cu,F.SilkS,Edge.Cuts --zones net=VIN_5V --baseline HEAD -o region.png` produces a labeled comparison directly from board geometry. The region is x/y/width/height in millimetres; omit `--baseline` for the working board alone. A baseline can also be a board file. `--zones none|filled|net=NAME` controls existing fill polygons, `--highlight-nets GND,VIN_5V` highlights copper, and `--annotation` outlines the region. SVG and PNG have an opaque Tokyo-Night background. Baselines are read with Git, never checked out; rendering does not refill or save a board. Unfilled zones have no fill polygons to show. Publish the result with `agent-portal show region.png`.
 ### Supervised workbench (Linux user systemd)
 
 Run the installed `bin/kicadmium surface ensure --cwd /path/to/project --port 8765` to start or reuse a workbench outside the Portal session's cgroup. It prints the local URL after the listener starts. Forward that port with `agent-portal forward 8765` for remote access. Processes restart automatically on failure and survive Portal service restarts; the Portal forwarding URL itself is session-owned and may need to be reopened by Portal.
@@ -125,3 +135,11 @@ Run the installed `bin/kicadmium surface ensure --cwd /path/to/project --port 87
 Successful plugin activation restarts registered workbench units against the newly activated stable executable. Unit names are deterministic for each project directory and port, so repeated `ensure` calls reuse the same process. Inspect logs with `journalctl --user -u 'kicadmium-surface-*'`. This requires a running Linux user systemd manager; transient services last for that manager's lifetime, not across machine reboots. `serve` remains available for other platforms and Portal-managed hosting.
 
 The Portal manifest starts the supervised surface automatically and keeps a lightweight launcher attached with `--wait`. On macOS the equivalent service is bootstrapped into the current GUI user's launchd domain with `KeepAlive`; installation restarts those registered jobs too. Neither platform requires a root/system service. Readiness requires a successful kicadmium `/healthz` response, and a port occupied outside the selected unit is rejected.
+PCB region annotations collect current board context before queuing: intersecting footprints, copper nets by layer, regional lint/quality findings, and a SHA-256 board revision. The text attachment is capped below 40 lines with an explicit omitted count. Context collection reuses the quality build cache, evaluates the board's lint policy without writing it, and rejects a board change during collection. A collection failure keeps the annotation draft available for retry.
+### One-shot verification
+
+`kicadmium verify --project ID --baseline HEAD --json` runs full DRC (including schematic parity), ERC, lint, lint-exception stale checks, quality, and declared derived-document checks. Both working inputs and Git baselines are checked in disposable snapshots; a baseline board file can also be supplied with current project context. No board swapping or source saves occur.
+
+Output uses `kicadmium.verify/v1`, with per-stage before/after counts, added/removed findings, and groups by rule and nets. Omit `--json` for a concise summary (seven lines when unchanged). `--gate error|warning|never` controls newly introduced finding failures; an incomplete stage always fails. Without a baseline, all current findings are considered new. Ignored lint findings do not fail the gate.
+
+Caches include the complete selected source snapshot, executable hash, KiCad version and project identity. Git baselines cache by immutable commit; expiring lint decisions invalidate their cached report at expiry. Failed/incomplete stages are not cached. Full verification is the pre-commit gate; regional checks remain partial feedback.

@@ -51,7 +51,7 @@ for that board.
 
 ```json
 {
-  "schema": 2,
+  "schema": 3,
   "board_id": "esp32-fpga-module",
   "config": { "...": "only fields that differ from kct lint defaults" },
   "exceptions": [
@@ -74,20 +74,17 @@ for that board.
 }
 ```
 
-- **key** identifies the finding: board id, rule, subject ids and slot. It
-  survives unrelated edits.
+- **key** hashes the rule, canonical geometry, relevant inputs and slot. It
+  survives unrelated edits, filename changes and regenerated UUIDs.
 - **evidence** hashes the geometry and config the verdict depends on. If it
   changes, the decision has to be reviewed again.
-- **ignore** needs a finding with stable identity (UUID-backed subjects).
-  Express intent for anonymous objects in `config` instead.
+- **ignore** binds to the exact geometry-derived finding ID.
 - The rule, subjects, message, severity, location and nets are snapshotted, so
   a card can still be drawn after the geometry is gone.
 - Writes take `<file>.lock` and are atomic. Unknown fields are rejected.
-- The project-aware workbench reads legacy `.kicad-pcb.json` `lint.config` /
-  `lint.reviews` settings when no adjacent board lint file exists. Migrated
-  entries stay `unverified` until a run that raises their finding fills in the
-  missing metadata; save them into the adjacent file before retiring the legacy
-  paths.
+- The project-aware workbench can read `.kicad-pcb.json` `lint.config` when no
+  adjacent board lint file exists. Legacy `lint.reviews` settings are rejected;
+  record fresh reviews in the schema-3 board lint file.
 
 ## Exception statuses
 
@@ -216,33 +213,24 @@ state, so describe each allowed operating state and conducting path explicitly.
 
 ### Finding identity and evidence
 
-A finding key is the SHA-256 of the persistent board id, rule id, sorted object
-UUIDs and a discriminator. Choose a board id once per independent board, and
-do not use a revision hash as the id. Reordering segments does not change the
-key. Geometry-only fallback ids and synthetic contract subjects cannot be
-persistently ignored.
+A finding key is a SHA-256 content ID (geometry-4): rule, semantic discriminator,
+net names, location, canonical subject geometry and rule-scoped evidence. Board
+IDs, source filenames, UUIDs, prose and review state do not participate. Copying a
+board or regenerating UUIDs preserves IDs. Changing the offending geometry
+creates a new finding ID; no fuzzy matching transfers a waiver. Numeric geometry
+is normalized to KiCad’s nanometre coordinate grid.
 
-Evidence is hashed separately per rule (engine-3, `kct/src/lint/evidence.rs`).
-It covers:
+Intrinsic checks (short segments, trace angles, widths, drill sizes, annuli,
+and similar subject-only rules) hash their subjects, not unrelated neighbors.
+Local checks conservatively include nearby geometry within 5 mm; whole-net
+checks additionally include the relevant nets. Metadata checks include subject
+fields. Rule-specific configuration and measurements are included. Subjects are
+distinguished from surrounding geometry, including their copper layers.
 
-- the subjects, with footprint fields, pad thermals and footprint copper;
-- every object within 5 mm of the finding or its subject geometry, on any net;
-- zones that are nearby or share a net with the finding;
-- only the config fields the rule reads.
-
-Whole-net rules (connectivity, islands, stubs, length/skew, decoupling loops,
-net contracts; see `WHOLE_NET`) also hash all copper on the finding's nets.
-Metadata rules (BOM, CPL, schematic, release; see `METADATA`) hash only their
-subjects. As a result, distant unrelated edits keep reviews applied, while
-nearby edits or changes to the rule's own thresholds reopen them. Upgrading
-from engine-2 changes every evidence hash once. Existing reviews then read as
-`changed` and need one re-review (re-waive or re-flag them).
-
-A finding is suppressed only by an exact key, exact evidence and an unexpired
-review. Recreated UUIDs get new keys. `review.reattach_candidate` suggests
-nearby candidates of the same kind and net from a supplied baseline, but it
-never transfers approval: an agent must examine the candidate and record a new
-decision.
+Board policy files now require schema 3. Older waiver files are rejected: retain
+the config, clear exceptions, set schema to 3, rerun lint and review findings
+afresh. Legacy review-ledger migration has been removed. Board IDs still scope
+review ledgers, but never affect finding IDs or before/after diffs.
 
 ### Geometry and search limits
 
@@ -396,3 +384,16 @@ width-compliant subject track. It does not waive an entire net or long trunk.
 Roles are `stitching`, `thermal`, `return`, or `signal`; only matching vias
 inside the polygon inherit the role. Existing per-UUID `intent.roles` remain
 available for individual vias.
+### Shared check JSON contract
+
+`kicadmium drc|erc|lint|quality --json` and `kct lint run --format json`
+emit `kicadmium.check/v1`: `schema`, `tool`, `ok`, `summary`, `findings`, and
+`details`. Every finding has `rule`, `severity`, `nets`, `refs`, `at` (an x/y
+position or null), and `message`. Native identifiers and lint review fields
+remain available on each finding. Findings are always at the top level; report
+objects are never encoded as JSON strings. ERC sheet violations and DRC
+unconnected/parity findings use the same array.
+
+The machine-readable contract is [check-report.schema.json](check-report.schema.json).
+Print it with `kicadmium check-schema` or `kct lint schema`. This is a breaking
+CLI output change; the browser API keeps its existing response shape.

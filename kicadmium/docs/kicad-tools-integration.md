@@ -70,6 +70,44 @@ filter results. `--format json` includes normalized coordinates, footprint
 rotation/side and courtyard bounds, source hash, complete per-kind counts and
 omission count. The default 50-item limit keeps text under 60 lines; use
 `--limit 0` for all results. The query is read-only.
+### Pin-1 dots that follow placement
+
+Migrate loose board circles once with `kicadmium kct -- pin1 attach BOARD --markers markers.json --dry-run`, then `--in-place` (or `--output BOARD`). The JSON is an array of explicit associations, for example `[{"reference":"U2","uuid":"the-board-circle-uuid"}]`. The command validates the silk side and distance to pad 1/A1 (`--max-distance`, default 2.5 mm), converts board coordinates to footprint-local coordinates, and preserves the circle UUID, radius, stroke and fill. Repeated migration is idempotent. Invalid batches make no changes.
+
+The resulting `fp_circle` is owned by the footprint. KiCad and native placement edits move and rotate it automatically; there is no marker-position file to keep synchronized. Existing pin-1 quality checks inspect footprint graphics and report a missing marker when no eligible mark lies within the configured search radius. Use the board as the authoritative marker geometry.
+### Derived documentation
+
+Declare project-root-relative outputs in the project's `.kicad-pcb.json` entry:
+
+```json
+"derivedFiles": [
+  {"path":"docs/final-placements.json","kind":"placements"},
+  {"path":"docs/testpoints.json","kind":"testpoints"},
+  {"path":"docs/testpoints.csv","kind":"testpoints"},
+  {"path":"docs/testpoints.md","kind":"testpoints"},
+  {"path":"docs/pin1-markers.json","kind":"pin1-markers"}
+]
+```
+
+Run `kicadmium kct -- docs sync --project ID` after editing. `--check` is read-only and returns 1 for stale outputs. Placement records carry reference, value, position, rotation and side; test-point records add label and nets. JSON preserves additional authored fields by reference while updating authoritative geometry fields. CSV and Markdown are wholly generated. Footprint-owned pin-1 silk circles near pad 1/A1 produce marker records in board and local coordinates. Removed footprints disappear from generated records. Unrecognized board-level circles are not guessed to be pin-1 markers.
+### Native edit plans
+
+`kicadmium kct -- edit BOARD --plan plan.yaml --dry-run` evaluates a complete candidate without modifying the board. Use `--in-place` or `--output` to save. New native copper-clearance findings block writes unless `--allow-violations` is explicit. This is a preflight; run full KiCad DRC after editing, especially after zone changes (zones are created unfilled).
+
+```yaml
+version: 1
+operations:
+  - {op: move, reference: U14, at: [179.2, 29.75], rotation: 90}
+  - op: add-track
+    net: GND
+    layer: F.Cu
+    width: 0.3
+    path: [U14.5, [179.2, 29.75], C63.1]
+  - {op: add-via, net: GND, at: C63.1, size: 0.6, drill: 0.3}
+  - {op: add-zone, net: GND, layer: B.Cu, priority: 1, rect: [175, 25, 180, 30]}
+```
+
+Pad references resolve after preceding moves, using full precision and checking the requested net. Collinear forward runs within each added path are merged. `delete-tracks` takes `net`, `layer`, and a `path` of endpoint pairs, with optional `tolerance` in mm (default 0.000001); reversed endpoints match too. Every requested segment must exist. Footprint-owned text and graphics stay relative during moves. All operations validate before the candidate is saved; concurrent source changes abort the write.
 
 ### Routing probes
 
@@ -78,3 +116,8 @@ omission count. The default 50-item limit keeps text under 60 lines; use
 `query corridor BOARD --net GND --layer F.Cu --from 175,27 --to 180,29 --width 0.3` reports a straight path and two 45-degree alternatives, with blockers for each. Both commands emit JSON and never edit the board.
 
 Queries use conservative maxima across project, netclass, and custom-rule minima, including conditional/layer-specific custom constraints. This can reject routes that a more specific rule would allow. Unsupported custom constraints or incomplete geometry fail explicitly rather than claiming a legal candidate. A via-site search is a bounded grid search, not an exhaustive proof that no continuous-space solution exists.
+### Placement preflight
+
+`kicadmium kct -- place-check BOARD --plan moves.yaml --quality-profile pcb-profile.yaml` evaluates move operations without writing a board. It builds the proposed placements in memory, checks neighboring courtyards, copper clearances and silkscreen, and checks moved ICs/capacitors against the pins served on their power nets. `decoupling.max_pin_distance_mm` is read from the profile (default 2 mm). Output contains findings, checked footprint count, and `written: false`; exit 2 means findings need attention.
+
+Geometry checks keep nearby footprints/tracks/vias, including crossing segments, and retain zone geometry. Decoupling selection uses the complete board so a distant alternative capacitor cannot disappear from the analysis. This placement preflight supplements full post-edit DRC; copper-changing plans use `edit --dry-run`.

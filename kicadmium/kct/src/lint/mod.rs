@@ -252,11 +252,10 @@ impl Emitter<'_> {
         let mut nets = nets;
         nets.sort();
         nets.dedup();
-        let stable = !subjects.is_empty()
-            && subjects
-                .iter()
-                .all(|s| !s.starts_with("fallback:") && !s.starts_with("contract:"));
-        let key = hash(&serde_json::to_string(&(self.board_id, rule, &subjects, slot)).unwrap());
+        let stable = true;
+        // Temporary discriminator only. The final content ID is assigned once
+        // the rule's geometry dependencies have been collected.
+        let key = slot.to_owned();
         // Evidence is assigned after all rules run; see `evidence`.
         let r = rules::catalog_cached()
             .iter()
@@ -299,13 +298,13 @@ pub fn lint(input: &str, board_id: &str, config: Config) -> Result<Report> {
     e.findings.retain(|f| config.enabled(&f.rule));
     e.findings
         .retain(|f| !intent::declared_geometry(&board, &config, f));
-    e.findings.sort_by(|a, b| a.key.cmp(&b.key));
-    e.findings.dedup_by(|a, b| a.key == b.key);
     let mut findings = e.findings;
     let extra = copper::Extra::read(input, &board)?;
     evidence::assign(&board, &extra, &config, &mut findings);
+    findings.sort_by(|a, b| a.key.cmp(&b.key));
+    findings.dedup_by(|a, b| a.key == b.key);
     let rule_coverage = e.coverage;
-    let mut limitations=vec!["Heuristics, not KiCad DRC/ERC or fabrication sign-off. No edits are made.".into(),"Core trace endpoint checks ignore planes; copper arcs count as joins but are not clearance-checked. Via attachment and layer-excursion screening use saved polygon fills and tessellated arcs; unsupported geometry withholds uncertain conclusions. Saved fills must be refreshed after layout edits. See coverage per rule.".into(),"Detour ratios use unobstructed octilinear distance as a lower bound, not a proven legal replacement route. Explicit thermal and reference-plane contracts provide screening only, not impedance or thermal proof.".into(),"Missing UUIDs use geometry fallback identities and cannot be ignored persistently. Board identity is caller-supplied; do not reuse across independent designs.".into()];
+    let mut limitations=vec!["Heuristics, not KiCad DRC/ERC or fabrication sign-off. No edits are made.".into(),"Core trace endpoint checks ignore planes; copper arcs count as joins but are not clearance-checked. Via attachment and layer-excursion screening use saved polygon fills and tessellated arcs; unsupported geometry withholds uncertain conclusions. Saved fills must be refreshed after layout edits. See coverage per rule.".into(),"Detour ratios use unobstructed octilinear distance as a lower bound, not a proven legal replacement route. Explicit thermal and reference-plane contracts provide screening only, not impedance or thermal proof.".into(),"Finding IDs hash canonical geometry and rule inputs; UUIDs and source filenames are excluded. Board identity is caller-supplied; do not reuse across independent designs.".into()];
     for (k, v) in &board.unsupported {
         limitations.push(format!("{k}: {v}"));
     }

@@ -95,7 +95,10 @@ pub fn records(pcb: &Pcb, kind: Kind, previous: &Value) -> Result<Value> {
         }
         row["reference"] = json!(fp.reference);
         row["value"] = json!(fp.value);
-        row["position"] = json!([fp.position.0+pcb.board_origin().0,fp.position.1+pcb.board_origin().1]);
+        row["position"] = json!([
+            fp.position.0 + pcb.board_origin().0,
+            fp.position.1 + pcb.board_origin().1
+        ]);
         row["rotation"] = json!(fp.rotation);
         row["side"] = json!(if fp.layer.starts_with('B') {
             "back"

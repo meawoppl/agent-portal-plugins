@@ -52,3 +52,11 @@ fn refuses_escape_and_invalid_existing_json() {
     )
     .is_err());
 }
+#[test]
+fn placement_records_preserve_sheet_coordinates_on_offset_boards() {
+    let mut pcb = board();
+    pcb.sexp_mut().push(parse(r#"(gr_rect (start 10 10) (end 100 100) (stroke (width 0.05) (type default)) (fill none) (layer "Edge.Cuts"))"#).unwrap());
+    pcb.reload_from_tree().unwrap();
+    let rows = records(&pcb, Kind::Placements, &json!([])).unwrap();
+    assert_eq!(rows[0]["position"], json!([20., 30.]));
+}

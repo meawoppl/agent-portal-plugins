@@ -96,6 +96,9 @@ const TABS: &[&str] = &[
 #[derive(Debug, Parser)]
 #[command(name = "kicadmium")]
 #[command(about = "kicadmium: KiCad workbench, checks, fab export, and agent tooling")]
+#[command(
+    after_help = "DRC/ERC/lint/quality JSON uses kicadmium.check/v1: schema, tool, ok, summary, findings. Print the JSON Schema with `kicadmium check-schema`."
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -103,6 +106,8 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    /// Print the JSON Schema shared by DRC, ERC, lint and quality output.
+    CheckSchema,
     /// Report the discovered KiCad install and runtime paths.
     Setup {
         #[arg(long)]
@@ -390,6 +395,7 @@ async fn main() -> Result<()> {
         restore_default_sigpipe();
     }
     match cli.command {
+        Commands::CheckSchema => println!("{}", kct::check_report::JSON_SCHEMA),
         Commands::Setup { json, activate } => {
             if let Some(destination) = activate {
                 install::activate(&std::env::current_exe()?, &destination)?;
@@ -535,7 +541,7 @@ async fn main() -> Result<()> {
             let cwd = cwd.canonicalize()?;
             let project = cli_project_context(&cwd, project.as_deref())?;
             let result = run_check_options(&project, "drc", save_fills).await?;
-            print_json_or_debug(json, &result)?;
+            print_check(json, "drc", &result)?;
             if !result.ok {
                 std::process::exit(1);
             }
@@ -544,7 +550,7 @@ async fn main() -> Result<()> {
             let cwd = cwd.canonicalize()?;
             let project = cli_project_context(&cwd, project.as_deref())?;
             let result = run_check(&project, "erc").await?;
-            print_json_or_debug(json, &result)?;
+            print_check(json, "erc", &result)?;
             if !result.ok {
                 std::process::exit(1);
             }
@@ -563,7 +569,7 @@ async fn main() -> Result<()> {
             quality::limit_examples(&mut report, if all { usize::MAX } else { 5 });
             result.report = serde_json::to_string(&report)?;
             if json {
-                print_json_or_debug(true, &result)?;
+                print_check(true, "quality", &result)?;
             } else {
                 println!("{}", result.stdout);
                 let report: serde_json::Value =
@@ -688,6 +694,19 @@ async fn main() -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn print_check(json: bool, tool: &str, response: &CheckResponse) -> Result<()> {
+    if !json {
+        return print_json_or_debug(false, response);
+    }
+    let report = serde_json::from_str(&response.report).unwrap_or(serde_json::Value::Null);
+    let mut output = kct::check_report::Envelope::new(tool, response.ok, report);
+    if !output.details.is_object() {
+        output.details = serde_json::json!({});
+    }
+    output.details["diagnostics"] = serde_json::json!({"source":response.source,"command":response.command,"stdout":response.stdout,"stderr":response.stderr,"message":response.message});
+    print_json_or_debug(true, &output)
 }
 
 fn print_json_or_debug<T>(json: bool, value: &T) -> Result<()>

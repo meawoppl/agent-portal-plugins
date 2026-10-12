@@ -16,12 +16,17 @@ use std::{
 };
 
 #[derive(Parser)]
+#[command(
+    after_help = "JSON check output uses kicadmium.check/v1: schema, tool, ok, summary, findings. Print its JSON Schema with `lint schema`."
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
 }
 #[derive(Subcommand)]
 enum Command {
+    /// Print the versioned check-output JSON Schema.
+    Schema,
     /// Run lint using the board's adjacent .lint.json policy file.
     Run(RunArgs),
     Init(InitArgs),
@@ -310,15 +315,22 @@ fn run_board(args: RunArgs) -> Result<i32> {
         )?;
     }
     match args.format {
-        OutputFormat::Json => println!(
-            "{}",
-            serde_json::to_string_pretty(&RunOutput {
+        OutputFormat::Json => {
+            let mut raw = serde_json::to_value(RunOutput {
                 board: &args.board.board,
                 policy: &policy,
                 report: &checked.report,
-                exceptions: &checked.audit
-            })?
-        ),
+                exceptions: &checked.audit,
+            })?;
+            let mut output = crate::check_report::Envelope::new(
+                "lint",
+                open_at(&checked.report, args.fail_on) == 0,
+                raw["report"].take(),
+            );
+            raw.as_object_mut().unwrap().remove("report");
+            output.details["context"] = raw;
+            println!("{}", serde_json::to_string_pretty(&output)?);
+        }
         OutputFormat::Text => {
             let open = checked
                 .report
@@ -542,6 +554,10 @@ fn artifact_key(board: &Path) -> String {
 pub fn run(args: Vec<OsString>, _globals: &Globals) -> Result<i32> {
     match parse_args::<Cli>("lint", args).command {
         Command::Run(a) => run_board(a),
+        Command::Schema => {
+            println!("{}", crate::check_report::JSON_SCHEMA);
+            Ok(0)
+        }
         Command::Init(a) => {
             if a.print_default_config {
                 println!(

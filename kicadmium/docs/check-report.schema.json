@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Kicadmium check CLI envelope v1",
+  "type": "object",
+  "required": ["schema", "tool", "ok", "summary", "findings"],
+  "properties": {
+    "schema": {"const": "kicadmium.check/v1"},
+    "tool": {"type": "string"},
+    "ok": {"type": "boolean"},
+    "summary": {"type": "object"},
+    "details": {"type": ["object", "null"]},
+    "findings": {"type": "array", "items": {
+      "type": "object",
+      "required": ["rule", "severity", "nets", "refs", "at", "message"],
+      "properties": {
+        "rule": {"type": "string"}, "severity": {"type": "string"},
+        "nets": {"type": "array", "items": {"type": "string"}},
+        "refs": {"type": "array", "items": {"type": "string"}},
+        "message": {"type": "string"},
+        "at": {"oneOf": [{"type": "null"}, {"type": "object", "required": ["x", "y"], "properties": {"x": {"type": "number"}, "y": {"type": "number"}}}]}
+      }
+    }}
+  }
+}

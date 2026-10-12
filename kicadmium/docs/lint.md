@@ -396,3 +396,16 @@ width-compliant subject track. It does not waive an entire net or long trunk.
 Roles are `stitching`, `thermal`, `return`, or `signal`; only matching vias
 inside the polygon inherit the role. Existing per-UUID `intent.roles` remain
 available for individual vias.
+### Shared check JSON contract
+
+`kicadmium drc|erc|lint|quality --json` and `kct lint run --format json`
+emit `kicadmium.check/v1`: `schema`, `tool`, `ok`, `summary`, `findings`, and
+`details`. Every finding has `rule`, `severity`, `nets`, `refs`, `at` (an x/y
+position or null), and `message`. Native identifiers and lint review fields
+remain available on each finding. Findings are always at the top level; report
+objects are never encoded as JSON strings. ERC sheet violations and DRC
+unconnected/parity findings use the same array.
+
+The machine-readable contract is [check-report.schema.json](check-report.schema.json).
+Print it with `kicadmium check-schema` or `kct lint schema`. This is a breaking
+CLI output change; the browser API keeps its existing response shape.

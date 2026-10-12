@@ -26,6 +26,7 @@ mod schematic_drawing;
 mod schematic_view;
 mod sexp;
 mod sexpr;
+mod surface;
 mod symbol_graphics;
 mod thumbnails;
 mod watch;
@@ -110,6 +111,10 @@ enum Commands {
     /// Print the JSON Schema shared by DRC, ERC, lint and quality output.
     CheckSchema,
     Render(region_render::Args),
+    Surface {
+        #[command(subcommand)]
+        action: surface::Action,
+    },
     /// Report the discovered KiCad install and runtime paths.
     Setup {
         #[arg(long)]
@@ -404,9 +409,11 @@ async fn main() -> Result<()> {
     match cli.command {
         Commands::Render(args) => region_render::run(args)?,
         Commands::CheckSchema => println!("{}", kct::check_report::JSON_SCHEMA),
+        Commands::Surface { action } => surface::execute(action)?,
         Commands::Setup { json, activate } => {
             if let Some(destination) = activate {
                 install::activate(&std::env::current_exe()?, &destination)?;
+                surface::restart_installed(&destination)?;
             }
             let response = serde_json::json!({
                 "ok": kicad_cli().is_some(),

@@ -36,6 +36,7 @@ pub mod progress;
 pub mod project;
 pub mod pyjson;
 pub mod recovery;
+pub mod region;
 pub mod router;
 pub mod schema;
 pub mod sexp;

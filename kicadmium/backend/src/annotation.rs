@@ -101,7 +101,7 @@ mod tests {
     use super::*;
     #[test]
     fn context_is_bounded_and_filters_findings() {
-        let source = "(kicad_pcb)";
+        let source = "(kicad_pcb (layers (0 \"F.Cu\" signal) (31 \"B.Cu\" signal)))";
         let inventory = kct::region::query(
             source,
             kct::region::Bounds {

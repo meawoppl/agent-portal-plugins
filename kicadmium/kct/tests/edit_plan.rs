@@ -35,3 +35,15 @@ fn invalid_batch_preserves_original() {
     assert!(apply(&p, &plan).is_err());
     assert_eq!(p.sexp(), &original);
 }
+#[test]
+fn coordinates_stay_in_sheet_frame_with_offset_outline() {
+    let mut p = board();
+    p.sexp_mut().push(parse(r#"(gr_rect (start 100 100) (end 200 200) (stroke (width 0.05) (type default)) (fill none) (layer "Edge.Cuts"))"#).unwrap());
+    p.reload_from_tree().unwrap();
+    let plan:Plan=serde_yaml::from_str("version: 1\noperations:\n- {op: move, reference: U1, at: [120, 130], rotation: 0}\n- {op: add-via, net: N, at: [125, 135], size: 0.6, drill: 0.3}\n").unwrap();
+    let edited = apply(&p, &plan).unwrap();
+    let fp = edited.sexp().get("footprint").unwrap();
+    assert_eq!(fp.get("at").unwrap().float_at(0), Some(120.));
+    let via = edited.sexp().get("via").unwrap();
+    assert_eq!(via.get("at").unwrap().float_at(0), Some(125.));
+}

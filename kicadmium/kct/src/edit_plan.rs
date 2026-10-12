@@ -89,7 +89,7 @@ pub fn resolve(p: &Pcb, e: &Endpoint, n: &str) -> Result<(f64, f64)> {
     match e {
         Endpoint::Point([x, y]) => {
             finite(&[*x, *y])?;
-            Ok((*x, *y))
+            Ok((*x - p.board_origin().0, *y - p.board_origin().1))
         }
         Endpoint::Pad(s) => {
             let (reference, pin) = s
@@ -155,7 +155,12 @@ pub fn apply(original: &Pcb, plan: &Plan) -> Result<Pcb> {
                 if let Some(r) = rotation {
                     finite(&[*r])?;
                 }
-                if !p.update_footprint_position(reference, at[0], at[1], *rotation) {
+                if !p.update_footprint_position(
+                    reference,
+                    at[0] - p.board_origin().0,
+                    at[1] - p.board_origin().1,
+                    *rotation,
+                ) {
                     bail!("unknown footprint {reference}")
                 }
             }
@@ -260,11 +265,9 @@ pub fn apply(original: &Pcb, plan: &Plan) -> Result<Pcb> {
                     bail!("invalid zone rectangle or priority")
                 }
                 let number = p.get_net_by_name(n).unwrap().number;
-                let origin = p.board_origin();
                 let [x0, y0, x1, y1] = *rect;
-                let pts = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)].map(|(x, y)| {
-                    SExp::list("xy", [SExp::atom(x + origin.0), SExp::atom(y + origin.1)])
-                });
+                let pts = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+                    .map(|(x, y)| SExp::list("xy", [SExp::atom(x), SExp::atom(y)]));
                 let net_node = if p.net_name_only_dialect() {
                     SExp::pair("net", n.clone())
                 } else {

@@ -48,6 +48,7 @@ pub mod optimize_placement;
 pub mod optimize_traces;
 pub mod parts;
 pub mod pcb;
+pub mod pin1;
 pub mod place_silk_refs;
 pub mod placement;
 pub mod project;
@@ -89,6 +90,7 @@ pub struct CommandSpec {
 
 pub static COMMANDS: &[CommandSpec] = &[
     CommandSpec { name: "query", about: "Query board geometry in a region", wave: "native", run: Some(query::run) },
+    CommandSpec { name: "pin1", about: "Attach pin-1 markers to footprints", wave: "A", run: Some(pin1::run) },
     CommandSpec { name: "symbols", about: "List symbols in a schematic", wave: "B", run: Some(design::symbols) },
     CommandSpec { name: "nets", about: "Trace nets in a schematic", wave: "B", run: Some(design::nets) },
     CommandSpec { name: "netlist", about: "Netlist analysis and comparison tools", wave: "B", run: Some(design::netlist) },

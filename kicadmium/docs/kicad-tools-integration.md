@@ -70,3 +70,8 @@ filter results. `--format json` includes normalized coordinates, footprint
 rotation/side and courtyard bounds, source hash, complete per-kind counts and
 omission count. The default 50-item limit keeps text under 60 lines; use
 `--limit 0` for all results. The query is read-only.
+### Pin-1 dots that follow placement
+
+Migrate loose board circles once with `kicadmium kct -- pin1 attach BOARD --markers markers.json --dry-run`, then `--in-place` (or `--output BOARD`). The JSON is an array of explicit associations, for example `[{"reference":"U2","uuid":"the-board-circle-uuid"}]`. The command validates the silk side and distance to pad 1/A1 (`--max-distance`, default 2.5 mm), converts board coordinates to footprint-local coordinates, and preserves the circle UUID, radius, stroke and fill. Repeated migration is idempotent. Invalid batches make no changes.
+
+The resulting `fp_circle` is owned by the footprint. KiCad and native placement edits move and rotate it automatically; there is no marker-position file to keep synchronized. Existing pin-1 quality checks inspect footprint graphics and report a missing marker when no eligible mark lies within the configured search radius. Use the board as the authoritative marker geometry.

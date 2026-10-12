@@ -25,6 +25,7 @@ mod schematic_drawing;
 mod schematic_view;
 mod sexp;
 mod sexpr;
+mod surface;
 mod symbol_graphics;
 mod thumbnails;
 mod watch;
@@ -103,6 +104,10 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    Surface {
+        #[command(subcommand)]
+        action: surface::Action,
+    },
     /// Report the discovered KiCad install and runtime paths.
     Setup {
         #[arg(long)]
@@ -390,9 +395,11 @@ async fn main() -> Result<()> {
         restore_default_sigpipe();
     }
     match cli.command {
+        Commands::Surface { action } => surface::execute(action)?,
         Commands::Setup { json, activate } => {
             if let Some(destination) = activate {
                 install::activate(&std::env::current_exe()?, &destination)?;
+                surface::restart_installed(&destination)?;
             }
             let response = serde_json::json!({
                 "ok": kicad_cli().is_some(),

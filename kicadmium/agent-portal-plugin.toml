@@ -18,7 +18,7 @@ kind = "http"
 default_title = "kicadmium"
 default_width_percent = 50
 health_path = "/healthz"
-start = "bin/kicadmium serve --port {port} --session {session_id} --cwd {cwd}"
+start = "bin/kicadmium surface ensure --wait --port {port} --session {session_id} --cwd {cwd}"
 ready_url = "http://127.0.0.1:{port}/"
 
 [surface.env]

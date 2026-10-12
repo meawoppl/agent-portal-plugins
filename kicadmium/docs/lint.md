@@ -377,3 +377,17 @@ and FN/(FN+TP), so label negatives as well as positives. Synthetic detections
 show that a check runs, not how precise it is on production boards. Keep
 revision-specific board files and annotations when collecting examples, because
 a screenshot alone cannot reproduce connectivity or clearance.
+
+### Shared check JSON contract
+
+`kicadmium drc|erc|lint|quality --json` and `kct lint run --format json`
+emit `kicadmium.check/v1`: `schema`, `tool`, `ok`, `summary`, `findings`, and
+`details`. Every finding has `rule`, `severity`, `nets`, `refs`, `at` (an x/y
+position or null), and `message`. Native identifiers and lint review fields
+remain available on each finding. Findings are always at the top level; report
+objects are never encoded as JSON strings. ERC sheet violations and DRC
+unconnected/parity findings use the same array.
+
+The machine-readable contract is [check-report.schema.json](check-report.schema.json).
+Print it with `kicadmium check-schema` or `kct lint schema`. This is a breaking
+CLI output change; the browser API keeps its existing response shape.

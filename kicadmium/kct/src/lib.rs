@@ -7,6 +7,7 @@
 //! module per CLI command family under `cli`.
 
 pub mod analysis;
+pub mod check_report;
 pub mod cli;
 pub mod config;
 pub mod constraints;

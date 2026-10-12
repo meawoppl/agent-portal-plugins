@@ -116,3 +116,8 @@ Pad references resolve after preceding moves, using full precision and checking 
 `query corridor BOARD --net GND --layer F.Cu --from 175,27 --to 180,29 --width 0.3` reports a straight path and two 45-degree alternatives, with blockers for each. Both commands emit JSON and never edit the board.
 
 Queries use conservative maxima across project, netclass, and custom-rule minima, including conditional/layer-specific custom constraints. This can reject routes that a more specific rule would allow. Unsupported custom constraints or incomplete geometry fail explicitly rather than claiming a legal candidate. A via-site search is a bounded grid search, not an exhaustive proof that no continuous-space solution exists.
+### Placement preflight
+
+`kicadmium kct -- place-check BOARD --plan moves.yaml --quality-profile pcb-profile.yaml` evaluates move operations without writing a board. It builds the proposed placements in memory, checks neighboring courtyards, copper clearances and silkscreen, and checks moved ICs/capacitors against the pins served on their power nets. `decoupling.max_pin_distance_mm` is read from the profile (default 2 mm). Output contains findings, checked footprint count, and `written: false`; exit 2 means findings need attention.
+
+Geometry checks keep nearby footprints/tracks/vias, including crossing segments, and retain zone geometry. Decoupling selection uses the complete board so a distant alternative capacitor cannot disappear from the analysis. This placement preflight supplements full post-edit DRC; copper-changing plans use `edit --dry-run`.

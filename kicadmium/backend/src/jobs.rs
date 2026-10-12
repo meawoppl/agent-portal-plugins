@@ -327,6 +327,9 @@ pub(crate) fn stage_key(
     let mut digest = Sha256::new();
     digest.update(b"kicad-pcb-build/v1\0");
     digest.update(stage.id().as_bytes());
+    if stage == Stage::Drc {
+        digest.update(b"scratch-refill/v1");
+    }
     digest.update([0]);
     digest.update(kicad_version.as_bytes());
     digest.update([0]);

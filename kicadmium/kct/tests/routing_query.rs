@@ -76,4 +76,11 @@ fn custom_conditions_apply_conservatively_and_unknown_constraints_fail() {
     )
     .unwrap();
     assert!(Probe::load(&path).is_err());
+    // Same-net physical spacing cannot be modeled as electrical clearance.
+    std::fs::write(
+        path.with_extension("kicad_dru"),
+        "(version 1) (rule \"physical\" (constraint physical_clearance (min 1mm)))",
+    )
+    .unwrap();
+    assert!(Probe::load(&path).is_err());
 }

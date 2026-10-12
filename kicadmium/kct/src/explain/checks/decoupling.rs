@@ -20,7 +20,7 @@ const NON_IC_REFERENCE_PREFIXES: [&str; 12] = [
 #[derive(Debug, Default, Clone, Copy)]
 pub struct MissingDecouplingCapCheck;
 
-fn find_ics(pcb: &Pcb) -> Vec<&Footprint> {
+pub(super) fn find_ics(pcb: &Pcb) -> Vec<&Footprint> {
     pcb.footprints()
         .iter()
         .filter(|fp| {

@@ -131,7 +131,20 @@ fn detect_mistakes_matches_upstream() {
             ("mistakes", &got_m, &want["mistakes"]),
             ("coverage", &got_c, &want["coverage"]),
         ] {
-            if let Some(d) = first_difference(&format!("$.{name}"), got, want) {
+            // The upstream all-pairs bypass rule is intentionally replaced by
+            // nearest-decoupler matching; covered in bypass_nearest.rs.
+            let without_legacy_bypass = |v: &Value| {
+                Value::Array(
+                    v.as_array()
+                        .unwrap()
+                        .iter()
+                        .filter(|row| row["category"] != "bypass_capacitor")
+                        .cloned()
+                        .collect(),
+                )
+            };
+            let (got, want) = (without_legacy_bypass(got), without_legacy_bypass(want));
+            if let Some(d) = first_difference(&format!("$.{name}"), &got, &want) {
                 failures.push(format!("{rel}: {d}"));
             }
         }

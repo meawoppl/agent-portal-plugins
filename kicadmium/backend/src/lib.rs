@@ -20,6 +20,7 @@ mod pcb_scene;
 mod pcb_view;
 mod profile;
 mod quality;
+mod region_render;
 mod revision;
 mod schematic_drawing;
 mod schematic_view;
@@ -108,6 +109,7 @@ struct Cli {
 enum Commands {
     /// Print the JSON Schema shared by DRC, ERC, lint and quality output.
     CheckSchema,
+    Render(region_render::Args),
     /// Report the discovered KiCad install and runtime paths.
     Setup {
         #[arg(long)]
@@ -400,6 +402,7 @@ async fn main() -> Result<()> {
         restore_default_sigpipe();
     }
     match cli.command {
+        Commands::Render(args) => region_render::run(args)?,
         Commands::CheckSchema => println!("{}", kct::check_report::JSON_SCHEMA),
         Commands::Setup { json, activate } => {
             if let Some(destination) = activate {

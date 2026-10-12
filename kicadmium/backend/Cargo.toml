@@ -9,6 +9,7 @@ name = "kicadmium"
 path = "src/main.rs"
 
 [dependencies]
+resvg = "0.45"
 libc = "0.2"
 anyhow.workspace = true
 axum.workspace = true

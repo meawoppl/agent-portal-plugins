@@ -38,6 +38,7 @@ pub mod pyjson;
 pub mod recovery;
 pub mod region;
 pub mod router;
+pub mod routing_query;
 pub mod schema;
 pub mod sexp;
 pub mod sidecars;

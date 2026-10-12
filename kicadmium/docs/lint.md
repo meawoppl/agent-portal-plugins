@@ -377,3 +377,22 @@ and FN/(FN+TP), so label negatives as well as positives. Synthetic detections
 show that a check runs, not how precise it is on production boards. Keep
 revision-specific board files and annotations when collecting examples, because
 a screenshot alone cannot reproduce connectivity or clearance.
+
+### Experimental rules and declared geometry
+
+Default runs hide rules whose confidence is `not_evaluated`. Use
+`lint run BOARD --include-experimental` (or `config.include_experimental: true`)
+to inspect them. Selecting a rule explicitly with `enabled_only` also opts in.
+Experimental findings never contribute to CLI, CI, or routing failure gates;
+their suggestions say that they are unevaluated.
+
+`config.intent.neck_downs` accepts entries such as
+`{"net":"VCC","pad_shapes":["rect","roundrect"],"min_width_mm":0.15,"max_length_mm":0.8}`.
+This only suppresses neck/transition findings at matching pads with a short,
+width-compliant subject track. It does not waive an entire net or long trunk.
+
+`config.intent.via_role_regions` accepts
+`{"role":"stitching","region":{"id":"ground-block","layer":"F.Cu","nets":["GND"],"polygon":[{"x":0,"y":0},{"x":5,"y":0},{"x":5,"y":5},{"x":0,"y":5}]}}`.
+Roles are `stitching`, `thermal`, `return`, or `signal`; only matching vias
+inside the polygon inherit the role. Existing per-UUID `intent.roles` remain
+available for individual vias.

@@ -10,9 +10,9 @@ use std::path::Path;
 fn summary_counts_and_pass_thresholds() {
     let (_, c) = common::mixed();
     let s = CiSummary::from(&c);
-    // trace-1 ignored (applied); trace-2 (changed) and fp-1 stay open.
+    // trace-1 ignored (applied); trace-2 stays open; unevaluated BOM findings never enter the gate.
     assert_eq!(s.ignored, 1);
-    assert_eq!(s.open("warning") + s.open("error") + s.open("info"), 2);
+    assert_eq!(s.open("warning") + s.open("error") + s.open("info"), 1);
     assert_eq!(s.exceptions_by_status["orphaned"], 1);
     assert_eq!(s.exceptions_by_status["unverified"], 1);
     assert_eq!(s.stale_exceptions.len(), 3);

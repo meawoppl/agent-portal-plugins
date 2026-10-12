@@ -1,6 +1,12 @@
 use kct::lint::{lint, Config, Report};
 use serde_json::json;
 const BAD: &str = include_str!("fixtures/lint/advanced-bad.kicad_pcb");
+fn experimental_config() -> Config {
+    Config {
+        include_experimental: true,
+        ..Default::default()
+    }
+}
 fn configuration() -> Config {
     serde_json::from_str(include_str!("fixtures/lint/advanced-bad.json")).unwrap()
 }
@@ -118,7 +124,7 @@ fn no_contract_is_not_a_pass() {
     let r = lint(
         r#"(kicad_pcb (layers (0 "F.Cu" signal)))"#,
         "empty",
-        Config::default(),
+        experimental_config(),
     )
     .unwrap();
     for id in [
@@ -152,7 +158,7 @@ fn stale_native_snapshot_is_not_compared() {
 }
 #[test]
 fn two_isolated_batteries_and_one_psu_pass() {
-    let mut c = Config::default();
+    let mut c = experimental_config();
     let mode = json!({"name":"batteries","sources":[{"name":"low","negative":"GND","positive":"MID","volts":12,"isolation_group":"a"},{"name":"high","negative":"MID","positive":"VIN","volts":12,"isolation_group":"b"}],"links":[],"output_positive":"VIN","output_negative":"GND","target_volts":24,"tolerance_volts":0.1,"allow_parallel":false,"connector_pins":[]});
     c.intent.modes.push(serde_json::from_value(mode).unwrap());
     let mut one = c.intent.modes[0].clone();
@@ -327,7 +333,7 @@ fn unsupported_geometry_never_certifies_connectivity() {
     let r = lint(
         r#"(kicad_pcb (layers (0 "F.Cu" signal)) (zone (net "N") (layer "F.Cu") (polygon (pts (xy 0 0) (xy 1 0) (xy 1 1)))))"#,
         "x",
-        Config::default(),
+        experimental_config(),
     )
     .unwrap();
     assert_eq!(

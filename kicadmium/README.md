@@ -136,3 +136,10 @@ Successful plugin activation restarts registered workbench units against the new
 
 The Portal manifest starts the supervised surface automatically and keeps a lightweight launcher attached with `--wait`. On macOS the equivalent service is bootstrapped into the current GUI user's launchd domain with `KeepAlive`; installation restarts those registered jobs too. Neither platform requires a root/system service. Readiness requires a successful kicadmium `/healthz` response, and a port occupied outside the selected unit is rejected.
 PCB region annotations collect current board context before queuing: intersecting footprints, copper nets by layer, regional lint/quality findings, and a SHA-256 board revision. The text attachment is capped below 40 lines with an explicit omitted count. Context collection reuses the quality build cache, evaluates the board's lint policy without writing it, and rejects a board change during collection. A collection failure keeps the annotation draft available for retry.
+### One-shot verification
+
+`kicadmium verify --project ID --baseline HEAD --json` runs full DRC (including schematic parity), ERC, lint, lint-exception stale checks, quality, and declared derived-document checks. Both working inputs and Git baselines are checked in disposable snapshots; a baseline board file can also be supplied with current project context. No board swapping or source saves occur.
+
+Output uses `kicadmium.verify/v1`, with per-stage before/after counts, added/removed findings, and groups by rule and nets. Omit `--json` for a concise summary (seven lines when unchanged). `--gate error|warning|never` controls newly introduced finding failures; an incomplete stage always fails. Without a baseline, all current findings are considered new. Ignored lint findings do not fail the gate.
+
+Caches include the complete selected source snapshot, executable hash, KiCad version and project identity. Git baselines cache by immutable commit; expiring lint decisions invalidate their cached report at expiry. Failed/incomplete stages are not cached. Full verification is the pre-commit gate; regional checks remain partial feedback.

@@ -21,6 +21,7 @@ mod pcb_scene;
 mod pcb_view;
 mod profile;
 mod quality;
+mod verify;
 mod region_render;
 mod revision;
 mod schematic_drawing;
@@ -109,6 +110,7 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    Verify(verify::Args),
     /// Print the JSON Schema shared by DRC, ERC, lint and quality output.
     CheckSchema,
     Render(region_render::Args),
@@ -408,6 +410,7 @@ async fn main() -> Result<()> {
         restore_default_sigpipe();
     }
     match cli.command {
+        Commands::Verify(args) => { let code=verify::run(args).await?; if code!=0 {std::process::exit(code)} },
         Commands::Render(args) => region_render::run(args)?,
         Commands::CheckSchema => println!("{}", kct::check_report::JSON_SCHEMA),
         Commands::Surface { action } => surface::execute(action)?,

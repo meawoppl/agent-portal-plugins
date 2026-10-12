@@ -75,3 +75,18 @@ omission count. The default 50-item limit keeps text under 60 lines; use
 Migrate loose board circles once with `kicadmium kct -- pin1 attach BOARD --markers markers.json --dry-run`, then `--in-place` (or `--output BOARD`). The JSON is an array of explicit associations, for example `[{"reference":"U2","uuid":"the-board-circle-uuid"}]`. The command validates the silk side and distance to pad 1/A1 (`--max-distance`, default 2.5 mm), converts board coordinates to footprint-local coordinates, and preserves the circle UUID, radius, stroke and fill. Repeated migration is idempotent. Invalid batches make no changes.
 
 The resulting `fp_circle` is owned by the footprint. KiCad and native placement edits move and rotate it automatically; there is no marker-position file to keep synchronized. Existing pin-1 quality checks inspect footprint graphics and report a missing marker when no eligible mark lies within the configured search radius. Use the board as the authoritative marker geometry.
+### Derived documentation
+
+Declare project-root-relative outputs in the project's `.kicad-pcb.json` entry:
+
+```json
+"derivedFiles": [
+  {"path":"docs/final-placements.json","kind":"placements"},
+  {"path":"docs/testpoints.json","kind":"testpoints"},
+  {"path":"docs/testpoints.csv","kind":"testpoints"},
+  {"path":"docs/testpoints.md","kind":"testpoints"},
+  {"path":"docs/pin1-markers.json","kind":"pin1-markers"}
+]
+```
+
+Run `kicadmium kct -- docs sync --project ID` after editing. `--check` is read-only and returns 1 for stale outputs. Placement records carry reference, value, position, rotation and side; test-point records add label and nets. JSON preserves additional authored fields by reference while updating authoritative geometry fields. CSV and Markdown are wholly generated. Footprint-owned pin-1 silk circles near pad 1/A1 produce marker records in board and local coordinates. Removed footprints disappear from generated records. Unrecognized board-level circles are not guessed to be pin-1 markers.

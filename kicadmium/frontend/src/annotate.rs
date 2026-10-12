@@ -776,6 +776,43 @@ pub fn annotator(props: &Props) -> Html {
             let (note, status, selection) = (note.clone(), status.clone(), selection.clone());
             status.set(Status::Sending);
             spawn_local(async move {
+                if item["context"]["tab"] == "pcb" {
+                    if let Some(scene) = item["context"]["region"].get("scene") {
+                        let request = json!({"project": item["context"]["project"], "region": {
+                            "x0":scene["x0"],"y0":scene["y0"],"x1":scene["x1"],"y1":scene["y1"]
+                        }});
+                        let result = async {
+                            let response = Request::post("/api/kicad/annotation-region")
+                                .json(&request)
+                                .map_err(|e| e.to_string())?
+                                .send()
+                                .await
+                                .map_err(|e| e.to_string())?;
+                            if !response.ok() {
+                                return Err(response.text().await.unwrap_or_default());
+                            }
+                            response.json::<Value>().await.map_err(|e| e.to_string())
+                        }
+                        .await;
+                        match result {
+                            Ok(context) => {
+                                item["body"] = format!(
+                                    "{}\n\n{}",
+                                    item["body"].as_str().unwrap_or_default(),
+                                    context["summary"].as_str().unwrap_or_default()
+                                )
+                                .into();
+                                item["context"]["boardRegion"] = context;
+                            }
+                            Err(message) => {
+                                status.set(Status::Failed(format!(
+                                    "Could not collect board context: {message}"
+                                )));
+                                return;
+                            }
+                        }
+                    }
+                }
                 match enqueue(source, vec![item]).await {
                     Ok(msg) => {
                         note.set(String::new());

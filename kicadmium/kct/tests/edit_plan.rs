@@ -47,3 +47,22 @@ fn coordinates_stay_in_sheet_frame_with_offset_outline() {
     let via = edited.sexp().get("via").unwrap();
     assert_eq!(via.get("at").unwrap().float_at(0), Some(125.));
 }
+#[test]
+fn near_duplicate_does_not_discard_exact_pad_endpoint() {
+    let mut p = board();
+    let at = p.get_pad_position("U1", "1").unwrap();
+    p.add_trace(
+        (at.0 + 0.0001, at.1),
+        (at.0 + 1., at.1),
+        kct::schema::pcb::TraceOptions {
+            net: Some("N".into()),
+            width: 0.25,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let plan:Plan=serde_json::from_value(serde_json::json!({"version":1,"operations":[{"op":"add-track","net":"N","layer":"F.Cu","width":0.25,"path":["U1.1",[at.0+1.,at.1]]}]})).unwrap();
+    let edited = apply(&p, &plan).unwrap();
+    assert!(edited.segments().iter().any(|s| s.start == at));
+    assert_eq!(edited.segments().len(), 2);
+}

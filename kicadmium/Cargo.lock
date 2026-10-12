@@ -270,6 +270,7 @@ dependencies = [
  "libc",
  "mime_guess",
  "notify",
+ "resvg",
  "serde",
  "serde_json",
  "serde_yaml",

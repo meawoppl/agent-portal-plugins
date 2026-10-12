@@ -18,6 +18,7 @@ mod pcb_scene;
 mod pcb_view;
 mod profile;
 mod quality;
+mod region_render;
 mod revision;
 mod schematic_drawing;
 mod schematic_view;
@@ -101,6 +102,7 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    Render(region_render::Args),
     /// Report the discovered KiCad install and runtime paths.
     Setup {
         #[arg(long)]
@@ -379,6 +381,7 @@ async fn main() -> Result<()> {
         restore_default_sigpipe();
     }
     match cli.command {
+        Commands::Render(args) => region_render::run(args)?,
         Commands::Setup { json } => {
             let response = serde_json::json!({
                 "ok": kicad_cli().is_some(),

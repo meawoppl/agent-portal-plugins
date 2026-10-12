@@ -109,3 +109,7 @@ It steals ideas shamelessly from:
 - [pastebom.com](https://github.com/meawoppl/pastebom.com), for reusable Rust PCB extraction and Gerber-viewing machinery.
 - [punkfab/circuit-skills](https://github.com/punkfab/circuit-skills), for its simulate-then-lay-out workflow and its record of verification gates that gave false passes. Ideas only: the repository has no licence, so none of its code or text is used.
 - [parisxmas/fastroute](https://github.com/parisxmas/fastroute), a Rust port of Freerouting, for its unrouted-connection diagnosis, best-so-far checkpoints and benchmark boards. It is GPL-3.0-or-later, so if kicadmium uses it, it runs as a separate, discovered program; none of its code is linked or vendored.
+
+### Regional before/after rendering
+
+`kicadmium render --project ID --region 170 20 15 12 --layers F.Cu,F.SilkS,Edge.Cuts --zones net=VIN_5V --baseline HEAD -o region.png` produces a labeled comparison directly from board geometry. The region is x/y/width/height in millimetres; omit `--baseline` for the working board alone. A baseline can also be a board file. `--zones none|filled|net=NAME` controls existing fill polygons, `--highlight-nets GND,VIN_5V` highlights copper, and `--annotation` outlines the region. SVG and PNG have an opaque Tokyo-Night background. Baselines are read with Git, never checked out; rendering does not refill or save a board. Unfilled zones have no fill polygons to show. Publish the result with `agent-portal show region.png`.

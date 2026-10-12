@@ -21,7 +21,6 @@ mod pcb_scene;
 mod pcb_view;
 mod profile;
 mod quality;
-mod verify;
 mod region_render;
 mod revision;
 mod schematic_drawing;
@@ -31,6 +30,7 @@ mod sexpr;
 mod surface;
 mod symbol_graphics;
 mod thumbnails;
+mod verify;
 mod watch;
 
 pub use frontend_assets::EmbeddedAsset;
@@ -410,7 +410,12 @@ async fn main() -> Result<()> {
         restore_default_sigpipe();
     }
     match cli.command {
-        Commands::Verify(args) => { let code=verify::run(args).await?; if code!=0 {std::process::exit(code)} },
+        Commands::Verify(args) => {
+            let code = verify::run(args).await?;
+            if code != 0 {
+                std::process::exit(code)
+            }
+        }
         Commands::Render(args) => region_render::run(args)?,
         Commands::CheckSchema => println!("{}", kct::check_report::JSON_SCHEMA),
         Commands::Surface { action } => surface::execute(action)?,

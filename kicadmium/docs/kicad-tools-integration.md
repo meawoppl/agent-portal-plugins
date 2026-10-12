@@ -108,3 +108,11 @@ operations:
 ```
 
 Pad references resolve after preceding moves, using full precision and checking the requested net. Collinear forward runs within each added path are merged. `delete-tracks` takes `net`, `layer`, and a `path` of endpoint pairs, with optional `tolerance` in mm (default 0.000001); reversed endpoints match too. Every requested segment must exist. Footprint-owned text and graphics stay relative during moves. All operations validate before the candidate is saved; concurrent source changes abort the write.
+
+### Routing probes
+
+`query via-sites BOARD --net GND --near 180,27 --radius 2 --size 0.6 --drill 0.3` returns distance-ranked, sampled through-via sites across every copper layer. Copper, holes, keepouts, board edges, and silk-text envelopes are obstacles. `--step` controls sampling (default 0.25 mm) and `--limit` bounds results.
+
+`query corridor BOARD --net GND --layer F.Cu --from 175,27 --to 180,29 --width 0.3` reports a straight path and two 45-degree alternatives, with blockers for each. Both commands emit JSON and never edit the board.
+
+Queries use conservative maxima across project, netclass, and custom-rule minima, including conditional/layer-specific custom constraints. This can reject routes that a more specific rule would allow. Unsupported custom constraints or incomplete geometry fail explicitly rather than claiming a legal candidate. A via-site search is a bounded grid search, not an exhaustive proof that no continuous-space solution exists.

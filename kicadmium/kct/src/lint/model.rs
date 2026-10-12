@@ -112,6 +112,35 @@ pub fn parse(input: &str) -> Result<Sexp> {
     }
     Ok(result)
 }
+
+/// Hash source geometry without UUIDs, net codes or numeric spelling. Net names
+/// and transformed positions are included separately by the normalized model.
+pub fn geometry_hash(source: &Sexp) -> String {
+    fn canonical(s: &Sexp) -> serde_json::Value {
+        match s {
+            Sexp::Atom(a) => a
+                .parse::<f64>()
+                .ok()
+                .filter(|n| n.is_finite())
+                .map(|n| serde_json::json!(if n == 0. { 0. } else { n }))
+                .unwrap_or_else(|| serde_json::json!(a)),
+            Sexp::List(children) => {
+                let mut children: Vec<_> = children
+                    .iter()
+                    .filter(|c| !matches!(c.tag(), "uuid" | "tstamp" | "net"))
+                    .map(canonical)
+                    .collect();
+                // Pad attributes are unordered; vertex and primitive sequences
+                // are deliberately left ordered.
+                if s.tag() == "pad" && children.len() > 4 {
+                    children[4..].sort_by_key(serde_json::Value::to_string);
+                }
+                serde_json::Value::Array(children)
+            }
+        }
+    }
+    crate::lint::hash(&canonical(source).to_string())
+}
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct Point {
     pub x: f64,
@@ -311,7 +340,7 @@ fn anchor(s: &Sexp) -> Option<Point> {
         .and_then(|p| p.child("xy"))
         .and_then(|c| point(c).ok())
 }
-fn identity(s: &Sexp, parent: &str) -> (String, bool) {
+pub(super) fn identity(s: &Sexp, parent: &str) -> (String, bool) {
     let id = if s.get("uuid").is_empty() {
         s.get("tstamp")
     } else {
@@ -462,7 +491,7 @@ impl Board {
                         .filter(|g| g.get("layer").ends_with(".Cu") && g.tag().starts_with("fp_"))
                     {
                         b.unmodeled(
-                            crate::lint::hash(&format!("{g:?}:{at:?}:{a}")),
+                            crate::lint::hash(&format!("{}:{at:?}:{a}", geometry_hash(g))),
                             Some(at),
                             &id,
                         );
@@ -472,7 +501,7 @@ impl Board {
                     }
                     for z in s.children("zone") {
                         b.unmodeled(
-                            crate::lint::hash(&format!("{z:?}:{at:?}:{a}")),
+                            crate::lint::hash(&format!("{}:{at:?}:{a}", geometry_hash(z))),
                             Some(at),
                             &id,
                         );
@@ -504,7 +533,7 @@ impl Board {
                                 .or_default() += 1;
                         }
                         b.pads.push(Pad {
-                            geometry_hash: crate::lint::hash(&format!("{p:?}")),
+                            geometry_hash: geometry_hash(p),
                             id: pid,
                             stable: ps,
                             reference: reference.clone(),
@@ -547,7 +576,7 @@ impl Board {
                     b.zones.push(Zone {
                         net: n,
                         layers: layers(s),
-                        geometry_hash: crate::lint::hash(&format!("{s:?}")),
+                        geometry_hash: geometry_hash(s),
                     });
                 }
                 "arc" => {
@@ -566,13 +595,13 @@ impl Board {
                         width,
                     });
                     // Joins and open ends see the arc; clearance rules do not.
-                    b.unmodeled(crate::lint::hash(&format!("{s:?}")), anchor(s), "");
+                    b.unmodeled(geometry_hash(s), anchor(s), "");
                     *b.unsupported
                         .entry("copper arcs (joins only; clearance not analyzed)".into())
                         .or_default() += 1;
                 }
                 tag if tag.starts_with("gr_") && s.get("layer").ends_with(".Cu") => {
-                    b.unmodeled(crate::lint::hash(&format!("{s:?}")), anchor(s), "");
+                    b.unmodeled(geometry_hash(s), anchor(s), "");
                     *b.unsupported
                         .entry("board copper graphics".into())
                         .or_default() += 1;

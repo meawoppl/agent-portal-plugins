@@ -1,8 +1,8 @@
 //! Project-aware wrapper around the `kct lint` heuristic engine (`kct::lint`).
 //!
 //! Resolves the project's canonical `.kicad_pcb`, uses the project id as the
-//! stable board identity, and reads optional `lint.config` / `lint.reviews`
-//! paths (project-root relative) from `.kicad-pcb.json`. Findings are advisory
+//! review namespace, and reads an optional `lint.config` path (project-root
+//! relative) from `.kicad-pcb.json`. Legacy review paths are rejected. Findings are advisory
 //! heuristics, never native DRC, and never modify the board.
 
 use std::{ffi::OsString, path::PathBuf};
@@ -30,7 +30,7 @@ use crate::{
 pub(crate) struct LintConfig {
     /// kct lint JSON `Config`; omitted fields use kct lint defaults.
     pub config: Option<PathBuf>,
-    /// Evidence-bound review ledger; stale evidence is not reused.
+    /// Unsupported legacy ledger path; retained only to report a clear error.
     pub reviews: Option<PathBuf>,
 }
 
@@ -66,20 +66,15 @@ pub(crate) fn run(project: &ProjectContext) -> Result<LintRun> {
         }
         None => Config::default(),
     };
-    let legacy_ledger = if let Some(path) = &settings.reviews {
-        let path = project.root.join(path);
-        if path.exists() {
-            Some(review::load(&path)?)
-        } else {
-            None
-        }
-    } else {
-        None
-    };
+    if settings.reviews.is_some() {
+        anyhow::bail!("legacy lint review ledgers are unsupported; create fresh reviews in the board lint file");
+    }
     let mut file = if policy_path.exists() {
         BoardLintFile::load_or_default(&policy_path, &project.id)?
     } else {
-        BoardLintFile::migrate(Some(legacy_config), legacy_ledger, &project.id)
+        let mut file = BoardLintFile::new(&project.id);
+        file.config = legacy_config;
+        file
     };
     let checked = board_file::lint_board(&source, &file, review::now())?;
     if policy_path.exists() && board_file::backfill(&mut file, &checked.report) > 0 {

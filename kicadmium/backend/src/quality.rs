@@ -27,7 +27,25 @@ use crate::{
 };
 
 /// Bumped when audit logic changes so cached quality results rebuild.
-pub(crate) const AUDIT_VERSION: &str = "quality/v1";
+pub(crate) const AUDIT_VERSION: &str = "quality/v2-nearest-decoupler";
+
+/// Bound CLI examples without changing the complete counts or gate outcome.
+pub(crate) fn limit_examples(report: &mut Value, per_rule: usize) {
+    let Some(findings) = report.get_mut("violations").and_then(Value::as_array_mut) else {
+        return;
+    };
+    let before = findings.len();
+    let mut seen = BTreeMap::new();
+    findings.retain(|f| {
+        let count = seen
+            .entry(f["type"].as_str().unwrap_or_default().to_owned())
+            .or_insert(0);
+        *count += 1;
+        *count <= per_rule
+    });
+    let omitted = before - findings.len();
+    report["omitted_findings"] = json!(omitted);
+}
 
 /// `quality` section of `.kicad-pcb.json`.
 #[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq)]
@@ -781,6 +799,17 @@ pub(crate) async fn execute(project: &ProjectContext, out: &Path) -> Result<Outc
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn example_limits_preserve_totals_and_all_restores_complete_output() {
+        let mut report = serde_json::json!({"summary":{"warnings":8},"violations":(0..8).map(|_| serde_json::json!({"type":"same.rule"})).collect::<Vec<_>>()});
+        let mut all = report.clone();
+        super::limit_examples(&mut report, 5);
+        assert_eq!(report["violations"].as_array().unwrap().len(), 5);
+        assert_eq!(report["summary"]["warnings"], 8);
+        assert_eq!(report["omitted_findings"], 3);
+        super::limit_examples(&mut all, usize::MAX);
+        assert_eq!(all["violations"].as_array().unwrap().len(), 8);
+    }
     use super::*;
 
     #[test]

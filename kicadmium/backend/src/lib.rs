@@ -141,6 +141,9 @@ enum Commands {
     Quality {
         #[arg(long)]
         json: bool,
+        /// Include every finding instead of at most five examples per rule.
+        #[arg(long)]
+        all: bool,
         #[arg(long, default_value = ".")]
         cwd: PathBuf,
         #[arg(long)]
@@ -529,10 +532,19 @@ async fn main() -> Result<()> {
                 std::process::exit(1);
             }
         }
-        Commands::Quality { json, cwd, project } => {
+        Commands::Quality {
+            json,
+            all,
+            cwd,
+            project,
+        } => {
             let cwd = cwd.canonicalize()?;
             let project = cli_project_context(&cwd, project.as_deref())?;
-            let result = quality::run_check(&project).await?;
+            let mut result = quality::run_check(&project).await?;
+            let mut report: serde_json::Value =
+                serde_json::from_str(&result.report).unwrap_or_default();
+            quality::limit_examples(&mut report, if all { usize::MAX } else { 5 });
+            result.report = serde_json::to_string(&report)?;
             if json {
                 print_json_or_debug(true, &result)?;
             } else {
@@ -550,6 +562,19 @@ async fn main() -> Result<()> {
                             info["severity"].as_str().unwrap_or_default()
                         );
                     }
+                }
+                for finding in report["violations"].as_array().into_iter().flatten() {
+                    println!(
+                        "  {}: {}",
+                        finding["type"].as_str().unwrap_or_default(),
+                        finding["description"].as_str().unwrap_or_default()
+                    );
+                }
+                if report["omitted_findings"].as_u64().unwrap_or(0) > 0 {
+                    println!(
+                        "{} additional findings; use --all to show every finding",
+                        report["omitted_findings"]
+                    );
                 }
             }
             if !result.ok {

@@ -208,17 +208,28 @@ pub fn apply(original: &Pcb, plan: &Plan) -> Result<Pcb> {
                 if points.len() < 2 {
                     bail!("track has zero length")
                 }
-                p.add_trace(
-                    points[0],
-                    *points.last().unwrap(),
-                    TraceOptions {
-                        net: Some(n.clone()),
-                        layer: l.clone(),
-                        width: *width,
-                        waypoints: points[1..points.len() - 1].to_vec(),
-                        dedupe: true,
-                    },
-                )?;
+                for pair in points.windows(2) {
+                    if p.segments().iter().any(|s| {
+                        s.net_name == *n
+                            && s.layer == *l
+                            && s.width == *width
+                            && ((s.start == pair[0] && s.end == pair[1])
+                                || (s.start == pair[1] && s.end == pair[0]))
+                    }) {
+                        continue;
+                    }
+                    p.add_trace(
+                        pair[0],
+                        pair[1],
+                        TraceOptions {
+                            net: Some(n.clone()),
+                            layer: l.clone(),
+                            width: *width,
+                            waypoints: Vec::new(),
+                            dedupe: false,
+                        },
+                    )?;
+                }
             }
             Operation::AddVia {
                 net: n,
@@ -240,6 +251,15 @@ pub fn apply(original: &Pcb, plan: &Plan) -> Result<Pcb> {
                     layer(&p, l)?;
                 }
                 let at = resolve(&p, at, n)?;
+                if p.vias().iter().any(|v| {
+                    v.position == at
+                        && v.net_name == *n
+                        && v.size == *size
+                        && v.drill == *drill
+                        && v.layers == *layers
+                }) {
+                    continue;
+                }
                 p.add_via(
                     at.0,
                     at.1,
@@ -248,7 +268,7 @@ pub fn apply(original: &Pcb, plan: &Plan) -> Result<Pcb> {
                         size: *size,
                         drill: *drill,
                         layers: layers.clone(),
-                        dedupe: true,
+                        dedupe: false,
                     },
                 );
             }

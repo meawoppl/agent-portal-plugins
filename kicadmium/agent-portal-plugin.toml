@@ -11,14 +11,14 @@ platforms = ["linux", "macos"]
 
 [install]
 setup = "sh scripts/setup.sh"
-doctor = "target/release/kicadmium doctor --json --cwd {cwd}"
+doctor = "bin/kicadmium doctor --json --cwd {cwd}"
 
 [surface]
 kind = "http"
 default_title = "kicadmium"
 default_width_percent = 50
 health_path = "/healthz"
-start = "target/release/kicadmium serve --port {port} --session {session_id} --cwd {cwd}"
+start = "bin/kicadmium serve --port {port} --session {session_id} --cwd {cwd}"
 ready_url = "http://127.0.0.1:{port}/"
 
 [surface.env]
@@ -27,47 +27,47 @@ AGENT_PORTAL_PLUGIN = "kicadmium"
 [[commands]]
 name = "doctor"
 description = "Report local PCB workflow dependencies and detected project files."
-run = "target/release/kicadmium doctor --json --cwd {cwd}"
+run = "bin/kicadmium doctor --json --cwd {cwd}"
 
 [[commands]]
 name = "drc"
 description = "Run design-rule checks for the active board when KiCad tooling is available."
-run = "target/release/kicadmium drc --cwd {cwd} --json"
+run = "bin/kicadmium drc --cwd {cwd} --json"
 
 [[commands]]
 name = "erc"
 description = "Run schematic electrical-rule checks when KiCad tooling is available."
-run = "target/release/kicadmium erc --cwd {cwd} --json"
+run = "bin/kicadmium erc --cwd {cwd} --json"
 
 [[commands]]
 name = "quality"
 description = "Run layout-quality checks (kct rules + plugin audits) against the workspace qualityProfile."
-run = "target/release/kicadmium quality --cwd {cwd} --json"
+run = "bin/kicadmium quality --cwd {cwd} --json"
 
 [[commands]]
 name = "lint"
 description = "Run `kct lint run` on the project board, honouring <board>.lint.json exceptions (advisory, not native DRC)."
-run = "target/release/kicadmium lint --cwd {cwd} --json"
+run = "bin/kicadmium lint --cwd {cwd} --json"
 
 [[commands]]
 name = "export-gerbers"
 description = "Export fabrication artifacts into the session artifact directory."
-run = "target/release/kicadmium export gerbers --cwd {cwd} --out {artifact_dir}"
+run = "bin/kicadmium export gerbers --cwd {cwd} --out {artifact_dir}"
 
 [[commands]]
 name = "export-jlcpcb"
 description = "Export a JLCPCB-oriented fabrication package into the session artifact directory."
-run = "target/release/kicadmium export jlcpcb --cwd {cwd} --out {artifact_dir}"
+run = "bin/kicadmium export jlcpcb --cwd {cwd} --out {artifact_dir}"
 
 [[commands]]
 name = "kct"
 description = "Run kicadmium's native Rust kct automation CLI inside the active repo. Pass arguments after --."
-run = "target/release/kicadmium kct --json --cwd {cwd} --"
+run = "bin/kicadmium kct --json --cwd {cwd} --"
 
 [[commands]]
 name = "tool"
 description = "Run an allowed KiCad PCB tool inside the active repo. Usage: tool -- kicad-cli <args...>."
-run = "target/release/kicadmium tool --json --cwd {cwd} --"
+run = "bin/kicadmium tool --json --cwd {cwd} --"
 
 [[skills]]
 name = "pcb-workflow"

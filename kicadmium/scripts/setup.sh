@@ -36,5 +36,17 @@ if [ -z "${KICADMIUM_SETUP_PLAIN:-}" ]; then
 fi
 
 echo "kicadmium setup: building release binary (CARGO_HOME=${CARGO_HOME:-default}, RUSTC_WRAPPER=${RUSTC_WRAPPER:-none})" >&2
+# Serialize activation and expose an in-progress marker to the running binary.
+mkdir .install-lock || { echo "kicadmium install already running; inspect .install-lock/pid" >&2; exit 1; }
+trap 'rm -f .install-lock/pid; rmdir .install-lock' EXIT
+trap 'exit 130' INT TERM
+printf '%s\n' "$$" > .install-lock/pid
+# Bootstrap the stable runtime on upgrade before touching any build output.
+if [ ! -x bin/kicadmium ] && [ -x target/release/kicadmium ]; then
+    mkdir -p bin
+    cp -p target/release/kicadmium "bin/.bootstrap.$$"
+    mv "bin/.bootstrap.$$" bin/kicadmium
+fi
+export CARGO_TARGET_DIR="${KICADMIUM_SETUP_TARGET_DIR:-$PWD/target/install-build}"
 cargo build --release -p backend
-exec target/release/kicadmium setup "$@"
+"$CARGO_TARGET_DIR/release/kicadmium" setup --activate "$PWD/bin/kicadmium" "$@"

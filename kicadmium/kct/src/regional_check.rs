@@ -61,9 +61,16 @@ pub fn run(
     };
     let source = std::fs::read_to_string(board)?;
     let local = scoped(&source, expanded)?;
+    // Development/plugin reinstalls can change the engine without changing the
+    // crate version. Stat the executable rather than hashing it on every query.
+    let executable = std::fs::metadata(std::env::current_exe()?)?;
+    let installed_at = executable
+        .modified()?
+        .duration_since(std::time::UNIX_EPOCH)?;
     let mut material = format!(
-        "regional/v2:{}:{kind}:{}:{bounds:?}:{margin}:{local}",
+        "regional/v3:{}:{}:{installed_at:?}:{kind}:{}:{bounds:?}:{margin}:{local}",
         env!("CARGO_PKG_VERSION"),
+        executable.len(),
         serde_json::to_string(&config)?
     );
     for extension in ["kicad_pro", "kicad_dru", "lint.json"] {

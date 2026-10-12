@@ -1,4 +1,6 @@
 /target
+/bin
+/.install-lock
 frontend/dist
 .portal/
 .runtime/

@@ -8,6 +8,7 @@ mod artifacts;
 mod audits;
 mod bom;
 mod frontend_assets;
+mod install;
 mod jlc_corrections;
 mod jobs;
 mod library;
@@ -105,6 +106,9 @@ enum Commands {
     Setup {
         #[arg(long)]
         json: bool,
+        /// Atomically publish this executable at the installed runtime path.
+        #[arg(long)]
+        activate: Option<PathBuf>,
     },
     Doctor {
         #[arg(long)]
@@ -379,7 +383,10 @@ async fn main() -> Result<()> {
         restore_default_sigpipe();
     }
     match cli.command {
-        Commands::Setup { json } => {
+        Commands::Setup { json, activate } => {
+            if let Some(destination) = activate {
+                install::activate(&std::env::current_exe()?, &destination)?;
+            }
             let response = serde_json::json!({
                 "ok": kicad_cli().is_some(),
                 "runtime_dir": plugin_dir()?.join(".runtime"),
@@ -427,6 +434,7 @@ async fn main() -> Result<()> {
                 "runtime": {
                     "server": "rust",
                     "binary": std::env::current_exe().ok(),
+                    "installation": install::build_status(),
                     "version": env!("CARGO_PKG_VERSION"),
                     "runtime_dir": plugin_dir().ok().map(|dir| dir.join(".runtime")),
                 },

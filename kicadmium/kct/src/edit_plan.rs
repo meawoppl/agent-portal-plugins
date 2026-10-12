@@ -319,7 +319,20 @@ pub fn apply(original: &Pcb, plan: &Plan) -> Result<Pcb> {
             }
         }
     }
+    preserve_edit_precision(p.sexp_mut());
     Ok(p)
+}
+/// The compatibility formatter defaults constructed floats to six significant
+/// digits. Edit plans must retain the exact computed pad endpoints on disk.
+fn preserve_edit_precision(node: &mut SExp) {
+    if matches!(node.token, crate::sexp::Token::None) {
+        if let Some(crate::sexp::Value::Float(value)) = &node.value {
+            node.token = crate::sexp::Token::Number(value.to_string());
+        }
+    }
+    for child in &mut node.children {
+        preserve_edit_precision(child);
+    }
 }
 pub fn clearance_findings(p: &Pcb) -> Result<Vec<Value>> {
     let checker = DRCChecker::new(p, DRCCheckerOptions::default())?;

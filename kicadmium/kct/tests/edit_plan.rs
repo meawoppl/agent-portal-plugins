@@ -66,3 +66,18 @@ fn near_duplicate_does_not_discard_exact_pad_endpoint() {
     assert!(edited.segments().iter().any(|s| s.start == at));
     assert_eq!(edited.segments().len(), 2);
 }
+#[test]
+fn exact_pad_endpoints_survive_serialization() {
+    let p = board();
+    let plan:Plan=serde_yaml::from_str("version: 1\noperations:\n- {op: move, reference: U1, at: [179.1234567, 27.7654321], rotation: 33}\n- {op: add-track, net: N, layer: F.Cu, width: 0.25, path: [U1.1, [181, 30]]}\n").unwrap();
+    let edited = apply(&p, &plan).unwrap();
+    let expected = edited.get_pad_position("U1", "1").unwrap();
+    let reloaded = Pcb::from_sexp(parse(&edited.sexp().to_kicad_string()).unwrap()).unwrap();
+    let actual = reloaded.segments()[0].start;
+    assert!((actual.0 - expected.0).abs() < 1e-12);
+    assert!((actual.1 - expected.1).abs() < 1e-12);
+    assert_eq!(
+        reloaded.get_footprint("U1").unwrap().position,
+        (179.1234567, 27.7654321)
+    );
+}

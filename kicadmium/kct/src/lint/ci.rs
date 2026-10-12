@@ -50,6 +50,9 @@ impl From<&Checked> for CiSummary {
         let mut ignored = 0;
         let mut flagged = 0;
         for f in &c.report.findings {
+            if f.confidence == "not_evaluated" {
+                continue;
+            }
             match f.state.as_str() {
                 "ignored" => ignored += 1,
                 s => {

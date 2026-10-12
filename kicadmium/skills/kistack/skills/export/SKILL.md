@@ -8,6 +8,11 @@ drill files, position files, and BOM files for the selected manufacturer. Keep
 the workflow in `.kicad-pcb.json` and the recorded build manifest rather than
 creating an ad-hoc Python or shell pipeline.
 
+For routine DRC use `kicadmium drc --cwd <repo> --project <id>`: zone fills are
+refreshed in a temporary project copy. Only `--save-fills` writes the checked
+board back. Avoid direct `kicad-cli ... --save-board` on sources during an edit
+loop, since fill polygons can dwarf the actual geometry changes in a commit.
+
 JLCPCB and NextPCB require a specific format for their position files:
 A .csv file with 5 columns: Designator, Mid X, Mid Y, Layer (T or B) and rotation
 Use `kicadmium export jlcpcb --cwd <repo> --project <id> --out <dir>` for this

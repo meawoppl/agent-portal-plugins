@@ -7,6 +7,7 @@
 mod artifacts;
 mod audits;
 mod bom;
+mod check_workspace;
 mod frontend_assets;
 mod install;
 mod jlc_corrections;
@@ -127,6 +128,9 @@ enum Commands {
     Drc {
         #[arg(long)]
         json: bool,
+        /// Explicitly save refreshed zone fills after checking a scratch copy.
+        #[arg(long)]
+        save_fills: bool,
         #[arg(long, default_value = ".")]
         cwd: PathBuf,
         #[arg(long)]
@@ -522,10 +526,15 @@ async fn main() -> Result<()> {
             tracing::info!(%addr, "serving KiCad PCB plugin");
             axum::serve(listener, app).await?;
         }
-        Commands::Drc { json, cwd, project } => {
+        Commands::Drc {
+            json,
+            save_fills,
+            cwd,
+            project,
+        } => {
             let cwd = cwd.canonicalize()?;
             let project = cli_project_context(&cwd, project.as_deref())?;
-            let result = run_check(&project, "drc").await?;
+            let result = run_check_options(&project, "drc", save_fills).await?;
             print_json_or_debug(json, &result)?;
             if !result.ok {
                 std::process::exit(1);
@@ -2063,6 +2072,14 @@ fn export_out(project: &ProjectContext, out: &Path, kind: &str) -> PathBuf {
 }
 
 async fn run_check(project: &ProjectContext, kind: &str) -> Result<CheckResponse> {
+    run_check_options(project, kind, false).await
+}
+
+async fn run_check_options(
+    project: &ProjectContext,
+    kind: &str,
+    save_fills: bool,
+) -> Result<CheckResponse> {
     let Some(cli) = kicad_cli() else {
         return Ok(CheckResponse {
             ok: false,
@@ -2095,6 +2112,12 @@ async fn run_check(project: &ProjectContext, kind: &str) -> Result<CheckResponse
         });
     };
     let tmp = TempDir::new()?;
+    let original = std::fs::read(&source)?;
+    let checked_source = if kind == "drc" {
+        check_workspace::copy_project(&project.root, &source, &tmp.path().join("project"))?
+    } else {
+        source.clone()
+    };
     let report = tmp.path().join(format!("{kind}.json"));
     let mut args: Vec<OsString> = if kind == "drc" {
         vec![
@@ -2118,12 +2141,20 @@ async fn run_check(project: &ProjectContext, kind: &str) -> Result<CheckResponse
     if kind == "drc" {
         args.push("--exit-code-violations".into());
         args.push("--schematic-parity".into());
+        args.push("--refill-zones".into());
+        args.push("--save-board".into());
     } else {
         args.push("--exit-code-violations".into());
     }
-    args.push(source.as_os_str().into());
+    args.push(checked_source.as_os_str().into());
     let output = run_command(&cli, &args, &project.root).await?;
     let report_text = tokio::fs::read_to_string(&report).await.unwrap_or_default();
+    if save_fills
+        && matches!(output.status, 0 | 5)
+        && serde_json::from_str::<serde_json::Value>(&report_text).is_ok()
+    {
+        check_workspace::save_fills(&source, &checked_source, &original)?;
+    }
     Ok(CheckResponse {
         ok: output.status == 0,
         source: Some(rel(&project.root, &source)?),

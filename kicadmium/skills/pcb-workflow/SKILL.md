@@ -37,6 +37,12 @@ other electronics design artifacts and the KiCad PCB Portal plugin is available.
 
 ## Done Means More Than DRC
 
+Use `kicadmium drc` for routine verification: it copies the project and refills
+zones in a disposable workspace, leaving the source board byte-for-byte intact.
+Commit geometry edits directly; do not run `--refill-zones --save-board` on the
+source as part of every edit. When refreshed fills need to be committed, use
+the explicit `kicadmium drc --save-fills` option and review that diff separately.
+
 Never report "DRC clean" as done or fab-ready. DRC checks the fab's rules, not
 layout quality. Before you call layout work complete:
 

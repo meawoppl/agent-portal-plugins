@@ -117,3 +117,11 @@ It steals ideas shamelessly from:
 - [pastebom.com](https://github.com/meawoppl/pastebom.com), for reusable Rust PCB extraction and Gerber-viewing machinery.
 - [punkfab/circuit-skills](https://github.com/punkfab/circuit-skills), for its simulate-then-lay-out workflow and its record of verification gates that gave false passes. Ideas only: the repository has no licence, so none of its code or text is used.
 - [parisxmas/fastroute](https://github.com/parisxmas/fastroute), a Rust port of Freerouting, for its unrouted-connection diagnosis, best-so-far checkpoints and benchmark boards. It is GPL-3.0-or-later, so if kicadmium uses it, it runs as a separate, discovered program; none of its code is linked or vendored.
+
+### Supervised workbench (Linux user systemd)
+
+Run the installed `bin/kicadmium surface ensure --cwd /path/to/project --port 8765` to start or reuse a workbench outside the Portal session's cgroup. It prints the local URL after the listener starts. Forward that port with `agent-portal forward 8765` for remote access. Processes restart automatically on failure and survive Portal service restarts; the Portal forwarding URL itself is session-owned and may need to be reopened by Portal.
+
+Successful plugin activation restarts registered workbench units against the newly activated stable executable. Unit names are deterministic for each project directory and port, so repeated `ensure` calls reuse the same process. Inspect logs with `journalctl --user -u 'kicadmium-surface-*'`. This requires a running Linux user systemd manager; transient services last for that manager's lifetime, not across machine reboots. `serve` remains available for other platforms and Portal-managed hosting.
+
+The Portal manifest starts the supervised surface automatically and keeps a lightweight launcher attached with `--wait`. On macOS the equivalent service is bootstrapped into the current GUI user's launchd domain with `KeepAlive`; installation restarts those registered jobs too. Neither platform requires a root/system service. Readiness requires a successful kicadmium `/healthz` response, and a port occupied outside the selected unit is rejected.

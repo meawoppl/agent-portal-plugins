@@ -7,3 +7,4 @@ frontend/dist
 *.swp
 *~
 .DS_Store
+bin/.surface-units/

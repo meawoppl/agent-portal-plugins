@@ -131,6 +131,11 @@ enum Commands {
         session: String,
     },
     Drc {
+        /// Fast native local check; full KiCad verification remains required.
+        #[arg(long, num_args = 4, allow_hyphen_values = true)]
+        region: Vec<f64>,
+        #[arg(long, default_value_t = 2.0)]
+        margin: f64,
         #[arg(long)]
         json: bool,
         /// Explicitly save refreshed zone fills after checking a scratch copy.
@@ -537,9 +542,33 @@ async fn main() -> Result<()> {
             save_fills,
             cwd,
             project,
+            region,
+            margin,
         } => {
             let cwd = cwd.canonicalize()?;
             let project = cli_project_context(&cwd, project.as_deref())?;
+            if !region.is_empty() {
+                let board = pick_project_file(&project, "kicad_pcb")?
+                    .ok_or_else(|| anyhow!("project has no PCB"))?;
+                let b = &region;
+                let report = kct::regional_check::run(
+                    &board,
+                    kct::region::Bounds {
+                        x0: b[0],
+                        y0: b[1],
+                        x1: b[2],
+                        y1: b[3],
+                    },
+                    margin,
+                    "drc",
+                    Default::default(),
+                )?;
+                println!("{}", serde_json::to_string_pretty(&report)?);
+                if report["ok"] != true {
+                    std::process::exit(1);
+                }
+                return Ok(());
+            }
             let result = run_check_options(&project, "drc", save_fills).await?;
             print_check(json, "drc", &result)?;
             if !result.ok {

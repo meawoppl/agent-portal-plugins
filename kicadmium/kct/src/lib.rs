@@ -42,6 +42,7 @@ pub mod project;
 pub mod pyjson;
 pub mod recovery;
 pub mod region;
+pub mod regional_check;
 pub mod router;
 pub mod routing_query;
 pub mod schema;

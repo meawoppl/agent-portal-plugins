@@ -117,3 +117,11 @@ It steals ideas shamelessly from:
 - [pastebom.com](https://github.com/meawoppl/pastebom.com), for reusable Rust PCB extraction and Gerber-viewing machinery.
 - [punkfab/circuit-skills](https://github.com/punkfab/circuit-skills), for its simulate-then-lay-out workflow and its record of verification gates that gave false passes. Ideas only: the repository has no licence, so none of its code or text is used.
 - [parisxmas/fastroute](https://github.com/parisxmas/fastroute), a Rust port of Freerouting, for its unrouted-connection diagnosis, best-so-far checkpoints and benchmark boards. It is GPL-3.0-or-later, so if kicadmium uses it, it runs as a separate, discovered program; none of its code is linked or vendored.
+
+### Fast regional feedback
+
+`kicadmium drc --project ID --region X0 Y0 X1 Y1 --margin 2` runs native local copper/zone-clearance and courtyard checks. `kicadmium kct -- lint run BOARD --region X0 Y0 X1 Y1 --margin 2` runs a declared set of local trace/via/pad rules. Both print structured results with `engine: native-local`, explicit coverage, and `requires_full_verification: true`.
+
+The regional snapshot retains intersecting objects and a guard margin, including crossing segments and neighboring pads. Content-addressed caches in `.kct-region-cache` include scoped geometry, bounds, margin, rule configuration, adjacent project/custom rules, policy bytes and engine version. Edits wholly outside the snapshot reuse local results; the reported board hash still reflects the current full board. Source boards are never written.
+
+Regional checks are a partial fast-feedback path, not full KiCad DRC, schematic parity, global connectivity, or complete lint. Conditional custom DRC rules fail explicitly in native regional DRC. Always run full `verify` before commit; omitting `--region` preserves the existing full-check behavior.

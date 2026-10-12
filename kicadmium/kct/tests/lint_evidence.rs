@@ -70,18 +70,14 @@ fn distant_track_delete_keeps_reviews_applied() {
 }
 
 #[test]
-fn nearby_geometry_reopens() {
+fn nearby_unrelated_geometry_keeps_reviews() {
     let f = inline();
     let near = common::BOARD.replace(
         "(segment (start 100 200)",
         "(segment (start 11 22) (end 13 22) (width 0.2) (layer \"F.Cu\") (net 2) (uuid \"near\"))\n(segment (start 100 200)",
     );
     for (rule, subjects, s) in statuses(&near, &f) {
-        let expect = if subjects == ["trace-1"] {
-            ExceptionStatus::Changed
-        } else {
-            ExceptionStatus::Applied
-        };
+        let expect = ExceptionStatus::Applied;
         assert_eq!(s, expect, "{rule} {subjects:?}");
     }
 }

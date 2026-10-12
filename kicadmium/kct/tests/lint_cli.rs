@@ -18,7 +18,7 @@ fn lint_file(board: &Path, config: &str) -> PathBuf {
     let path = kct::lint::board_file::BoardLintFile::path_for(board);
     fs::write(
         &path,
-        format!(r#"{{"schema":2,"board_id":"fixture","config":{config},"exceptions":[]}}"#),
+        format!(r#"{{"schema":3,"board_id":"fixture","config":{config},"exceptions":[]}}"#),
     )
     .unwrap();
     path
@@ -216,4 +216,23 @@ fn kct_lint_init_print_default_config_needs_no_board() {
     // What it prints round-trips through the strict (deny_unknown_fields) parser.
     let printed = serde_json::to_string(&kct::lint::Config::default()).unwrap();
     serde_json::from_str::<kct::lint::Config>(&printed).unwrap();
+}
+
+#[test]
+fn diff_of_identical_boards_with_different_filenames_is_empty() {
+    let dir = tempfile::tempdir().unwrap();
+    let before = bad_board(dir.path());
+    let after = dir.path().join("working-copy.kicad_pcb");
+    fs::copy(&before, &after).unwrap();
+    // No policy file: exercise the actual CLI filename-derived board IDs.
+    assert_eq!(
+        kct_lint(&[
+            "diff",
+            before.to_str().unwrap(),
+            after.to_str().unwrap(),
+            "--format",
+            "json"
+        ]),
+        Ok(0)
+    );
 }

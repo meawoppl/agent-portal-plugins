@@ -184,16 +184,7 @@ fn optional_num(s: &Sexp, key: &str, default: f64) -> f64 {
     s.child(key).and_then(|v| v.num(1).ok()).unwrap_or(default)
 }
 fn id(s: &Sexp) -> String {
-    let v = if s.get("uuid").is_empty() {
-        s.get("tstamp")
-    } else {
-        s.get("uuid")
-    };
-    if v.is_empty() {
-        format!("fallback:{}", hash(&format!("{s:?}")))
-    } else {
-        v.into()
-    }
+    identity(s, "").0
 }
 fn points(s: &Sexp) -> Vec<Point> {
     s.child("pts")
@@ -387,7 +378,7 @@ impl Extra {
                         for p in s.children("pad") {
                             if let Some(z) = p.child("zone_connect") {
                                 out.pad_thermals.insert(
-                                    id(p),
+                                    identity(p, &fid).0,
                                     match z.val(1) {
                                         "0" => "none",
                                         "2" => "solid",

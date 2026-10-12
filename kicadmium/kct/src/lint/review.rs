@@ -40,13 +40,13 @@ pub fn now() -> u64 {
 pub fn load(path: &Path) -> Result<Ledger> {
     if !path.exists() {
         return Ok(Ledger {
-            schema: 1,
+            schema: 2,
             decisions: vec![],
         });
     }
     let l: Ledger = serde_json::from_str(&fs::read_to_string(path)?)?;
-    if l.schema != 1 {
-        bail!("unsupported review schema")
+    if l.schema != 2 {
+        bail!("unsupported review schema; old waivers must be discarded")
     }
     let mut keys = std::collections::BTreeSet::new();
     for d in &l.decisions {
@@ -211,9 +211,7 @@ pub fn update(
         bail!("reason and reviewer are required")
     }
     if action == "ignore" && !found.stable_identity {
-        bail!(
-            "cannot persistently ignore an object without stable UUID; add UUID or encode intent in configuration"
-        )
+        bail!("cannot ignore a finding without a stable content identity")
     }
     if expires_at.is_some_and(|t| t <= now()) {
         bail!("expiry must be in the future")

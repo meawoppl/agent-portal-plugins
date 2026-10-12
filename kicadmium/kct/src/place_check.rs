@@ -33,6 +33,42 @@ fn footprint_box(p: &Pcb, reference: &str) -> Box2 {
             );
         }
     }
+    // Reference/value labels can sit well outside pads and courtyards. Include
+    // their full ink bounds so moving a label over a remote via is checked.
+    use crate::validate::rules::silkscreen;
+    let transform = silkscreen::fp_transform(fp);
+    let mut extend = |bounds: Box2| {
+        b = (
+            b.0.min(bounds.0),
+            b.1.min(bounds.1),
+            b.2.max(bounds.2),
+            b.3.max(bounds.3),
+        );
+    };
+    for text in fp
+        .texts
+        .iter()
+        .filter(|t| !t.hidden && t.layer.ends_with("SilkS"))
+    {
+        if let Some(bounds) = silkscreen::text_bbox_geometry(
+            &text.text,
+            text.font_size,
+            text.font_thickness,
+            transform(text.position),
+        )
+        .and_then(|g| g.bounds())
+        {
+            extend(bounds);
+        }
+    }
+    for graphic in fp.graphics.iter().filter(|g| g.layer.ends_with("SilkS")) {
+        if let Some(bounds) =
+            silkscreen::stroke_geometry(&silkscreen::SilkGraphic::from(graphic), Some(&transform))
+                .and_then(|g| g.bounds())
+        {
+            extend(bounds);
+        }
+    }
     b
 }
 fn local_board(p: &Pcb, regions: &[Box2]) -> Result<Pcb> {

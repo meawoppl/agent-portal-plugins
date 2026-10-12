@@ -56,7 +56,16 @@ fn panel(scene: &Scene, a: &Args, x: f64, label: &str, width: f64, height: f64) 
     let [rx, ry, rw, rh] = a.region.as_slice() else {
         unreachable!()
     };
-    let mut out=format!("<text x=\"{}\" y=\"24\" fill=\"#c0caf5\" font-size=\"18\">{}</text><svg x=\"{x}\" y=\"36\" width=\"{width}\" height=\"{height}\" viewBox=\"{rx} {ry} {rw} {rh}\" overflow=\"hidden\"><g stroke-linecap=\"round\" stroke-linejoin=\"round\">",x+12.,escape(label));
+    let lettering = kicad_strokes::to_strokes(&kicad_strokes::TextSpec {
+        text: label.into(),
+        pos: [x + 12., 24.],
+        size: [16., 16.],
+        thickness: 1.4,
+        justify_h: kicad_strokes::HJustify::Left,
+        justify_v: kicad_strokes::VJustify::Bottom,
+        ..Default::default()
+    });
+    let mut out=format!("<g stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>{}</title>{}</g><svg x=\"{x}\" y=\"36\" width=\"{width}\" height=\"{height}\" viewBox=\"{rx} {ry} {rw} {rh}\" overflow=\"hidden\"><g stroke-linecap=\"round\" stroke-linejoin=\"round\">",escape(label),primitive(&lettering.into_prim(), "#c0caf5"));
     let mut layers = scene
         .layers
         .iter()
@@ -179,9 +188,7 @@ pub(crate) fn run(a: Args) -> Result<()> {
     match a.output.extension().and_then(|s| s.to_str()) {
         Some("svg") => std::fs::write(&a.output, svg)?,
         Some("png") => {
-            let mut options = resvg::usvg::Options::default();
-            options.fontdb_mut().load_system_fonts();
-            let tree = resvg::usvg::Tree::from_str(&svg, &options)?;
+            let tree = resvg::usvg::Tree::from_str(&svg, &Default::default())?;
             let size = tree.size().to_int_size();
             let mut pix = resvg::tiny_skia::Pixmap::new(size.width(), size.height())
                 .context("allocate render")?;
@@ -245,6 +252,15 @@ mod tests {
             } else {
                 assert_eq!(&bytes[..8], b"\x89PNG\r\n\x1a\n");
                 assert_eq!(u32::from_be_bytes(bytes[16..20].try_into().unwrap()), 1600);
+                let image = resvg::tiny_skia::Pixmap::decode_png(&bytes).unwrap();
+                let label_pixels = image.pixels()[..1600 * 36]
+                    .iter()
+                    .filter(|p| p.red() > 100 && p.green() > 100 && p.blue() > 100)
+                    .count();
+                assert!(
+                    label_pixels > 100,
+                    "comparison labels must render without system fonts"
+                );
             }
         }
         assert_eq!(std::fs::read_to_string(board).unwrap(), source);

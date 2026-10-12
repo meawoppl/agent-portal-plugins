@@ -65,3 +65,24 @@ fn table_is_bounded_but_counts_are_complete() {
 fn bad_bounds_are_rejected() {
     assert!(query(&board(""), Bounds { x0: 2., ..bounds() }, &[], &[], 50).is_err());
 }
+#[test]
+fn footprint_positions_use_sheet_coordinates_with_offset_outline() {
+    let s = board(
+        r#"(gr_rect (start 100 100) (end 200 200) (stroke (width 0.05) (type default)) (fill none) (layer "Edge.Cuts")) (footprint "IC" (layer "F.Cu") (at 120 130) (uuid "fp") (property "Reference" "U1"))"#,
+    );
+    let r = query(
+        &s,
+        Bounds {
+            x0: 119.,
+            y0: 129.,
+            x1: 121.,
+            y1: 131.,
+        },
+        &[],
+        &[],
+        0,
+    )
+    .unwrap();
+    assert_eq!(r.items[0]["at"]["x"], 120.);
+    assert_eq!(r.items[0]["at"]["y"], 130.);
+}

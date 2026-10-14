@@ -371,6 +371,21 @@ fn stage_of(root: &NodeRef) -> Option<Element> {
         .and_then(|el| el.closest(".view-stage").ok().flatten())
 }
 
+/// Optional context must never delay delivery or leak from another selection.
+fn attach_ready_context(item: &mut Value, key: Option<&Value>, ready: Option<&(Value, Value)>) {
+    if let Some((ready_key, context)) = ready {
+        if Some(ready_key) == key {
+            item["body"] = format!(
+                "{}\n\n{}",
+                item["body"].as_str().unwrap_or_default(),
+                context["summary"].as_str().unwrap_or_default()
+            )
+            .into();
+            item["context"]["boardRegion"] = context.clone();
+        }
+    }
+}
+
 #[function_component(Annotator)]
 pub fn annotator(props: &Props) -> Html {
     let root = use_node_ref();
@@ -382,6 +397,53 @@ pub fn annotator(props: &Props) -> Html {
     let selecting = use_state(|| false);
     let drag: UseStateHandle<Drag> = use_state(|| None);
     let selection = use_state(|| None::<Selection>);
+    // Enrich while the user composes. Sending only reads a ready result and
+    // never awaits this request. Cleanup prevents late responses being reused.
+    let enrichment = use_mut_ref(|| None::<(Value, Value)>);
+    let enrichment_key = if props.tab == "pcb" {
+        selection
+            .as_ref()
+            .and_then(|sel| sel.world)
+            .map(|[min, max]| {
+                json!({
+                    "project": props.project.as_str(), "revision": props.revision.as_str(),
+                    "region": {"x0": min[0], "y0": min[1], "x1": max[0], "y1": max[1]}
+                })
+            })
+    } else {
+        None
+    };
+    {
+        let enrichment = enrichment.clone();
+        use_effect_with(enrichment_key.clone(), move |key| {
+            *enrichment.borrow_mut() = None;
+            let cancelled = std::rc::Rc::new(std::cell::Cell::new(false));
+            if let Some(key) = key.clone() {
+                let cancelled = cancelled.clone();
+                spawn_local(async move {
+                    let result = async {
+                        let response = Request::post("/api/kicad/annotation-region")
+                            .json(&key)
+                            .ok()?
+                            .send()
+                            .await
+                            .ok()?;
+                        if !response.ok() {
+                            return None;
+                        }
+                        response.json::<Value>().await.ok()
+                    }
+                    .await;
+                    if !cancelled.get() {
+                        if let Some(context) = result.filter(|v| v["revision"] == key["revision"]) {
+                            *enrichment.borrow_mut() = Some((key, context));
+                        }
+                    }
+                });
+            }
+            move || cancelled.set(true)
+        });
+    }
     let touch = *use_memo((), |_| touch_primary());
     let keyboard = use_state(|| 0.0_f64);
     // Listeners registered once per view read these instead of a state
@@ -398,11 +460,18 @@ pub fn annotator(props: &Props) -> Html {
         let selection = selection.clone();
         let selecting = selecting.clone();
         let finger = finger.clone();
-        use_effect_with(props.tab.clone(), move |_| {
-            finger.borrow_mut().take();
-            selection.set(None);
-            selecting.set(false);
-        });
+        use_effect_with(
+            (
+                props.tab.clone(),
+                props.project.clone(),
+                props.revision.clone(),
+            ),
+            move |_| {
+                finger.borrow_mut().take();
+                selection.set(None);
+                selecting.set(false);
+            },
+        );
     }
     // Escape abandons a selection in progress and closes the annotator: the
     // flow starts with the selector, so backing out of it backs out entirely.
@@ -717,6 +786,7 @@ pub fn annotator(props: &Props) -> Html {
         })
     };
     let send = {
+        let enrichment = enrichment.clone();
         let (note, status, root) = (note.clone(), status.clone(), root.clone());
         let selection = selection.clone();
         let with_snapshot = *with_snapshot;
@@ -773,46 +843,14 @@ pub fn annotator(props: &Props) -> Html {
                 item["context"]["imageScope"] =
                     if picked.is_some() { "region" } else { "view" }.into();
             }
+            attach_ready_context(
+                &mut item,
+                enrichment_key.as_ref(),
+                enrichment.borrow().as_ref(),
+            );
             let (note, status, selection) = (note.clone(), status.clone(), selection.clone());
             status.set(Status::Sending);
             spawn_local(async move {
-                if item["context"]["tab"] == "pcb" {
-                    if let Some(scene) = item["context"]["region"].get("scene") {
-                        let request = json!({"project": item["context"]["project"], "region": {
-                            "x0":scene["x0"],"y0":scene["y0"],"x1":scene["x1"],"y1":scene["y1"]
-                        }});
-                        let result = async {
-                            let response = Request::post("/api/kicad/annotation-region")
-                                .json(&request)
-                                .map_err(|e| e.to_string())?
-                                .send()
-                                .await
-                                .map_err(|e| e.to_string())?;
-                            if !response.ok() {
-                                return Err(response.text().await.unwrap_or_default());
-                            }
-                            response.json::<Value>().await.map_err(|e| e.to_string())
-                        }
-                        .await;
-                        match result {
-                            Ok(context) => {
-                                item["body"] = format!(
-                                    "{}\n\n{}",
-                                    item["body"].as_str().unwrap_or_default(),
-                                    context["summary"].as_str().unwrap_or_default()
-                                )
-                                .into();
-                                item["context"]["boardRegion"] = context;
-                            }
-                            Err(message) => {
-                                status.set(Status::Failed(format!(
-                                    "Could not collect board context: {message}"
-                                )));
-                                return;
-                            }
-                        }
-                    }
-                }
                 match enqueue(source, vec![item]).await {
                     Ok(msg) => {
                         note.set(String::new());
@@ -941,6 +979,36 @@ pub fn annotator(props: &Props) -> Html {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sending_without_ready_context_preserves_image_and_note() {
+        let original = json!({"body":"Move this", "imageDataUrl":"data:image/jpeg;base64,test", "context":{"revision":"a"}});
+        let key = json!({"project":"board", "revision":"a", "region":[1,2,3,4]});
+        let mut item = original.clone();
+        attach_ready_context(&mut item, Some(&key), None);
+        assert_eq!(
+            item, original,
+            "pending or failed enrichment must not block the original payload"
+        );
+        for other in [
+            json!({"project":"board", "revision":"b", "region":[1,2,3,4]}),
+            json!({"project":"board", "revision":"a", "region":[5,6,7,8]}),
+        ] {
+            attach_ready_context(
+                &mut item,
+                Some(&key),
+                Some(&(other, json!({"summary":"stale"}))),
+            );
+            assert_eq!(item, original);
+        }
+        attach_ready_context(
+            &mut item,
+            Some(&key),
+            Some(&(key.clone(), json!({"summary":"ready"}))),
+        );
+        assert_eq!(item["body"], "Move this\n\nready");
+        assert_eq!(item["imageDataUrl"], original["imageDataUrl"]);
+    }
 
     #[test]
     fn ipads_count_as_touch_even_when_safari_claims_a_mac() {

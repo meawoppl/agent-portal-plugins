@@ -7,6 +7,7 @@ use serde_json::{json, Value};
 #[derive(Deserialize)]
 pub(crate) struct Request {
     project: Option<String>,
+    revision: String,
     region: kct::region::Bounds,
 }
 fn in_region(v: &Value, b: kct::region::Bounds) -> bool {
@@ -75,30 +76,83 @@ pub(crate) async fn endpoint(
     let project = crate::selected_project(&state, request.project.as_deref())?;
     let path = crate::pick_project_file(&project, "kicad_pcb")?
         .ok_or_else(|| anyhow!("project has no PCB"))?;
-    let source = std::fs::read_to_string(&path)?;
-    let snapshot = source.clone();
-    let board_id = project.id.clone();
     let region = request.region;
-    let policy = kct::lint::board_file::BoardLintFile::load_or_default(
-        &kct::lint::board_file::BoardLintFile::path_for(&path),
-        &board_id,
-    )?;
-    let work = tokio::task::spawn_blocking(move || -> Result<_> {
-        let inventory = kct::region::query(&snapshot, region, &[], &[], 0)?;
-        let lint = kct::lint::board_file::lint_board(&snapshot, &policy, kct::lint::review::now())?;
-        Ok((inventory, serde_json::to_value(lint.report)?))
-    });
-    let quality = state.builds.check(&project, jobs::Stage::Quality).await?;
-    let (inventory, lint) = work.await.map_err(|e| anyhow!(e))??;
-    if std::fs::read_to_string(&path)? != source {
-        return Err(anyhow!("board changed while collecting annotation context; retry").into());
-    }
-    let quality: Value = serde_json::from_str(&quality.report)?;
-    Ok(Json(compact(inventory, &lint, &quality)))
+    // Optional enrichment only: never run lint or schedule a quality build here.
+    let context = tokio::task::spawn_blocking(move || -> Result<Value> {
+        let hashes = crate::revision::project_hashes(&project)?.hashes;
+        if hashes.revision != request.revision {
+            return Err(anyhow!("annotation revision is no longer current"));
+        }
+        let source = std::fs::read_to_string(&path)?;
+        let inventory = kct::region::query(&source, region, &[], &[], 0)?;
+        let quality = state.builds.cached_check(&project, &hashes, jobs::Stage::Quality)
+            .and_then(|check| serde_json::from_str::<Value>(&check.report).ok());
+        if crate::revision::project_hashes(&project)?.hashes.revision != hashes.revision {
+            return Err(anyhow!("board changed while collecting annotation context"));
+        }
+        let mut context = compact(inventory, &Value::Null, quality.as_ref().unwrap_or(&Value::Null));
+        context["revision"] = json!(hashes.revision);
+        context["analysis"] = json!({"lint":"not_requested", "quality": if quality.is_some() {"cached"} else {"unavailable"}});
+        Ok(context)
+    }).await.map_err(|e| anyhow!(e))??;
+    Ok(Json(context))
 }
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn enrichment_without_cache_never_runs_checks_and_rejects_stale_revision() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().canonicalize().unwrap();
+        std::fs::write(
+            root.join("board.kicad_pcb"),
+            "(kicad_pcb (layers (0 \"F.Cu\" signal) (31 \"B.Cu\" signal)))",
+        )
+        .unwrap();
+        // Any attempt to run lint would fail on this deliberately invalid policy.
+        std::fs::write(root.join("board.lint.json"), "invalid policy").unwrap();
+        let project = crate::revision::tests_support::project(&root, "board", ".");
+        let revision = crate::revision::project_hashes(&project)
+            .unwrap()
+            .hashes
+            .revision;
+        let (events, _) = tokio::sync::broadcast::channel(16);
+        let builds = jobs::BuildEngine::new(
+            jobs::BuildSettings::from_config(None),
+            vec![project.clone()],
+            None,
+            None,
+            events.clone(),
+        );
+        let state = AppState {
+            cwd: root,
+            session: "test".into(),
+            projects: vec![project],
+            warmed: Default::default(),
+            events,
+            builds,
+        };
+        let request = |revision| Request {
+            project: Some("board".into()),
+            revision,
+            region: kct::region::Bounds {
+                x0: 0.,
+                y0: 0.,
+                x1: 10.,
+                y1: 10.,
+            },
+        };
+        let response = endpoint(State(state.clone()), Json(request(revision)))
+            .await
+            .unwrap()
+            .0;
+        assert_eq!(response["analysis"]["quality"], "unavailable");
+        assert_eq!(response["analysis"]["lint"], "not_requested");
+        assert!(endpoint(State(state), Json(request("old".into())))
+            .await
+            .is_err());
+    }
     #[test]
     fn context_is_bounded_and_filters_findings() {
         let source = "(kicad_pcb (layers (0 \"F.Cu\" signal) (31 \"B.Cu\" signal)))";

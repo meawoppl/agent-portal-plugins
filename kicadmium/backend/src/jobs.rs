@@ -925,6 +925,25 @@ impl BuildEngine {
         read_result(&dir).map(|result| (result, dir))
     }
 
+    /// Read a completed check for these exact inputs without scheduling or waiting.
+    pub(crate) fn cached_check(
+        &self,
+        project: &ProjectContext,
+        hashes: &SourceHashes,
+        stage: Stage,
+    ) -> Option<shared::CheckResponse> {
+        let key = stage_key(
+            stage,
+            project,
+            hashes,
+            &self.inner.kicad_version,
+            &self.inner.kct_version,
+        );
+        let dir = builds_dir(project).ok()?.join(stage_dir_name(stage, &key));
+        read_result(&dir)?;
+        serde_json::from_str(&std::fs::read_to_string(dir.join("check.json")).ok()?).ok()
+    }
+
     /// Current planned results for every stage, if the project is idle.
     pub(crate) fn complete_build(
         &self,

@@ -21,6 +21,12 @@ extern "C" {
     fn new_scene() -> Scene;
     #[wasm_bindgen(method)]
     fn add(this: &Scene, object: &JsValue);
+    #[wasm_bindgen(method)]
+    fn remove(this: &Scene, object: &JsValue);
+    #[wasm_bindgen(js_name = BoxHelper)]
+    type BoxHelper;
+    #[wasm_bindgen(constructor, js_class = BoxHelper)]
+    fn new_helper(object: &JsValue, color: u32) -> BoxHelper;
 
     #[wasm_bindgen(js_name = PerspectiveCamera)]
     type Camera;
@@ -503,6 +509,8 @@ pub struct Props {
 }
 
 struct Runtime {
+    scene: Rc<Scene>,
+    search_boxes: Vec<JsValue>,
     renderer: Rc<Renderer>,
     controls: Rc<OrbitControls>,
     animation: AnimationSlot,
@@ -515,8 +523,55 @@ struct Runtime {
     options: Rc<RefCell<ViewOptions>>,
 }
 
+impl Runtime {
+    fn clear_search(&mut self) {
+        for helper in self.search_boxes.drain(..) {
+            self.scene.remove(&helper);
+            if let Ok(geometry) = Reflect::get(&helper, &"geometry".into()) {
+                call_no_args(&geometry, "dispose");
+            }
+            for material in materials_of(&helper) {
+                call_no_args(&material, "dispose");
+            }
+        }
+    }
+    fn search(&mut self, references: &std::collections::HashSet<String>) -> usize {
+        self.clear_search();
+        let Some(model) = self.model.borrow().clone() else {
+            return 0;
+        };
+        let found = Rc::new(RefCell::new(Vec::<JsValue>::new()));
+        let nodes = found.clone();
+        let references = references.clone();
+        let visitor = Closure::<dyn FnMut(JsValue)>::new(move |object: JsValue| {
+            if Reflect::get(&object, &"name".into())
+                .ok()
+                .and_then(|n| n.as_string())
+                .is_some_and(|n| references.contains(&n))
+            {
+                nodes.borrow_mut().push(object);
+            }
+        });
+        if let Some(traverse) = property::<Function>(&model, "traverse") {
+            let _ = traverse.call1(&model, visitor.as_ref().unchecked_ref());
+        }
+        for object in found.borrow().iter() {
+            let helper: JsValue = BoxHelper::new_helper(object, 0xff9e64).into();
+            for material in materials_of(&helper) {
+                set(&material, "depthTest", &JsValue::FALSE);
+                set(&material, "depthWrite", &JsValue::FALSE);
+            }
+            number(&helper, "renderOrder", 1000.0);
+            self.scene.add(&helper);
+            self.search_boxes.push(helper);
+        }
+        self.search_boxes.len()
+    }
+}
+
 impl Drop for Runtime {
     fn drop(&mut self) {
+        self.clear_search();
         if let Some(window) = web_sys::window() {
             if let Some(id) = self.animation_id.borrow_mut().take() {
                 let _ = window.cancel_animation_frame(id);
@@ -1054,6 +1109,8 @@ fn start(
             .add_event_listener_with_callback("resize", resize_callback.as_ref().unchecked_ref())?;
     }
     Ok(Runtime {
+        scene,
+        search_boxes: Vec::new(),
         renderer,
         controls,
         animation,
@@ -1072,6 +1129,42 @@ pub fn model_view(props: &Props) -> Html {
     let canvas = use_node_ref();
     let status = use_state(|| "Loading board model…".to_owned());
     let runtime = use_mut_ref(|| None::<Runtime>);
+    let query = use_state(String::new);
+    let search_scene = use_state(|| None::<Rc<vector_view::Scene>>);
+    let search_error = use_state(String::new);
+    let search_count = use_state_eq(|| 0usize);
+    {
+        let search_scene = search_scene.clone();
+        let search_error = search_error.clone();
+        let query = query.clone();
+        use_effect_with(
+            (
+                props.project.clone(),
+                props.revision.clone(),
+                props.url.clone(),
+            ),
+            move |(project, _, url)| {
+                search_scene.set(None);
+                search_error.set(String::new());
+                query.set(String::new());
+                let token = crate::request::RequestToken::default();
+                let task = token.clone();
+                let project = project.to_string();
+                if url.is_none() {
+                    wasm_bindgen_futures::spawn_local(async move {
+                        let result = crate::api::pcb_scene(&project).await;
+                        if task.current() {
+                            match result {
+                                Ok(scene) => search_scene.set(Some(Rc::new(scene))),
+                                Err(_) => search_error.set("Search unavailable".into()),
+                            }
+                        }
+                    });
+                }
+                move || token.cancel()
+            },
+        );
+    }
     {
         let canvas = canvas.clone();
         let project = props.project.to_string();
@@ -1132,7 +1225,39 @@ pub fn model_view(props: &Props) -> Html {
             }
         });
     }
-    html! { <div class="modelv">
+    {
+        let runtime = runtime.clone();
+        let count = search_count.clone();
+        use_effect_with(
+            ((*query).clone(), (*search_scene).clone(), (*status).clone()),
+            move |(query, scene, _)| {
+                let found = scene
+                    .as_ref()
+                    .map(|s| crate::viewer_search::find(s, query))
+                    .unwrap_or_default();
+                if let Some(rt) = runtime.borrow_mut().as_mut() {
+                    count.set(rt.search(&found.references));
+                }
+            },
+        );
+    }
+    let onchange = {
+        let query = query.clone();
+        Callback::from(move |text: String| query.set(text))
+    };
+    let summary = if !search_error.is_empty() {
+        (*search_error).clone()
+    } else if search_scene.is_none() {
+        "Loading names…".into()
+    } else {
+        format!(
+            "{} component{} highlighted",
+            *search_count,
+            if *search_count == 1 { "" } else { "s" }
+        )
+    };
+    html! { <div class="modelv" data-search-count={search_count.to_string()}>
+        if props.url.is_none() { <crate::viewer_search::ViewerSearch query={(*query).clone()} {onchange} {summary}/> }
         <canvas ref={canvas} class="modelv-canvas" aria-label="Interactive 3D board model" />
         if !status.is_empty() { <div class="modelv-status">{status.as_str()}</div> }
     </div> }

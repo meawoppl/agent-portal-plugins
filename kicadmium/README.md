@@ -143,3 +143,21 @@ PCB region annotations queue the note, image, region and view revision without w
 Output uses `kicadmium.verify/v1`, with per-stage before/after counts, added/removed findings, and groups by rule and nets. Omit `--json` for a concise summary (seven lines when unchanged). `--gate error|warning|never` controls newly introduced finding failures; an incomplete stage always fails. Without a baseline, all current findings are considered new. Ignored lint findings do not fail the gate.
 
 Caches include the complete selected source snapshot, executable hash, KiCad version and project identity. Git baselines cache by immutable commit; expiring lint decisions invalidate their cached report at expiry. Failed/incomplete stages are not cached. Full verification is the pre-commit gate; regional checks remain partial feedback.
+
+### Find components and nets in the viewers
+
+Use the small top-left search in Schematic, PCB, and 3D. It matches component
+references, component values, and net names case-insensitively. An exact name
+wins over partial matches (so `U1` does not also select `U10`); otherwise the
+query is a literal substring. Clear or press Escape to remove the highlight.
+On narrow screens the input is collapsed behind **Search**.
+
+Schematic search highlights matching symbols and net geometry and opens a
+matching sheet when the current sheet has no match. PCB search highlights
+matching footprints or net geometry while respecting the visible layers.
+The 3D viewer outlines matching component models in orange; a net search
+outlines the components connected to it. KiCad's exported GLB does not retain
+per-net copper identities, so 3D search does not claim to highlight individual
+tracks. The 3D count reports models actually outlined, including zero when a
+matching component has no model. Searching never rebuilds the board or runs
+checks, and clearing it restores the normal view without moving the camera.

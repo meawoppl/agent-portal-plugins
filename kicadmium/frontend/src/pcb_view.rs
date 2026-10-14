@@ -485,6 +485,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
     let status = use_state(|| "Loading board…".to_string());
     let settings = use_state(load_settings);
     let selection = use_state(|| None::<Selection>);
+    let query = use_state(String::new);
     let initial_view = use_state_eq(|| None::<View>);
     let last_view: Rc<RefCell<Option<View>>> = use_mut_ref(|| None);
     let stage = use_node_ref();
@@ -495,6 +496,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
         let selection = selection.clone();
         let initial_view = initial_view.clone();
         let last_view = last_view.clone();
+        let query = query.clone();
         use_effect_with(
             (props.project.clone(), props.revision.clone()),
             move |(project, _)| {
@@ -506,6 +508,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
                 {
                     loaded.set(None);
                     selection.set(None);
+                    query.set(String::new());
                 }
                 let token = crate::request::RequestToken::default();
                 let task_token = token.clone();
@@ -769,17 +772,24 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
                 }
             }
             let sel = *selection;
-            let highlight = sel
-                .and_then(|s| s.net)
-                .map_or(Highlight::None, Highlight::Net);
-            let overlay = sel
-                .map(|sel| overlay_items(scene, p, sel))
-                .filter(|ids| !ids.is_empty())
-                .map(|ids| Overlay {
-                    highlight: Highlight::Items(ids.clone()),
-                    color: SELECTION,
-                    alpha: SELECTION_ALPHA,
-                });
+            let found = crate::viewer_search::find(scene, &query);
+            let highlight = if !found.items.is_empty() {
+                Highlight::Items(found.items.clone())
+            } else {
+                sel.and_then(|s| s.net)
+                    .map_or(Highlight::None, Highlight::Net)
+            };
+            let overlay = if !found.items.is_empty() {
+                Some(found.items.clone())
+            } else {
+                sel.map(|sel| overlay_items(scene, p, sel))
+            }
+            .filter(|ids| !ids.is_empty())
+            .map(|ids| Overlay {
+                highlight: Highlight::Items(ids.clone()),
+                color: SELECTION,
+                alpha: SELECTION_ALPHA,
+            });
             let outline_items = sel
                 .map(|sel| overlay_items(scene, p, sel))
                 .unwrap_or_default();
@@ -814,6 +824,27 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
         .map(|l| l.revision.clone())
         .unwrap_or_default();
     let message = (*status).clone();
+    let found = scene
+        .as_ref()
+        .map(|s| crate::viewer_search::find(s, &query))
+        .unwrap_or_default();
+    let summary = if found.labels.is_empty() {
+        "No matches".into()
+    } else {
+        format!(
+            "{} match{}",
+            found.labels.len(),
+            if found.labels.len() == 1 { "" } else { "es" }
+        )
+    };
+    let onchange = {
+        let query = query.clone();
+        let selection = selection.clone();
+        Callback::from(move |text: String| {
+            selection.set(None);
+            query.set(text);
+        })
+    };
     // Advertised for the annotation composer: which copper is on screen.
     let annotate_layers = scene
         .as_ref()
@@ -830,6 +861,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
     html! {
         <div class="pcbv" ref={stage} data-revision={revision} data-annotate-layers={annotate_layers}>
             {canvas}
+            <crate::viewer_search::ViewerSearch query={(*query).clone()} {onchange} {summary}/>
             {toolbar}
             {layers_panel}
             {properties}

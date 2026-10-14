@@ -14,6 +14,7 @@ mod schematic_view;
 mod vector_scene;
 mod view_input;
 mod viewer;
+mod viewer_search;
 
 use annotate::Annotator;
 use checks::Checks;

@@ -1,4 +1,4 @@
-"""yapcad_patches against the pinned yapCAD (plugin venv, no pythonocc)."""
+"""Geometry compatibility of the pinned upstream yapCAD (no pythonocc)."""
 
 import unittest
 import warnings
@@ -6,10 +6,6 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import numpy as np  # noqa: E402
-
-import yapcad_patches  # noqa: E402
-
-yapcad_patches.apply()
 
 from yapcad.dsl import compile_and_run  # noqa: E402
 from yapcad.mesh import mesh_view  # noqa: E402
@@ -64,12 +60,6 @@ def volume(tris):
 
 
 class PatchTests(unittest.TestCase):
-    def test_applied(self):
-        self.assertEqual(
-            yapcad_patches.apply(),
-            ["loop_reassignment", "boolean_metadata", "mesh_extrude"],
-        )
-
     def test_block_reassignment_updates_outer_binding(self):
         self.assertEqual(run("SUM"), 24.0)
         self.assertEqual(run("SHADOW"), 1.0, "typed declarations still shadow")

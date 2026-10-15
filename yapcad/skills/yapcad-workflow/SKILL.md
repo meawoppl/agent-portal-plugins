@@ -83,9 +83,15 @@ command PLATE(width: float @ui(widget="slider", min=20.0, max=120.0) = 60.0,
   failing require fails the build and is reported with its source line.
 - `@ui(label=, min=, max=, step=, group=, widget="slider")` drives the pane's
   parameter form; `@meta(...)` adds output metadata. Neither changes geometry.
-- Reassigning in a block (`s = union(s, part)` inside `for`/`if`) updates
-  the outer variable; a typed `s: solid = ...` in a block declares a new
+- Untyped reassignment (`s = union(s, part)`) updates the existing binding,
+  including repeated assignments in the same block; a typed `s: solid = ...` in a block declares a new
   local. Booleans keep the first operand's `@meta` (material, tags).
+- Batch cutters with `difference_all(body, [tool(i, j) for i in range(n)
+  for j in range(m) if condition])`. Nested list comprehensions and filters
+  are supported. `empty_solid()` can seed an imperative union accumulator.
+  Mesh booleans retain native intermediates; final exports are ordinary meshes.
+- `emit` immediately exits its command, including from nested `if`/`for` blocks.
+  Boolean helper commands may be used directly in conditions.
 - `extrude` and `helical_extrude` work without pythonocc (manifold3d meshes).
 - Mesh-only installs cannot `fillet`/`chamfer` a mesh solid (doctor
   `brep: false`); use `--representation sdf` or BREP via `setup-brep` /

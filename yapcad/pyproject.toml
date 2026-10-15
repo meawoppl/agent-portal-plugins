@@ -11,8 +11,9 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-# PyPI's 1.1.0 predates yapcad.sdf; pin the upstream revision this plugin targets.
-yapcad = { git = "https://github.com/rdevaul/yapCAD", rev = "5225474a23af509b95a08ae3b9815db6a32737c8" }
+# Pin the tested upstream contribution for retained booleans/runtime fixes.
+# Switch back to rdevaul/yapCAD after the contribution merges.
+yapcad = { git = "https://github.com/meawoppl/yapCAD", rev = "176c8c44c73c909bd4527342460913fff496afc5" }
 
 [dependency-groups]
 dev = ["playwright==1.55.0"]

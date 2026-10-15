@@ -16,7 +16,7 @@ agent-portal plugin open yapcad
 
 Requires Python 3.11+, uv and Node/npm. `setup` installs the pane's three.js
 and icon assets; uv syncs the locked Python environment on first use. yapCAD
-is pinned to upstream revision `5225474` (PyPI's 1.1.0 predates `yapcad.sdf`),
+is pinned to tested contribution revision `176c8c4` (PyPI's 1.1.0 predates `yapcad.sdf`),
 with manifold3d booleans and trimesh/pymeshfix/scipy diagnostics.
 
 ### BREP (optional)
@@ -33,23 +33,29 @@ STEP import need BREP. Either:
 `doctor` reports which interpreter and capabilities are active
 (`doctor --require-brep` fails without BREP).
 
-### yapCAD fixes applied by the plugin
+### Upstream geometry runtime
 
-`yapcad_patches.py` patches the pinned yapCAD at worker start-up (`doctor`
-lists them under `capabilities.patches`); each is meant to go upstream:
+The plugin pins the tested revision of [yapCAD PR #81](https://github.com/rdevaul/yapCAD/pull/81)
+while it is under upstream review. Loop assignment, metadata inheritance and
+mesh extrusion fixes previously patched at worker startup have already moved
+upstream; the plugin no longer monkey-patches yapCAD.
 
-- **loop_reassignment:** `x = expr` inside a `for`/`if` block now updates an
-  outer `x` (yapCAD parsed it as a new block-local declaration, so
-  accumulation like `s = union(s, part)` silently did nothing). A typed
-  `x: float = ...` inside a block still declares a new local.
-- **boolean_metadata:** `union`, `difference`, `intersection`, their `_all`
-  forms, `fillet` and `chamfer` keep the first operand's metadata
-  (`@meta(material=...)` colours, tags, assembly datums).
-- **mesh_extrude:** without pythonocc, `extrude` and `helical_extrude` build
-  watertight meshes with manifold3d: regions with holes, arcs at 3 degrees
-  per segment, oblique directions, and helical twist (positive is
-  counter-clockwise seen from +Z; at most 1 degree per slice, volume within
-  about 1%).
+Mesh booleans now retain native Manifold results between DSL statements and
+use batch operations for variadic/list forms. The public result remains an
+ordinary mesh for previews, STL and faceted STEP. SDF/BREP and alternate-engine
+selection keep their existing paths. No helper-command memoization is used.
+
+For many cutters, prefer `difference_all(body, [tool(i, j) for i in range(n)
+for j in range(m) if condition])`. `empty_solid()` also works as a union seed.
+Untyped assignments can update a binding repeatedly; typed declarations still
+shadow. `emit` returns immediately from its command, and boolean helper results
+work in conditions. `text_solid(text, height, depth)` uses default spacing.
+
+Update the plugin with `agent-portal plugin update yapcad`, then reopen its
+pane with `agent-portal plugin open yapcad` from the project/session. A server
+restart alone does not install the updated dependency. For a managed BREP
+environment, rerun `bin/yapcad setup-brep`; a custom `YAPCAD_PYTHON` must also
+install the revision declared in `pyproject.toml`.
 
 ## Agent commands
 

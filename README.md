@@ -37,9 +37,14 @@ agent-portal plugin install github:meawoppl/agent-portal-plugins//kicadmium
 agent-portal plugin install github:meawoppl/agent-portal-plugins//visilog
 agent-portal plugin install github:meawoppl/agent-portal-plugins//unlinked
 agent-portal plugin install github:meawoppl/agent-portal-plugins//yapcad
+agent-portal plugin install github:meawoppl/agent-portal-plugins//slowbooks
 ```
 
 ## Plugins
+
+- [`slowbooks`](slowbooks/) - project-local SlowBooks Pro bookkeeping with the
+  native browser UI, persistent company files, scoped API commands, and managed
+  startup/restarts.
 
 - [`visilog`](visilog/) - interactive design exploration with the native
   Visilog viewer: module hierarchy diagrams, live values, source inspection,

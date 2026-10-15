@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+PLUGIN_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+# Setup/doctor remain usable before dependencies are installed.
+exec python3 "$PLUGIN_DIR/launcher.py" "$@"

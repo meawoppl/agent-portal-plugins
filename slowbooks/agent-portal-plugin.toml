@@ -1,0 +1,50 @@
+schema_version = 1
+name = "slowbooks"
+display_name = "SlowBooks"
+description = "Project-local SlowBooks Pro bookkeeping: native browser UI, persistent company files, authenticated API commands, and managed restarts."
+homepage = "https://github.com/VonHoltenCodes/SlowBooks-Pro-2026"
+license = "MIT (connector); upstream SlowBooks Source Available License v2.0"
+
+[compat]
+platforms = ["linux", "macos"]
+
+[install]
+setup = "bin/slowbooks setup"
+doctor = "bin/slowbooks doctor --cwd {cwd}"
+
+[surface]
+kind = "http"
+default_title = "SlowBooks"
+default_width_percent = 70
+health_path = "/_portal/health"
+start = "bin/slowbooks serve --port {port} --session {session_id} --cwd {cwd}"
+
+[[commands]]
+name = "doctor"
+description = "Report runtime revision, project data location and service health without revealing credentials."
+run = "bin/slowbooks doctor --cwd {cwd}"
+
+[[commands]]
+name = "api"
+description = "Call the running project's authenticated SlowBooks API. Defaults to GET; accepts --method, --json-file, --output and --idempotency-key."
+run = "bin/slowbooks api --cwd {cwd}"
+
+[[commands]]
+name = "token"
+description = "Save an API token from standard input in the project's private data directory."
+run = "bin/slowbooks token --cwd {cwd}"
+
+[[toolchains]]
+name = "slowbooks"
+description = "Unmodified SlowBooks source pinned by commit and a locked Python environment."
+install = "bin/slowbooks setup"
+doctor = "bin/slowbooks doctor --cwd {cwd}"
+
+[[skills]]
+name = "slowbooks-workflow"
+path = "skills/slowbooks-workflow/SKILL.md"
+agents = ["claude", "codex"]
+
+[[detect]]
+name = "slowbooks"
+any = [".slowbooks-project.json", "*.iif", "*.ofx", "*.qfx"]

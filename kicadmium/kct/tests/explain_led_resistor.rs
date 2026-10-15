@@ -64,3 +64,20 @@ fn junction_shared_with_other_parts_is_not_a_series_resistor() {
     );
     assert_eq!(flagged(&pcb), vec!["D1", "D2"]);
 }
+
+#[test]
+fn clamp_diode_on_switch_fed_led_junction_is_allowed() {
+    let pcb = Pcb::parse_str(r#"(kicad_pcb
+      (net 1 "GND") (net 2 "LED_A") (net 3 "GDT1_L_SW")
+      (footprint "LED_SMD:LED_0603" (layer "F.Cu") (at 0 0)
+        (property "Reference" "D84") (property "Value" "LED")
+        (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") (net 1 "GND"))
+        (pad "2" smd rect (at 2 0) (size 1 1) (layers "F.Cu") (net 2 "LED_A")))
+      (footprint "R" (layer "F.Cu") (at 5 0) (property "Reference" "R804")
+        (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") (net 3 "GDT1_L_SW"))
+        (pad "2" smd rect (at 2 0) (size 1 1) (layers "F.Cu") (net 2 "LED_A")))
+      (footprint "Diode" (layer "F.Cu") (at 10 0) (property "Reference" "D90") (property "Value" "1N4148")
+        (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") (net 2 "LED_A"))
+        (pad "2" smd rect (at 2 0) (size 1 1) (layers "F.Cu") (net 1 "GND"))))"#).unwrap();
+    assert!(LedSeriesResistorCheck.check(&pcb).unwrap().is_empty());
+}

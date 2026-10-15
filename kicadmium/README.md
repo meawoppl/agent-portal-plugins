@@ -161,3 +161,9 @@ per-net copper identities, so 3D search does not claim to highlight individual
 tracks. The 3D count reports models actually outlined, including zero when a
 matching component has no model. Searching never rebuilds the board or runs
 checks, and clearing it restores the normal view without moving the camera.
+
+`kct detect-mistakes` treats USB speed as unknown unless a skew budget is
+explicitly supplied. Use repeatable `--pair-skew 'USB_D+,USB_D-,2'` for a
+reviewed 2 mm budget, or supply the budget required by the actual interface and
+device. An undeclared USB pair produces an informational finding; it never
+inherits a High-Speed error threshold merely from its net names.

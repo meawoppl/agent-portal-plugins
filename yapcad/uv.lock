@@ -1018,7 +1018,7 @@ requires-dist = [
     { name = "pillow", specifier = "==11.3.0" },
     { name = "scipy" },
     { name = "watchfiles", specifier = "==1.1.1" },
-    { name = "yapcad", extras = ["manifold", "meshcheck"], git = "https://github.com/meawoppl/yapCAD?rev=176c8c44c73c909bd4527342460913fff496afc5" },
+    { name = "yapcad", extras = ["manifold", "meshcheck"], git = "https://github.com/meawoppl/yapCAD?rev=6804cd2c4ebfda708ff2c874837c79eb7031d5b8" },
 ]
 
 [package.metadata.requires-dev]
@@ -1574,7 +1574,7 @@ wheels = [
 [[package]]
 name = "yapcad"
 version = "1.1.0"
-source = { git = "https://github.com/meawoppl/yapCAD?rev=176c8c44c73c909bd4527342460913fff496afc5#176c8c44c73c909bd4527342460913fff496afc5" }
+source = { git = "https://github.com/meawoppl/yapCAD?rev=6804cd2c4ebfda708ff2c874837c79eb7031d5b8#6804cd2c4ebfda708ff2c874837c79eb7031d5b8" }
 dependencies = [
     { name = "ezdxf" },
     { name = "mapbox-earcut" },

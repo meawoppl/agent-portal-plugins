@@ -88,18 +88,30 @@ enum CacheAction {
     ClearExpired,
 }
 pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
+    match run_parts(args) {
+        Ok(code) => Ok(code),
+        Err(error) => {
+            eprintln!("Error: {error:#}");
+            Ok(1)
+        }
+    }
+}
+fn run_parts(args: Vec<OsString>) -> Result<i32> {
     match parse_args::<Args>("parts", args).command {
         Command::Lookup {
             part,
             format,
             no_cache,
         } => {
-            let p = if no_cache {
+            let cached = if no_cache {
                 None
             } else {
                 crate::parts::cache_get(&part, 7)?
-            }
-            .or(crate::parts::lookup(&part)?);
+            };
+            let p = match cached {
+                Some(p) => Some(p),
+                None => crate::parts::lookup(&part)?,
+            };
             match p {
                 Some(p) => {
                     crate::parts::cache_put(&p)?;
@@ -107,13 +119,14 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                         println!("{}", serde_json::to_string_pretty(&p)?)
                     } else {
                         println!(
-                            "{}  {}  {}\n{}\npackage: {}  stock: {}  basic: {}\n{}",
+                            "{}  {}  {}\n{}\npackage: {}  stock: {} ({})  basic: {}\n{}",
                             p.lcsc_part,
                             p.manufacturer,
                             p.mfr_part,
                             p.description,
                             p.package,
                             p.stock,
+                            p.stock_source,
                             p.is_basic,
                             p.datasheet_url
                         )
@@ -172,17 +185,19 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             let ids = part_ids(&std::fs::read_to_string(&schematic)?)?;
             let mut rows = vec![];
             for id in ids {
-                let result = crate::parts::cache_get(&id, 7)?
-                    .or_else(|| crate::parts::lookup(&id).ok().flatten());
+                let result = match crate::parts::cache_get(&id, 7)? {
+                    Some(p) => Some(p),
+                    None => crate::parts::lookup(&id)?,
+                };
                 let row = match result {
                     Some(p) => {
-                        serde_json::json!({"part":id,"stock":p.stock,"required":quantity,"available":p.stock>=quantity as i64,"manufacturer_part":p.mfr_part})
+                        serde_json::json!({"part":id,"stock": if p.stock < 0 { None } else { Some(p.stock) }, "stock_source":p.stock_source, "required":quantity,"available": u64::try_from(p.stock).ok().map(|stock| stock >= quantity),"manufacturer_part":p.mfr_part})
                     }
                     None => {
-                        serde_json::json!({"part":id,"stock":null,"required":quantity,"available":false})
+                        serde_json::json!({"part":id,"stock":null,"required":quantity,"available":null})
                     }
                 };
-                if !issues_only || row["available"] == false {
+                if !issues_only || row["available"] != true {
                     rows.push(row)
                 }
             }
@@ -191,7 +206,7 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
             } else {
                 for r in rows {
                     println!(
-                        "{:<12} stock {:>8} required {:>6} {}",
+                        "{:<12} stock {:>8} required {:>6} {} ({})",
                         r["part"].as_str().unwrap_or(""),
                         r["stock"]
                             .as_i64()
@@ -199,9 +214,12 @@ pub fn run(args: Vec<OsString>, _: &Globals) -> Result<i32> {
                         r["required"],
                         if r["available"] == true {
                             "OK"
+                        } else if r["available"].is_null() {
+                            "UNKNOWN"
                         } else {
                             "SHORT"
-                        }
+                        },
+                        r["stock_source"].as_str().unwrap_or("unknown source")
                     )
                 }
             }

@@ -136,7 +136,9 @@ fn has_series_resistor(pcb: &Pcb, led: &Footprint, led_nets: &BTreeSet<&str>) ->
         for c in pcb.footprints() {
             let n = c.pads.iter().filter(|p| p.net_name == junction).count();
             terminals += n;
-            if n > 0 && !std::ptr::eq(c, fp) && !is_led(c) {
+            // A clamp across the LED does not introduce a third supply net.
+            let diode = c.reference.to_uppercase().starts_with('D') && pad_nets(c) == *led_nets;
+            if n > 0 && !std::ptr::eq(c, fp) && !is_led(c) && !diode {
                 only_resistor_and_leds = false;
             }
         }

@@ -186,7 +186,7 @@ impl BoardLintFile {
         match value.get("schema").and_then(|s| s.as_u64()) {
             Some(3) => {}
             Some(s) => bail!(
-                "{}: unsupported lint file schema {s} (expected {SCHEMA}; old waivers are unsupported: retain config, remove exceptions, and set schema to {SCHEMA})",
+                "{}: unsupported lint file schema {s} (expected {SCHEMA}; for schema 2 run kct lint migrate <board> to preserve review history)",
                 path.display()
             ),
             None => bail!("{}: missing lint file schema", path.display()),
@@ -600,4 +600,106 @@ pub fn rule_action(rule: &str) -> Option<&'static str> {
         .iter()
         .find(|r| r.id == rule)
         .map(|r| r.action.as_str())
+}
+
+/// A schema upgrade never guesses that changed evidence is still waived.
+#[derive(Debug, Serialize)]
+pub struct MigrationEntry {
+    pub old_key: String,
+    pub key: String,
+    pub status: String,
+    pub reason: String,
+    pub detail: String,
+}
+
+/// Reattach schema-2 review history using semantic metadata. The original is
+/// retained next to the policy as `.schema2.bak`; writes hold the policy lock.
+pub fn migrate_schema2(path: &Path, pcb_source: &str, apply: bool) -> Result<Vec<MigrationEntry>> {
+    let _guard = review::lock(&BoardLintFile::lock_path(path))?;
+    let original = fs::read(path).with_context(|| format!("reading {}", path.display()))?;
+    let mut raw: serde_json::Value = serde_json::from_slice(&original)?;
+    anyhow::ensure!(
+        raw["schema"] == 2,
+        "migration requires schema 2 (found {})",
+        raw["schema"]
+    );
+    let mut file: BoardLintFile = serde_json::from_value(raw.clone())?;
+    file.schema = SCHEMA;
+    file.validate()?;
+    let report = lint(pcb_source, &file.board_id, file.config.clone())?;
+    let mut used = BTreeSet::new();
+    let mut entries = Vec::new();
+    fn same_set(a: &[String], b: &[String]) -> bool {
+        a.iter().collect::<BTreeSet<_>>() == b.iter().collect::<BTreeSet<_>>()
+    }
+    for e in &mut file.exceptions {
+        let old_key = e.key.clone();
+        let related: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.rule == e.rule && (e.nets.is_empty() || same_set(&f.nets, &e.nets)))
+            .collect();
+        let mut candidates: Vec<_> = related
+            .iter()
+            .copied()
+            .filter(|f| !e.subjects.is_empty() && same_set(&f.subjects, &e.subjects))
+            .collect();
+        if candidates.is_empty() {
+            candidates = related
+                .into_iter()
+                .filter(|f| e.at.is_some_and(|at| f.at.distance(at) <= 0.001))
+                .collect();
+        }
+        let (status, detail) = if candidates.len() == 1 && used.insert(candidates[0].key.clone()) {
+            let f = candidates[0];
+            e.key = f.key.clone();
+            e.subjects = f.subjects.clone();
+            e.nets = f.nets.clone();
+            // Keep the reviewed evidence, not today's evidence: changed inputs
+            // must remain open until a reviewer explicitly reconfirms them.
+            if e.evidence == f.evidence && f.stable_identity {
+                ("migrated", "unique semantic match with identical evidence")
+            } else {
+                ("changed", "reattached; evidence must be reviewed again")
+            }
+        } else if candidates.is_empty() {
+            e.key = format!("schema2-unmatched:{}", e.key);
+            (
+                "orphaned",
+                "no matching current finding; original exception retained",
+            )
+        } else {
+            e.key = format!("schema2-ambiguous:{}", e.key);
+            (
+                "changed",
+                "ambiguous or already claimed match; original exception retained",
+            )
+        };
+        entries.push(MigrationEntry {
+            old_key,
+            key: e.key.clone(),
+            status: status.into(),
+            reason: e.reason.clone(),
+            detail: detail.into(),
+        });
+    }
+    file.validate()?;
+    if apply {
+        let mut backup_name = path.as_os_str().to_owned();
+        backup_name.push(".schema2.bak");
+        let backup = PathBuf::from(backup_name);
+        use std::io::Write;
+        let mut out = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&backup)
+            .with_context(|| format!("creating migration backup {}", backup.display()))?;
+        out.write_all(&original)?;
+        out.sync_all()?;
+        // Keep config byte values and all review fields intact in the upgrade.
+        raw["schema"] = SCHEMA.into();
+        raw["exceptions"] = serde_json::to_value(&file.exceptions)?;
+        review::atomic_json(path, &raw)?;
+    }
+    Ok(entries)
 }

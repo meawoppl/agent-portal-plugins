@@ -51,9 +51,7 @@ def capabilities():
         "yapcad": getattr(yapcad, "__version__", "unknown"),
         "python": sys.version.split()[0],
     }
-    import yapcad_patches
-
-    info["patches"] = yapcad_patches.apply()
+    info["patches"] = []  # Fixes now live in the pinned yapCAD dependency.
     info["brep"] = bool(yapcad.has_brep())
     for module in ("manifold3d", "trimesh", "pymeshfix", "ezdxf"):
         try:
@@ -917,9 +915,6 @@ def main():
     parser.add_argument("--out", type=Path, help="Run directory")
     parser.add_argument("--strict", action="store_true")
     args = parser.parse_args()
-    import yapcad_patches
-
-    yapcad_patches.apply()
     if args.action == "capabilities":
         emit(capabilities())
     elif args.action == "list":

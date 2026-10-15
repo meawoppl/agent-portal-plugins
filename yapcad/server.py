@@ -16,6 +16,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tomllib
 import uuid
 from contextlib import suppress
 from datetime import UTC, datetime
@@ -52,7 +53,9 @@ ARTIFACTS = {
 REPRESENTATIONS = ("mesh", "sdf")
 RUN_ID = re.compile(r"\d{8}T\d{6,12}-[0-9a-f]{8}")
 BREP_ENV = HERE / ".tools" / "brep"
-REVISION = "5225474a23af509b95a08ae3b9815db6a32737c8"
+YAPCAD_SOURCE = tomllib.loads((HERE / "pyproject.toml").read_text())["tool"]["uv"][
+    "sources"
+]["yapcad"]
 
 
 def interpreter() -> str:
@@ -721,7 +724,7 @@ def setup_brep():
             "-m",
             "pip",
             "install",
-            f"yapcad[manifold,meshcheck] @ git+https://github.com/rdevaul/yapCAD@{REVISION}",
+            f"yapcad[manifold,meshcheck] @ git+{YAPCAD_SOURCE['git']}@{YAPCAD_SOURCE['rev']}",
             "scipy",
         ]
     )

@@ -61,15 +61,18 @@ enum LoadState {
 pub fn schematic_view(props: &SchematicViewProps) -> Html {
     let state = use_state(|| LoadState::Loading);
     let selected = use_state(|| None::<ItemId>);
+    let query = use_state(String::new);
     let page = use_state(|| "/".to_owned());
     {
         let state = state.clone();
         let selected = selected.clone();
+        let query = query.clone();
         use_effect_with(
             (props.project.clone(), props.revision.clone()),
             move |(project, _)| {
                 state.set(LoadState::Loading);
                 selected.set(None);
+                query.set(String::new());
                 let project = project.to_string();
                 let token = crate::request::RequestToken::default();
                 let task_token = token.clone();
@@ -110,7 +113,57 @@ pub fn schematic_view(props: &SchematicViewProps) -> Html {
                     .map(|(p, _)| p.clone())
                     .unwrap_or_else(|| "/".into())
             };
+            let found = crate::viewer_search::find(scene, &query);
             let hidden_items = off_page(scene, &current);
+            let visible = found
+                .items
+                .iter()
+                .filter(|id| !hidden_items.contains(id))
+                .count();
+            let summary = if found.labels.is_empty() {
+                "No matches".into()
+            } else {
+                format!(
+                    "{} match{} · {} items on sheet",
+                    found.labels.len(),
+                    if found.labels.len() == 1 { "" } else { "es" },
+                    visible
+                )
+            };
+            let onchange = {
+                let query = query.clone();
+                let selected = selected.clone();
+                let page = page.clone();
+                let scene = scene.clone();
+                let current = current.clone();
+                Callback::from(move |text: String| {
+                    let found = crate::viewer_search::find(&scene, &text);
+                    let matches_page = |item: &&vector_view::Item| {
+                        found.items.contains(&item.id)
+                            && item
+                                .props
+                                .iter()
+                                .any(|p| p.key == "page" && p.value == current)
+                    };
+                    if !scene.items.iter().any(|item| matches_page(&item)) {
+                        if let Some(p) = scene
+                            .items
+                            .iter()
+                            .filter(|i| found.items.contains(&i.id))
+                            .find_map(|i| i.props.iter().find(|p| p.key == "page"))
+                        {
+                            page.set(p.value.clone());
+                        }
+                    }
+                    selected.set(None);
+                    query.set(text);
+                })
+            };
+            let highlight = if found.items.is_empty() {
+                vector_view::style::Highlight::None
+            } else {
+                vector_view::style::Highlight::Items(found.items)
+            };
             let fit_bbox = page_box(scene, &current);
             let on_select = {
                 let selected = selected.clone();
@@ -136,7 +189,7 @@ pub fn schematic_view(props: &SchematicViewProps) -> Html {
             } else {
                 Html::default()
             };
-            html! {<div class="schematicv">{picker}<VectorSceneCanvas key={current.clone()} scene={scene.clone()} selected={*selected} {on_select} {hidden_items} {fit_bbox} theme={schematic_theme()} background={Some(SCHEMATIC_BACKGROUND)}/>{if let Some(id)=*selected{html!{<SceneProperties scene={scene.clone()} item={id} onclose={{let selected=selected.clone();Callback::from(move |_|selected.set(None))}} onopen={open.clone()}/>}}else{Html::default()}}</div>}
+            html! {<div class="schematicv"><div class="schematicv-tools"><crate::viewer_search::ViewerSearch query={(*query).clone()} {onchange} {summary}/>{picker}</div><VectorSceneCanvas key={current.clone()} scene={scene.clone()} selected={if query.trim().is_empty(){*selected}else{None}} {highlight} {on_select} {hidden_items} {fit_bbox} theme={schematic_theme()} background={Some(SCHEMATIC_BACKGROUND)}/>{if let Some(id)=*selected{html!{<SceneProperties scene={scene.clone()} item={id} onclose={{let selected=selected.clone();Callback::from(move |_|selected.set(None))}} onopen={open.clone()}/>}}else{Html::default()}}</div>}
         }
     }
 }

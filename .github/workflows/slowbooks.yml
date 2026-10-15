@@ -1,0 +1,34 @@
+name: slowbooks
+on:
+  push:
+    branches: [main]
+    paths: ["slowbooks/**", ".github/workflows/slowbooks.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["slowbooks/**", ".github/workflows/slowbooks.yml"]
+defaults:
+  run:
+    working-directory: slowbooks
+jobs:
+  test:
+    name: Connector tests + native app browser smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0
+      - run: bin/slowbooks setup
+      - run: uv sync --locked
+      - run: uv run --locked pytest tests -q
+      - run: uv run --locked playwright install --with-deps chromium
+      - run: uv run --locked python tests/integration.py
+        env:
+          SLOWBOOKS_TEST_ARTIFACTS: /tmp/slowbooks-smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: slowbooks-browser
+          path: /tmp/slowbooks-smoke

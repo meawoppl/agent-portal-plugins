@@ -537,6 +537,9 @@ impl Runtime {
     }
     fn search(&mut self, references: &std::collections::HashSet<String>) -> usize {
         self.clear_search();
+        if references.is_empty() {
+            return 0;
+        }
         let Some(model) = self.model.borrow().clone() else {
             return 0;
         };

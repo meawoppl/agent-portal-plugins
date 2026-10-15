@@ -309,7 +309,7 @@ fn collect_page(
         return Ok(());
     }
     let s = Schematic::load(&file)?;
-    let nets = connectivity_names(&s);
+    let nets = connectivity_names(&s)?;
     b.scene.meta.push(Prop::new(
         format!("page:{page}:file"),
         rel(&project.root, &file)?,
@@ -671,8 +671,29 @@ fn add_symbols(
     Ok(())
 }
 
-fn connectivity_names(s: &Schematic) -> HashMap<String, String> {
+fn connectivity_names(s: &Schematic) -> Result<HashMap<String, String>> {
     let mut n = HashMap::new();
+    // Power symbols name their connected net even though the pin is hidden.
+    // PWR_FLAG is a power-output marker, not a net label.
+    for inst in s.symbols() {
+        let power = s
+            .get_lib_symbol(&inst.lib_id)
+            .is_some_and(|lib| lib.get("power").is_some())
+            || inst.lib_id.starts_with("power:");
+        if !power || inst.value().is_empty() {
+            continue;
+        }
+        if let Some(lib) = s.get_lib_symbol_resolved(&inst.lib_id)? {
+            for pin in lib
+                .pins
+                .iter()
+                .filter(|p| (p.unit == 0 || p.unit == inst.unit) && p.pin_type == "power_in")
+            {
+                let at = transform(pin.position, inst.position, inst.rotation, &inst.mirror);
+                n.insert(key((at[0], at[1])), inst.value().to_owned());
+            }
+        }
+    }
     for l in s.labels() {
         n.insert(key(l.position), l.text.clone());
     }
@@ -703,7 +724,7 @@ fn connectivity_names(s: &Schematic) -> HashMap<String, String> {
             break;
         }
     }
-    n
+    Ok(n)
 }
 #[allow(clippy::too_many_arguments)]
 fn add_text(
@@ -1013,6 +1034,30 @@ mod tests {
     (property "Footprint" "Tesla:TerminalBlock" (at 100 100 0) (effects (font (size 1.27 1.27))) (hide yes))
     (property "Datasheet" "https://example.com/ds.pdf" (at 100 100 0) (effects (font (size 1.27 1.27)) (hide yes)))))"#;
 
+    #[test]
+    fn hidden_power_pins_name_wires_but_power_flags_do_not() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("power.kicad_sch");
+        let mut text = SCH
+            .replace("Tesla:U1", "power:Test")
+            .replace("LM21421", "GND");
+        text.pop();
+        text.push_str(r#"(wire (pts (xy 110 100) (xy 120 100)) (stroke (width 0) (type default)) (uuid "w-1")))"#);
+        std::fs::write(&path, &text).unwrap();
+        let names = connectivity_names(&Schematic::load(&path).unwrap()).unwrap();
+        assert_eq!(
+            names.get(&key((110., 100.))).map(String::as_str),
+            Some("GND")
+        );
+        assert_eq!(
+            names.get(&key((120., 100.))).map(String::as_str),
+            Some("GND")
+        );
+        std::fs::write(&path, text.replace("power_in", "power_out")).unwrap();
+        assert!(connectivity_names(&Schematic::load(&path).unwrap())
+            .unwrap()
+            .is_empty());
+    }
     fn scene() -> Scene {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("t.kicad_sch");

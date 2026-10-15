@@ -385,3 +385,49 @@ fn diff_by_key() {
     assert!(same.new.is_empty() && same.fixed.is_empty());
     assert_eq!(same.unchanged, 3);
 }
+
+#[test]
+fn schema2_migration_preserves_history_and_reopens_changed_evidence() {
+    let tmp = tempfile::tempdir().unwrap();
+    let path = tmp.path().join("board.lint.json");
+    let (mut file, _) = reviewed();
+    file.schema = 2;
+    file.exceptions[0].key = "legacy-key".into();
+    file.exceptions[0].evidence = "legacy-evidence".into();
+    file.exceptions[1].key = "legacy-key-2".into();
+    file.exceptions[1].nets.clear(); // Older schema-2 cards omitted nets.
+    file.exceptions[2].at = Some(kct::lint::model::Point { x: 999.0, y: 999.0 });
+    file.exceptions[2].subjects = vec!["removed-object".into()];
+    let original = serde_json::to_vec_pretty(&file).unwrap();
+    std::fs::write(&path, &original).unwrap();
+    let preview = board_file::migrate_schema2(&path, BOARD, false).unwrap();
+    assert_eq!(
+        preview
+            .iter()
+            .map(|e| e.status.as_str())
+            .collect::<Vec<_>>(),
+        ["changed", "migrated", "orphaned"]
+    );
+    assert_eq!(std::fs::read(&path).unwrap(), original);
+    board_file::migrate_schema2(&path, BOARD, true).unwrap();
+    assert_eq!(
+        std::fs::read(tmp.path().join("board.lint.json.schema2.bak")).unwrap(),
+        original
+    );
+    let migrated = BoardLintFile::load_or_default(&path, "test").unwrap();
+    assert_eq!(migrated.exceptions.len(), 3);
+    assert_eq!(
+        serde_json::to_value(&migrated.config).unwrap(),
+        serde_json::to_value(&file.config).unwrap()
+    );
+    for (old, new) in file.exceptions.iter().zip(&migrated.exceptions) {
+        assert_eq!(old.reason, new.reason);
+        assert_eq!(old.reviewer, new.reviewer);
+        assert_eq!(old.reviewed_at, new.reviewed_at);
+        assert_eq!(old.evidence, new.evidence);
+    }
+    let checked = lint_board(BOARD, &migrated, 0).unwrap();
+    assert_eq!(checked.audit[0].status, ExceptionStatus::Changed);
+    assert_eq!(checked.audit[1].status, ExceptionStatus::Applied);
+    assert!(board_file::migrate_schema2(&path, BOARD, true).is_err());
+}

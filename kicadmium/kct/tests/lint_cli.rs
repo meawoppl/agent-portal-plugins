@@ -236,3 +236,21 @@ fn diff_of_identical_boards_with_different_filenames_is_empty() {
         Ok(0)
     );
 }
+
+#[test]
+fn migrate_previews_then_upgrades_schema2_policy() {
+    let dir = tempfile::tempdir().unwrap();
+    let board = bad_board(dir.path());
+    let policy = board.with_extension("lint.json");
+    let original = r#"{"schema":2,"board_id":"fixture","config":{"enabled_only":["trace.short_segment"]},"exceptions":[]}"#;
+    fs::write(&policy, original).unwrap();
+    let board_arg = board.to_str().unwrap();
+    assert_eq!(kct_lint(&["migrate", board_arg, "--format", "json"]), Ok(0));
+    assert_eq!(fs::read_to_string(&policy).unwrap(), original);
+    assert_eq!(kct_lint(&["migrate", board_arg, "--apply"]), Ok(0));
+    assert_eq!(kct_lint(&["stale", board_arg]), Ok(0));
+    assert_eq!(kct_lint(&["prune", board_arg]), Ok(0));
+    let upgraded: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(policy).unwrap()).unwrap();
+    assert_eq!(upgraded["schema"], 3);
+}

@@ -216,7 +216,12 @@ pub fn check_silk_pad_clearance(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
         }
     }
     for g in pcb.graphics() {
-        strokes.push((SilkGraphic::from(g), None, "board".to_string(), g.start));
+        strokes.push((
+            SilkGraphic::from(g),
+            None,
+            "board".to_string(),
+            super::silkscreen::board_transform(pcb)(g.start),
+        ));
     }
     for (g, fp, reference, location) in strokes {
         let Some(side) = silk_side(g.layer) else {
@@ -231,7 +236,7 @@ pub fn check_silk_pad_clearance(pcb: &Pcb, rules: &DesignRules) -> DRCResults {
                 let t = fp_transform(fp);
                 stroke_geometry(&g, Some(&t))
             }
-            None => stroke_geometry(&g, None),
+            None => stroke_geometry(&g, Some(&super::silkscreen::board_transform(pcb))),
         };
         let Some(geom) = geom else { continue };
         let Some((x0, y0, x1, y1)) = geom.bounds() else {

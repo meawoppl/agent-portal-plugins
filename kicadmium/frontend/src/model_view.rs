@@ -11,7 +11,6 @@ use web_sys::HtmlCanvasElement;
 use yew::prelude::*;
 
 type AnimationSlot = Rc<RefCell<Option<Closure<dyn FnMut(f64)>>>>;
-type LoadSlot = Rc<RefCell<Option<Closure<dyn FnMut(JsValue)>>>>;
 
 #[wasm_bindgen(raw_module = "three")]
 extern "C" {
@@ -88,6 +87,8 @@ extern "C" {
     type GltfLoader;
     #[wasm_bindgen(constructor, js_class = GLTFLoader)]
     fn new_loader() -> GltfLoader;
+    #[wasm_bindgen(method, catch, js_name = loadAsync)]
+    fn load_async(this: &GltfLoader, url: &str) -> Result<js_sys::Promise, JsValue>;
 }
 
 #[wasm_bindgen(raw_module = "three/addons/controls/OrbitControls.js")]
@@ -516,8 +517,7 @@ struct Runtime {
     animation: AnimationSlot,
     animation_id: Rc<RefCell<Option<i32>>>,
     resize: Closure<dyn FnMut()>,
-    loaded: LoadSlot,
-    failed: LoadSlot,
+    loading: crate::request::RequestToken,
     model: Rc<RefCell<Option<JsValue>>>,
     classified: ClassifiedSlot,
     options: Rc<RefCell<ViewOptions>>,
@@ -574,6 +574,7 @@ impl Runtime {
 
 impl Drop for Runtime {
     fn drop(&mut self) {
+        self.loading.cancel();
         self.clear_search();
         if let Some(window) = web_sys::window() {
             if let Some(id) = self.animation_id.borrow_mut().take() {
@@ -585,8 +586,6 @@ impl Drop for Runtime {
             );
         }
         self.animation.borrow_mut().take();
-        self.loaded.borrow_mut().take();
-        self.failed.borrow_mut().take();
         if let Some(model) = self.model.borrow_mut().take() {
             dispose_model(&model);
         }
@@ -1020,13 +1019,16 @@ fn start(
     scene.add(key.as_ref());
     resize(&renderer, &camera, &canvas);
 
-    let loaded = Rc::new(RefCell::new(None));
-    let failed = Rc::new(RefCell::new(None));
     let model = Rc::new(RefCell::new(None));
     let bounds: BoundsSlot = Rc::new(RefCell::new(None));
     let classified: ClassifiedSlot = Rc::new(RefCell::new(None));
     let options = Rc::new(RefCell::new(initial));
-    *loaded.borrow_mut() = Some({
+    let loading = crate::request::RequestToken::default();
+    // Three.js owns the Promise's callbacks until loading settles. Dropping a
+    // view must not drop Rust closures still retained by its loader.
+    let pending = GltfLoader::new_loader().load_async(url)?;
+    wasm_bindgen_futures::spawn_local({
+        let loading = loading.clone();
         let scene = scene.clone();
         let camera = camera.clone();
         let controls = controls.clone();
@@ -1035,7 +1037,33 @@ fn start(
         let status = status.clone();
         let classified = classified.clone();
         let options = options.clone();
-        Closure::<dyn FnMut(JsValue)>::new(move |gltf: JsValue| {
+        async move {
+            let result = wasm_bindgen_futures::JsFuture::from(pending).await;
+            if !loading.current() {
+                // A late success still owns GPU resources, even though its
+                // view no longer exists. Never attach it or update state.
+                if let Ok(gltf) = result {
+                    if let Ok(model) = Reflect::get(&gltf, &"scene".into()) {
+                        dispose_model(&model);
+                    }
+                }
+                return;
+            }
+            let gltf = match result {
+                Ok(gltf) => gltf,
+                Err(error) => {
+                    status.set(format!(
+                        "Could not load board model: {}",
+                        error
+                            .as_string()
+                            .or_else(|| {
+                                Reflect::get(&error, &"message".into()).ok()?.as_string()
+                            })
+                            .unwrap_or_else(|| "unknown GLB error".into())
+                    ));
+                    return;
+                }
+            };
             match Reflect::get(&gltf, &"scene".into()) {
                 Ok(model) => {
                     settle_layers(&model);
@@ -1050,28 +1078,8 @@ fn start(
                 }
                 Err(_) => status.set("The GLB loaded without a scene".into()),
             }
-        })
+        }
     });
-    *failed.borrow_mut() = Some({
-        let status = status.clone();
-        Closure::<dyn FnMut(JsValue)>::new(move |error: JsValue| {
-            status.set(format!(
-                "Could not load board model: {}",
-                error
-                    .as_string()
-                    .unwrap_or_else(|| "unknown GLB error".into())
-            ));
-        })
-    });
-    let loader = GltfLoader::new_loader();
-    let load: Function = Reflect::get(loader.as_ref(), &"load".into())?.dyn_into()?;
-    load.call4(
-        loader.as_ref(),
-        &url.into(),
-        loaded.borrow().as_ref().unwrap().as_ref(),
-        &JsValue::UNDEFINED,
-        failed.borrow().as_ref().unwrap().as_ref(),
-    )?;
 
     let animation: AnimationSlot = Rc::new(RefCell::new(None));
     let animation_id = Rc::new(RefCell::new(None));
@@ -1119,8 +1127,7 @@ fn start(
         animation,
         animation_id,
         resize: resize_callback,
-        loaded,
-        failed,
+        loading,
         model,
         classified,
         options,

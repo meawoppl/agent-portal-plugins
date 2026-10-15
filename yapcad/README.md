@@ -16,7 +16,7 @@ agent-portal plugin open yapcad
 
 Requires Python 3.11+, uv and Node/npm. `setup` installs the pane's three.js
 and icon assets; uv syncs the locked Python environment on first use. yapCAD
-is pinned to tested contribution revision `6804cd2` (PyPI's 1.1.0 predates `yapcad.sdf`),
+is pinned to tested contribution revision `5985e31` (PyPI's 1.1.0 predates `yapcad.sdf`),
 with manifold3d booleans and trimesh/pymeshfix/scipy diagnostics.
 
 ### BREP (optional)

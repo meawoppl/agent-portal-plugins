@@ -1,7 +1,7 @@
 {
  "summary": {
   "errors": 1,
-  "warnings": 9,
+  "warnings": 6,
   "info": 0
  },
  "mistakes": [
@@ -25,38 +25,6 @@
    "severity": "warning",
    "title": "Via in SMD pad",
    "components": [
-    "R4",
-    "pad 2"
-   ],
-   "location": [
-    42.5,
-    37.400000000000006
-   ],
-   "explanation": "Via found in SMD pad 2 of R4. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
-   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
-   "learn_more_url": "docs/mistakes/via-in-pad.md"
-  },
-  {
-   "category": "via_placement",
-   "severity": "warning",
-   "title": "Via in SMD pad",
-   "components": [
-    "R1",
-    "pad 2"
-   ],
-   "location": [
-    9.5,
-    37.400000000000006
-   ],
-   "explanation": "Via found in SMD pad 2 of R1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
-   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
-   "learn_more_url": "docs/mistakes/via-in-pad.md"
-  },
-  {
-   "category": "via_placement",
-   "severity": "warning",
-   "title": "Via in SMD pad",
-   "components": [
     "D6",
     "pad 2"
    ],
@@ -65,22 +33,6 @@
     18.299999999999997
    ],
    "explanation": "Via found in SMD pad 2 of D6. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
-   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
-   "learn_more_url": "docs/mistakes/via-in-pad.md"
-  },
-  {
-   "category": "via_placement",
-   "severity": "warning",
-   "title": "Via in SMD pad",
-   "components": [
-    "D2",
-    "pad 1"
-   ],
-   "location": [
-    24.5,
-    9.599999999999994
-   ],
-   "explanation": "Via found in SMD pad 1 of D2. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
    "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
    "learn_more_url": "docs/mistakes/via-in-pad.md"
   },

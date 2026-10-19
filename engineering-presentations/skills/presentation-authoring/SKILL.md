@@ -65,3 +65,19 @@ unless that has been checked for the chosen export path.
 
 Report the source changes, the artifact/link available for review, and what was
 actually verified. Explicitly state when visual inspection was unavailable.
+
+## Publish a live review
+
+For HTML review, use this plugin's [revisioned viewer](../../README.md) rather
+than a bare static server. Keep the existing pinned renderer; after a successful
+build, run `scripts/viewer.py publish` from the installed plugin with `--site`
+pointing to the completed HTML/assets directory and `--output build/review`.
+Supply `--slides` with the ordered stable IDs. Wire publication into the project's
+build script and open the `engineering-presentations` Portal surface from that
+project. A plugin update alone does not replace an existing project's server.
+
+The viewer exposes **Reload slides**, loaded/latest build hashes, and update
+notifications. Refresh must load changed text **and** figures, preserve a stable
+slide ID through insertion, and fall back to a valid page on deletion. Verify
+those behaviors in the actual served view. Never publish a failed or concurrently
+changing build. Keep old immutable revisions available to existing viewers.

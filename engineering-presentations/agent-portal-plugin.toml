@@ -4,6 +4,13 @@ display_name = "Engineering Presentations"
 description = "Repository-backed engineering presentations, reproducible figures, and annotation-driven review."
 license = "MIT"
 
+[surface]
+kind = "http"
+default_title = "Presentation review"
+default_width_percent = 75
+health_path = "/healthz"
+start = "python3 scripts/viewer.py serve --cwd {cwd} --port {port}"
+
 [[skills]]
 name = "presentation-authoring"
 path = "skills/presentation-authoring/SKILL.md"

@@ -68,3 +68,13 @@ screenshot capture, source mapping, queue persistence, or delivery receipts.
 Inspect what the running integration supplies. When capture or metadata is
 missing, use the available source and note and report the limitation; never
 fabricate a captured image, revision, or delivery acknowledgment.
+
+## Return a fresh review build
+
+When using the [revisioned viewer](../../README.md), publish the successful build
+before reporting the edit ready. Give the slide ID and published revision; the
+user can choose **Reload slides** when ready. The viewer announces new builds
+without automatically interrupting annotations. A failed publish/reload must
+leave the prior displayed revision intact and report the failure. Compare the
+annotation's captured revision with the loaded revision; do not confuse a
+successful rebuild on disk with the version currently displayed in the browser.

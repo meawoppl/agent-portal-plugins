@@ -397,3 +397,17 @@ unconnected/parity findings use the same array.
 The machine-readable contract is [check-report.schema.json](check-report.schema.json).
 Print it with `kicadmium check-schema` or `kct lint schema`. This is a breaking
 CLI output change; the browser API keeps its existing response shape.
+
+### Migrating schema-2 review history
+
+Run `kct lint migrate board.kicad_pcb --format json` to preview the upgrade,
+then add `--apply` to write schema 3. The original policy is retained as
+`board.lint.json.schema2.bak`; an existing backup is never overwritten.
+Configuration, reviewer reasons, dates, actions and expiry are retained.
+Matches use the rule and any recorded nets, preferring matching subjects and
+falling back to location (within 0.001 mm), rather than the old key alone.
+Missing optional metadata on older cards is tolerated. Each exception is reported as `migrated`, `changed`, or
+`orphaned`. Only unique matches with identical evidence retain their waiver;
+changed evidence stays open for reconfirmation. Ambiguous and unmatched entries
+are retained for review. Afterwards `lint stale`, `lint prune`, and the normal
+waive/flag commands work on the upgraded file.

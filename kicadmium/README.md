@@ -162,6 +162,13 @@ tracks. The 3D count reports models actually outlined, including zero when a
 matching component has no model. Searching never rebuilds the board or runs
 checks, and clearing it restores the normal view without moving the camera.
 
+Parts lookup falls back to the EasyEDA product API when JLCPCB's catalog endpoint
+is unavailable. JSON records include `source` and `stock_source`; EasyEDA's LCSC
+stock is distributor inventory, not JLCPCB assembly inventory. Unknown stock is
+reported as unknown by `parts availability`. Exact LCSC-number searches support
+this fallback too. Keyword search still requires the JLCPCB search service and
+reports a capability error with its endpoint/status if unavailable.
+
 `kct detect-mistakes` treats USB speed as unknown unless a skew budget is
 explicitly supplied. Use repeatable `--pair-skew 'USB_D+,USB_D-,2'` for a
 reviewed 2 mm budget, or supply the budget required by the actual interface and

@@ -168,3 +168,9 @@ stock is distributor inventory, not JLCPCB assembly inventory. Unknown stock is
 reported as unknown by `parts availability`. Exact LCSC-number searches support
 this fallback too. Keyword search still requires the JLCPCB search service and
 reports a capability error with its endpoint/status if unavailable.
+
+`kct detect-mistakes` treats USB speed as unknown unless a skew budget is
+explicitly supplied. Use repeatable `--pair-skew 'USB_D+,USB_D-,2'` for a
+reviewed 2 mm budget, or supply the budget required by the actual interface and
+device. An undeclared USB pair produces an informational finding; it never
+inherits a High-Speed error threshold merely from its net names.

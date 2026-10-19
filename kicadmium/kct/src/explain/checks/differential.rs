@@ -18,6 +18,12 @@ pub const MAX_GENERAL_SKEW_MM: f64 = 5.0;
 pub struct DifferentialPairSkewCheck;
 
 impl DifferentialPairSkewCheck {
+    pub fn check_with_limits(
+        pcb: &Pcb,
+        limits: &[(String, String, f64)],
+    ) -> Result<Vec<Mistake>, CheckIncomplete> {
+        Self::check_pairs(pcb, limits)
+    }
     /// Pair base name -> (positive net, negative net), in first-seen order.
     pub fn find_differential_pairs(pcb: &Pcb) -> Vec<(String, (String, String))> {
         let mut pairs: Vec<(String, Vec<String>)> = Vec::new();
@@ -70,8 +76,36 @@ impl MistakeCheck for DifferentialPairSkewCheck {
     }
 
     fn check(&self, pcb: &Pcb) -> Result<Vec<Mistake>, CheckIncomplete> {
+        Self::check_pairs(pcb, &[])
+    }
+}
+
+impl DifferentialPairSkewCheck {
+    fn check_pairs(
+        pcb: &Pcb,
+        limits: &[(String, String, f64)],
+    ) -> Result<Vec<Mistake>, CheckIncomplete> {
         let mut mistakes = Vec::new();
-        for (base, (pos_net, neg_net)) in Self::find_differential_pairs(pcb) {
+        let mut pairs = Self::find_differential_pairs(pcb);
+        for (p, n, mm) in limits {
+            if !mm.is_finite()
+                || *mm <= 0.0
+                || p == n
+                || pcb.get_net_by_name(p).is_none()
+                || pcb.get_net_by_name(n).is_none()
+            {
+                return Err(CheckIncomplete::new(
+                    "pair skew requires two existing distinct nets and a finite positive budget",
+                ));
+            }
+            if !pairs
+                .iter()
+                .any(|(_, (a, b))| (a == p && b == n) || (a == n && b == p))
+            {
+                pairs.push((p.clone(), (p.clone(), n.clone())));
+            }
+        }
+        for (base, (pos_net, neg_net)) in pairs {
             let pos_segs = Self::net_segments(pcb, &pos_net);
             let neg_segs = Self::net_segments(pcb, &neg_net);
             if pos_segs.is_empty() || neg_segs.is_empty() {
@@ -82,13 +116,24 @@ impl MistakeCheck for DifferentialPairSkewCheck {
             let skew = (pos_len - neg_len).abs();
 
             let is_usb = base.to_uppercase().contains("USB");
-            let max_skew = if is_usb {
-                MAX_USB_SKEW_MM
-            } else {
-                MAX_GENERAL_SKEW_MM
-            };
-            let interface = if is_usb {
-                "USB 2.0 high-speed"
+            let declared = limits.iter().find(|(p, n, _)| {
+                (p == &pos_net && n == &neg_net) || (p == &neg_net && n == &pos_net)
+            });
+            if is_usb && declared.is_none() {
+                mistakes.push(mistake(
+                    MistakeCategory::DifferentialPair, "info", "USB pair speed is undeclared",
+                    vec![pos_net.clone(), neg_net.clone()], None,
+                    format!("{pos_net} is {pos_len:.1}mm, {neg_net} is {neg_len:.1}mm ({skew:.1}mm difference). USB speed cannot be inferred from net names; no High-Speed limit was applied."),
+                    "Declare the reviewed pair skew budget with --pair-skew POSITIVE,NEGATIVE,MM. Choose the budget for the actual interface speed and device requirements.".into(),
+                    "docs/mistakes/differential-pair-matching.md",
+                ));
+                continue;
+            }
+            let max_skew = declared
+                .map(|(_, _, mm)| *mm)
+                .unwrap_or(MAX_GENERAL_SKEW_MM);
+            let interface = if declared.is_some() {
+                "Declared interface budget"
             } else {
                 "differential"
             };
@@ -103,7 +148,11 @@ impl MistakeCheck for DifferentialPairSkewCheck {
                 let target = if neg_len > pos_len { neg_len } else { pos_len };
                 mistakes.push(mistake(
                     MistakeCategory::DifferentialPair,
-                    if is_usb { "error" } else { "warning" },
+                    if declared.is_some() {
+                        "error"
+                    } else {
+                        "warning"
+                    },
                     "Differential pair length mismatch",
                     vec![pos_net.clone(), neg_net.clone()],
                     None,

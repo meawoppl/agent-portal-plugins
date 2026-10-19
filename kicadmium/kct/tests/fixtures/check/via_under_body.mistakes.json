@@ -1,7 +1,7 @@
 {
  "summary": {
   "errors": 0,
-  "warnings": 2,
+  "warnings": 1,
   "info": 1
  },
  "mistakes": [
@@ -18,22 +18,6 @@
     15.299999999999997
    ],
    "explanation": "Via found in SMD pad 9 of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
-   "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
-   "learn_more_url": "docs/mistakes/via-in-pad.md"
-  },
-  {
-   "category": "via_placement",
-   "severity": "warning",
-   "title": "Via in SMD pad",
-   "components": [
-    "U1",
-    "pad "
-   ],
-   "location": [
-    10.299999999999997,
-    15.299999999999997
-   ],
-   "explanation": "Via found in SMD pad  of U1. During reflow soldering, solder can wick down into the via, resulting in insufficient solder on the pad and unreliable connections.",
    "fix_suggestion": "Move the via outside the pad area, or specify via-in-pad with filled and capped vias in the manufacturing notes. Via-in-pad increases cost but is acceptable when properly filled.",
    "learn_more_url": "docs/mistakes/via-in-pad.md"
   },

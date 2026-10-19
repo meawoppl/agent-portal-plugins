@@ -30,6 +30,8 @@ enum Command {
     /// Run lint using the board's adjacent .lint.json policy file.
     Run(RunArgs),
     Init(InitArgs),
+    /// Upgrade schema-2 exceptions while preserving review history.
+    Migrate(MigrationArgs),
     Waive(DecisionArgs),
     Flag(DecisionArgs),
     Clear(KeyArgs),
@@ -54,6 +56,16 @@ struct BoardArgs {
     /// Show unevaluated experimental rules (never included in failure gates).
     #[arg(long)]
     include_experimental: bool,
+}
+#[derive(Debug, Clone, Args)]
+struct MigrationArgs {
+    #[command(flatten)]
+    board: BoardArgs,
+    /// Write schema 3 and retain the original as <policy>.schema2.bak.
+    #[arg(long)]
+    apply: bool,
+    #[arg(long, value_enum, default_value_t = OutputFormat::Text)]
+    format: OutputFormat,
 }
 #[derive(Debug, Clone, Args)]
 struct RunArgs {
@@ -589,6 +601,31 @@ fn artifact_key(board: &Path) -> String {
 pub fn run(args: Vec<OsString>, _globals: &Globals) -> Result<i32> {
     match parse_args::<Cli>("lint", args).command {
         Command::Run(a) => run_board(a),
+        Command::Migrate(a) => {
+            let path = a
+                .board
+                .file
+                .unwrap_or_else(|| BoardLintFile::path_for(&a.board.board));
+            let source = fs::read_to_string(&a.board.board)?;
+            let entries = board_file::migrate_schema2(&path, &source, a.apply)?;
+            match a.format {
+                OutputFormat::Json => println!("{}", serde_json::to_string_pretty(&entries)?),
+                OutputFormat::Text => {
+                    for entry in &entries {
+                        println!(
+                            "{} {} -> {}: {} ({})",
+                            entry.status, entry.old_key, entry.key, entry.reason, entry.detail
+                        );
+                    }
+                    println!(
+                        "{} {} exceptions",
+                        if a.apply { "Migrated" } else { "Previewed" },
+                        entries.len()
+                    );
+                }
+            }
+            Ok(0)
+        }
         Command::Schema => {
             println!("{}", crate::check_report::JSON_SCHEMA);
             Ok(0)

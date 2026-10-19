@@ -82,7 +82,7 @@ fn old_waiver_files_are_rejected() {
     let path = dir.path().join("board.lint.json");
     std::fs::write(&path, r#"{"schema":2,"board_id":"board","exceptions":[]}"#).unwrap();
     let error = board_file::BoardLintFile::load_or_default(&path, "board").unwrap_err();
-    assert!(error.to_string().contains("old waivers are unsupported"));
+    assert!(error.to_string().contains("kct lint migrate <board>"));
 }
 
 #[test]

@@ -51,6 +51,12 @@ pub fn fp_transform(fp: &Footprint) -> impl Fn((f64, f64)) -> (f64, f64) {
     move |(lx, ly)| (fx + (lx * c - ly * s), fy + (lx * s + ly * c))
 }
 
+/// Board graphics retain sheet coordinates, unlike footprints and copper.
+pub fn board_transform(pcb: &Pcb) -> impl Fn((f64, f64)) -> (f64, f64) {
+    let (ox, oy) = pcb.board_origin();
+    move |(x, y)| (x - ox, y - oy)
+}
+
 /// Python `text[:20]`.
 fn prefix20(s: &str) -> String {
     s.chars().take(20).collect()
@@ -77,7 +83,10 @@ pub fn check_silkscreen_line_width(
                         g.stroke_width
                     ),
                 )
-                .at(g.start.0, g.start.1)
+                .at(
+                    board_transform(pcb)(g.start).0,
+                    board_transform(pcb)(g.start).1,
+                )
                 .layer(g.layer.clone())
                 .actual(g.stroke_width)
                 .required(min)
@@ -141,7 +150,10 @@ pub fn check_silkscreen_text_height(
                         t.font_height()
                     ),
                 )
-                .at(t.position.0, t.position.1)
+                .at(
+                    board_transform(pcb)(t.position).0,
+                    board_transform(pcb)(t.position).1,
+                )
                 .layer(t.layer.clone())
                 .actual(t.font_height())
                 .required(min)
@@ -454,6 +466,7 @@ pub struct SilkItem {
 /// `_iter_silk_geometries`.
 pub fn iter_silk_geometries(pcb: &Pcb) -> Vec<SilkItem> {
     let mut out = Vec::new();
+    let board_to_local = board_transform(pcb);
     for fp in pcb.footprints() {
         let t = fp_transform(fp);
         for text in &fp.texts {
@@ -511,7 +524,7 @@ pub fn iter_silk_geometries(pcb: &Pcb) -> Vec<SilkItem> {
             &text.text,
             text.font_size,
             text.font_thickness,
-            text.position,
+            board_to_local(text.position),
         ) else {
             continue;
         };
@@ -523,7 +536,7 @@ pub fn iter_silk_geometries(pcb: &Pcb) -> Vec<SilkItem> {
             } else {
                 prefix20(&text.text)
             },
-            location: text.position,
+            location: board_to_local(text.position),
             layer: text.layer.clone(),
             uuid: text.uuid.clone(),
             line: None,
@@ -533,14 +546,14 @@ pub fn iter_silk_geometries(pcb: &Pcb) -> Vec<SilkItem> {
         let Some(side) = silk_side(&gr.layer) else {
             continue;
         };
-        let Some(g) = stroke_geometry(&SilkGraphic::from(gr), None) else {
+        let Some(g) = stroke_geometry(&SilkGraphic::from(gr), Some(&board_to_local)) else {
             continue;
         };
         out.push(SilkItem {
             side,
             geom: g,
             label: format!("gr_{}", gr.graphic_type),
-            location: gr.start,
+            location: board_to_local(gr.start),
             layer: gr.layer.clone(),
             uuid: gr.uuid.clone(),
             line: None,
@@ -578,7 +591,7 @@ pub fn check_silk_coverage(pcb: &Pcb) -> DRCResults {
         rows.push((
             format!("gr_{}", g.graphic_type),
             g.graphic_type.clone(),
-            g.start,
+            board_transform(pcb)(g.start),
             g.layer.clone(),
             g.uuid.clone(),
         ));

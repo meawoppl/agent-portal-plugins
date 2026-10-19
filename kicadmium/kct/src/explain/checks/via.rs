@@ -18,15 +18,32 @@ impl MistakeCheck for ViaInPadCheck {
     }
 
     fn check(&self, pcb: &Pcb) -> Result<Vec<Mistake>, CheckIncomplete> {
+        if pcb.footprints().iter().flat_map(|fp| &fp.pads).any(|pad| {
+            pad.pad_type == "smd"
+                && !matches!(
+                    pad.shape.as_str(),
+                    "rect" | "roundrect" | "circle" | "oval" | "obround"
+                )
+        }) {
+            return Err(CheckIncomplete::new(
+                "via-in-pad requires native copper geometry for custom or trapezoid pads",
+            ));
+        }
         let mut mistakes = Vec::new();
         for fp in pcb.footprints() {
+            let mut reported = std::collections::BTreeSet::new();
             for pad in fp.pads.iter().filter(|p| p.pad_type == "smd") {
-                let px = fp.position.0 + pad.position.0;
-                let py = fp.position.1 + pad.position.1;
-                let (w, h) = pad.size;
-                for via in pcb.vias() {
-                    let (vx, vy) = via.position;
-                    if (vx - px).abs() <= w / 2.0 && (vy - py).abs() <= h / 2.0 {
+                let Some(copper) = crate::validate::rules::clearance::pad_polygon(pad, fp) else {
+                    continue;
+                };
+                for (index, via) in pcb.vias().iter().enumerate() {
+                    if pad
+                        .layers
+                        .iter()
+                        .any(|layer| layer == "*.Cu" || via.layers.contains(layer))
+                        && crate::geometry::shapely::covers_point(&copper, via.position)
+                        && reported.insert((pad.number.clone(), index))
+                    {
                         mistakes.push(mistake(
                             MistakeCategory::Via,
                             "warning",

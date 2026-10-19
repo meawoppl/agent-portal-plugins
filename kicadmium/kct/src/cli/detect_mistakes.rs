@@ -33,6 +33,9 @@ const CATEGORY_VALUES: [&str; 12] = [
 #[derive(Parser, Debug)]
 #[command(about = "Detect common PCB design mistakes with educational explanations")]
 struct Args {
+    /// Reviewed length-skew budget: POSITIVE_NET,NEGATIVE_NET,MM (repeatable).
+    #[arg(long, value_parser = parse_pair_skew)]
+    pair_skew: Vec<PairSkew>,
     /// Path to .kicad_pcb file to analyze
     pcb_file: Option<String>,
     /// Only check specific category
@@ -53,6 +56,37 @@ struct Args {
     /// Show detailed information
     #[arg(long, short = 'v')]
     verbose: bool,
+}
+
+#[derive(Debug, Clone)]
+struct PairSkew(String, String, f64);
+
+fn parse_pair_skew(value: &str) -> std::result::Result<PairSkew, String> {
+    let fields: Vec<_> = value.split(',').collect();
+    if fields.len() != 3 || fields[0].is_empty() || fields[1].is_empty() || fields[0] == fields[1] {
+        return Err("expected POSITIVE_NET,NEGATIVE_NET,MM".into());
+    }
+    let mm: f64 = fields[2].parse().map_err(|_| "invalid skew budget")?;
+    if !mm.is_finite() || mm <= 0.0 {
+        return Err("skew budget must be finite and positive".into());
+    }
+    Ok(PairSkew(fields[0].into(), fields[1].into(), mm))
+}
+
+struct DeclaredSkew(Vec<(String, String, f64)>);
+impl crate::explain::mistakes::MistakeCheck for DeclaredSkew {
+    fn name(&self) -> &'static str {
+        "DifferentialPairSkewCheck"
+    }
+    fn category(&self) -> MistakeCategory {
+        MistakeCategory::DifferentialPair
+    }
+    fn check(
+        &self,
+        pcb: &Pcb,
+    ) -> std::result::Result<Vec<Mistake>, crate::explain::mistakes::CheckIncomplete> {
+        crate::explain::checks::DifferentialPairSkewCheck::check_with_limits(pcb, &self.0)
+    }
 }
 
 fn category_description(c: MistakeCategory) -> &'static str {
@@ -276,7 +310,23 @@ pub fn run(args: Vec<OsString>, _g: &Globals) -> Result<i32> {
             return Ok(1);
         }
     };
-    let detector = MistakeDetector::default();
+    let mut checks = get_default_checks();
+    if !a.pair_skew.is_empty() {
+        for PairSkew(p, n, _) in &a.pair_skew {
+            anyhow::ensure!(
+                pcb.get_net_by_name(p).is_some() && pcb.get_net_by_name(n).is_some(),
+                "pair-skew names must exist on the board: {p}, {n}"
+            );
+        }
+        checks.retain(|check| check.name() != "DifferentialPairSkewCheck");
+        checks.push(Box::new(DeclaredSkew(
+            a.pair_skew
+                .iter()
+                .map(|PairSkew(p, n, mm)| (p.clone(), n.clone(), *mm))
+                .collect(),
+        )));
+    }
+    let detector = MistakeDetector::new(Some(checks));
     let (mut mistakes, coverage) = match a.category.as_deref().and_then(MistakeCategory::from_value)
     {
         Some(cat) => detector.detect_by_category_with_coverage(&pcb, cat),

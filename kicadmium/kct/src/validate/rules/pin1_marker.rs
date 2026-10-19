@@ -216,7 +216,10 @@ impl Pin1MarkerRule {
                 let Some(side) = silk_side(&gr.layer) else {
                     continue;
                 };
-                if let Some(g) = graphic_geometry(&SilkGraphic::from(gr), None) {
+                if let Some(g) = graphic_geometry(
+                    &SilkGraphic::from(gr),
+                    Some(&super::silkscreen::board_transform(pcb)),
+                ) {
                     if !g.is_empty() {
                         if side == "F" {
                             board_f.push(g);

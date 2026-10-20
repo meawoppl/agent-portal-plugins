@@ -275,7 +275,7 @@ fn select(stage: &Element, start: [f64; 2], end: [f64; 2]) -> Option<Selection> 
     let rect = canvas.get_bounding_client_rect();
     let local = |p: [f64; 2]| [p[0] - rect.left(), p[1] - rect.top()];
     let region = region_from_drag(local(start), local(end), rect.width(), rect.height())?;
-    let world = crate::vector_scene::view_of(&canvas).map(|v| world_bounds(&v, &region));
+    let world = vector_view_yew::canvas::view_of(&canvas).map(|v| world_bounds(&v, &region));
     Some(Selection {
         region,
         world,

@@ -26,7 +26,7 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
-use crate::vector_scene::VectorSceneCanvas;
+use vector_view_yew::canvas::VectorSceneCanvas;
 
 const SETTINGS_KEY: &str = "kicadmium:pcb-rust";
 
@@ -772,7 +772,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
                 }
             }
             let sel = *selection;
-            let found = crate::viewer_search::find(scene, &query);
+            let found = vector_view_yew::search::find(scene, &query);
             let highlight = if !found.items.is_empty() {
                 Highlight::Items(found.items.clone())
             } else {
@@ -826,7 +826,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
     let message = (*status).clone();
     let found = scene
         .as_ref()
-        .map(|s| crate::viewer_search::find(s, &query))
+        .map(|s| vector_view_yew::search::find(s, &query))
         .unwrap_or_default();
     let summary = if found.labels.is_empty() {
         "No matches".into()
@@ -861,7 +861,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
     html! {
         <div class="pcbv" ref={stage} data-revision={revision} data-annotate-layers={annotate_layers}>
             {canvas}
-            <crate::viewer_search::ViewerSearch query={(*query).clone()} {onchange} {summary}/>
+            <vector_view_yew::search::ViewerSearch query={(*query).clone()} {onchange} {summary}/>
             {toolbar}
             {layers_panel}
             {properties}

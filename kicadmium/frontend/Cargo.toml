@@ -21,3 +21,4 @@ serde-wasm-bindgen = "0.6"
 shared = { path = "../shared" }
 gerber-view.workspace = true
 vector-view = { workspace = true, features = ["canvas"] }
+vector-view-yew.workspace = true

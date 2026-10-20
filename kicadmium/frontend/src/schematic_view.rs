@@ -1,7 +1,7 @@
 //! Typed lifecycle and properties panel for the reified schematic scene.
-use crate::vector_scene::VectorSceneCanvas;
 use std::{collections::HashSet, rc::Rc};
 use vector_view::{BBox, ItemId, Role, Scene, SCENE_VERSION};
+use vector_view_yew::canvas::VectorSceneCanvas;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 /// Portal (Tokyo Night) canvas background; the scene's layer colours carry
@@ -113,7 +113,7 @@ pub fn schematic_view(props: &SchematicViewProps) -> Html {
                     .map(|(p, _)| p.clone())
                     .unwrap_or_else(|| "/".into())
             };
-            let found = crate::viewer_search::find(scene, &query);
+            let found = vector_view_yew::search::find(scene, &query);
             let hidden_items = off_page(scene, &current);
             let visible = found
                 .items
@@ -137,7 +137,7 @@ pub fn schematic_view(props: &SchematicViewProps) -> Html {
                 let scene = scene.clone();
                 let current = current.clone();
                 Callback::from(move |text: String| {
-                    let found = crate::viewer_search::find(&scene, &text);
+                    let found = vector_view_yew::search::find(&scene, &text);
                     let matches_page = |item: &&vector_view::Item| {
                         found.items.contains(&item.id)
                             && item
@@ -189,7 +189,7 @@ pub fn schematic_view(props: &SchematicViewProps) -> Html {
             } else {
                 Html::default()
             };
-            html! {<div class="schematicv"><div class="schematicv-tools"><crate::viewer_search::ViewerSearch query={(*query).clone()} {onchange} {summary}/>{picker}</div><VectorSceneCanvas key={current.clone()} scene={scene.clone()} selected={if query.trim().is_empty(){*selected}else{None}} {highlight} {on_select} {hidden_items} {fit_bbox} theme={schematic_theme()} background={Some(SCHEMATIC_BACKGROUND)}/>{if let Some(id)=*selected{html!{<SceneProperties scene={scene.clone()} item={id} onclose={{let selected=selected.clone();Callback::from(move |_|selected.set(None))}} onopen={open.clone()}/>}}else{Html::default()}}</div>}
+            html! {<div class="schematicv"><div class="schematicv-tools"><vector_view_yew::search::ViewerSearch query={(*query).clone()} {onchange} {summary}/>{picker}</div><VectorSceneCanvas key={current.clone()} scene={scene.clone()} selected={if query.trim().is_empty(){*selected}else{None}} {highlight} {on_select} {hidden_items} {fit_bbox} theme={schematic_theme()} background={Some(SCHEMATIC_BACKGROUND)}/>{if let Some(id)=*selected{html!{<SceneProperties scene={scene.clone()} item={id} onclose={{let selected=selected.clone();Callback::from(move |_|selected.set(None))}} onopen={open.clone()}/>}}else{Html::default()}}</div>}
         }
     }
 }

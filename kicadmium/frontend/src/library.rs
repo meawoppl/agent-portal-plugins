@@ -16,7 +16,7 @@ use yew::prelude::*;
 
 use crate::api;
 use crate::model_view::ModelView;
-use crate::vector_scene::VectorSceneCanvas;
+use vector_view_yew::canvas::VectorSceneCanvas;
 
 const POLL_MS: u32 = 900;
 const KINDS: [(&str, &str); 3] = [

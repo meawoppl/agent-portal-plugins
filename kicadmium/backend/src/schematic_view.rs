@@ -87,7 +87,9 @@ fn schematic_files(
     let root_key = rel(&project.root, &root)?;
     let mut files = HashMap::new();
     for (key, path) in &revision::cached_sources(project).sch {
-        if is_member_key(key) && key.ends_with(".kicad_sch") {
+        // `read_confined` is the safety check; keys outside the project
+        // (`@repo/...`) never pass it.
+        if key.ends_with(".kicad_sch") {
             if let Some(data) = read_confined(project, path) {
                 files.insert(key.clone(), data);
             }
@@ -120,11 +122,6 @@ fn schematic_files(
     Ok((root_key, files))
 }
 
-/// Keys the extractor accepts: plain relative, slash-separated paths.
-fn is_member_key(key: &str) -> bool {
-    !key.starts_with(['/', '@']) && !key.contains([':', '\\'])
-}
-
 fn read_confined(project: &ProjectContext, path: &Path) -> Option<Vec<u8>> {
     let canonical: PathBuf = path.canonicalize().ok()?;
     if !canonical.starts_with(&project.root) || !canonical.is_file() {
@@ -150,7 +147,9 @@ fn child_sheets(data: &[u8]) -> Vec<String> {
 /// Resolve a sheet file lexically against its parent's directory, the way
 /// the extractor does; `None` for absolute paths or paths above the root.
 fn resolve(parent: &str, file: &str) -> Option<String> {
-    if !is_member_key(file) {
+    // Same rules as the extractor: absolute, drive and backslash paths are
+    // not project members (it reports them as missing sheets).
+    if file.starts_with('/') || file.contains([':', '\\']) {
         return None;
     }
     let mut parts: Vec<&str> = parent.split('/').filter(|p| !p.is_empty()).collect();
@@ -209,7 +208,7 @@ mod tests {
     }
 
     #[test]
-    fn hierarchy_is_read_and_escapes_become_warnings() {
+    fn hierarchy_renders_and_escapes_and_recursion_become_warnings() {
         let outer = tempfile::tempdir().unwrap();
         let outer = outer.path().canonicalize().unwrap();
         let dir = outer.join("board");
@@ -221,6 +220,8 @@ mod tests {
                 "root",
                 &[
                     sheet("Child", "sub/child.kicad_sch"),
+                    sheet("Up", "../secret.kicad_sch"),
+                    sheet("Again", "root.kicad_sch"),
                     sheet("Link", "link.kicad_sch"),
                 ],
             ),
@@ -241,10 +242,23 @@ mod tests {
         let scene = build_scene(&project).unwrap();
         let meta: Vec<_> = scene.meta.iter().map(|p| p.key.as_str()).collect();
         assert!(meta.contains(&"page:/Child:file"));
+        // Escaping, recursive and symlinked-out sheets are skipped with a
+        // warning; the rest of the hierarchy still renders.
         let warnings = vector_view::schematic::warnings(&scene);
+        assert!(
+            warnings.iter().any(|w| w.contains("../secret.kicad_sch")),
+            "{warnings:?}"
+        );
+        assert!(
+            warnings.iter().any(|w| w.contains("recursive")),
+            "{warnings:?}"
+        );
         #[cfg(unix)]
-        assert_eq!(warnings.len(), 1, "{warnings:?}");
-        assert!(warnings.iter().all(|w| w.contains("link.kicad_sch")));
+        assert!(
+            warnings.iter().any(|w| w.contains("link.kicad_sch")),
+            "{warnings:?}"
+        );
+        assert!(warnings.iter().all(|w| !w.contains("outer")));
         // `revision` stays immediately before `root`, after the pages.
         let (r, root) = (
             meta.iter().position(|k| *k == "revision").unwrap(),

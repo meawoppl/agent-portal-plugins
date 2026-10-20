@@ -112,7 +112,7 @@ details.raw summary{cursor:pointer;color:#7dcfff}
 .pcbv-props dt{color:#9aa5ce}
 .pcbv-props dd{margin:0;overflow-wrap:anywhere}
 .pcbv-status{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#9aa5ce}
-@media (max-width:760px){.pcbv-layers{top:auto;height:45%;width:auto;left:10px}}
+@media (max-width:760px){.pcbv-layers,.schematicv-layers{top:auto;height:45%;width:auto;left:10px}}
 /* Resolve the scene against the available viewport, including short windows. */
 .viewer-card.rust-schematic{display:flex;flex-direction:column;min-height:0}
 .schematicv{position:relative;flex:1;min-height:0;overflow:hidden;border-radius:6px}
@@ -129,5 +129,12 @@ details.raw summary{cursor:pointer;color:#7dcfff}
 .schematicv-tools{position:absolute;left:10px;top:10px;z-index:6;max-width:calc(100% - 110px);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .schematicv-tools .viewer-search{position:static;max-width:100%}
 .schematicv-tools .schematicv-pages{position:static;max-width:100%}
+/* SchematicView (vector-view-yew) extras: parent sheet, layers, producer warnings. */
+.schematicv-parent,.schematicv-layers-toggle{padding:4px 8px;border:1px solid #3b4261;border-radius:6px;background:#1a1b26f0;color:#c0caf5;cursor:pointer;font:12px ui-monospace,monospace}
+.schematicv-layers-toggle[aria-expanded=true]{background:#7aa2f7;color:#10131d}
+.schematicv-layers{position:absolute;top:54px;right:10px;bottom:10px;z-index:6;width:200px;overflow:auto;padding:8px;border:1px solid #3b4261;border-radius:6px;background:#1a1b26f0;font-size:12px;display:flex;flex-direction:column;gap:2px}
+.schematicv-layers label{display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer;white-space:nowrap}
+.schematicv-swatch{width:12px;height:12px;border-radius:2px;flex:none;border:1px solid #0006}
+.schematicv-warnings{position:absolute;right:10px;bottom:10px;z-index:6;max-width:min(420px,calc(100% - 20px));max-height:30%;overflow:auto;padding:6px 10px;border:1px solid #e0af68;border-radius:6px;background:#2a2416f0;color:#e0af68;font:12px ui-monospace,monospace}
 @media(max-width:760px){.viewer-search{max-width:calc(100% - 110px)}.viewer-search-toggle{display:block;min-height:36px}.viewer-search-fields{display:none;margin-top:4px}.viewer-search.expanded .viewer-search-fields{display:flex}.viewer-search input{font-size:16px}}
 .viewer-search input::-webkit-search-cancel-button{display:none}

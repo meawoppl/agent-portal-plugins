@@ -390,6 +390,9 @@ pub struct PcbViewProps {
     pub revision: AttrValue,
     #[prop_or(true)]
     pub pours: bool,
+    /// Search to start with, e.g. a reference cross-probed from the schematic.
+    #[prop_or_default]
+    pub initial_query: AttrValue,
 }
 
 #[derive(Clone, PartialEq)]
@@ -485,7 +488,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
     let status = use_state(|| "Loading board…".to_string());
     let settings = use_state(load_settings);
     let selection = use_state(|| None::<Selection>);
-    let query = use_state(String::new);
+    let query = use_state(|| props.initial_query.to_string());
     let initial_view = use_state_eq(|| None::<View>);
     let last_view: Rc<RefCell<Option<View>>> = use_mut_ref(|| None);
     let stage = use_node_ref();

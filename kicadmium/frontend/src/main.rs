@@ -40,6 +40,47 @@ fn saved_tab() -> String {
         .filter(|t| TABS.iter().any(|(id, _)| id == t))
         .unwrap_or_else(|| "pcb".into())
 }
+fn save_tab(id: &str) {
+    if let Some(s) = web_sys::window().and_then(|w| w.local_storage().ok().flatten()) {
+        let _ = s.set_item("kicadmium:tab", id);
+    }
+}
+/// A URL-decoded, non-empty query parameter of the page URL.
+fn query_param(name: &str) -> Option<String> {
+    let search = web_sys::window()?.location().search().ok()?;
+    web_sys::UrlSearchParams::new_with_str(&search)
+        .ok()?
+        .get(name)
+        .filter(|v| !v.is_empty())
+}
+/// Deep links (`?tab=`, `?sheet=`, `?ref=`), read once when the page loads.
+/// The URL is never rewritten; they only choose what opens first.
+#[derive(Clone, Debug, Default, PartialEq)]
+struct DeepLink {
+    tab: Option<String>,
+    sheet: Option<String>,
+    reference: Option<String>,
+}
+impl DeepLink {
+    fn from_url() -> Self {
+        Self {
+            tab: query_param("tab"),
+            sheet: query_param("sheet"),
+            reference: query_param("ref"),
+        }
+    }
+    /// The tab to open: a known `?tab=`, else Schematic when a sheet or
+    /// reference is linked, else the remembered tab.
+    fn initial_tab(&self, saved: impl FnOnce() -> String) -> String {
+        self.tab
+            .clone()
+            .filter(|t| TABS.iter().any(|(id, _)| id == t))
+            .or_else(|| {
+                (self.sheet.is_some() || self.reference.is_some()).then(|| "schematic".into())
+            })
+            .unwrap_or_else(saved)
+    }
+}
 fn query_project() -> String {
     web_sys::window()
         .and_then(|w| w.location().search().ok())
@@ -96,7 +137,26 @@ fn pick_project(query: &str, saved: Option<&str>, w: &shared::WorkspaceResponse)
 }
 #[cfg(test)]
 mod tests {
-    use super::pick_project;
+    use super::{pick_project, DeepLink};
+
+    #[test]
+    fn deep_link_tab_wins_then_schematic_for_sheet_or_ref_then_saved() {
+        let saved = || "pcb".to_owned();
+        let link = |tab: Option<&str>, sheet: Option<&str>, reference: Option<&str>| DeepLink {
+            tab: tab.map(Into::into),
+            sheet: sheet.map(Into::into),
+            reference: reference.map(Into::into),
+        };
+        assert_eq!(DeepLink::default().initial_tab(saved), "pcb");
+        assert_eq!(link(Some("bom"), None, None).initial_tab(saved), "bom");
+        assert_eq!(link(Some("nope"), None, None).initial_tab(saved), "pcb");
+        assert_eq!(link(None, Some("/a"), None).initial_tab(saved), "schematic");
+        assert_eq!(link(None, None, Some("U1")).initial_tab(saved), "schematic");
+        assert_eq!(
+            link(Some("pcb"), None, Some("U1")).initial_tab(saved),
+            "pcb"
+        );
+    }
     use shared::{ProjectSummary, WorkspaceResponse};
 
     fn workspace(default: &str, ids: &[&str]) -> WorkspaceResponse {
@@ -155,7 +215,12 @@ mod tests {
 }
 #[component(App)]
 fn app() -> Html {
-    let active = use_state(saved_tab);
+    // Applied to the first Schematic visit only; any tab or project change
+    // drops it so revisiting a tab never jumps back.
+    let link = use_state(DeepLink::from_url);
+    let active = use_state(|| link.initial_tab(saved_tab));
+    // A reference the schematic sent to the PCB tab's search.
+    let probe = use_state(String::new);
     let project = use_state(query_project);
     let manifest = use_state(|| None::<shared::ManifestResponse>);
     let workspace = use_state(|| None::<shared::WorkspaceResponse>);
@@ -212,8 +277,10 @@ fn app() -> Html {
         let project = project.clone();
         let live_revision = live_revision.clone();
         let workspace = workspace.clone();
+        let link = link.clone();
         Callback::from(move |e: InputEvent| {
             live_revision.set(None);
+            link.set(DeepLink::default());
             let id = e.target_unchecked_into::<HtmlInputElement>().value();
             // Remember complete ids only, not every keystroke.
             if workspace
@@ -230,8 +297,10 @@ fn app() -> Html {
     let pick_project = {
         let project = project.clone();
         let live_revision = live_revision.clone();
+        let link = link.clone();
         Callback::from(move |e: Event| {
             live_revision.set(None);
+            link.set(DeepLink::default());
             let id = e
                 .target_unchecked_into::<web_sys::HtmlSelectElement>()
                 .value();
@@ -256,14 +325,35 @@ fn app() -> Html {
             html! {<input class="project-input" aria-label="Project id" placeholder="default project" value={(*project).clone()} oninput={change_project}/>}
         }
     };
+    let has_pcb = manifest
+        .as_ref()
+        .is_some_and(|m| m.files.iter().any(|f| f.kind == "pcb"));
+    // "Show on PCB": open the PCB tab searching for the reference.
+    let on_cross_probe = has_pcb.then(|| {
+        let (active, probe, link) = (active.clone(), probe.clone(), link.clone());
+        Callback::from(move |reference: String| {
+            save_tab("pcb");
+            link.set(DeepLink::default());
+            probe.set(reference);
+            active.set("pcb".into())
+        })
+    });
+    let (sheet, reveal) = if *active == "schematic" {
+        (
+            link.sheet.clone().map(AttrValue::from),
+            link.reference.clone().map(AttrValue::from),
+        )
+    } else {
+        (None, None)
+    };
     let on_revision = {
         let live_revision = live_revision.clone();
         Callback::from(move |revision: String| live_revision.set(Some(revision)))
     };
     html! {<div class="app-shell"><header><div><h1>{"kicadmium"}</h1><span class="tagline">{"The heavy metal your PCBs were missing."}</span></div><div class="header-tools">{picker}<LiveStatus project={(*project).clone()} {on_revision}/></div></header>
     <build_strip::BuildStrip project={(*project).clone()}/>
-    <nav class="tabs" aria-label="Workbench views">{for TABS.iter().map(|(id,label)|{let id=(*id).to_owned();let selected=*active==id;let active=active.clone();html!{<button class={classes!(selected.then_some("active"))} aria-selected={selected.to_string()} onclick={Callback::from(move |_|{if let Some(s)=web_sys::window().and_then(|w|w.local_storage().ok().flatten()){let _=s.set_item("kicadmium:tab",&id);}active.set(id.clone())})}>{*label}</button>}})}</nav>
-    <main>{{let view=if !*resolved || !*manifest_ready{html!{<p class="view-status" role="status">{"Opening project…"}</p>}}else{match active.as_str(){"schematic"=>html!{<viewer::Viewer project={(*project).clone()} kind="schematic" revision={revision.clone()}/>},"pcb"=>html!{<viewer::Viewer project={(*project).clone()} kind="pcb" revision={revision.clone()}/>} ,"3d"=>html!{<viewer::Viewer project={(*project).clone()} kind="model" revision={revision.clone()} model={manifest.as_ref().map(|m| m.model.clone()).unwrap_or_default()}/>} ,"checks"=>html!{<Checks project={(*project).clone()}/>} ,"bom"=>html!{<bom::BomTab project={(*project).clone()} revision={revision.clone()}/>} ,"libraries"=>html!{<library::LibraryTab project={(*project).clone()}/>} ,"gerbers"=>html!{<gerbers::GerberTab project={(*project).clone()} revision={revision.clone()}/>} ,_=>html!{<misc::AnalysisTab project={(*project).clone()} revision={revision.clone()}/>}}};
+    <nav class="tabs" aria-label="Workbench views">{for TABS.iter().map(|(id,label)|{let id=(*id).to_owned();let selected=*active==id;let active=active.clone();let link=link.clone();let probe=probe.clone();html!{<button class={classes!(selected.then_some("active"))} aria-selected={selected.to_string()} onclick={Callback::from(move |_|{save_tab(&id);link.set(DeepLink::default());probe.set(String::new());active.set(id.clone())})}>{*label}</button>}})}</nav>
+    <main>{{let view=if !*resolved || !*manifest_ready{html!{<p class="view-status" role="status">{"Opening project…"}</p>}}else{match active.as_str(){"schematic"=>html!{<viewer::Viewer project={(*project).clone()} kind="schematic" revision={revision.clone()} {sheet} {reveal} {on_cross_probe}/>},"pcb"=>html!{<viewer::Viewer project={(*project).clone()} kind="pcb" revision={revision.clone()} query={(*probe).clone()}/>} ,"3d"=>html!{<viewer::Viewer project={(*project).clone()} kind="model" revision={revision.clone()} model={manifest.as_ref().map(|m| m.model.clone()).unwrap_or_default()}/>} ,"checks"=>html!{<Checks project={(*project).clone()}/>} ,"bom"=>html!{<bom::BomTab project={(*project).clone()} revision={revision.clone()}/>} ,"libraries"=>html!{<library::LibraryTab project={(*project).clone()}/>} ,"gerbers"=>html!{<gerbers::GerberTab project={(*project).clone()} revision={revision.clone()}/>} ,_=>html!{<misc::AnalysisTab project={(*project).clone()} revision={revision.clone()}/>}}};
     // Annotation targets what is on screen, so it floats over the visual views only.
     if ANNOTATABLE.contains(&active.as_str()){html!{<div class={classes!("view-stage",format!("view-{}",*active))}>{view}<div class="view-annotate"><Annotator project={(*project).clone()} tab={(*active).clone()} revision={revision.clone()}/></div></div>}}else{view}}}</main></div>}
 }

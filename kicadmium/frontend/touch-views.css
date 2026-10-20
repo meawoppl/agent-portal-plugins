@@ -10,6 +10,8 @@
   .pcbv-presets button,
   .pcbv-props-head button,
   .vector-scene-fit,
+  .schematicv-parent,
+  .schematicv-layers-toggle,
   .gerber-viewer .gv-button,
   .lib-dialog button,
   .build-strip button,
@@ -29,6 +31,9 @@
   .pcbv-layer-name { display: flex; flex-direction: column; gap: 2px; }
   .pcbv-layer-alias { display: block; color: #9aa5ce; font-size: 11px; }
   .schematicv-pages { min-height: 44px; font-size: 16px; }
+  .schematicv-layers { top: 72px; }
+  .schematicv-layers label { min-height: 44px; gap: 10px; }
+  .schematicv-layers input { width: 20px; height: 20px; flex: none; }
   header select, header input, .viewer-options select { min-height: 44px; font-size: 16px; }
   .viewer-options label { display: inline-flex; align-items: center; min-height: 44px; }
   .build-strip .bs-stage summary { display: flex; align-items: center; gap: 4px; }
@@ -36,5 +41,5 @@
   .view-stage { overscroll-behavior: contain; }
 }
 @media (any-pointer: coarse) and (max-width: 760px) {
-  .pcbv-layers { top: auto; }
+  .pcbv-layers, .schematicv-layers { top: auto; }
 }

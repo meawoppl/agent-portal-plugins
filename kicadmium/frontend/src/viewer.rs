@@ -18,6 +18,18 @@ pub struct Props {
     /// The project's 3D settings (default finish).
     #[prop_or_default]
     pub model: shared::ModelConfig,
+    /// Schematic deep link: sheet to open first (`?sheet=`).
+    #[prop_or_default]
+    pub sheet: Option<AttrValue>,
+    /// Schematic deep link: symbol to select (`?ref=`).
+    #[prop_or_default]
+    pub reveal: Option<AttrValue>,
+    /// Schematic "Show on PCB" for a symbol reference.
+    #[prop_or_default]
+    pub on_cross_probe: Option<Callback<String>>,
+    /// PCB search to start with (a schematic cross-probe).
+    #[prop_or_default]
+    pub query: AttrValue,
 }
 
 const FINISH_KEY: &str = "kicadmium:3d-finish";
@@ -134,11 +146,11 @@ pub fn viewer(props: &Props) -> Html {
         outline: *outline,
     };
     let body = if is_pcb {
-        html! {<PcbView project={props.project.clone()} revision={props.revision.clone()} pours={*pours}/>}
+        html! {<PcbView project={props.project.clone()} revision={props.revision.clone()} pours={*pours} initial_query={props.query.clone()}/>}
     } else if is_model {
         html! {<ModelView project={props.project.clone()} revision={props.revision.clone()} active={props.active} options={Some(view_options)}/>}
     } else if is_schematic {
-        html! {<SchematicView project={props.project.clone()} revision={props.revision.clone()}/>}
+        html! {<SchematicView project={props.project.clone()} revision={props.revision.clone()} sheet={props.sheet.clone()} reveal={props.reveal.clone()} on_cross_probe={props.on_cross_probe.clone()}/>}
     } else {
         html! {<div class="lib-stage-msg">{format!("Unknown viewer kind: {}", props.kind)}</div>}
     };

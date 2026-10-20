@@ -153,7 +153,7 @@ fn scope_cache() -> &'static Mutex<HashMap<String, Arc<ProjectSources>>> {
     CACHE.get_or_init(Default::default)
 }
 
-fn cached_sources(project: &ProjectContext) -> Arc<ProjectSources> {
+pub(crate) fn cached_sources(project: &ProjectContext) -> Arc<ProjectSources> {
     if let Some(found) = scope_cache()
         .lock()
         .expect("scope cache poisoned")

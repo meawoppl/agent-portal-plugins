@@ -41,7 +41,8 @@ alloc-stdlib = "=0.2.2"
 
 shared = { path = "../shared" }
 kct = { path = "../kct" }
-kicad-strokes = { path = "../kicad-strokes" }
+kicad-strokes.workspace = true
+schematic-extract.workspace = true
 vector-view.workspace = true
 
 [dev-dependencies]

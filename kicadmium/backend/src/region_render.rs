@@ -222,7 +222,7 @@ mod tests {
     #[test]
     fn writes_native_comparison_without_modifying_sources() {
         let dir = tempfile::tempdir().unwrap();
-        let source = include_str!("../../kicad-strokes/tests/fixtures/pcb_text.kicad_pcb");
+        let source = include_str!("../tests/fixtures/pcb_text.kicad_pcb");
         let board = dir.path().join("board.kicad_pcb");
         let baseline = dir.path().join("before.kicad_pcb");
         std::fs::write(&board, source).unwrap();

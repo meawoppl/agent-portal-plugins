@@ -5,126 +5,19 @@
 //! project schematic; the browser never parses KiCad source files.
 
 use crate::pcb_model::PcbBoard;
-use crate::schematic_view::palette;
-use crate::symbol_graphics::{body_prims, Fill};
 use anyhow::{anyhow, Result};
-use kct::schema::library::{LibrarySymbol, SymbolLibrary};
-use vector_view::{
-    Group, GroupKind, Item, Layer, LayerKind, Prim, Prop, Role, Scene, SceneKind, Side,
-};
+use schematic_extract::{kicad_schema::schema::library::SymbolLibrary, Palette};
+use vector_view::{Scene, SceneKind};
 
-const SYMBOL_LAYER: u16 = 1;
-const PIN_LAYER: u16 = 2;
-const TEXT_LAYER: u16 = 3;
-const FILL_LAYER: u16 = 4;
-
+/// Symbol previews come from `schematic-extract`, so library symbols use the
+/// same body geometry, fill semantics and palette as the project schematic.
 pub(crate) fn symbol_scene(library_text: &str, symbol_name: &str) -> Result<Scene> {
     let library = SymbolLibrary::load_from_string(library_text)?;
     let symbol = library
         .get_symbol(symbol_name)
         .or_else(|| library.symbols.values().last())
         .ok_or_else(|| anyhow!("symbol library contains no symbols"))?;
-    Ok(scene_from_symbol(symbol))
-}
-
-fn scene_from_symbol(symbol: &LibrarySymbol) -> Scene {
-    let mut scene = Scene::new(SceneKind::Symbol, true);
-    // Same palette and fill semantics as the project schematic.
-    scene.layers = vec![
-        layer(
-            FILL_LAYER,
-            "Symbol body fill",
-            LayerKind::Symbol,
-            5,
-            palette::BODY_FILL,
-        ),
-        layer(
-            SYMBOL_LAYER,
-            "Symbol body",
-            LayerKind::Symbol,
-            10,
-            palette::BODY,
-        ),
-        layer(PIN_LAYER, "Pins", LayerKind::Symbol, 20, palette::PIN),
-        layer(TEXT_LAYER, "Text", LayerKind::Text, 30, palette::PIN_TEXT),
-    ];
-    scene.groups.push(Group {
-        id: 1,
-        kind: GroupKind::Symbol,
-        label: symbol.name.clone(),
-        props: symbol
-            .properties
-            .iter()
-            .map(|(key, value)| Prop::new(key, value))
-            .collect(),
-    });
-    scene.meta.push(Prop::new("symbol", &symbol.name));
-    let mut id = 1;
-    for graphic in &symbol.graphics {
-        let Some(body) = body_prims(graphic, |(x, y)| [x, -y], stroke_width) else {
-            continue;
-        };
-        if let Some((fill, prim)) = body.fill {
-            let layer = match fill {
-                Fill::Outline => SYMBOL_LAYER,
-                _ => FILL_LAYER,
-            };
-            push_item(&mut scene, &mut id, layer, Role::SymbolBody, prim, vec![]);
-        }
-        push_item(
-            &mut scene,
-            &mut id,
-            SYMBOL_LAYER,
-            Role::SymbolBody,
-            body.outline,
-            vec![],
-        );
-    }
-    for pin in &symbol.pins {
-        let start = [pin.position.0, -pin.position.1];
-        let a = (-pin.rotation).to_radians();
-        let end = [
-            start[0] + pin.length * a.cos(),
-            start[1] + pin.length * a.sin(),
-        ];
-        push_item(
-            &mut scene,
-            &mut id,
-            PIN_LAYER,
-            Role::Pin,
-            Prim::Polyline {
-                points: vec![start, end],
-                width: 0.15,
-            },
-            vec![
-                Prop::new("number", &pin.number),
-                Prop::new("name", &pin.name),
-                Prop::new("type", &pin.pin_type),
-            ],
-        );
-        add_text(
-            &mut scene,
-            &mut id,
-            &pin.number,
-            start,
-            1.0,
-            TEXT_LAYER,
-            Role::Field,
-        );
-        if !pin.name.is_empty() && pin.name != "~" {
-            add_text(
-                &mut scene,
-                &mut id,
-                &pin.name,
-                end,
-                1.0,
-                TEXT_LAYER,
-                Role::Field,
-            );
-        }
-    }
-    scene.recompute_bbox();
-    scene
+    Ok(schematic_extract::symbol_scene(symbol, &Palette::default()))
 }
 
 /// Footprint previews use the board reifier, so pads get the same full
@@ -135,76 +28,15 @@ pub(crate) fn footprint_scene(board: &PcbBoard) -> Scene {
     scene
 }
 
-fn layer(id: u16, name: &str, kind: LayerKind, z: i32, color: [u8; 4]) -> Layer {
-    Layer {
-        id,
-        name: name.into(),
-        kind,
-        side: Side::None,
-        z,
-        color,
-        visible: true,
-    }
-}
-fn stroke_width(width: f64) -> f64 {
-    if width > 0.0 {
-        width
-    } else {
-        0.15
-    }
-}
-
-fn push_item(
-    scene: &mut Scene,
-    id: &mut u32,
-    layer: u16,
-    role: Role,
-    prim: Prim,
-    props: Vec<Prop>,
-) {
-    scene.items.push(Item {
-        id: *id,
-        layer,
-        role,
-        prim,
-        net: None,
-        group: Some(1),
-        props,
-    });
-    *id += 1;
-}
-
-fn add_text(
-    scene: &mut Scene,
-    id: &mut u32,
-    text: &str,
-    pos: [f64; 2],
-    size: f64,
-    layer: u16,
-    role: Role,
-) {
-    let strokes = kicad_strokes::to_strokes(&kicad_strokes::TextSpec {
-        text: text.into(),
-        pos,
-        size: [size, size],
-        y_down: true,
-        ..Default::default()
-    });
-    if !strokes.strokes.is_empty() {
-        push_item(
-            scene,
-            id,
-            layer,
-            role,
-            strokes.into_prim(),
-            vec![Prop::new("text", text)],
-        );
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use vector_view::{Prim, Role};
+
+    /// Layer ids of `schematic_extract::symbol_scene`.
+    const SYMBOL_LAYER: u16 = 1;
+    const FILL_LAYER: u16 = 4;
+
     #[test]
     fn background_body_is_a_wash_not_an_opaque_box() {
         let text = r#"(kicad_symbol_lib (version 20231120) (generator test) (symbol "U" (symbol "U_0_1" (rectangle (start -5 5) (end 5 -5) (stroke (width .254) (type default)) (fill (type background)))) (symbol "U_1_1" (pin passive line (at -10 0 0) (length 5) (name "A") (number "1")))))"#;

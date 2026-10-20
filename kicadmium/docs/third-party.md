@@ -23,29 +23,44 @@ remote decoder, browser KiCad parser or browser STEP parser remains.
 `frontend/static/kicad-viewer/american-embedded-dark.json` is a data-only layer
 palette. Its attribution and CC BY 4.0 notice are in the adjacent README.
 
-## pastebom `vector-view`
+## pastebom crates (`vector-view`, `vector-view-yew`, `schematic-extract`, `kicad-schema`, `kicad-strokes`, `gerber-view`)
 
-- Source: <https://github.com/meawoppl/pastebom.com>, crate `vector-view`.
-- The exact revision is pinned in the workspace `Cargo.toml`/`Cargo.lock`.
+- Source: <https://github.com/meawoppl/pastebom.com>, crates under `crates/`.
+- One revision for every crate, pinned in the workspace `Cargo.toml` and
+  `Cargo.lock`, so `vector_view::Scene` is a single type everywhere.
 - Author/rightsholder: meawoppl, the same author as kicadmium, who explicitly
   authorized this use and the earlier extraction work under kicadmium's MIT
-  licence.
+  licence. Each crate is MIT.
 
-`vector-view` is the renderer-independent Rust scene model plus native/Canvas2D
-view, hit-test and input engine. It was extracted from pastebom's viewer and
-generalized from its front/back iBOM model to layer-aware PCB, schematic,
-symbol, footprint and Gerber geometry. kicadmium's backend produces
-`vector_view::Scene` for PCB, schematic, symbol and footprint views. Geometry,
-text strokes, properties and paint order are reified on the backend; the Yew
-frontend supplies only declarative visibility, highlight, selection and camera
-state to the shared viewer. No pastebom renderer implementation is copied into
-this repository.
+What each crate does here:
 
-## NewStroke stroke font (`kicad-strokes`)
+- `vector-view`: the renderer-independent scene model plus the native/Canvas2D
+  view, hit-test and input engine. It was extracted from pastebom's viewer and
+  generalized to layer-aware PCB, schematic, symbol, footprint and Gerber
+  geometry. The backend produces `vector_view::Scene` for every 2D view.
+- `vector-view-yew` (frontend): the Yew canvas host (`VectorSceneCanvas`),
+  gesture classifier, component/net search and the one-sheet-at-a-time
+  `SchematicView`. The canvas, input and search modules were upstreamed from
+  kicadmium's own `frontend/src/{vector_scene,view_input,viewer_search}.rs`.
+- `schematic-extract` and `kicad-schema` (backend only): filesystem-free
+  schematic and library-symbol scene extraction, and the KiCad schematic model
+  and s-expression parser it uses. The rendering modules were extracted from
+  kicadmium's `backend/src/{schematic_view,schematic_drawing,symbol_graphics}.rs`
+  (MIT); the parser models come from kct's schema with its original notice.
+  kicadmium keeps the file access, project-root confinement and revision checks.
+- `kicad-strokes` (backend only): KiCad text to stroke polylines, used for
+  schematic, library-preview and PCB text. It was kicadmium's own workspace
+  crate and moved upstream unchanged.
+- `gerber-view` (frontend, with `pcb-extract`): the Gerbers tab viewer.
 
-- **What:** `kicad-strokes/src/glyphs.rs`, the NewStroke glyph table
-  (11,232 entries, U+0020–U+2BFF) used to turn schematic and library-preview
-  text into backend-reified stroke polylines.
+None of `schematic-extract`, `kicad-schema` or `kicad-strokes` is linked into
+the wasm frontend; KiCad parsing and text layout stay on the backend.
+
+## NewStroke stroke font (in pastebom's `kicad-strokes`)
+
+- **What:** `crates/kicad-strokes/src/glyphs.rs` in pastebom, the NewStroke
+  glyph table (11,232 entries, U+0020–U+2BFF) used to turn schematic,
+  library-preview and PCB text into backend-reified stroke polylines.
 - **Attribution:** NewStroke by Vladimir Uryvaev (vovanium), CC0 1.0, release
   2015-11-19, <https://vovanium.ru/sledy/newstroke/en>.
 - **Source:** the author's release tarball
@@ -55,13 +70,15 @@ this repository.
   header text is copied.
 - **Licence:** CC0 1.0. Attribution is retained even though the dedication does
   not require it.
-- **Generator:** `kicad-strokes/examples/gen_glyphs.rs` verifies the archive
-  checksum and glyph count and writes the Rust table. Tests pin its checksum.
+- **Generator:** `crates/kicad-strokes/examples/gen_glyphs.rs` verifies the
+  archive checksum and glyph count and writes the Rust table. Tests pin its
+  checksum. The crate keeps its own copy of this record
+  (`crates/kicad-strokes/docs/newstroke-provenance.md`).
 - **Coverage:** CJK (U+3000+) is excluded. U+007E uses the 2015 original;
   U+2126 aliases the CC0 U+03A9 Greek capital omega rather than importing
   KiCad's later redraw.
-- **Layout:** `kicad-strokes/src/layout.rs` is original kicadmium code. Its
-  metrics were measured from `kicad-cli 10.0.6` PCB and schematic SVG plots.
+- **Layout:** `crates/kicad-strokes/src/layout.rs` is original kicadmium code.
+  Its metrics were measured from `kicad-cli 10.0.6` PCB and schematic SVG plots.
   Fixture stroke points agree within 0.0002 mm, with a 0.001 mm test threshold.
 
 See [Newstroke font provenance](newstroke-provenance.md) for the primary-source

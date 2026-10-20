@@ -13,7 +13,8 @@ decisions for future maintainers.
  +----------------------------------+      revision-keyed model.glb
  | Rust backend                     |                  |
  | kct schema + hierarchy/net data  |                  |
- | SCH/library -> vector Scene      |                  |
+ | schematic-extract: SCH/library   |                  |
+ |   -> vector Scene                |                  |
  | PCB -> typed render-ready model  |                  |
  | kicad-strokes -> text geometry   |                  |
  +----------------+-----------------+                  |
@@ -21,7 +22,7 @@ decisions for future maintainers.
                   v                                    v
  +----------------------------------+      +--------------------------+
  | Yew/WASM generic 2D viewport     |      | Yew/WASM ModelView       |
- | vector-view draw/hit/input       |      | wasm-bindgen ES imports  |
+ | vector-view(-yew) draw/hit/input |      | wasm-bindgen ES imports  |
  | layers, nets, props, selection   |      | Three + GLTF + Orbit     |
  +----------------------------------+      +--------------------------+
 ```
@@ -33,8 +34,8 @@ primitives. PCB uses the same scene contract, with backend-reified pad shapes,
 layer ordering, properties and text strokes. The browser does not receive
 KiCad sources for reparsing.
 
-`kicad-strokes` converts schematic and library-preview text to `Prim::Strokes`
-on the backend. Its
+`kicad-strokes` (pastebom) converts schematic, library-preview and PCB text to
+`Prim::Strokes` on the backend. Its
 2015 CC0 glyph data is checksum-pinned, excludes CJK, and its original layout
 implementation is measured against KiCad SVG plots.
 

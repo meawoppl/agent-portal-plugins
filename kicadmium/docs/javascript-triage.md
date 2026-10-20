@@ -36,7 +36,8 @@ Board 3D uses the revision-keyed `/api/kicad/model.glb` artifact. The Yew
 `wasm-bindgen`; Rust owns lifecycle and UI state. STEP remains an export or
 download artifact and is not parsed in the browser.
 
-Text geometry comes from the `kicad-strokes` crate. Its glyph table is generated
+Text geometry comes from the `kicad-strokes` crate (pastebom, pinned with
+`vector-view`). Its glyph table is generated
 from the pinned 2015 CC0 Newstroke release, never from KiCad or KiCanvas. Its
 layout was measured against `kicad-cli 10.0.6` PCB and schematic SVG plots;
 fixture points agree within 0.0002 mm (the regression threshold is 0.001 mm).

@@ -13,7 +13,14 @@ https://github.com/meawoppl/single-binary-rust-website:
 - `frontend/` — Yew (trunk) workbench. `frontend/static/kicad-viewer/` holds the
   vendored third-party viewer runtimes (ecad-viewer, three.js, occt), copied to
   `dist/kicad-viewer/` by trunk. Gerbers use pastebom's `gerber-view` crate
-  directly from Rust.
+  directly from Rust; the 2D canvas, search and Schematic view come from
+  pastebom's `vector-view-yew`. Release builds use the `wasm-release` cargo
+  profile (fat LTO, selected in `index.html`) to keep the bundle size flat.
+- Schematic and library-symbol scenes come from pastebom's `schematic-extract`
+  (backend only). Every pastebom crate is pinned to one git revision in the
+  workspace `Cargo.toml`; bump them together. Never add `schematic-extract`,
+  `kicad-schema` or `kicad-strokes` to the frontend: check with
+  `cargo tree -p frontend --target wasm32-unknown-unknown`.
 
 `backend/build.rs` runs `trunk build` (own target dir, `target/frontend`) whenever
 `frontend/dist` is missing or older than frontend/shared sources, so

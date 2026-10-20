@@ -1,8 +1,9 @@
 # Newstroke font provenance
 
 This is the primary-source record created before any glyph data entered
-kicadmium. The completed Rust viewer stack now imports the 2015 table as
-`kicad-strokes/src/glyphs.rs` under the rules below (see
+kicadmium. The Rust viewer stack imports the 2015 table as
+`kicad-strokes/src/glyphs.rs` under the rules below. That crate now lives in
+pastebom (`crates/kicad-strokes`, pinned with the other pastebom crates; see
 `docs/third-party.md`).
 
 ## Primary source
@@ -88,7 +89,7 @@ with the primary release:
 
 ## Implemented parity
 
-`kicad-strokes/src/layout.rs` is original code fitted to `kicad-cli 10.0.6`
+`kicad-strokes/src/layout.rs` (now pastebom `crates/kicad-strokes`) is original code fitted to `kicad-cli 10.0.6`
 PCB and schematic SVG output. The regression fixtures put every generated
 stroke point within 0.0002 mm of the KiCad plot; tests permit 0.001 mm. Text is
 therefore reified into `vector_view::Prim::Strokes` on the backend instead of

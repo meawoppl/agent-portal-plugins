@@ -30,4 +30,11 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 walkdir = "2"
 zip = { version = "2", default-features = false, features = ["deflate"] }
-vector-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "c5d6c51" }
+# Every pastebom crate comes from ONE revision so `vector_view::Scene` (and its
+# re-exports through schematic-extract / vector-view-yew / gerber-view) is a
+# single type across the backend and the wasm frontend.
+vector-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
+vector-view-yew = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
+schematic-extract = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
+kicad-strokes = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
+gerber-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }

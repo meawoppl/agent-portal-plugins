@@ -62,7 +62,7 @@ fn saved_pours() -> bool {
         .is_none_or(|v| v != "false")
 }
 
-#[function_component(Viewer)]
+#[component(Viewer)]
 pub fn viewer(props: &Props) -> Html {
     let pours = use_state(saved_pours);
     let configured_finish = props.model.finish.clone();

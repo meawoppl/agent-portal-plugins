@@ -479,7 +479,7 @@ fn container_size(node: &NodeRef) -> (f64, f64) {
         .unwrap_or((1.0, 1.0))
 }
 
-#[function_component(PcbView)]
+#[component(PcbView)]
 pub fn pcb_view(props: &PcbViewProps) -> Html {
     let loaded = use_state(|| None::<Loaded>);
     let status = use_state(|| "Loading board…".to_string());

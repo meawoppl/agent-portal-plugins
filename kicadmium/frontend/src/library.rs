@@ -152,7 +152,7 @@ pub struct LibraryTabProps {
     pub project: AttrValue,
 }
 
-#[function_component(LibraryTab)]
+#[component(LibraryTab)]
 pub fn library_tab(props: &LibraryTabProps) -> Html {
     let data = use_state(|| None::<Rc<LibraryResponse>>);
     let error = use_state(|| None::<String>);
@@ -530,7 +530,7 @@ struct ModalProps {
     onclose: Callback<()>,
 }
 
-#[function_component(LibraryModal)]
+#[component(LibraryModal)]
 fn library_modal(props: &ModalProps) -> Html {
     let view = use_state(|| props.kind.clone());
     let scene = use_state(|| None::<Rc<vector_view::Scene>>);

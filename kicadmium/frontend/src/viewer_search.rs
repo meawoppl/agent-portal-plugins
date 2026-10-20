@@ -90,7 +90,7 @@ pub struct SearchProps {
     pub onchange: Callback<String>,
     pub summary: String,
 }
-#[function_component(ViewerSearch)]
+#[component(ViewerSearch)]
 pub fn viewer_search(props: &SearchProps) -> Html {
     let expanded = use_state(|| false);
     let input = use_node_ref();

@@ -386,7 +386,7 @@ fn attach_ready_context(item: &mut Value, key: Option<&Value>, ready: Option<&(V
     }
 }
 
-#[function_component(Annotator)]
+#[component(Annotator)]
 pub fn annotator(props: &Props) -> Html {
     let root = use_node_ref();
     let textarea = use_node_ref();

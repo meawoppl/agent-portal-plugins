@@ -15,7 +15,7 @@ fn belongs_to(active: &str, event_project: Option<&str>) -> bool {
     active.is_empty() || event_project.is_none_or(|project| project == active)
 }
 
-#[function_component(LiveStatus)]
+#[component(LiveStatus)]
 pub fn live_status(props: &Props) -> Html {
     let label = use_state(|| "connecting".to_owned());
     let class = use_state(|| "busy".to_owned());

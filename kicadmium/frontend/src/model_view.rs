@@ -1134,7 +1134,7 @@ fn start(
     })
 }
 
-#[function_component(ModelView)]
+#[component(ModelView)]
 pub fn model_view(props: &Props) -> Html {
     let canvas = use_node_ref();
     let status = use_state(|| "Loading board model…".to_owned());

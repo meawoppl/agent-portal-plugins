@@ -278,7 +278,7 @@ fn apply(
         }
     }
 }
-#[function_component(VectorSceneCanvas)]
+#[component(VectorSceneCanvas)]
 pub fn vector_scene_canvas(props: &VectorSceneCanvasProps) -> Html {
     let canvas = use_node_ref();
     let runtime = use_mut_ref(|| {

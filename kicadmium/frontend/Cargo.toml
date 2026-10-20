@@ -5,7 +5,7 @@ license.workspace = true
 version.workspace = true
 
 [dependencies]
-yew = { version = "0.21", features = ["csr"] }
+yew = { version = "0.23", features = ["csr"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ["CanvasRenderingContext2d", "CustomEvent", "CustomEventInit", "DomRect", "Element", "EventTarget", "HtmlCanvasElement", "HtmlIFrameElement", "HtmlInputElement", "HtmlSelectElement", "HtmlTextAreaElement", "Document", "NodeList", "Node", "KeyboardEvent", "Location", "MediaQueryList", "MessageEvent", "MouseEvent", "Navigator", "PointerEvent", "ResizeObserver", "Storage", "VisualViewport", "WheelEvent", "Window"] }
@@ -19,5 +19,5 @@ serde.workspace = true
 serde_json.workspace = true
 serde-wasm-bindgen = "0.6"
 shared = { path = "../shared" }
-gerber-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "a46380304c5ec2b116ffd08c24dd34294a8ec7ca" }
+gerber-view.workspace = true
 vector-view = { workspace = true, features = ["canvas"] }

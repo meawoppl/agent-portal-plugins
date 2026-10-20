@@ -156,7 +156,7 @@ mod tests {
         assert_eq!(pick_project("", None, &workspace("", &[])), "");
     }
 }
-#[function_component(App)]
+#[component(App)]
 fn app() -> Html {
     let active = use_state(saved_tab);
     let project = use_state(query_project);

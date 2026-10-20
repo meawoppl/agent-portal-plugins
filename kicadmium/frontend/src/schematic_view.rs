@@ -57,7 +57,7 @@ enum LoadState {
     Ready(Rc<Scene>),
     Error(String),
 }
-#[function_component(SchematicView)]
+#[component(SchematicView)]
 pub fn schematic_view(props: &SchematicViewProps) -> Html {
     let state = use_state(|| LoadState::Loading);
     let selected = use_state(|| None::<ItemId>);
@@ -201,7 +201,7 @@ struct ScenePropertiesProps {
     /// Open a child sheet (hierarchical sheet frames).
     onopen: Callback<String>,
 }
-#[function_component(SceneProperties)]
+#[component(SceneProperties)]
 fn scene_properties(props: &ScenePropertiesProps) -> Html {
     let Some(item) = props.scene.items.iter().find(|x| x.id == props.item) else {
         return Html::default();

@@ -12,7 +12,7 @@ pub struct BomTabProps {
     pub revision: AttrValue,
 }
 
-#[function_component(BomTab)]
+#[component(BomTab)]
 pub fn bom_tab(props: &BomTabProps) -> Html {
     let body = use_state(|| Err::<String, String>("Loading BOM/assembly artifacts...".into()));
     {

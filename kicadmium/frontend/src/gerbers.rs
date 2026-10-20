@@ -74,7 +74,7 @@ async fn payload(sources: &GerberSourcesResponse) -> Result<js_sys::Array, Strin
     Ok(array)
 }
 
-#[function_component(GerberTab)]
+#[component(GerberTab)]
 pub fn gerber_tab(props: &GerberTabProps) -> Html {
     let host = use_node_ref();
     let state = use_mut_ref(Viewer::default);

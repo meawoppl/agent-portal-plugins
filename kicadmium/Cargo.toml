@@ -37,3 +37,13 @@ vector-view-yew = { git = "https://github.com/meawoppl/pastebom.com", rev = "22e
 schematic-extract = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
 kicad-strokes = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
 gerber-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
+
+# Release profile for the wasm frontend only (frontend/index.html selects it
+# with data-cargo-profile-release). Whole-program LTO at the normal opt-level
+# lets the optimiser drop the many per-closure Yew monomorphisations that
+# vector-view-yew and Yew 0.23 add; the backend keeps the default release
+# profile and its build time.
+[profile.wasm-release]
+inherits = "release"
+lto = "fat"
+codegen-units = 1

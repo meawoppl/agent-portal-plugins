@@ -32,11 +32,11 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 # Every pastebom crate comes from ONE revision so `vector_view::Scene` (and its
 # re-exports through schematic-extract / vector-view-yew / gerber-view) is a
 # single type across the backend and the wasm frontend.
-vector-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
-vector-view-yew = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
-schematic-extract = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
-kicad-strokes = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
-gerber-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "22eacc717a863d2a96cd4e101671a97b749edb47" }
+vector-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e" }
+vector-view-yew = { git = "https://github.com/meawoppl/pastebom.com", rev = "64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e" }
+schematic-extract = { git = "https://github.com/meawoppl/pastebom.com", rev = "64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e" }
+kicad-strokes = { git = "https://github.com/meawoppl/pastebom.com", rev = "64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e" }
+gerber-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e" }
 
 # Release profile for the wasm frontend only (frontend/index.html selects it
 # with data-cargo-profile-release). Whole-program LTO at the normal opt-level

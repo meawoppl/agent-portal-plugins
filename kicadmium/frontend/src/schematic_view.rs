@@ -1,10 +1,10 @@
 //! Schematic tab: fetches the backend's schematic scene for the project and
-//! revision and hands it to `vector_view_yew::SchematicView`, which draws one
+//! revision and hands it to `eda_view::components::SchematicView`, which draws one
 //! sheet at a time with kicadmium's own chrome (search, sheet picker, parent
 //! sheet, layers, warnings, properties, net highlight).
+use eda_view::components::Reveal;
+use eda_view::vector::{Scene, SCENE_VERSION};
 use std::{cell::Cell, rc::Rc};
-use vector_view::{Scene, SCENE_VERSION};
-use vector_view_yew::Reveal;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -88,7 +88,7 @@ pub fn schematic_view(props: &SchematicViewProps) -> Html {
                 Callback::from(move |p: String| page.set(Some(p)))
             };
             html! {
-                <vector_view_yew::SchematicView
+                <eda_view::components::SchematicView
                     scene={scene.clone()}
                     page={(*page).clone().map(AttrValue::from)}
                     {on_page}

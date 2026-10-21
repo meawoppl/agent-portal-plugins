@@ -1,5 +1,5 @@
 //! `/api/kicad/pcbscene`: the project's board reified into a
-//! [`vector_view::Scene`] (kind `Pcb`, y down, millimetres, KiCad sheet frame).
+//! [`eda_view::vector::Scene`] (kind `Pcb`, y down, millimetres, KiCad sheet frame).
 //!
 //! The board is parsed once by `pcb_view.rs` into the intermediate
 //! [`PcbBoard`]; this module turns it into plain geometry so the browser only
@@ -12,7 +12,7 @@
 //! - pads as filled polygons/circles per copper layer (every KiCad pad shape),
 //!   drills and vias as `Prim::Hole`, tracks as polylines/arcs, zone fills as
 //!   polygons, drawings with Béziers flattened, text as NewStroke strokes from
-//!   `kicad_strokes`;
+//!   `eda_view::strokes`;
 //! - nets, footprint and zone groups, and per-item properties.
 //!
 //! Layer `z` is the front-view paint order. The back view does not simply
@@ -40,9 +40,9 @@ use axum::{
     routing::get,
     Router,
 };
-use kicad_strokes::{to_strokes, HJustify, TextSpec, VJustify};
-use vector_view::style::{parse_css_color, Rgba};
-use vector_view::{
+use eda_view::strokes::{to_strokes, HJustify, TextSpec, VJustify};
+use eda_view::vector::style::{parse_css_color, Rgba};
+use eda_view::vector::{
     Group, GroupId, GroupKind, Item, Layer, LayerId, LayerKind, NetId, Prim, Prop, Role, Scene,
     SceneKind, Side,
 };
@@ -978,10 +978,13 @@ impl Builder<'_> {
             .collect();
         self.scene.meta.extend([
             Prop::new("back_order", back.join(",")),
-            Prop::new("background", vector_view::style::css_rgba(background, 1.0)),
+            Prop::new(
+                "background",
+                eda_view::vector::style::css_rgba(background, 1.0),
+            ),
             Prop::new(
                 "grid",
-                vector_view::style::css_rgba(t.get("grid", [50, 50, 50, 255]), 1.0),
+                eda_view::vector::style::css_rgba(t.get("grid", [50, 50, 50, 255]), 1.0),
             ),
         ]);
     }
@@ -1010,7 +1013,7 @@ pub(crate) fn scene_from_board(board: &PcbBoard, revision: &str, filename: &str)
         .iter()
         .enumerate()
         .skip(1)
-        .map(|(i, name)| vector_view::Net {
+        .map(|(i, name)| eda_view::vector::Net {
             id: i as NetId,
             name: name.clone(),
         })
@@ -1151,7 +1154,7 @@ mod tests {
         assert!(pad1.props.contains(&Prop::new("Pad", "1")));
         assert!(pad1.props.contains(&Prop::new("Pad type", "smd roundrect")));
         // Pad at local (-0.9, 0) with the footprint at 90 degrees: (110, 110.9).
-        assert!(vector_view::hit::prim_contains(
+        assert!(eda_view::vector::hit::prim_contains(
             &pad1.prim,
             [110.0, 110.9],
             0.0
@@ -1212,12 +1215,16 @@ mod tests {
         let o = rect_outline([2.0, 1.0], 0.25, 0, 0.0);
         assert!(o.len() > 4);
         let ch = rect_outline([2.0, 2.0], 0.0, 1 | 8, 0.5);
-        assert!(!vector_view::hit::polygon_contains(
+        assert!(!eda_view::vector::hit::polygon_contains(
             &ch,
             &[],
             [-0.95, -0.95]
         ));
-        assert!(vector_view::hit::polygon_contains(&ch, &[], [0.95, -0.95]));
+        assert!(eda_view::vector::hit::polygon_contains(
+            &ch,
+            &[],
+            [0.95, -0.95]
+        ));
         let pad = PcbPad {
             shape: "oval".into(),
             size: [1.7, 2.2],
@@ -1229,7 +1236,7 @@ mod tests {
         let hit = |p| {
             prims
                 .iter()
-                .any(|x| vector_view::hit::prim_contains(x, p, 0.0))
+                .any(|x| eda_view::vector::hit::prim_contains(x, p, 0.0))
         };
         assert!(hit([10.0, 11.15]) && !hit([10.0, 8.85]));
         let trap = PcbPad {

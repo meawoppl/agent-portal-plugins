@@ -2,8 +2,8 @@
 
 This is the primary-source record created before any glyph data entered
 kicadmium. The Rust viewer stack imports the 2015 table as
-`kicad-strokes/src/glyphs.rs` under the rules below. That crate now lives in
-pastebom (`crates/kicad-strokes`, pinned with the other pastebom crates; see
+`kicad-strokes/src/glyphs.rs` under the rules below. That code now lives in
+pastebom's `eda-view` crate (`src/strokes/glyphs.rs`, feature `strokes`; see
 `docs/third-party.md`).
 
 ## Primary source
@@ -63,7 +63,7 @@ with the primary release:
 - **U+3000 and above** (kana and CJK, from Lingdong Huang and Adobe) are outside
   the range this comparison or any planned import covers.
 
-## Import rules used by `kicad-strokes`
+## Import rules used by the `strokes` module (originally `kicad-strokes`)
 
 1. **Source:** take glyph data only from the author's 2015 CC0 release (the
    tarball above, checksum pinned), never from KiCad, KiCanvas or kicad-rs
@@ -76,7 +76,7 @@ with the primary release:
 3. **Exclude KiCad-modified glyphs:** don't copy KiCad's versions of U+007E or
    U+2126. Use the 2015 CC0 glyphs, accepting the small visual difference from
    current KiCad, or draw replacements ourselves.
-   In the 2015 table U+2126 is the placeholder box, so `kicad_strokes::glyph`
+   In the 2015 table U+2126 is the placeholder box, so `eda_view::strokes::glyph`
    aliases U+2126 OHM SIGN to U+03A9 GREEK CAPITAL OMEGA (its canonical
    equivalent, drawn in the same CC0 release).
 4. **CJK out of scope:** U+3000+ (Lingdong Huang MIT code and Adobe Source Han
@@ -89,8 +89,8 @@ with the primary release:
 
 ## Implemented parity
 
-`kicad-strokes/src/layout.rs` (now pastebom `crates/kicad-strokes`) is original code fitted to `kicad-cli 10.0.6`
+`kicad-strokes/src/layout.rs` (now pastebom `crates/eda-view/src/strokes/layout.rs`) is original code fitted to `kicad-cli 10.0.6`
 PCB and schematic SVG output. The regression fixtures put every generated
 stroke point within 0.0002 mm of the KiCad plot; tests permit 0.001 mm. Text is
-therefore reified into `vector_view::Prim::Strokes` on the backend instead of
+therefore reified into `eda_view::vector::Prim::Strokes` on the backend instead of
 shipping a browser font or layout engine.

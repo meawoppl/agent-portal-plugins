@@ -7,8 +7,8 @@ layer aliases are visible below their KiCad names instead of requiring hover.
 The enlarged layer panel starts below the toolbar; the narrow-screen bottom
 panel remains available. These rules leave the compact desktop layout intact.
 
-PCB and schematic canvases use the shared vector-view navigation engine
-(`vector-view-yew`'s `VectorSceneCanvas`). The
+PCB and schematic canvases use the shared `eda-view` navigation engine
+(`eda_view::components::VectorSceneCanvas`). The
 host remembers whether **any** part of the current pointer sequence involved
 multiple pointers: lifting a stationary finger after a pinch cannot select a
 part. A fresh one-finger tap still selects. Lost pointer capture cancels that

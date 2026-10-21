@@ -12,15 +12,17 @@ https://github.com/meawoppl/single-binary-rust-website:
   (`scripts/setup.sh`) relies on the library being cacheable.
 - `frontend/` — Yew (trunk) workbench. `frontend/static/kicad-viewer/` holds the
   vendored third-party viewer runtimes (ecad-viewer, three.js, occt), copied to
-  `dist/kicad-viewer/` by trunk. Gerbers use pastebom's `gerber-view` crate
-  directly from Rust; the 2D canvas, search and Schematic view come from
-  pastebom's `vector-view-yew`. Release builds use the `wasm-release` cargo
-  profile (fat LTO, selected in `index.html`) to keep the bundle size flat.
-- Schematic and library-symbol scenes come from pastebom's `schematic-extract`
-  (backend only). Every pastebom crate is pinned to one git revision in the
-  workspace `Cargo.toml`; bump them together. Never add `schematic-extract`,
-  `kicad-schema` or `kicad-strokes` to the frontend: check with
-  `cargo tree -p frontend --target wasm32-unknown-unknown`.
+  `dist/kicad-viewer/` by trunk. Gerbers use pastebom's `eda-view` crate
+  (`gerber_view` module) directly from Rust; the 2D canvas, search and
+  Schematic view come from its `components` module. Release builds use the
+  `wasm-release` cargo profile (fat LTO, selected in `index.html`) to keep the
+  bundle size flat.
+- Schematic and library-symbol scenes come from `eda_view::schematic` (backend
+  only). `eda-view` is the single pastebom dependency, pinned to one git
+  revision in the workspace `Cargo.toml`; each crate enables only the features
+  it uses (backend `schematic`, frontend `yew` + `gerber-view`). Never enable
+  `kicad`, `strokes` or `schematic` for the frontend: check with
+  `cargo tree -p frontend --target wasm32-unknown-unknown -e features`.
 
 `backend/build.rs` runs `trunk build` (own target dir, `target/frontend`) whenever
 `frontend/dist` is missing or older than frontend/shared sources, so

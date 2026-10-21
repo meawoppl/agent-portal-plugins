@@ -1,5 +1,5 @@
 //! KiCad `.kicad_pcb` to the intermediate [`crate::pcb_model::PcbBoard`],
-//! which `pcb_scene.rs` reifies into a `vector_view::Scene`.
+//! which `pcb_scene.rs` reifies into a `eda_view::vector::Scene`.
 //!
 //! Parsing goes through `kct` only: [`kct::schema::pcb::Pcb`] supplies the
 //! layer table, nets, copper (tracks, arcs, vias, zones) and footprint

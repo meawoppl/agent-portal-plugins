@@ -10,10 +10,10 @@
 //! scene millimetres read from the camera the canvas publishes, so an agent
 //! can map the note onto references and nets without the image.
 
+use eda_view::vector::view::View;
 use gloo_events::{EventListener, EventListenerOptions, EventListenerPhase};
 use gloo_net::http::Request;
 use serde_json::{json, Value};
-use vector_view::view::View;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{Element, HtmlCanvasElement, HtmlTextAreaElement, KeyboardEvent, PointerEvent};
@@ -261,7 +261,7 @@ fn snapshot(source: &HtmlCanvasElement, region: Option<&Region>) -> Option<Strin
 }
 
 /// The schematic sheet a view has open (`data-schematic-page`, set by
-/// `vector_view_yew::SchematicView`), so a region names its sheet.
+/// `eda_view::components::SchematicView`), so a region names its sheet.
 fn open_sheet(stage: &Element) -> Option<String> {
     stage
         .query_selector("[data-schematic-page]")
@@ -288,7 +288,7 @@ fn select(stage: &Element, start: [f64; 2], end: [f64; 2]) -> Option<Selection> 
     let rect = canvas.get_bounding_client_rect();
     let local = |p: [f64; 2]| [p[0] - rect.left(), p[1] - rect.top()];
     let region = region_from_drag(local(start), local(end), rect.width(), rect.height())?;
-    let world = vector_view_yew::canvas::view_of(&canvas).map(|v| world_bounds(&v, &region));
+    let world = eda_view::components::canvas::view_of(&canvas).map(|v| world_bounds(&v, &region));
     Some(Selection {
         region,
         world,

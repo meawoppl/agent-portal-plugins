@@ -1,5 +1,5 @@
 //! Intermediate board model between the KiCad parse (`pcb_view.rs`) and the
-//! reified [`vector_view::Scene`] (`pcb_scene.rs`). Geometry is fully
+//! reified [`eda_view::vector::Scene`] (`pcb_scene.rs`). Geometry is fully
 //! resolved: millimetres, KiCad's sheet frame (y down), footprint transforms
 //! applied. Layers, nets and footprints are referenced by index.
 //!

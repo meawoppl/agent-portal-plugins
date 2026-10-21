@@ -1,11 +1,11 @@
-//! Gerbers tab: pastebom's `gerber-view` crate rendering the current build's
+//! Gerbers tab: pastebom's `eda_view::gerber_view` rendering the current build's
 //! Gerber/drill files (or the published ones while a build is pending), with
 //! a layer/file side panel.
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use gerber_view::GerberViewer;
+use eda_view::gerber_view::GerberViewer;
 use serde_json::Value;
 use shared::GerberSourcesResponse;
 use wasm_bindgen::prelude::*;

@@ -1,15 +1,16 @@
 //! Reified vector scenes for library symbol and footprint previews.
 //!
 //! Library previews are content-addressed by the thumbnail renderer's key.
-//! This module deliberately produces the same `vector-view` contract as the
+//! This module deliberately produces the same `eda_view::vector` contract as the
 //! project schematic; the browser never parses KiCad source files.
 
 use crate::pcb_model::PcbBoard;
 use anyhow::{anyhow, Result};
-use schematic_extract::{kicad_schema::schema::library::SymbolLibrary, Palette};
-use vector_view::{Scene, SceneKind};
+use eda_view::kicad::schema::library::SymbolLibrary;
+use eda_view::schematic::Palette;
+use eda_view::vector::{Scene, SceneKind};
 
-/// Symbol previews come from `schematic-extract`, so library symbols use the
+/// Symbol previews come from `eda_view::schematic`, so library symbols use the
 /// same body geometry, fill semantics and palette as the project schematic.
 pub(crate) fn symbol_scene(library_text: &str, symbol_name: &str) -> Result<Scene> {
     let library = SymbolLibrary::load_from_string(library_text)?;
@@ -17,7 +18,10 @@ pub(crate) fn symbol_scene(library_text: &str, symbol_name: &str) -> Result<Scen
         .get_symbol(symbol_name)
         .or_else(|| library.symbols.values().last())
         .ok_or_else(|| anyhow!("symbol library contains no symbols"))?;
-    Ok(schematic_extract::symbol_scene(symbol, &Palette::default()))
+    Ok(eda_view::schematic::symbol_scene(
+        symbol,
+        &Palette::default(),
+    ))
 }
 
 /// Footprint previews use the board reifier, so pads get the same full
@@ -31,9 +35,9 @@ pub(crate) fn footprint_scene(board: &PcbBoard) -> Scene {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use vector_view::{Prim, Role};
+    use eda_view::vector::{Prim, Role};
 
-    /// Layer ids of `schematic_extract::symbol_scene`.
+    /// Layer ids of `eda_view::schematic::symbol_scene`.
     const SYMBOL_LAYER: u16 = 1;
     const FILL_LAYER: u16 = 4;
 

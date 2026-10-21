@@ -41,9 +41,9 @@ alloc-stdlib = "=0.2.2"
 
 shared = { path = "../shared" }
 kct = { path = "../kct" }
-kicad-strokes.workspace = true
-schematic-extract.workspace = true
-vector-view.workspace = true
+# `schematic` pulls in the KiCad parser, the NewStroke glyphs and the scene
+# extractor; `pcb_scene.rs` reifies boards itself, so `pcb` is not needed.
+eda-view = { workspace = true, features = ["schematic"] }
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }

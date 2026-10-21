@@ -1,5 +1,5 @@
 //! PCB tab: the backend-reified board scene (`/api/kicad/pcbscene`) drawn by
-//! the shared [`VectorSceneCanvas`] host over pastebom's `vector-view`.
+//! the shared [`VectorSceneCanvas`] host over pastebom's `eda_view::vector`.
 //!
 //! Everything format-specific (pad shapes, transforms, text strokes, layer
 //! order and colours) is done by the backend; the fetched scene is drawn as
@@ -14,19 +14,21 @@ use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-use gloo_events::EventListener;
-use serde::{Deserialize, Serialize};
-use vector_view::style::{parse_css_color, Grid, Highlight, LayerVisibility, Overlay, Pass, Theme};
-use vector_view::view::View;
-use vector_view::{
+use eda_view::vector::style::{
+    parse_css_color, Grid, Highlight, LayerVisibility, Overlay, Pass, Theme,
+};
+use eda_view::vector::view::View;
+use eda_view::vector::{
     BBox, GroupId, GroupKind, Item, ItemId, Layer, LayerId, LayerKind, NetId, Role, Scene, Side,
     SCENE_VERSION,
 };
+use gloo_events::EventListener;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
-use vector_view_yew::canvas::VectorSceneCanvas;
+use eda_view::components::canvas::VectorSceneCanvas;
 
 const SETTINGS_KEY: &str = "kicadmium:pcb-rust";
 
@@ -775,7 +777,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
                 }
             }
             let sel = *selection;
-            let found = vector_view_yew::search::find(scene, &query);
+            let found = eda_view::components::search::find(scene, &query);
             let highlight = if !found.items.is_empty() {
                 Highlight::Items(found.items.clone())
             } else {
@@ -829,7 +831,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
     let message = (*status).clone();
     let found = scene
         .as_ref()
-        .map(|s| vector_view_yew::search::find(s, &query))
+        .map(|s| eda_view::components::search::find(s, &query))
         .unwrap_or_default();
     let summary = if found.labels.is_empty() {
         "No matches".into()
@@ -864,7 +866,7 @@ pub fn pcb_view(props: &PcbViewProps) -> Html {
     html! {
         <div class="pcbv" ref={stage} data-revision={revision} data-annotate-layers={annotate_layers}>
             {canvas}
-            <vector_view_yew::search::ViewerSearch query={(*query).clone()} {onchange} {summary}/>
+            <eda_view::components::search::ViewerSearch query={(*query).clone()} {onchange} {summary}/>
             {toolbar}
             {layers_panel}
             {properties}
@@ -885,7 +887,7 @@ fn over(c: [u8; 4], bg: [u8; 4]) -> String {
 fn describe(scene: &Scene, sel: Selection) -> Option<(String, Vec<(String, String)>)> {
     let item = scene.items.iter().find(|i| i.id == sel.item)?;
     let group = item.group.and_then(|g| scene.group(g));
-    let rows_of = |props: &[vector_view::Prop]| {
+    let rows_of = |props: &[eda_view::vector::Prop]| {
         props
             .iter()
             .filter(|p| p.key != "Type")
@@ -930,7 +932,7 @@ fn describe(scene: &Scene, sel: Selection) -> Option<(String, Vec<(String, Strin
 #[cfg(test)]
 mod tests {
     use super::*;
-    use vector_view::{Group, Prim, Prop, SceneKind};
+    use eda_view::vector::{Group, Prim, Prop, SceneKind};
 
     fn layer(id: u16, name: &str, kind: LayerKind, z: i32, visible: bool) -> Layer {
         Layer {

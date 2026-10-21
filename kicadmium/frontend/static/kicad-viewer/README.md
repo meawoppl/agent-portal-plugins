@@ -1,7 +1,7 @@
 # Browser viewer assets
 
 The first-party viewer is Rust/Yew. KiCad PCB, schematic, symbol, and footprint
-sources are converted by the backend into `vector-view::Scene` geometry and
+sources are converted by the backend into `eda_view::vector::Scene` geometry and
 drawn by the shared Rust Canvas2D renderer. Text arrives as Newstroke
 polylines; the browser does not parse KiCad files or ship a font engine.
 

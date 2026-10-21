@@ -256,16 +256,15 @@ dependencies = [
  "brotli 6.0.0",
  "clap",
  "csv",
+ "eda-view",
  "flate2",
  "futures",
  "http-body-util",
  "kct",
- "kicad-strokes",
  "libc",
  "mime_guess",
  "notify",
  "resvg",
- "schematic-extract",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -277,7 +276,6 @@ dependencies = [
  "tower-http 0.5.2",
  "tracing",
  "tracing-subscriber",
- "vector-view",
  "walkdir",
  "zip",
 ]
@@ -752,6 +750,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "eda-view"
+version = "0.1.0"
+source = "git+https://github.com/meawoppl/pastebom.com?rev=a6749f30e2c94e2128b37c9ef222b2ee0608aae2#a6749f30e2c94e2128b37c9ef222b2ee0608aae2"
+dependencies = [
+ "anyhow",
+ "cfb",
+ "flate2",
+ "gloo-events",
+ "js-sys",
+ "log",
+ "postcard",
+ "roxmltree",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "tar",
+ "thiserror 2.0.21",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew",
+ "zip",
+]
+
+[[package]]
 name = "either"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -954,8 +977,8 @@ dependencies = [
 name = "frontend"
 version = "0.1.0"
 dependencies = [
+ "eda-view",
  "futures",
- "gerber-view",
  "gloo-events",
  "gloo-net 0.6.0",
  "gloo-timers",
@@ -965,8 +988,6 @@ dependencies = [
  "serde-wasm-bindgen",
  "serde_json",
  "shared",
- "vector-view",
- "vector-view-yew",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -1121,21 +1142,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c5a7f08910fd98737a6eda7568e7c5e645093e073328eeef49758cfe8b0489c7"
 dependencies = [
  "libm",
-]
-
-[[package]]
-name = "gerber-view"
-version = "1.11.0"
-source = "git+https://github.com/meawoppl/pastebom.com?rev=64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e#64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e"
-dependencies = [
- "js-sys",
- "pcb-extract",
- "serde",
- "serde-wasm-bindgen",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
 ]
 
 [[package]]
@@ -1931,23 +1937,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kicad-schema"
-version = "0.1.0"
-source = "git+https://github.com/meawoppl/pastebom.com?rev=64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e#64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e"
-dependencies = [
- "anyhow",
- "serde",
-]
-
-[[package]]
-name = "kicad-strokes"
-version = "0.1.0"
-source = "git+https://github.com/meawoppl/pastebom.com?rev=64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e#64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e"
-dependencies = [
- "vector-view",
-]
-
-[[package]]
 name = "kqueue"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2289,23 +2278,6 @@ name = "openssl-probe"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
-
-[[package]]
-name = "pcb-extract"
-version = "1.11.0"
-source = "git+https://github.com/meawoppl/pastebom.com?rev=64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e#64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e"
-dependencies = [
- "cfb",
- "flate2",
- "log",
- "postcard",
- "roxmltree",
- "serde",
- "serde_json",
- "tar",
- "thiserror 2.0.21",
- "zip",
-]
 
 [[package]]
 name = "pdf-extract"
@@ -2921,18 +2893,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "91c1b7e4904c873ef0710c1f407dde2e6287de2bebc1bbbf7d430bb7cbffd939"
 dependencies = [
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "schematic-extract"
-version = "0.1.0"
-source = "git+https://github.com/meawoppl/pastebom.com?rev=64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e#64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e"
-dependencies = [
- "anyhow",
- "kicad-schema",
- "kicad-strokes",
- "thiserror 2.0.21",
- "vector-view",
 ]
 
 [[package]]
@@ -3919,29 +3879,6 @@ name = "valuable"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
-
-[[package]]
-name = "vector-view"
-version = "0.1.0"
-source = "git+https://github.com/meawoppl/pastebom.com?rev=64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e#64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e"
-dependencies = [
- "serde",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "vector-view-yew"
-version = "0.1.0"
-source = "git+https://github.com/meawoppl/pastebom.com?rev=64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e#64fb0e0e112ad534b80d2dbdee40b0e8bcfd667e"
-dependencies = [
- "gloo-events",
- "js-sys",
- "vector-view",
- "wasm-bindgen",
- "web-sys",
- "yew",
-]
 
 [[package]]
 name = "version_check"

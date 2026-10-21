@@ -1,6 +1,6 @@
-//! `GET /api/kicad/schematic`: the project's schematic as a `vector_view::Scene`.
+//! `GET /api/kicad/schematic`: the project's schematic as a `eda_view::vector::Scene`.
 //!
-//! Geometry comes from pastebom's filesystem-free `schematic-extract`. This
+//! Geometry comes from pastebom's filesystem-free `eda_view::schematic`. This
 //! module owns everything that touches the disk: which files the extractor
 //! may see (only sheets that resolve inside the project root, symlinks
 //! included), the revision-stable read, and the `revision` metadata.
@@ -15,12 +15,13 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use schematic_extract::{kicad_schema::sexp, ExtractOptions};
+use eda_view::kicad::sexp;
+use eda_view::schematic::ExtractOptions;
+use eda_view::vector::{Prop, Scene};
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     path::{Path, PathBuf},
 };
-use vector_view::{Prop, Scene};
 
 /// Label drawn in the bottom-left title-block cell of every page.
 const FRAME_LABEL: &str = "kicadmium";
@@ -49,7 +50,7 @@ fn build_scene(project: &ProjectContext) -> Result<Scene> {
     for _ in 0..4 {
         let rev = current_source_revision(project)?;
         let (root_key, files) = schematic_files(project, &root)?;
-        let mut scene = schematic_extract::parse_project_with(&root_key, &files, &options)?;
+        let mut scene = eda_view::schematic::parse_project_with(&root_key, &files, &options)?;
         if current_source_revision(project)? == rev {
             // Keep the metadata order clients have always seen:
             // page entries, then `revision`, then `root`.
@@ -244,7 +245,7 @@ mod tests {
         assert!(meta.contains(&"page:/Child:file"));
         // Escaping, recursive and symlinked-out sheets are skipped with a
         // warning; the rest of the hierarchy still renders.
-        let warnings = vector_view::schematic::warnings(&scene);
+        let warnings = eda_view::vector::schematic::warnings(&scene);
         assert!(
             warnings.iter().any(|w| w.contains("../secret.kicad_sch")),
             "{warnings:?}"

@@ -70,7 +70,7 @@ pub struct ThumbRef {
     pub message: Option<String>,
     /// Interactive viewer source (KiCanvas `.kicad_sch`/`.kicad_pcb` or `.glb`).
     pub viewer: Option<String>,
-    /// Content-addressed, fully reified `vector_view::Scene` geometry. Symbol
+    /// Content-addressed, fully reified `eda_view::vector::Scene` geometry. Symbol
     /// and footprint previews use this instead of parsing KiCad in-browser.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scene: Option<String>,

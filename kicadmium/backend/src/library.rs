@@ -316,7 +316,7 @@ struct ThumbDraft {
     /// Canonical, fully reified preview geometry. Serialized under the same
     /// content key as the render job, so the URL is immutable and revision
     /// pinned without exposing KiCad source to the browser.
-    scene: Option<vector_view::Scene>,
+    scene: Option<eda_view::vector::Scene>,
     /// On-demand GLB export for the interactive 3D viewer.
     glb: Option<RenderSpec>,
 }

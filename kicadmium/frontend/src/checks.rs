@@ -40,7 +40,7 @@ struct CardProps {
     lint: bool,
 }
 
-#[function_component(CheckCard)]
+#[component(CheckCard)]
 fn card(props: &CardProps) -> Html {
     let result = use_state(|| None::<Value>);
     {
@@ -103,7 +103,7 @@ fn card(props: &CardProps) -> Html {
     html! {<article class="card check-card"><h2>{&props.title}</h2>{if let Some(value)=value{html!{<><div class="check-summary"><span class={classes!("pill",if errors>0{"error"}else{"ok"})}>{if errors>0{"needs attention"}else{"reviewed"}}</span><span class="pill">{format!("{} findings",list.len())}</span><span class="pill error">{format!("{errors} errors")}</span></div>{lint_links}<div class="issue-list">{for list.into_iter().take(100).map(|item|{let severity=item.get("severity").and_then(Value::as_str).unwrap_or("warning").to_owned();let title=item.get("message").or_else(||item.get("description")).or_else(||item.get("rule")).and_then(Value::as_str).unwrap_or("Finding").to_owned();html!{<Issue lint={props.lint} project={props.project.clone()} {title} {severity} {item}/>}})}</div><details class="raw"><summary>{"Raw report"}</summary><pre>{serde_json::to_string_pretty(value).unwrap_or_default()}</pre></details></>}}else{html!{<p>{"Loading…"}</p>}}}</article>}
 }
 
-#[function_component(Checks)]
+#[component(Checks)]
 pub fn checks(props: &Props) -> Html {
     html! {<div class="grid"><CheckCard title="Layout quality" kind="quality" project={props.project.clone()}/><CheckCard title="DRC" kind="drc" project={props.project.clone()}/><CheckCard title="ERC" kind="erc" project={props.project.clone()}/><CheckCard title="Heuristic lint" kind="lint" project={props.project.clone()} lint=true/></div>}
 }
@@ -118,7 +118,7 @@ struct IssueProps {
 }
 
 /// One finding; lint findings can be queued for agent review.
-#[function_component(Issue)]
+#[component(Issue)]
 fn issue(props: &IssueProps) -> Html {
     let state = use_state(|| None::<Result<String, String>>);
     let enqueue = props.lint.then(|| {

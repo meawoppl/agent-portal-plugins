@@ -19,6 +19,20 @@ other electronics design artifacts and the KiCad PCB Portal plugin is available.
 2. Open the `kicadmium` Agent Portal surface when visual context would help.
    The surface has tabs for schematic, PCB, Gerbers, 3D, BOM, libraries,
    analysis and checks, plus a build strip.
+   Link straight to what you are talking about (parameters are URL-encoded and
+   read once when the page loads; the URL is never rewritten):
+   - `?project=<id>` opens that board.
+   - `?tab=<schematic|pcb|gerbers|3d|bom|libraries|analysis|checks>` opens
+     that tab instead of the one last used.
+   - `?sheet=</path>` opens that schematic sheet, using the sheet paths from
+     the sheet picker (`/` is the root, children are `/<sheet name>`).
+   - `?ref=<reference>` opens the Schematic and selects and frames that symbol
+     (case-insensitive; the first placed unit, preferring the open sheet).
+   `?sheet=` or `?ref=` without `?tab=` implies the Schematic tab, e.g.
+   `?project=carrier&ref=U3` or `?project=carrier&sheet=/GPIO_input_bias`.
+   In the Schematic, "Show on PCB" on a symbol's properties switches to the PCB
+   tab with that reference searched. Schematic annotations record the open
+   sheet as `context.sheet`.
 3. Run the plugin `doctor` command before promising native KiCad or `kct`
    checks.
 4. Use the plugin commands as the automation boundary:

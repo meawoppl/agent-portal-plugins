@@ -133,12 +133,12 @@ pub async fn gerbers(project: &str) -> Result<GerberSourcesResponse, String> {
 }
 
 /// Backend-reified, source-format-independent schematic scene.
-pub async fn schematic(project: &str) -> Result<vector_view::Scene, String> {
+pub async fn schematic(project: &str) -> Result<eda_view::vector::Scene, String> {
     get_json("/api/kicad/schematic", project).await
 }
 
 /// Backend-reified PCB scene (`/api/kicad/pcbscene`).
-pub async fn pcb_scene(project: &str) -> Result<vector_view::Scene, String> {
+pub async fn pcb_scene(project: &str) -> Result<eda_view::vector::Scene, String> {
     get_json("/api/kicad/pcbscene", project).await
 }
 

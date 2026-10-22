@@ -48,7 +48,7 @@ fn loading_or_error(state: &Option<Result<ManifestResponse, String>>) -> Option<
     }
 }
 
-#[function_component(AnalysisTab)]
+#[component(AnalysisTab)]
 pub fn analysis_tab(props: &TabProps) -> Html {
     let manifest = use_manifest(props.project.clone(), props.revision.clone());
     let body = loading_or_error(&manifest).unwrap_or_else(|| {

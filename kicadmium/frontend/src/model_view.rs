@@ -1134,13 +1134,13 @@ fn start(
     })
 }
 
-#[function_component(ModelView)]
+#[component(ModelView)]
 pub fn model_view(props: &Props) -> Html {
     let canvas = use_node_ref();
     let status = use_state(|| "Loading board model…".to_owned());
     let runtime = use_mut_ref(|| None::<Runtime>);
     let query = use_state(String::new);
-    let search_scene = use_state(|| None::<Rc<vector_view::Scene>>);
+    let search_scene = use_state(|| None::<Rc<eda_view::vector::Scene>>);
     let search_error = use_state(String::new);
     let search_count = use_state_eq(|| 0usize);
     {
@@ -1243,7 +1243,7 @@ pub fn model_view(props: &Props) -> Html {
             move |(query, scene, _)| {
                 let found = scene
                     .as_ref()
-                    .map(|s| crate::viewer_search::find(s, query))
+                    .map(|s| eda_view::components::search::find(s, query))
                     .unwrap_or_default();
                 if let Some(rt) = runtime.borrow_mut().as_mut() {
                     count.set(rt.search(&found.references));
@@ -1267,7 +1267,7 @@ pub fn model_view(props: &Props) -> Html {
         )
     };
     html! { <div class="modelv" data-search-count={search_count.to_string()}>
-        if props.url.is_none() { <crate::viewer_search::ViewerSearch query={(*query).clone()} {onchange} {summary}/> }
+        if props.url.is_none() { <eda_view::components::search::ViewerSearch query={(*query).clone()} {onchange} {summary}/> }
         <canvas ref={canvas} class="modelv-canvas" aria-label="Interactive 3D board model" />
         if !status.is_empty() { <div class="modelv-status">{status.as_str()}</div> }
     </div> }

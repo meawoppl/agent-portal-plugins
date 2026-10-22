@@ -1,11 +1,11 @@
-//! Gerbers tab: pastebom's `gerber-view` crate rendering the current build's
+//! Gerbers tab: pastebom's `eda_view::gerber_view` rendering the current build's
 //! Gerber/drill files (or the published ones while a build is pending), with
 //! a layer/file side panel.
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use gerber_view::GerberViewer;
+use eda_view::gerber_view::GerberViewer;
 use serde_json::Value;
 use shared::GerberSourcesResponse;
 use wasm_bindgen::prelude::*;
@@ -74,7 +74,7 @@ async fn payload(sources: &GerberSourcesResponse) -> Result<js_sys::Array, Strin
     Ok(array)
 }
 
-#[function_component(GerberTab)]
+#[component(GerberTab)]
 pub fn gerber_tab(props: &GerberTabProps) -> Html {
     let host = use_node_ref();
     let state = use_mut_ref(Viewer::default);

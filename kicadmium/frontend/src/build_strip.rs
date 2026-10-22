@@ -44,7 +44,7 @@ fn timing(stage: &StageStatus) -> String {
     }
 }
 
-#[function_component(BuildStrip)]
+#[component(BuildStrip)]
 pub fn build_strip(props: &BuildStripProps) -> Html {
     let status = use_state(|| None::<BuildStatus>);
     let message = use_state(String::new);

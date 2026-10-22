@@ -3,7 +3,6 @@ members = [
     "backend",
     "frontend",
     "kct",
-    "kicad-strokes",
     "shared",
 ]
 resolver = "2"
@@ -30,4 +29,18 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 walkdir = "2"
 zip = { version = "2", default-features = false, features = ["deflate"] }
-vector-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "c5d6c51" }
+# Everything from pastebom.com comes from the single `eda-view` crate (one
+# version), so `eda_view::vector::Scene` is a single type across the backend
+# and the wasm frontend. Each crate enables only the features it uses: the
+# frontend must never link the parsers or the glyph tables.
+eda-view = "0.1.0"
+
+# Release profile for the wasm frontend only (frontend/index.html selects it
+# with data-cargo-profile-release). Whole-program LTO at the normal opt-level
+# lets the optimiser drop the many per-closure Yew monomorphisations that
+# eda-view's components and Yew 0.23 add; the backend keeps the default release
+# profile and its build time.
+[profile.wasm-release]
+inherits = "release"
+lto = "fat"
+codegen-units = 1

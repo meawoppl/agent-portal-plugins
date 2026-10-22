@@ -10,10 +10,10 @@
 //! scene millimetres read from the camera the canvas publishes, so an agent
 //! can map the note onto references and nets without the image.
 
+use eda_view::vector::view::View;
 use gloo_events::{EventListener, EventListenerOptions, EventListenerPhase};
 use gloo_net::http::Request;
 use serde_json::{json, Value};
-use vector_view::view::View;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{Element, HtmlCanvasElement, HtmlTextAreaElement, KeyboardEvent, PointerEvent};
@@ -260,6 +260,17 @@ fn snapshot(source: &HtmlCanvasElement, region: Option<&Region>) -> Option<Strin
         .find(|url| url.len() <= SNAPSHOT_MAX_CHARS)
 }
 
+/// The schematic sheet a view has open (`data-schematic-page`, set by
+/// `eda_view::components::SchematicView`), so a region names its sheet.
+fn open_sheet(stage: &Element) -> Option<String> {
+    stage
+        .query_selector("[data-schematic-page]")
+        .ok()
+        .flatten()
+        .and_then(|el| el.get_attribute("data-schematic-page"))
+        .filter(|page| !page.is_empty())
+}
+
 /// A completed area selection, captured the moment the drag ended so the
 /// image matches what the person saw even if they pan afterwards.
 #[derive(Clone, PartialEq)]
@@ -267,6 +278,8 @@ struct Selection {
     region: Region,
     world: Option<[[f64; 2]; 2]>,
     layers: Vec<String>,
+    /// Schematic sheet path the region was drawn on.
+    sheet: Option<String>,
     image: Option<String>,
 }
 
@@ -275,11 +288,12 @@ fn select(stage: &Element, start: [f64; 2], end: [f64; 2]) -> Option<Selection> 
     let rect = canvas.get_bounding_client_rect();
     let local = |p: [f64; 2]| [p[0] - rect.left(), p[1] - rect.top()];
     let region = region_from_drag(local(start), local(end), rect.width(), rect.height())?;
-    let world = crate::vector_scene::view_of(&canvas).map(|v| world_bounds(&v, &region));
+    let world = eda_view::components::canvas::view_of(&canvas).map(|v| world_bounds(&v, &region));
     Some(Selection {
         region,
         world,
         layers: advertised_layers(stage),
+        sheet: open_sheet(stage),
         image: snapshot(&canvas, Some(&region)),
     })
 }
@@ -386,7 +400,7 @@ fn attach_ready_context(item: &mut Value, key: Option<&Value>, ready: Option<&(V
     }
 }
 
-#[function_component(Annotator)]
+#[component(Annotator)]
 pub fn annotator(props: &Props) -> Html {
     let root = use_node_ref();
     let textarea = use_node_ref();
@@ -801,14 +815,21 @@ pub fn annotator(props: &Props) -> Html {
                 return;
             }
             let picked = (*selection).clone();
+            let stage = root
+                .cast::<Element>()
+                .and_then(|el| el.closest(".view-stage").ok().flatten());
             let image = match (&picked, with_snapshot) {
                 (_, false) => None,
                 (Some(sel), true) => sel.image.clone(),
-                (None, true) => root
-                    .cast::<Element>()
-                    .and_then(|el| el.closest(".view-stage").ok().flatten())
-                    .and_then(|stage| largest_canvas(&stage))
+                (None, true) => stage
+                    .as_ref()
+                    .and_then(largest_canvas)
                     .and_then(|c| snapshot(&c, None)),
+            };
+            // The sheet the region was drawn on, else the sheet open now.
+            let sheet = match &picked {
+                Some(sel) => sel.sheet.clone(),
+                None => stage.as_ref().and_then(open_sheet),
             };
             let page = web_sys::window()
                 .and_then(|w| w.location().href().ok())
@@ -818,13 +839,16 @@ pub fn annotator(props: &Props) -> Html {
             });
             // The region is spelled out in the text too: an agent reading the
             // queue without the image still learns where on the board to look.
-            let body = match &picked {
+            let mut body = match &picked {
                 Some(sel) => format!(
                     "{typed}\n\n{}",
                     region_text(&sel.region, sel.world, &sel.layers)
                 ),
                 None => typed.clone(),
             };
+            if let Some(sheet) = &sheet {
+                body.push_str(&format!("\nSchematic sheet: {sheet}"));
+            }
             // An annotation is evidence and a request for review, never
             // permission to change the board.
             let mut item = json!({
@@ -837,6 +861,9 @@ pub fn annotator(props: &Props) -> Html {
             });
             if let Some(sel) = &picked {
                 item["context"]["region"] = region_context(&sel.region, sel.world, &sel.layers);
+            }
+            if let Some(sheet) = sheet {
+                item["context"]["sheet"] = sheet.into();
             }
             if let Some(image) = image {
                 item["imageDataUrl"] = image.into();

@@ -16,7 +16,7 @@ use yew::prelude::*;
 
 use crate::api;
 use crate::model_view::ModelView;
-use crate::vector_scene::VectorSceneCanvas;
+use eda_view::components::canvas::VectorSceneCanvas;
 
 const POLL_MS: u32 = 900;
 const KINDS: [(&str, &str); 3] = [
@@ -152,7 +152,7 @@ pub struct LibraryTabProps {
     pub project: AttrValue,
 }
 
-#[function_component(LibraryTab)]
+#[component(LibraryTab)]
 pub fn library_tab(props: &LibraryTabProps) -> Html {
     let data = use_state(|| None::<Rc<LibraryResponse>>);
     let error = use_state(|| None::<String>);
@@ -530,11 +530,11 @@ struct ModalProps {
     onclose: Callback<()>,
 }
 
-#[function_component(LibraryModal)]
+#[component(LibraryModal)]
 fn library_modal(props: &ModalProps) -> Html {
     let view = use_state(|| props.kind.clone());
-    let scene = use_state(|| None::<Rc<vector_view::Scene>>);
-    let selected = use_state(|| None::<vector_view::ItemId>);
+    let scene = use_state(|| None::<Rc<eda_view::vector::Scene>>);
+    let selected = use_state(|| None::<eda_view::vector::ItemId>);
     let failure = use_state(|| None::<String>);
     let part = props.part.clone();
     let states = props.states.clone();
@@ -556,7 +556,7 @@ fn library_modal(props: &ModalProps) -> Html {
                     if let Some(url) = t.as_ref().and_then(|thumb| thumb.scene.clone()) {
                         let task_token = token.clone();
                         spawn_local(async move {
-                            let response = api::get_json::<vector_view::Scene>(&url, "").await;
+                            let response = api::get_json::<eda_view::vector::Scene>(&url, "").await;
                             if !task_token.current() {
                                 return;
                             }

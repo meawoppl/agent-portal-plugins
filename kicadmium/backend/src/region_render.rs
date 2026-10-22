@@ -1,10 +1,10 @@
 //! Deterministic native SVG/PNG region rendering from the workbench scene.
 use anyhow::{bail, Context, Result};
+use eda_view::vector::{Prim, Role, Scene};
 use std::{
     path::{Path, PathBuf},
     process::Command,
 };
-use vector_view::{Prim, Role, Scene};
 #[derive(clap::Args, Debug)]
 pub(crate) struct Args {
     #[arg(long, default_value = ".")]
@@ -56,20 +56,20 @@ fn panel(scene: &Scene, a: &Args, x: f64, label: &str, width: f64, height: f64) 
     let [rx, ry, rw, rh] = a.region.as_slice() else {
         unreachable!()
     };
-    let lettering = kicad_strokes::to_strokes(&kicad_strokes::TextSpec {
+    let lettering = eda_view::strokes::to_strokes(&eda_view::strokes::TextSpec {
         text: label.into(),
         pos: [x + 12., 24.],
         size: [16., 16.],
         thickness: 1.4,
-        justify_h: kicad_strokes::HJustify::Left,
-        justify_v: kicad_strokes::VJustify::Bottom,
+        justify_h: eda_view::strokes::HJustify::Left,
+        justify_v: eda_view::strokes::VJustify::Bottom,
         ..Default::default()
     });
     let mut out=format!("<g stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>{}</title>{}</g><svg x=\"{x}\" y=\"36\" width=\"{width}\" height=\"{height}\" viewBox=\"{rx} {ry} {rw} {rh}\" overflow=\"hidden\"><g stroke-linecap=\"round\" stroke-linejoin=\"round\">",escape(label),primitive(&lettering.into_prim(), "#c0caf5"));
     let mut layers = scene
         .layers
         .iter()
-        .filter(|l| a.layers.contains(&l.name) || l.kind == vector_view::LayerKind::Drill)
+        .filter(|l| a.layers.contains(&l.name) || l.kind == eda_view::vector::LayerKind::Drill)
         .collect::<Vec<_>>();
     layers.sort_by_key(|l| l.z);
     for l in layers {
@@ -93,7 +93,7 @@ fn panel(scene: &Scene, a: &Args, x: f64, label: &str, width: f64, height: f64) 
                 "#e0af68"
             } else {
                 match l.kind {
-                    vector_view::LayerKind::Copper => {
+                    eda_view::vector::LayerKind::Copper => {
                         if l.name.starts_with('B') {
                             "#7aa2f7"
                         } else if l.name.starts_with("In") {
@@ -102,8 +102,8 @@ fn panel(scene: &Scene, a: &Args, x: f64, label: &str, width: f64, height: f64) 
                             "#9ece6a"
                         }
                     }
-                    vector_view::LayerKind::Silkscreen => "#c0caf5",
-                    vector_view::LayerKind::EdgeCuts => "#7dcfff",
+                    eda_view::vector::LayerKind::Silkscreen => "#c0caf5",
+                    eda_view::vector::LayerKind::EdgeCuts => "#7dcfff",
                     _ => "#565f89",
                 }
             };
@@ -222,7 +222,7 @@ mod tests {
     #[test]
     fn writes_native_comparison_without_modifying_sources() {
         let dir = tempfile::tempdir().unwrap();
-        let source = include_str!("../../kicad-strokes/tests/fixtures/pcb_text.kicad_pcb");
+        let source = include_str!("../tests/fixtures/pcb_text.kicad_pcb");
         let board = dir.path().join("board.kicad_pcb");
         let baseline = dir.path().join("before.kicad_pcb");
         std::fs::write(&board, source).unwrap();

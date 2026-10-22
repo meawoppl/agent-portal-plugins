@@ -25,8 +25,10 @@ palette. Its attribution and CC BY 4.0 notice are in the adjacent README.
 
 ## pastebom `eda-view` crate (modules `vector`, `components`, `schematic`, `kicad`, `strokes`, `pcb`, `gerber_view`)
 
-- Source: <https://github.com/meawoppl/pastebom.com>, `crates/eda-view`.
-- One crate at one revision, pinned in the workspace `Cargo.toml` and
+- Source: <https://github.com/meawoppl/pastebom.com>, `crates/eda-view`;
+  published as [`eda-view` on crates.io](https://crates.io/crates/eda-view)
+  (0.1.0, tag `eda-view-v0.1.0`).
+- One crate at one version, set in the workspace `Cargo.toml` and
   `Cargo.lock`, so `eda_view::vector::Scene` is a single type everywhere.
   Each module sits behind a cargo feature; the backend enables `schematic`
   and the frontend `yew` + `gerber-view`.

@@ -29,11 +29,11 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 walkdir = "2"
 zip = { version = "2", default-features = false, features = ["deflate"] }
-# Everything from pastebom.com comes from the single `eda-view` crate at ONE
-# revision, so `eda_view::vector::Scene` is a single type across the backend
+# Everything from pastebom.com comes from the single `eda-view` crate (one
+# version), so `eda_view::vector::Scene` is a single type across the backend
 # and the wasm frontend. Each crate enables only the features it uses: the
 # frontend must never link the parsers or the glyph tables.
-eda-view = { git = "https://github.com/meawoppl/pastebom.com", rev = "a6749f30e2c94e2128b37c9ef222b2ee0608aae2" }
+eda-view = "0.1.0"
 
 # Release profile for the wasm frontend only (frontend/index.html selects it
 # with data-cargo-profile-release). Whole-program LTO at the normal opt-level

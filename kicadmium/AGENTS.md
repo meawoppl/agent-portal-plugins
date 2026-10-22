@@ -18,8 +18,8 @@ https://github.com/meawoppl/single-binary-rust-website:
   `wasm-release` cargo profile (fat LTO, selected in `index.html`) to keep the
   bundle size flat.
 - Schematic and library-symbol scenes come from `eda_view::schematic` (backend
-  only). `eda-view` is the single pastebom dependency, pinned to one git
-  revision in the workspace `Cargo.toml`; each crate enables only the features
+  only). `eda-view` is the single pastebom dependency, one crates.io version in
+  the workspace `Cargo.toml`; each crate enables only the features
   it uses (backend `schematic`, frontend `yew` + `gerber-view`). Never enable
   `kicad`, `strokes` or `schematic` for the frontend: check with
   `cargo tree -p frontend --target wasm32-unknown-unknown -e features`.
